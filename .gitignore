@@ -1,0 +1,32 @@
+# Node modules
+node_modules/
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.env
+
+# Engine binaries (they are large and shouldn't be in git)
+engine/
+*.exe
+*.dll
+*.pb.gz
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Scratch folder
+scratch/
