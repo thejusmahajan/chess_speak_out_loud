@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useReducer } from 'react';
 import { Chessground } from 'chessground';
 import 'chessground/assets/chessground.base.css';
 import 'chessground/assets/chessground.brown.css';
@@ -11,7 +11,7 @@ import { parseFen, INITIAL_FEN, makeFen } from 'chessops/fen';
 import { chessgroundDests } from 'chessops/compat';
 import { parseUci, makeUci } from 'chessops/util';
 import { parsePgn } from 'chessops/pgn';
-import { parseSan } from 'chessops/san';
+import { parseSan, makeSan } from 'chessops/san';
 
 type ChessgroundApi = ReturnType<typeof Chessground>;
 
@@ -29,6 +29,7 @@ type GameState = {
   fen: string;
   pos: Position;
   lastMoveUci: string | null;
+  san: string | null;
   policy: any[];
   saliency: any;
   evalObj: any;
@@ -38,141 +39,118 @@ type GameState = {
 export default function PgnViewer() {
   const boardRef = useRef<HTMLDivElement>(null);
   const cgRef = useRef<ChessgroundApi | null>(null);
-  
+
   const [pgnInput, setPgnInput] = useState(DEFAULT_PGN);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showTop20, setShowTop20] = useState(false);
 
-  // Linear game history for Prev/Next/Branching
+  // Linear game history. gameStates is a ref (mutated in place by async analysis);
+  // currentIndexRef is the source of truth read by the (stable) chessground move
+  // handler; currentIndex mirrors it for JSX. forceRender() re-renders on data updates.
   const gameStates = useRef<GameState[]>([]);
+  const currentIndexRef = useRef(0);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [, forceRender] = useReducer((x) => x + 1, 0);
+  const showTop20Ref = useRef(showTop20);
+  showTop20Ref.current = showTop20;
 
-  // Derive current state from index
+  // Ref for the active move in the panel to enable auto-scrolling
+  const activeMoveRef = useRef<HTMLSpanElement>(null);
+
   const currentState = gameStates.current[currentIndex];
 
-  useEffect(() => {
-    if (!boardRef.current) return;
-    
-    const pos = Chess.default();
-    const initialState: GameState = {
-      fen: INITIAL_FEN,
-      pos: pos,
-      lastMoveUci: null,
-      policy: [],
-      saliency: null,
-      evalObj: null,
-      blunderFlash: false
-    };
-    gameStates.current = [initialState];
-    setCurrentIndex(0);
+  // ---- board + overlay sync helpers ---------------------------------------
 
-    // Initialize chessground
-    const cg = Chessground(boardRef.current, {
-      fen: INITIAL_FEN,
-      movable: {
-        free: false,
-        color: 'both',
-        dests: chessgroundDests(pos),
-        events: { after: handleMove }
-      }
+  const syncBoard = (st: GameState) => {
+    const cg = cgRef.current;
+    if (!cg) return;
+    const lastMove = st.lastMoveUci
+      ? [st.lastMoveUci.substring(0, 2), st.lastMoveUci.substring(2, 4)]
+      : undefined;
+    cg.set({
+      fen: st.fen,
+      turnColor: st.pos.turn,
+      movable: { free: false, color: 'both', dests: chessgroundDests(st.pos) },
+      lastMove: lastMove as any,
     });
-    cgRef.current = cg;
-    
-    // Initial analysis
-    analyzeFen(INITIAL_FEN, null, 0);
+  };
 
-    return () => {
-      cg.destroy();
-    };
-  }, []); // Run once on mount
+  const paintOverlays = (st: GameState | undefined) => {
+    if (!st) return;
+    const policy = showTop20Ref.current ? st.policy : st.policy.slice(0, 5);
+    drawOverlays(st.saliency, policy, st.blunderFlash);
+  };
 
-  // Redraw Overlays when data changes or index changes
-  useEffect(() => {
-    if (currentState) {
-      drawOverlays(
-        currentState.saliency, 
-        showTop20 ? currentState.policy : currentState.policy.slice(0, 5), 
-        currentState.blunderFlash
-      );
+  // Move to a given index: sync the board, redraw overlays, analyze if needed.
+  const goToIndex = (i: number) => {
+    if (i < 0 || i >= gameStates.current.length) return;
+    currentIndexRef.current = i;
+    setCurrentIndex(i);
+    const st = gameStates.current[i];
+    syncBoard(st);
+    if (!st.saliency && st.policy.length === 0) {
+      drawOverlays(null, [], false); // clear stale overlays while analyzing
+      analyzeFen(st.fen, st.lastMoveUci, i);
+    } else {
+      paintOverlays(st);
+      forceRender();
     }
-  }, [currentIndex, currentState?.saliency, currentState?.policy, currentState?.blunderFlash, showTop20]);
+  };
 
-  // Sync chessground with current state when index changes (e.g. Prev/Next)
-  useEffect(() => {
-    if (cgRef.current && currentState) {
-      let lastMove: [string, string] | undefined = undefined;
-      if (currentState.lastMoveUci) {
-        lastMove = [currentState.lastMoveUci.substring(0,2), currentState.lastMoveUci.substring(2,4)];
-      }
-      cgRef.current.set({
-        fen: currentState.fen,
-        turnColor: currentState.pos.turn === 'white' ? 'white' : 'black',
-        movable: { dests: chessgroundDests(currentState.pos) },
-        lastMove: lastMove
-      });
-    }
-  }, [currentIndex]);
+  // ---- user move (stable across renders; reads live state from refs) -------
 
   const handleMove = (orig: string, dest: string) => {
-    if (!cgRef.current || !currentState) return;
-    
+    const cur = gameStates.current[currentIndexRef.current];
+    if (!cgRef.current || !cur) return;
+
     let uci = orig + dest;
-    const piece = currentState.pos.board.get(parseUci(uci)!.from);
-    if (piece && piece.role === 'pawn') {
+    const probe = parseUci(uci);
+    if (probe) {
+      const piece = cur.pos.board.get(probe.from);
       const destRank = dest.charAt(1);
-      if (destRank === '1' || destRank === '8') {
-        uci += 'q'; // Auto promote to queen
+      if (piece && piece.role === 'pawn' && (destRank === '1' || destRank === '8')) {
+        uci += 'q'; // auto-promote to queen (v1)
       }
     }
-    
+
     const move = parseUci(uci);
-    if (!move || !currentState.pos.isLegal(move)) {
-      // Illegal move, snap back
-      cgRef.current.set({ fen: currentState.fen });
+    if (!move || !cur.pos.isLegal(move)) {
+      syncBoard(cur); // illegal -> snap back
       return;
     }
-    
-    // Play move
-    const newPos = currentState.pos.clone();
+
+    const newPos = cur.pos.clone();
+    const san = makeSan(cur.pos, move);
     newPos.play(move);
     const newFen = makeFen(newPos.toSetup());
-    
+
     const newState: GameState = {
       fen: newFen,
       pos: newPos,
       lastMoveUci: uci,
+      san,
       policy: [],
       saliency: null,
       evalObj: null,
-      blunderFlash: false
+      blunderFlash: false,
     };
 
-    // Branching: truncate future history
-    gameStates.current = gameStates.current.slice(0, currentIndex + 1);
+    // Branch: drop any forward history, append, and advance.
+    gameStates.current = gameStates.current.slice(0, currentIndexRef.current + 1);
     gameStates.current.push(newState);
     const newIndex = gameStates.current.length - 1;
+    currentIndexRef.current = newIndex;
     setCurrentIndex(newIndex);
-    
-    // Analyze new position
+
+    syncBoard(newState);
+    drawOverlays(null, [], false); // clear the previous position's arrows immediately
     analyzeFen(newFen, uci, newIndex);
   };
 
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
+  const handlePrev = () => goToIndex(currentIndexRef.current - 1);
+  const handleNext = () => goToIndex(currentIndexRef.current + 1);
 
-  const handleNext = () => {
-    if (currentIndex < gameStates.current.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      // Trigger analysis if it wasn't analyzed yet
-      const nextState = gameStates.current[currentIndex + 1];
-      if (!nextState.saliency && !nextState.policy.length) {
-        analyzeFen(nextState.fen, nextState.lastMoveUci, currentIndex + 1);
-      }
-    }
-  };
+  // ---- analysis ------------------------------------------------------------
 
   const analyzeFen = async (fen: string, uciPlayed: string | null, stateIndex: number) => {
     setIsAnalyzing(true);
@@ -180,156 +158,192 @@ export default function PgnViewer() {
       const res = await fetch('http://127.0.0.1:8000/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fen, multipv: 5 })
+        body: JSON.stringify({ fen, multipv: 5 }),
       });
       const data = await res.json();
-      
+
       const policy = data.policy || [];
       const saliency = data.saliency || null;
       const evalObj = data.evaluation;
-      
+
       let shouldFlash = false;
       if (uciPlayed && stateIndex > 0) {
-        const prevPolicy = gameStates.current[stateIndex - 1].policy;
+        const prevPolicy = gameStates.current[stateIndex - 1]?.policy;
         if (prevPolicy && prevPolicy.length > 0) {
           const bestP = prevPolicy[0].p;
           const playedMove = prevPolicy.find((m: any) => m.uci === uciPlayed);
           const playedP = playedMove ? playedMove.p : 0;
-          if (bestP - playedP > 0.25) {
-            shouldFlash = true;
-          }
+          if (bestP - playedP > 0.25) shouldFlash = true;
         }
       }
-      
-      // Update the specific state
+
       const targetState = gameStates.current[stateIndex];
       if (targetState && targetState.fen === fen) {
         targetState.policy = policy;
         targetState.saliency = saliency;
         targetState.evalObj = evalObj;
         targetState.blunderFlash = shouldFlash;
-        
-        // Force re-render if it's the current state
-        if (stateIndex === currentIndex) {
-          setCurrentIndex(stateIndex); // Trigger effect by setting state to same value? No, React bails out.
-          // We can just call drawOverlays directly to update SVG
-          drawOverlays(saliency, showTop20 ? policy : policy.slice(0, 5), shouldFlash);
-          
-          // And we also want to trigger a re-render for evalObj. We can use a small hack or just 
-          // let the component re-render by cloning the array or using a forceUpdate.
-          gameStates.current = [...gameStates.current]; // trigger re-render if we were to store it in state, but gameStates is a ref.
-          // We can force a re-render by re-setting currentIndex.
-          setCurrentIndex(prev => prev); // This might not re-render.
-          // Better: set a dummy state to force re-render.
-          setForceRender(prev => prev + 1);
+
+        // Only touch the board if this result is still for the visible position.
+        if (stateIndex === currentIndexRef.current) {
+          paintOverlays(targetState);
+          forceRender(); // update eval readout
         }
       }
     } catch (err) {
-      console.error("Analysis failed:", err);
+      console.error('Analysis failed:', err);
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const [forceRender, setForceRender] = useState(0);
+  // ---- PGN load ------------------------------------------------------------
 
   const handleLoadPgn = () => {
     try {
       const games = parsePgn(pgnInput);
       if (games.length === 0) return;
-      
       const game = games[0];
-      const states: GameState[] = [];
-      
+
       let startFen = INITIAL_FEN;
       if (game.headers && game.headers.size > 0) {
-        // Some libraries use Map, some use an array/object. In chessops it's a Map-like or Iterable.
         for (const [key, val] of game.headers.entries()) {
-          if (key.toUpperCase() === 'FEN') {
-             startFen = val;
-          }
+          if (key.toUpperCase() === 'FEN') startFen = val;
         }
       }
-      
+
       let startPos: Position;
       try {
-          const parsedPos = parseFen(startFen).unwrap();
-          startPos = Chess.fromSetup(parsedPos).unwrap();
-      } catch (e) {
-          startPos = Chess.default();
-          startFen = INITIAL_FEN;
+        startPos = Chess.fromSetup(parseFen(startFen).unwrap()).unwrap();
+      } catch {
+        startPos = Chess.default();
+        startFen = INITIAL_FEN;
       }
-      
-      states.push({
-        fen: makeFen(startPos.toSetup()),
-        pos: startPos.clone(),
-        lastMoveUci: null,
-        policy: [],
-        saliency: null,
-        evalObj: null,
-        blunderFlash: false
-      });
-      
-      let currentNode = game.moves;
-      let currentPos = startPos;
-      
-      while (currentNode.children && currentNode.children.length > 0) {
-        const child = currentNode.children[0];
-        const sanStr = child.data.san;
-        
-        const move = parseSan(currentPos, sanStr);
-        if (!move) break;
-        
-        currentPos = currentPos.clone();
-        currentPos.play(move);
-        const fen = makeFen(currentPos.toSetup());
-        const uci = makeUci(move);
-        
-        states.push({
-          fen: fen,
-          pos: currentPos,
-          lastMoveUci: uci,
+
+      const states: GameState[] = [
+        {
+          fen: makeFen(startPos.toSetup()),
+          pos: startPos.clone(),
+          lastMoveUci: null,
+          san: null,
           policy: [],
           saliency: null,
           evalObj: null,
-          blunderFlash: false
+          blunderFlash: false,
+        },
+      ];
+
+      let node = game.moves;
+      let pos = startPos;
+      while (node.children && node.children.length > 0) {
+        const child = node.children[0];
+        const move = parseSan(pos, child.data.san);
+        if (!move) break;
+        pos = pos.clone();
+        const san = makeSan(pos, move);
+        pos.play(move);
+        states.push({
+          fen: makeFen(pos.toSetup()),
+          pos,
+          lastMoveUci: makeUci(move),
+          san,
+          policy: [],
+          saliency: null,
+          evalObj: null,
+          blunderFlash: false,
         });
-        
-        currentNode = child;
+        node = child;
       }
-      
+
       gameStates.current = states;
+      currentIndexRef.current = 0;
       setCurrentIndex(0);
+      syncBoard(states[0]);
+      drawOverlays(null, [], false);
       analyzeFen(states[0].fen, null, 0);
-      
     } catch (err) {
-      console.error("Invalid PGN:", err);
+      console.error('Invalid PGN:', err);
     }
   };
+
+  // ---- mount ---------------------------------------------------------------
+
+  useEffect(() => {
+    if (!boardRef.current) return;
+
+    const pos = Chess.default();
+    gameStates.current = [
+      {
+        fen: INITIAL_FEN,
+        pos,
+        lastMoveUci: null,
+        san: null,
+        policy: [],
+        saliency: null,
+        evalObj: null,
+        blunderFlash: false,
+      },
+    ];
+    currentIndexRef.current = 0;
+    setCurrentIndex(0);
+
+    const cg = Chessground(boardRef.current, {
+      fen: INITIAL_FEN,
+      movable: {
+        free: false,
+        color: 'both',
+        dests: chessgroundDests(pos),
+        events: { after: handleMove }, // stable: reads live state via refs
+      },
+    });
+    cgRef.current = cg;
+
+    analyzeFen(INITIAL_FEN, null, 0);
+
+    return () => {
+      cg.destroy();
+      cgRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    paintOverlays(gameStates.current[currentIndexRef.current]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showTop20]);
+
+  // Auto-scroll the active move into view when currentIndex changes
+  useEffect(() => {
+    if (activeMoveRef.current) {
+      activeMoveRef.current.scrollIntoView({ block: 'nearest' });
+    }
+  }, [currentIndex]);
+
+  // ---- overlay rendering (direct SVG on the board) -------------------------
 
   const drawOverlays = (saliency: any, policy: any[], flash: boolean) => {
     if (!boardRef.current) return;
     const cgBoard = boardRef.current.querySelector('cg-board');
     if (!cgBoard) return;
-    
+
     const isBlack = cgRef.current?.state.orientation === 'black';
-    
-    let svg = cgBoard.querySelector('.neural-overlay');
+
+    let svg = cgBoard.querySelector('.neural-overlay') as SVGSVGElement | null;
     if (!svg) {
       svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.classList.add('neural-overlay');
-      (svg as SVGElement).style.position = 'absolute';
-      (svg as SVGElement).style.top = '0';
-      (svg as SVGElement).style.left = '0';
-      (svg as SVGElement).style.width = '100%';
-      (svg as SVGElement).style.height = '100%';
-      (svg as SVGElement).style.pointerEvents = 'none';
-      (svg as SVGElement).style.zIndex = '50';
+      svg.style.position = 'absolute';
+      svg.style.top = '0';
+      svg.style.left = '0';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.pointerEvents = 'none';
+      svg.style.zIndex = '50';
       cgBoard.appendChild(svg);
     }
-    
+
     svg.innerHTML = '';
-    
+
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
     marker.setAttribute('id', 'arrowhead');
@@ -338,7 +352,7 @@ export default function PgnViewer() {
     marker.setAttribute('refX', '2');
     marker.setAttribute('refY', '2');
     marker.setAttribute('orient', 'auto');
-    
+
     const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     polygon.setAttribute('points', '0 0, 4 2, 0 4');
     polygon.setAttribute('fill', '#00ffcc');
@@ -363,7 +377,7 @@ export default function PgnViewer() {
           circle.setAttribute('cx', coords.x + '%');
           circle.setAttribute('cy', coords.y + '%');
           circle.setAttribute('r', '6.25%');
-          
+
           const gradId = 'glow-' + sq;
           const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
           grad.setAttribute('id', gradId);
@@ -372,7 +386,7 @@ export default function PgnViewer() {
               <stop offset="100%" stop-color="rgba(${color}, 0)" />
           `;
           defs.appendChild(grad);
-          
+
           circle.setAttribute('fill', `url(#${gradId})`);
           svg.appendChild(circle);
         }
@@ -385,10 +399,10 @@ export default function PgnViewer() {
         const toSq = move.to;
         const p = move.p;
         if (!fromSq || !toSq || p < 0.01) continue;
-        
+
         const fromCoords = getCoords(fromSq);
         const toCoords = getCoords(toSq);
-        
+
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         line.setAttribute('x1', fromCoords.x + '%');
         line.setAttribute('y1', fromCoords.y + '%');
@@ -402,16 +416,25 @@ export default function PgnViewer() {
     }
   };
 
+  // ---- render --------------------------------------------------------------
+
   return (
     <div className="pgn-viewer-container">
-      <div className="board-section glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div
+        className="board-section glass-panel"
+        style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+      >
         <div ref={boardRef} style={{ width: '500px', height: '500px' }} className="cg-board-wrap" />
-        
+
         <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
           <button className="load-btn" onClick={handlePrev} disabled={currentIndex === 0}>
             Take-back / Prev
           </button>
-          <button className="load-btn" onClick={handleNext} disabled={currentIndex === gameStates.current.length - 1}>
+          <button
+            className="load-btn"
+            onClick={handleNext}
+            disabled={currentIndex >= gameStates.current.length - 1}
+          >
             Next
           </button>
         </div>
@@ -419,39 +442,74 @@ export default function PgnViewer() {
 
       <div className="input-section glass-panel">
         <h2>Neural Vision</h2>
-        
+
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-            <input 
-              type="checkbox" 
-              checked={showTop20} 
-              onChange={e => setShowTop20(e.target.checked)} 
-            />
+            <input type="checkbox" checked={showTop20} onChange={(e) => setShowTop20(e.target.checked)} />
             Show Top 20 Arrows
           </label>
-          
+
           {isAnalyzing && <span style={{ color: '#00ffcc', fontSize: '14px' }}>Analyzing...</span>}
         </div>
-        
+
         {currentState?.evalObj && (
           <div style={{ marginBottom: '15px', padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px' }}>
             <strong>Evaluation: </strong>
             <span style={{ color: currentState.evalObj.value > 0 ? '#00ffcc' : '#ff3366', fontWeight: 'bold' }}>
-              {currentState.evalObj.type === 'mate' ? `M${currentState.evalObj.value}` : (currentState.evalObj.value / 100).toFixed(2)}
+              {currentState.evalObj.type === 'mate'
+                ? `M${currentState.evalObj.value}`
+                : (currentState.evalObj.value / 100).toFixed(2)}
             </span>
           </div>
         )}
 
-        <textarea 
+        <textarea
           value={pgnInput}
           onChange={(e) => setPgnInput(e.target.value)}
           placeholder="Paste PGN here..."
           style={{ height: '200px' }}
         />
-        
+
         <button className="load-btn" onClick={handleLoadPgn}>
           Load Game
         </button>
+
+        <div className="move-list-panel">
+          {(() => {
+            const moves = [];
+            // Skip the start state (index 0)
+            for (let i = 1; i < gameStates.current.length; i += 2) {
+              const moveNum = Math.ceil(i / 2);
+              const wState = gameStates.current[i];
+              const bState = i + 1 < gameStates.current.length ? gameStates.current[i + 1] : null;
+
+              moves.push(
+                <div key={i} className="move-row">
+                  <span className="move-number">{moveNum}.</span>
+                  <span
+                    className={`move-san ${currentIndex === i ? 'active-move' : ''}`}
+                    onClick={() => goToIndex(i)}
+                    ref={currentIndex === i ? activeMoveRef : null}
+                  >
+                    {wState.san}
+                  </span>
+                  {bState ? (
+                    <span
+                      className={`move-san ${currentIndex === i + 1 ? 'active-move' : ''}`}
+                      onClick={() => goToIndex(i + 1)}
+                      ref={currentIndex === i + 1 ? activeMoveRef : null}
+                    >
+                      {bState.san}
+                    </span>
+                  ) : (
+                    <span className="move-san empty"></span>
+                  )}
+                </div>
+              );
+            }
+            return moves;
+          })()}
+        </div>
 
         {currentState?.fen && (
           <div style={{ marginTop: '15px', fontSize: '12px', color: '#ccc', wordBreak: 'break-all' }}>

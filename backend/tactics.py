@@ -40,5 +40,4 @@ class MotifDetector:
             
         except Exception as e:
             # If there's an issue with the PV (illegal moves, etc.), fail gracefully
-            print(f"Error in Lichess tagger: {e}")
             return set()
