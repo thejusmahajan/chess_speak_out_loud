@@ -1,48 +1,133 @@
 """
 Neural Vision implementation.
-Fallback mode: 'policy_fallback'
-(Genuine lczerolens extraction is blocked by Windows Store Python 3.9 / Torch compatibility).
+Retrieves real transformer encoder attention saliency from lczerolens via ONNX.
 """
 import logging
-from typing import Dict
+import os
+import tempfile
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 class NeuralVision:
-    def __init__(self, weights_path: str):
-        self.weights_path = weights_path
-        logger.warning("Initializing NeuralVision in fallback mode due to lczerolens blocker.")
+    def __init__(self, onnx_path: str):
+        self.mode = "policy_fallback"
+        self.model = None
+        self._attn_module_names = [
+            f"module.encoder{i}/mha/QK/softmax" for i in range(15)
+        ]
+        
+        try:
+            import torch
+            import lczerolens
+            from lczerolens import LczeroModel
+
+            # Monkey patch for Windows NamedTemporaryFile issue inside onnx2torch
+            import lczerolens.model
+            original_safe = lczerolens.model.safe_shape_inference
+            def patched_safe_shape_inference(onnx_model_or_path, **kwargs):
+                if not isinstance(onnx_model_or_path, (str, os.PathLike)):
+                    return original_safe(onnx_model_or_path, **kwargs)
+                fd, path = tempfile.mkstemp(dir=Path(onnx_model_or_path).parent)
+                os.close(fd)
+                try:
+                    import onnx2torch.utils.safe_shape_inference as ssi
+                    res = ssi._shape_inference_by_model_path(onnx_model_or_path, output_path=path, **kwargs)
+                    return res
+                finally:
+                    try: os.remove(path)
+                    except OSError: pass
+            lczerolens.model.safe_shape_inference = patched_safe_shape_inference
+
+            self.model = LczeroModel.from_onnx_path(onnx_path)
+            self.model.eval()
+            self.mode = "attention"
+            logger.info("NeuralVision loaded BT3 ONNX in attention mode.")
+        except Exception as exc:
+            logger.warning("NeuralVision attention unavailable (%s) — policy_fallback", exc)
 
     def is_available(self) -> bool:
-        # Fallback is always available
         return True
-
-    def saliency(self, fen: str, policy_dist: list[dict] = None) -> dict[str, float]:
-        """
-        Derive a saliency proxy by aggregating Phase-1 policy priors onto squares.
-        Returns {square_name: score in [0,1]} for all 64 squares.
-        """
-        saliency_map = {f"{f}{r}": 0.0 for f in "abcdefgh" for r in "12345678"}
         
+    def saliency(self, fen: str, policy_dist: list[dict] = None) -> dict[str, float]:
+        if self.mode == "attention" and self.model is not None:
+            try:
+                return self._attention_saliency(fen)
+            except Exception as exc:
+                logger.error("attention saliency failed (%s) — fallback", exc)
+        return self._policy_fallback(fen, policy_dist)
+
+    def _attention_saliency(self, fen: str) -> dict[str, float]:
+        import torch
+        from lczerolens import LczeroBoard
+        
+        attention_tensors = []
+        
+        def hook_fn(module, inp, out):
+            t = out[0] if isinstance(out, (tuple, list)) else out
+            attention_tensors.append(t.detach())
+            
+        hooks = []
+        for name, mod in self.model.named_modules():
+            if name in self._attn_module_names:
+                hooks.append(mod.register_forward_hook(hook_fn))
+                
+        board = LczeroBoard(fen)
+        with torch.no_grad():
+            self.model(board)
+            
+        for h in hooks:
+            h.remove()
+            
+        if not attention_tensors:
+            raise RuntimeError("No attention tensors captured")
+            
+        # attention_tensors has tensors of shape [batch, heads, 64, 64]
+        stacked = torch.stack(attention_tensors)
+        
+        # Average over layers (0) and heads (2) and batch (1)
+        # shape [15, 1, 24, 64, 64] -> mean(0,1,2) -> [64, 64]
+        avg_attn = stacked.mean(dim=(0, 1, 2))
+        
+        # We want the attention *received* per square (source),
+        # so we average over the queries (axis=0).
+        saliency_vec = avg_attn.mean(dim=0)
+        
+        # Normalize to [0,1]
+        max_val = saliency_vec.max()
+        min_val = saliency_vec.min()
+        if max_val > min_val:
+            saliency_vec = (saliency_vec - min_val) / (max_val - min_val)
+        else:
+            saliency_vec = torch.zeros_like(saliency_vec)
+            
+        saliency_vec = saliency_vec.tolist()
+        
+        saliency_map = {}
+        files = "abcdefgh"
+        ranks = "12345678"
+        
+        # LC0 token 0 is a1 from White's view
+        for i in range(64):
+            rank_idx = i // 8
+            file_idx = i % 8
+            sq = f"{files[file_idx]}{ranks[rank_idx]}"
+            saliency_map[sq] = saliency_vec[i]
+            
+        return saliency_map
+
+    def _policy_fallback(self, fen: str, policy_dist: list[dict] = None) -> dict[str, float]:
+        # Sum each move's p onto its from and to squares
+        saliency_map = {f"{f}{r}": 0.0 for f in "abcdefgh" for r in "12345678"}
         if not policy_dist:
             return saliency_map
-            
-        # Sum each move's p onto its from and to squares
         for move in policy_dist:
             p = move.get("p", 0.0)
             frm = move.get("from")
             to = move.get("to")
-            
-            if frm in saliency_map:
-                saliency_map[frm] += p
-            if to in saliency_map:
-                saliency_map[to] += p
-                
-        # Normalize to [0,1]
+            if frm in saliency_map: saliency_map[frm] += p
+            if to in saliency_map: saliency_map[to] += p
         max_val = max(saliency_map.values()) if saliency_map else 0.0
-                
         if max_val > 0:
-            for sq in saliency_map:
-                saliency_map[sq] /= max_val
-                
+            for sq in saliency_map: saliency_map[sq] /= max_val
         return saliency_map

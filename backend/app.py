@@ -53,7 +53,7 @@ logging.basicConfig(level=logging.INFO)
 lc0_engine = LC0Engine(
     engine_path=str(ENGINE_DIR / "lc0.exe"),
 )
-neural_vision = NeuralVision(weights_path=str(ENGINE_DIR / "791556.pb.gz"))
+neural_vision = NeuralVision(onnx_path=str(ENGINE_DIR / "bt3.onnx"))
 
 
 # ------------------------------------------------------------------
@@ -257,7 +257,7 @@ async def analyze(request: AnalyzeRequest):
         "projected_heatmaps": projected_heatmaps,
         "policy": policy_dist[:20],
         "saliency": saliency,
-        "saliency_source": "policy_fallback"
+        "saliency_source": neural_vision.mode
     }
 
 
