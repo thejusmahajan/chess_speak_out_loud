@@ -394,11 +394,17 @@ export default function PgnViewer() {
     }
 
     if (policy && policy.length > 0) {
+      const pMax = Math.max(...policy.map((m: any) => m.p ?? 0)) || 1;
+
       for (const move of policy) {
         const fromSq = move.from;
         const toSq = move.to;
         const p = move.p;
         if (!fromSq || !toSq || p < 0.01) continue;
+
+        const ratio = Math.min(1, p / pMax);
+        const width = 0.6 + ratio * 4.4;
+        const opacity = 0.25 + ratio * 0.75;
 
         const fromCoords = getCoords(fromSq);
         const toCoords = getCoords(toSq);
@@ -408,10 +414,31 @@ export default function PgnViewer() {
         line.setAttribute('y1', fromCoords.y + '%');
         line.setAttribute('x2', toCoords.x + '%');
         line.setAttribute('y2', toCoords.y + '%');
-        line.setAttribute('stroke', `rgba(0, 255, 204, ${Math.max(0.2, p)})`);
-        line.setAttribute('stroke-width', Math.max(1, p * 4) + '%');
+        line.setAttribute('stroke', `rgba(0, 255, 204, ${opacity})`);
+        line.setAttribute('stroke-width', width + '%');
         line.setAttribute('marker-end', 'url(#arrowhead)');
         svg.appendChild(line);
+
+        // Numeric % labels only if top 20 is off to avoid clutter, or if ratio is very high
+        if (!showTop20Ref.current && ratio >= 0.15) {
+          const textX = fromCoords.x + (toCoords.x - fromCoords.x) * 0.7;
+          const textY = fromCoords.y + (toCoords.y - fromCoords.y) * 0.7;
+          
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', textX + '%');
+          text.setAttribute('y', textY + '%');
+          text.setAttribute('fill', '#fff');
+          text.setAttribute('font-size', '3.5%');
+          text.setAttribute('font-family', 'sans-serif');
+          text.setAttribute('font-weight', 'bold');
+          text.setAttribute('text-anchor', 'middle');
+          text.setAttribute('alignment-baseline', 'middle');
+          text.setAttribute('paint-order', 'stroke');
+          text.setAttribute('stroke', '#000');
+          text.setAttribute('stroke-width', '0.6%');
+          text.textContent = Math.round(p * 100) + '%';
+          svg.appendChild(text);
+        }
       }
     }
   };
