@@ -236,6 +236,9 @@ async def analyze(request: AnalyzeRequest):
             "wdl": m.get("wdl")
         })
 
+    # Get Policy Priors (Phase 1)
+    policy_dist = await lc0_engine.get_policy_distribution(fen, nodes=1)
+
     return {
         "fen": fen,
         "evaluation": eval_obj,
@@ -246,7 +249,8 @@ async def analyze(request: AnalyzeRequest):
             "observations": concepts.get("observations", [])
         },
         "heatmaps": heatmaps,
-        "projected_heatmaps": projected_heatmaps
+        "projected_heatmaps": projected_heatmaps,
+        "policy": policy_dist[:20]
     }
 
 

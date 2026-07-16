@@ -11,6 +11,7 @@ import logging
 import os
 from pathlib import Path
 from typing import Optional
+import re
 
 import chess
 import chess.engine
@@ -76,7 +77,9 @@ class LC0Engine:
             # Build UCI options
             uci_options: dict = {
                 "UCI_ShowWDL": True,
-                "PerPVCounters": True
+                "PerPVCounters": True,
+                "RamLimitMb": 2048,
+                "NNCacheSize": 200000
             }
             if self.weights_path and self.weights_path.exists():
                 uci_options["WeightsFile"] = str(self.weights_path)
@@ -118,6 +121,66 @@ class LC0Engine:
     # ------------------------------------------------------------------
     # Query
     # ------------------------------------------------------------------
+
+    async def get_policy_distribution(self, fen: str, nodes: int = 1) -> list[dict]:
+        """
+        Return LC0's raw policy-head distribution for a position.
+        Each entry: {"uci","san","from","to","p","q","n","wdl"}
+        Sorted descending by p. p is a float in [0,1] (fraction, not percent).
+        Returns [] in mock mode.
+        """
+        if self.mock_mode or self.engine is None:
+            return []
+
+        async with self._lock:
+            try:
+                await self.engine.configure({'VerboseMoveStats': True})
+                board = chess.Board(fen)
+                policies = []
+                
+                # regex to match: e2e4  (322 ) N:       0 (+ 0) (P: 22.22%) ...
+                pattern = re.compile(r'^([a-h][1-8][a-h][1-8][qrbn]?)\s+.*?N:\s*(\d+).*?\(P:\s*([\d.]+)%\)')
+                
+                with await self.engine.analysis(board, chess.engine.Limit(nodes=nodes)) as analysis:
+                    async for info in analysis:
+                        if 'string' in info:
+                            line = info['string']
+                            if line.startswith('node'):
+                                continue
+                                
+                            m = pattern.search(line)
+                            if m:
+                                uci_str = m.group(1)
+                                n_val = int(m.group(2))
+                                p_pct = float(m.group(3))
+                                
+                                try:
+                                    move = chess.Move.from_uci(uci_str)
+                                    san_str = board.san(move)
+                                except Exception:
+                                    san_str = uci_str
+                                    
+                                policies.append({
+                                    "uci": uci_str,
+                                    "san": san_str,
+                                    "from": uci_str[:2],
+                                    "to": uci_str[2:4],
+                                    "p": p_pct / 100.0,
+                                    "q": 0.0,
+                                    "n": n_val,
+                                    "wdl": None
+                                })
+                
+                # Restore setting
+                await self.engine.configure({'VerboseMoveStats': False})
+                
+                # Sort descending by p
+                policies.sort(key=lambda x: x['p'], reverse=True)
+                return policies
+
+            except Exception as exc:
+                logger.error("Failed to get policy distribution: %s", exc)
+                return []
 
     def is_available(self) -> bool:
         """Return True if a real engine connection is active."""
