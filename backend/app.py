@@ -25,6 +25,7 @@ load_dotenv()
 
 import chess
 from backend.engine_manager import LC0Engine
+from backend.neural_vision import NeuralVision
 from backend.heatmap import generate_all_heatmaps
 from backend.concept_mapper import analyze_position
 from backend.mock_data import get_coach_summary
@@ -52,6 +53,7 @@ logging.basicConfig(level=logging.INFO)
 lc0_engine = LC0Engine(
     engine_path=str(ENGINE_DIR / "lc0.exe"),
 )
+neural_vision = NeuralVision(weights_path=str(ENGINE_DIR / "791556.pb.gz"))
 
 
 # ------------------------------------------------------------------
@@ -239,6 +241,9 @@ async def analyze(request: AnalyzeRequest):
     # Get Policy Priors (Phase 1)
     policy_dist = await lc0_engine.get_policy_distribution(fen, nodes=1)
 
+    # Get Neural Vision / Saliency (Phase 2)
+    saliency = neural_vision.saliency(fen, policy_dist=policy_dist)
+
     return {
         "fen": fen,
         "evaluation": eval_obj,
@@ -250,7 +255,9 @@ async def analyze(request: AnalyzeRequest):
         },
         "heatmaps": heatmaps,
         "projected_heatmaps": projected_heatmaps,
-        "policy": policy_dist[:20]
+        "policy": policy_dist[:20],
+        "saliency": saliency,
+        "saliency_source": "policy_fallback"
     }
 
 
