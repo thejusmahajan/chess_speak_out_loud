@@ -30,3 +30,6 @@ Thumbs.db
 
 # Scratch folder
 scratch/
+
+# Large binaries
+*.whl
