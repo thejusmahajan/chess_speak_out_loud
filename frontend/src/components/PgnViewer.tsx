@@ -403,7 +403,7 @@ export default function PgnViewer() {
         if (!fromSq || !toSq || p < 0.01) continue;
 
         const ratio = Math.min(1, p / pMax);
-        const width = 0.6 + ratio * 4.4;
+        const width = 0.45 + ratio * 3.3; // Reduced by 25% to prevent overflow
         const opacity = 0.25 + ratio * 0.75;
 
         const fromCoords = getCoords(fromSq);
@@ -428,14 +428,14 @@ export default function PgnViewer() {
           text.setAttribute('x', textX + '%');
           text.setAttribute('y', textY + '%');
           text.setAttribute('fill', '#fff');
-          text.setAttribute('font-size', '3.5%');
+          text.setAttribute('font-size', '2.6%'); // Reduced by 25%
           text.setAttribute('font-family', 'sans-serif');
           text.setAttribute('font-weight', 'bold');
           text.setAttribute('text-anchor', 'middle');
           text.setAttribute('alignment-baseline', 'middle');
           text.setAttribute('paint-order', 'stroke');
           text.setAttribute('stroke', '#000');
-          text.setAttribute('stroke-width', '0.6%');
+          text.setAttribute('stroke-width', '0.45%'); // Reduced by 25%
           text.textContent = Math.round(p * 100) + '%';
           svg.appendChild(text);
         }
