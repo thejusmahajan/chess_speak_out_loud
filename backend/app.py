@@ -35,6 +35,7 @@ from backend.llm_client import generate_conversation
 # ------------------------------------------------------------------
 
 VERSION = "0.1.0"
+LLM_ENABLED = False  # Aim: bypass all text-generation. Keep code dormant, never call at runtime.
 
 BACKEND_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BACKEND_DIR.parent
@@ -112,7 +113,7 @@ class AnalyzeRequest(BaseModel):
     depth: Optional[int] = Field(default=None, ge=1, le=100)
     multipv: int = Field(default=3, ge=1, le=10)
     time_limit: float = Field(default=2.0, ge=0.1, le=300.0)
-    llm_model: Optional[str] = "gemini-3.5-flash"
+    # llm_model: Optional[str] = "gemini-3.5-flash"  # Disabled
 
 
 class PGNRequest(BaseModel):
@@ -207,11 +208,10 @@ async def analyze(request: AnalyzeRequest):
     # Generate concept analysis
     concepts = analyze_position(fen, engine_analysis=engine_result)
 
-    # Try to get a hand-crafted coach summary (mock positions)
-    coach_summary = get_coach_summary(fen)
-    if coach_summary is None:
-        # Generate dynamic conversation using LLM
-        coach_summary = await generate_conversation(fen, engine_result, concepts, heatmaps, projected_heatmaps, llm_model=request.llm_model)
+    # LLM text-generation bypassed (Phase 0)
+    # coach_summary = get_coach_summary(fen)
+    # if coach_summary is None:
+    #     coach_summary = await generate_conversation(...)
 
     # Format evaluation for frontend
     raw_eval = engine_result.get("evaluation", 0)
@@ -243,7 +243,6 @@ async def analyze(request: AnalyzeRequest):
         "nodes": engine_result.get("nodes"),
         "wdl": engine_result.get("wdl"),
         "interpretation": {
-            "summary": coach_summary,
             "observations": concepts.get("observations", [])
         },
         "heatmaps": heatmaps,
@@ -279,6 +278,18 @@ async def play_move(request: AnalyzeRequest):
         "fen": fen,
         "best_move": best_move
     }
+
+
+@app.get("/api/live-game")
+async def live_game():
+    """
+    Returns the FEN of the ongoing self-play match.
+    Reads from scratch/live_game_fen.txt
+    """
+    fen_file = PROJECT_DIR / "scratch" / "live_game_fen.txt"
+    if fen_file.exists():
+        return {"fen": fen_file.read_text().strip()}
+    return {"fen": None}
 
 
 @app.post("/api/analyze-pgn")
