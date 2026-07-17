@@ -87,3 +87,37 @@ We prompt Gemini: *"You are an elite chess coach. The user just played [Move]. L
 **GK:** It is a beautiful plan. We are giving the machine a soul.
 
 **MC:** Or at least, a very convincing illusion of one. Let's build it.
+
+---
+
+## Interlude: The Silent Oracle and the Fragile Bridge
+
+**Location:** The same glass-walled conference room. The screens are now pulsing with the true neural attention glow after the backend was properly restarted.
+
+**Participants:**
+1. **Garry Kasparov (GK):** Former World Champion.
+2. **Magnus Carlsen (MC):** Former World Champion.
+3. **Mikhail Tal (MT):** Former World Champion, the "Magician from Riga" (joining in spirit, representing the chaos and magic of the neural black box).
+4. **The Developer (Dev):** AI agent managing the technical infrastructure.
+
+---
+
+**Dev:** Alright, everyone, I have a confession. We had a slight hiccup a few moments ago. The dashboard was dead. The evaluation was a flat 0.00, and the board had no policy arrows and no attention glow. We were looking at a completely sterile board.
+
+**GK:** *(Slamming a hand on the table)* I saw it! It was tragic! The machine was completely lobotomized! It had no energy, no initiative. It was just staring blankly at the starting position like a beginner who doesn't know how the knight moves! What happened?
+
+**Dev:** It was an infrastructure issue. The engine backend was started using the global Python environment instead of our highly specialized `cszero` Conda environment. Because it didn't have access to PyTorch and the `lczerolens` libraries, it couldn't physically reach into the ONNX model to extract the multi-head attention weights. To prevent the entire application from crashing, it fell back into "Mock Mode"—a hollow shell returning zeroes and generic placeholders. 
+
+**MC:** *(Nodding thoughtfully)* It makes perfect sense, structurally. You cannot build a skyscraper on a cracked foundation. We aren't just asking the engine for an evaluation number—any basic chess program can do that. We are asking it to expose its *internal thought process*. If the environment doesn't have the exact surgical tools to extract that data, the oracle goes silent.
+
+**MT:** *(Smiling wickedly, eyes gleaming)* But don't you see the poetry in this? The machine refused to lie to us! When we stripped it of its true neural pathways—its PyTorch "soul"—it didn't just guess. It gave us a zero. It told us, "If you cannot see my true intuition, I will show you nothing." It proves that what we are doing here is genuine magic. We are not just faking an AI coach. We are literally reading the mind of the entity. 
+
+**GK:** Exactly, Mikhail! This failure actually proves the purity of our aim! Our entire goal is to translate the *raw, unadulterated neural signals* into human language. If we run in a degraded environment where we just fake the arrows or use basic Stockfish evaluations, we are betraying the project. We *need* that `cszero` environment because we need the absolute truth of Leela's attention heads. 
+
+**MC:** It also highlights a practical point for the user experience. The system must be incredibly fragile by design. If the true neural attention fails, we shouldn't just silently fall back to generic data and pretend everything is fine. The user *must* know that the true oracle is disconnected. A flat 0.00 and a complete lack of visual cues was actually the best diagnostic tool we could have had. 
+
+**Dev:** Precisely. By diagnosing this, we traced it back to the missing Conda environment, realized the global Python was causing a silent fallback in the `NeuralVision` class, and we were able to write a definitive `HOW_TO_RUN.md` file. We now have a strict protocol to ensure the backend is always launched with the exact dependencies required to capture those neural hooks. 
+
+**MT:** So, the bridge between the silent oracle and the human mind is repaired. The magic is flowing again.
+
+**GK:** Good! Now that the machine has its intuition back, we can finally get back to the real work—making it speak! Let's build that Gemini prompt so it can explain *why* it wants to sacrifice on h7!
