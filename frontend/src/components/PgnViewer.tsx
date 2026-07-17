@@ -32,6 +32,7 @@ type GameState = {
   san: string | null;
   policy: any[];
   saliency: any;
+  calcSaliency: any;
   evalObj: any;
   blunderFlash: boolean;
 };
@@ -43,6 +44,9 @@ export default function PgnViewer() {
   const [pgnInput, setPgnInput] = useState(DEFAULT_PGN);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showTop20, setShowTop20] = useState(false);
+  const [thinkSeconds, setThinkSeconds] = useState(2); // LC0 time budget per analysis (seconds)
+  const [glowMode, setGlowMode] = useState<'intuition' | 'calculation'>('intuition');
+  const [calcLoading, setCalcLoading] = useState(false);
 
   // Linear game history. gameStates is a ref (mutated in place by async analysis);
   // currentIndexRef is the source of truth read by the (stable) chessground move
@@ -53,6 +57,8 @@ export default function PgnViewer() {
   const [, forceRender] = useReducer((x) => x + 1, 0);
   const showTop20Ref = useRef(showTop20);
   showTop20Ref.current = showTop20;
+  const thinkSecondsRef = useRef(thinkSeconds);
+  thinkSecondsRef.current = thinkSeconds;
 
   // Ref for the active move in the panel to enable auto-scrolling
   const activeMoveRef = useRef<HTMLSpanElement>(null);
@@ -78,8 +84,13 @@ export default function PgnViewer() {
   const paintOverlays = (st: GameState | undefined) => {
     if (!st) return;
     const policy = showTop20Ref.current ? st.policy : st.policy.slice(0, 5);
-    drawOverlays(st.saliency, policy, st.blunderFlash);
+    const glow = glowMode === 'calculation' && st.calcSaliency ? st.calcSaliency : st.saliency;
+    drawOverlays(glow, policy, st.blunderFlash);
   };
+
+  useEffect(() => {
+    paintOverlays(gameStates.current[currentIndexRef.current]);
+  }, [glowMode]);
 
   // Move to a given index: sync the board, redraw overlays, analyze if needed.
   const goToIndex = (i: number) => {
@@ -105,7 +116,7 @@ export default function PgnViewer() {
 
     let uci = orig + dest;
     const probe = parseUci(uci);
-    if (probe) {
+    if (probe && 'from' in probe) {
       const piece = cur.pos.board.get(probe.from);
       const destRank = dest.charAt(1);
       if (piece && piece.role === 'pawn' && (destRank === '1' || destRank === '8')) {
@@ -131,6 +142,7 @@ export default function PgnViewer() {
       san,
       policy: [],
       saliency: null,
+      calcSaliency: null,
       evalObj: null,
       blunderFlash: false,
     };
@@ -152,13 +164,22 @@ export default function PgnViewer() {
 
   // ---- analysis ------------------------------------------------------------
 
-  const analyzeFen = async (fen: string, uciPlayed: string | null, stateIndex: number) => {
+  const analyzeFen = async (
+    fen: string,
+    uciPlayed: string | null,
+    stateIndex: number,
+    timeOverride?: number,
+  ) => {
     setIsAnalyzing(true);
     try {
       const res = await fetch('http://127.0.0.1:8000/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fen, multipv: 5 }),
+        body: JSON.stringify({
+          fen,
+          multipv: 5,
+          time_limit: timeOverride ?? thinkSecondsRef.current,
+        }),
       });
       const data = await res.json();
 
@@ -197,6 +218,31 @@ export default function PgnViewer() {
     }
   };
 
+  const computeCalcGlow = async () => {
+    const st = gameStates.current[currentIndexRef.current];
+    if (!st) return;
+    setCalcLoading(true);
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/calculation-glow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fen: st.fen, multipv: 3, time_limit: 5 }),
+      });
+      const data = await res.json();
+      const target = gameStates.current[currentIndexRef.current];
+      if (target && target.fen === st.fen) {
+        target.calcSaliency = data.calculation_saliency || null;
+        setGlowMode('calculation');
+        paintOverlays(target);
+        forceRender();
+      }
+    } catch (err) {
+      console.error('Calculation glow failed:', err);
+    } finally {
+      setCalcLoading(false);
+    }
+  };
+
   // ---- PGN load ------------------------------------------------------------
 
   const handleLoadPgn = () => {
@@ -228,6 +274,7 @@ export default function PgnViewer() {
           san: null,
           policy: [],
           saliency: null,
+          calcSaliency: null,
           evalObj: null,
           blunderFlash: false,
         },
@@ -249,6 +296,7 @@ export default function PgnViewer() {
           san,
           policy: [],
           saliency: null,
+          calcSaliency: null,
           evalObj: null,
           blunderFlash: false,
         });
@@ -280,6 +328,7 @@ export default function PgnViewer() {
         san: null,
         policy: [],
         saliency: null,
+        calcSaliency: null,
         evalObj: null,
         blunderFlash: false,
       },
@@ -477,6 +526,45 @@ export default function PgnViewer() {
           </label>
 
           {isAnalyzing && <span style={{ color: '#00ffcc', fontSize: '14px' }}>Analyzing...</span>}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Thinking time:
+            <select
+              value={thinkSeconds}
+              onChange={(e) => setThinkSeconds(Number(e.target.value))}
+              style={{ padding: '4px', borderRadius: '4px' }}
+            >
+              <option value={1}>1s (Fast)</option>
+              <option value={2}>2s (Normal)</option>
+              <option value={5}>5s (Deep)</option>
+              <option value={15}>15s (Very Deep)</option>
+            </select>
+          </label>
+
+          <button
+            className="load-btn"
+            disabled={isAnalyzing || !currentState}
+            onClick={() => {
+              const st = gameStates.current[currentIndexRef.current];
+              if (st) analyzeFen(st.fen, st.lastMoveUci, currentIndexRef.current, 15);
+            }}
+          >
+            Think Deeper ⏱
+          </button>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <input type="radio" checked={glowMode === 'intuition'} onChange={() => setGlowMode('intuition')} />
+            Intuition Glow
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <input type="radio" checked={glowMode === 'calculation'} onChange={() => setGlowMode('calculation')} />
+            Calculation Glow
+          </label>
+          <button className="load-btn" disabled={calcLoading} onClick={computeCalcGlow}>
+            {calcLoading ? 'Calculating…' : 'Compute (~15s)'}
+          </button>
         </div>
 
         {currentState?.evalObj && (

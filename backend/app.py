@@ -7,6 +7,7 @@ Serves the frontend static files and provides REST API endpoints for:
   - Health check
 """
 
+import asyncio
 import io
 import logging
 from contextlib import asynccontextmanager
@@ -258,6 +259,44 @@ async def analyze(request: AnalyzeRequest):
         "policy": policy_dist[:20],
         "saliency": saliency,
         "saliency_source": neural_vision.mode
+    }
+
+
+@app.post("/api/calculation-glow")
+async def calculation_glow(request: AnalyzeRequest):
+    """
+    Compute the aggregated 'Calculation Glow' for a position: BT3 attention
+    averaged over the engine's top PV lines, weighted by line strength and depth.
+    Expensive (~10-15s). Falls back to the single-position saliency if the engine
+    is in mock mode or produced no lines.
+    """
+    fen = request.fen.strip()
+    try:
+        board = chess.Board(fen)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid FEN: {exc}")
+
+    lines = await lc0_engine.search_lines(
+        fen, time_limit=request.time_limit, multipv=request.multipv
+    )
+    if not lines:
+        # mock mode or no search result -> just return the intuition map
+        policy_dist = await lc0_engine.get_policy_distribution(fen, nodes=1)
+        return {
+            "fen": fen,
+            "calculation_saliency": neural_vision.saliency(fen, policy_dist=policy_dist),
+            "positions_used": 0,
+            "saliency_source": neural_vision.mode,
+        }
+
+    calc = await asyncio.to_thread(
+        neural_vision.calculation_saliency, board, lines
+    )
+    return {
+        "fen": fen,
+        "calculation_saliency": calc,
+        "positions_used": min(8, sum(len(l["moves"]) for l in lines)),
+        "saliency_source": neural_vision.mode,
     }
 
 

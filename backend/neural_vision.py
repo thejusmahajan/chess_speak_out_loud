@@ -6,6 +6,7 @@ import logging
 import os
 import tempfile
 from pathlib import Path
+import chess
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +116,71 @@ class NeuralVision:
             saliency_map[sq] = saliency_vec[i]
             
         return saliency_map
+
+    def _saliency_absolute(self, board: "chess.Board") -> dict[str, float]:
+        """
+        BT3 attention for `board`, always keyed by TRUE absolute squares.
+
+        _attention_saliency is only correct for white-to-move positions. For
+        black-to-move positions LC0/BT3 works in the flipped side-to-move frame,
+        so we evaluate the vertically-mirrored (white-to-move) board and flip the
+        square keys back (rank r -> 9-r). Verified against the white-to-move map.
+        """
+        if board.turn == chess.WHITE:
+            return self._attention_saliency(board.fen())
+        mirrored = board.mirror()  # swaps colors + flips ranks -> white to move
+        s = self._attention_saliency(mirrored.fen())
+        return {sq[0] + str(9 - int(sq[1])): v for sq, v in s.items()}
+
+    def calculation_saliency(
+        self,
+        root_board: "chess.Board",
+        lines: list[dict],
+        max_positions: int = 8,
+        decay: float = 0.85,
+    ) -> dict[str, float]:
+        """
+        Aggregate absolute-frame BT3 attention over the future positions along the
+        engine's top PV lines. `lines` = [{"moves": [chess.Move, ...], "weight": float}, ...].
+        Weighting: line weight * decay**ply. Deduplicates positions. Caps at
+        max_positions total BT3 forwards (each ~1.5s). Returns a [0,1]-normalized map.
+        """
+        agg = {sq: 0.0 for sq in chess.SQUARE_NAMES}
+        total_w = 0.0
+        used = 0
+        seen: set[str] = set()
+
+        for line in sorted(lines, key=lambda ln: -ln.get("weight", 0.0)):
+            if used >= max_positions:
+                break
+            board = root_board.copy()
+            w = line.get("weight", 0.0)
+            for ply, mv in enumerate(line.get("moves", [])):
+                if used >= max_positions:
+                    break
+                try:
+                    board.push(mv)
+                except Exception:
+                    break
+                key = board.epd()
+                if key in seen:
+                    continue
+                seen.add(key)
+                weight = w * (decay ** ply)
+                s = self._saliency_absolute(board)
+                for sq, v in s.items():
+                    agg[sq] += weight * v
+                total_w += weight
+                used += 1
+
+        if total_w > 0:
+            for sq in agg:
+                agg[sq] /= total_w
+        mx = max(agg.values()) if agg else 0.0
+        if mx > 0:
+            for sq in agg:
+                agg[sq] /= mx
+        return agg
 
     def _policy_fallback(self, fen: str, policy_dist: list[dict] = None) -> dict[str, float]:
         # Sum each move's p onto its from and to squares

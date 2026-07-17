@@ -9,6 +9,8 @@ when the engine binary is not available.
 import asyncio
 import logging
 import os
+import sys
+import threading
 from pathlib import Path
 from typing import Optional
 import re
@@ -53,6 +55,38 @@ class LC0Engine:
         self.mock_mode: bool = False
         self._lock: asyncio.Lock = asyncio.Lock()
 
+        # Dedicated event loop for all engine I/O.
+        #
+        # python-chess spawns the engine as a subprocess, which on Windows
+        # requires a ProactorEventLoop. Uvicorn's --reload mode runs the
+        # server on a SelectorEventLoop (which raises a bare
+        # NotImplementedError when asked to spawn a subprocess), so we run
+        # every engine coroutine on our own Proactor loop in a background
+        # thread. This keeps the engine working regardless of how the
+        # server was launched.
+        self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._thread: Optional[threading.Thread] = None
+
+    def _ensure_loop(self) -> None:
+        """Start the dedicated engine event loop thread (idempotent)."""
+        if self._loop is not None:
+            return
+        if sys.platform == "win32":
+            self._loop = asyncio.ProactorEventLoop()
+        else:
+            self._loop = asyncio.new_event_loop()
+        self._thread = threading.Thread(
+            target=self._loop.run_forever,
+            name="lc0-engine-loop",
+            daemon=True,
+        )
+        self._thread.start()
+
+    async def _submit(self, coro):
+        """Run *coro* on the dedicated engine loop and await the result."""
+        fut = asyncio.run_coroutine_threadsafe(coro, self._loop)
+        return await asyncio.wrap_future(fut)
+
     # ------------------------------------------------------------------
     # Lifecycle
     # ------------------------------------------------------------------
@@ -73,50 +107,60 @@ class LC0Engine:
             self.mock_mode = True
             return
 
+        self._ensure_loop()
         try:
-            # Build UCI options
-            uci_options: dict = {
-                "UCI_ShowWDL": True,
-                "PerPVCounters": True,
-                "RamLimitMb": 2048,
-                "NNCacheSize": 200000
-            }
-            if self.weights_path and self.weights_path.exists():
-                uci_options["WeightsFile"] = str(self.weights_path)
-
-            # Auto-detect weights in the engine directory if not specified
-            if not self.weights_path:
-                weights_candidates = list(ENGINE_DIR.glob("*.pb.gz"))
-                if weights_candidates:
-                    uci_options["WeightsFile"] = str(weights_candidates[0])
-                    logger.info("Auto-detected weights: %s", weights_candidates[0])
-
-            # Start engine natively
-            transport, engine = await chess.engine.popen_uci(str(self.engine_path))
-            
-            # Apply UCI options
-            for key, value in uci_options.items():
-                await engine.configure({key: value})
-                
-            self.engine = engine
+            await self._submit(self._start_impl())
             self.mock_mode = False
             logger.info("LC0 engine started successfully from %s", self.engine_path)
-
         except Exception as exc:
-            logger.error("Failed to start engine: %s — entering mock mode.", exc)
+            logger.error(
+                "Failed to start engine: %r — entering mock mode.", exc
+            )
             self.engine = None
             self.mock_mode = True
 
+    async def _start_impl(self) -> None:
+        """Spawn the engine and apply UCI options. Runs on the engine loop."""
+        # Build UCI options
+        uci_options: dict = {
+            "UCI_ShowWDL": True,
+            "PerPVCounters": True,
+            "RamLimitMb": 2048,
+            "NNCacheSize": 200000
+        }
+        if self.weights_path and self.weights_path.exists():
+            uci_options["WeightsFile"] = str(self.weights_path)
+
+        # Auto-detect weights in the engine directory if not specified
+        if not self.weights_path:
+            weights_candidates = list(ENGINE_DIR.glob("*.pb.gz"))
+            if weights_candidates:
+                uci_options["WeightsFile"] = str(weights_candidates[0])
+                logger.info("Auto-detected weights: %s", weights_candidates[0])
+
+        # Start engine natively
+        transport, engine = await chess.engine.popen_uci(str(self.engine_path))
+
+        # Apply UCI options
+        for key, value in uci_options.items():
+            await engine.configure({key: value})
+
+        self.engine = engine
+
     async def stop(self) -> None:
-        """Quit the engine subprocess cleanly."""
+        """Quit the engine subprocess cleanly and stop the engine loop."""
         if self.engine is not None:
             try:
-                await self.engine.quit()
+                await self._submit(self.engine.quit())
                 logger.info("Engine stopped.")
             except Exception as exc:
                 logger.warning("Error while stopping engine: %s", exc)
             finally:
                 self.engine = None
+        if self._loop is not None:
+            self._loop.call_soon_threadsafe(self._loop.stop)
+            self._loop = None
+            self._thread = None
 
     # ------------------------------------------------------------------
     # Query
@@ -132,6 +176,10 @@ class LC0Engine:
         if self.mock_mode or self.engine is None:
             return []
 
+        return await self._submit(self._get_policy_distribution_impl(fen, nodes))
+
+    async def _get_policy_distribution_impl(self, fen: str, nodes: int = 1) -> list[dict]:
+        """Body of get_policy_distribution. Runs on the engine loop."""
         async with self._lock:
             try:
                 await self.engine.configure({'VerboseMoveStats': True})
@@ -186,6 +234,40 @@ class LC0Engine:
         """Return True if a real engine connection is active."""
         return self.engine is not None and not self.mock_mode
 
+    async def search_lines(self, fen: str, time_limit: float = 5.0, multipv: int = 3) -> list[dict]:
+        """
+        Run a timed multipv search and return the top PV lines as move sequences,
+        for Calculation Glow aggregation. Each item:
+            {"moves": [chess.Move, ...], "weight": float}
+        weight is a simple rank decay (top line heaviest). [] in mock mode.
+        """
+        if self.mock_mode or self.engine is None:
+            return []
+        return await self._submit(self._search_lines_impl(fen, time_limit, multipv))
+
+    async def _search_lines_impl(self, fen: str, time_limit: float, multipv: int) -> list[dict]:
+        """Body of search_lines. Runs on the engine loop."""
+        async with self._lock:
+            try:
+                board = chess.Board(fen)
+                infos = await self.engine.analyse(
+                    board,
+                    chess.engine.Limit(time=time_limit),
+                    multipv=max(1, min(multipv, 10)),
+                )
+                if not isinstance(infos, list):
+                    infos = [infos]
+                lines = []
+                for rank, info in enumerate(infos):
+                    pv = info.get("pv", [])
+                    if not pv:
+                        continue
+                    lines.append({"moves": list(pv), "weight": 1.0 / (rank + 1)})
+                return lines
+            except Exception as exc:
+                logger.error("search_lines failed: %s", exc)
+                return []
+
     async def analyze(
         self,
         fen: str,
@@ -200,6 +282,10 @@ class LC0Engine:
         if self.mock_mode or self.engine is None:
             return get_mock_analysis(fen)
 
+        return await self._submit(self._analyze_impl(fen, depth, multipv, time_limit))
+
+    async def _analyze_impl(self, fen, depth, multipv, time_limit) -> dict:
+        """Body of analyze. Runs on the engine loop."""
         async with self._lock:
             return await self._do_analyze(fen, depth, multipv, time_limit)
 
@@ -217,6 +303,10 @@ class LC0Engine:
         if self.mock_mode or self.engine is None:
             return get_mock_analysis(fen)
 
+        return await self._submit(self._fast_analyze_impl(fen, depth, multipv, time_limit))
+
+    async def _fast_analyze_impl(self, fen, depth, multipv, time_limit) -> dict:
+        """Body of fast_analyze. Runs on the engine loop."""
         if self._lock.locked():
             logger.info("Engine busy — returning mock data for fast_analyze")
             return get_mock_analysis(fen)
