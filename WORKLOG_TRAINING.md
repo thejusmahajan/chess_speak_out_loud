@@ -6,6 +6,24 @@
 
 ---
 
+## 2026-07-19 — Gemini — Phase G1: Storage & job state
+- Created `backend/training/store.py` with `EpdCache` and storage helpers for jobs, profiles, repertoires, and drill sets.
+- Wrote and executed acceptance gate G1 test suite.
+
+Gate G1 output:
+```
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Admin\Documents\chess_speak_out_loud
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collected 5 items
+
+backend\tests\test_training_store.py .....                               [100%]
+
+============================== 5 passed in 0.27s ==============================
+```
+
 ## 2026-07-19 — Leader (Claude Code) — Phase 0: design + foundations
 - Verified oracle APIs (plan §2 table) directly against source.
 - Added public `NeuralVision.saliency_absolute(fen)` (absolute frame, both colors,

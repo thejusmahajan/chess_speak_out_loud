@@ -1,0 +1,149 @@
+import os
+import json
+import uuid
+import datetime
+from typing import Optional, List, Dict, Any
+
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Allow overriding DATA_DIR for tests
+DATA_DIR = os.getenv("CSZERO_DATA_DIR", os.path.join(ROOT_DIR, "data"))
+TRAINING_DIR = os.path.join(DATA_DIR, "training")
+
+def _ensure_dirs():
+    os.makedirs(os.path.join(TRAINING_DIR, "cache"), exist_ok=True)
+    os.makedirs(os.path.join(TRAINING_DIR, "jobs"), exist_ok=True)
+    os.makedirs(os.path.join(TRAINING_DIR, "drills"), exist_ok=True)
+    
+    data_gitignore = os.path.join(DATA_DIR, ".gitignore")
+    if not os.path.exists(data_gitignore):
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(data_gitignore, "w", encoding="utf-8") as f:
+            f.write("*\n!.gitignore\n")
+
+class EpdCache:
+    def __init__(self, name: str):
+        _ensure_dirs()
+        self.path = os.path.join(TRAINING_DIR, "cache", f"{name}.jsonl")
+        self._data = {}
+        if os.path.exists(self.path):
+            with open(self.path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        record = json.loads(line)
+                        if "epd" in record:
+                            self._data[record["epd"]] = record
+                    except json.JSONDecodeError:
+                        pass
+        
+    def get(self, epd: str) -> Optional[Dict[str, Any]]:
+        return self._data.get(epd)
+
+    def put(self, epd: str, payload: dict):
+        record = payload.copy()
+        record["epd"] = epd
+        self._data[epd] = record
+        with open(self.path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record) + "\n")
+
+def _job_path(job_id: str) -> str:
+    return os.path.join(TRAINING_DIR, "jobs", f"{job_id}.json")
+
+def create_job() -> str:
+    _ensure_dirs()
+    job_id = str(uuid.uuid4())
+    job = {
+        "id": job_id,
+        "status": "queued",
+        "progress": {
+            "total": 0,
+            "stage_a_done": 0,
+            "flagged": 0,
+            "stage_b_done": 0
+        },
+        "error": None,
+        "created": datetime.datetime.utcnow().isoformat()
+    }
+    with open(_job_path(job_id), "w", encoding="utf-8") as f:
+        json.dump(job, f)
+    return job_id
+
+def update_job(job_id: str, **fields):
+    job = read_job(job_id)
+    if not job:
+        return
+    for k, v in fields.items():
+        if isinstance(v, dict) and k in job and isinstance(job[k], dict):
+            job[k].update(v)
+        else:
+            job[k] = v
+    with open(_job_path(job_id), "w", encoding="utf-8") as f:
+        json.dump(job, f)
+
+def read_job(job_id: str) -> Optional[Dict[str, Any]]:
+    path = _job_path(job_id)
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return None
+
+def save_profile(profile: dict):
+    _ensure_dirs()
+    path = os.path.join(TRAINING_DIR, "profile.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(profile, f, indent=2)
+
+def load_profile() -> Optional[Dict[str, Any]]:
+    path = os.path.join(TRAINING_DIR, "profile.json")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return None
+
+def save_repertoire(repertoire: dict):
+    _ensure_dirs()
+    path = os.path.join(TRAINING_DIR, "repertoire.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(repertoire, f, indent=2)
+
+def save_drill_set(drill_set: dict):
+    _ensure_dirs()
+    set_id = drill_set.get("id")
+    if not set_id:
+        raise ValueError("drill_set must have an 'id' field")
+    path = os.path.join(TRAINING_DIR, "drills", f"{set_id}.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(drill_set, f, indent=2)
+
+def load_drill_set(set_id: str) -> Optional[Dict[str, Any]]:
+    path = os.path.join(TRAINING_DIR, "drills", f"{set_id}.json")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return None
+
+def list_drill_sets() -> List[Dict[str, Any]]:
+    _ensure_dirs()
+    drills_dir = os.path.join(TRAINING_DIR, "drills")
+    sets = []
+    if not os.path.exists(drills_dir):
+        return sets
+    for f_name in os.listdir(drills_dir):
+        if f_name.endswith(".json"):
+            path = os.path.join(drills_dir, f_name)
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    drills = data.get("drills", [])
+                    sources = list(set(d.get("source") for d in drills if "source" in d))
+                    sets.append({
+                        "id": data.get("id", f_name.replace(".json", "")),
+                        "created": data.get("created"),
+                        "size": len(drills),
+                        "sources": sources
+                    })
+            except Exception:
+                pass
+    return sets
