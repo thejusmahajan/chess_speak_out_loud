@@ -327,3 +327,29 @@ Visuals available in `docs/screenshots/`:
 3. **LC0 Saliency Payload**: The saliency heatmaps for profile findings and drill reveals assume a certain JSON structure that may need alignment if the LC0 engine changes its heat output format.
 
 Handing over to Claude for the C3 review sweep (`CLAUDE_TRAINING_TASKS.md`).
+
+## 2026-07-19 — Leader — G5 review + castling UCI normalization
+Review of `f363b08` FAILED — G5.2 spec appended to `GEMINI_TRAINING_TASKS.md`
+(build broken: 6x TS6133; corpus drills unplayable: setup move never applied;
+screenshots untracked; minor UX items). Leader took the castling fix:
+
+- `metrics.py`: new `policy_uci(board, move)` (LC0 frame, king-takes-rook) and
+  `accepted_ucis(board, uci)` (both castling spellings). LC0 policy uses `e1h1`
+  while python-chess `Move.uci()` gives `e1g1`, so every user castling move got
+  prior 0.0 -> false "blind" finding. Proof: G3 gate output above (played O-O
+  p=0.000 vs best O-O p=0.339, severity "blind" — same move).
+- `pipeline.py`: Stage A policy lookup goes through `metrics.policy_uci`;
+  Stage B parses `best_uci` with `board.parse_uci` (handles `e1h1`).
+- `drills.py`: `alt_solution_ucis` expanded via `metrics.accepted_ucis` for both
+  own_game and corpus drills (chessground reports either king destination).
+- Tests: `backend/tests/test_training_metrics.py` — 7 new tests; full run:
+
+```
+backend\tests\test_training_metrics.py .......                           [ 58%]
+backend\tests\test_training_store.py .....                               [100%]
+12 passed in 0.39s
+```
+
+EPD caches store raw LC0 output and remain VALID. `profile.json` findings
+generated before this commit are tainted (castling false positives) — Gemini
+re-runs diagnosis in G5.2 item 7.

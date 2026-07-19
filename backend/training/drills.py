@@ -18,12 +18,15 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
         findings = sorted(profile["findings"], key=sort_key, reverse=True)
         
         for f in findings[:own_game_count]:
-            epd = chess.Board(f["fen_before"]).epd()
+            board_before = chess.Board(f["fen_before"])
+            epd = board_before.epd()
             policy_data = store.EpdCache("policy").get(epd)
             if policy_data and "policy" in policy_data:
                 alt_ucis = metrics.alt_solutions(policy_data["policy"])
             else:
                 alt_ucis = [f["best"]["uci"]]
+            alt_ucis = sorted({u for a in alt_ucis
+                               for u in metrics.accepted_ucis(board_before, a)})
                 
             b_data = store.EpdCache("stage_b").get(epd)
             saliency = b_data["saliency"] if (b_data and "saliency" in b_data) else {}
@@ -82,7 +85,7 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
             "fen": p["fen"],
             "setup_move_uci": setup_move_uci,
             "solution_uci": solution_uci,
-            "alt_solution_ucis": [solution_uci],
+            "alt_solution_ucis": metrics.accepted_ucis(board, solution_uci),
             "solution_san": board.san(chess.Move.from_uci(solution_uci)),
             "tags": p["themes"].split(),
             "difficulty": p["rating"],

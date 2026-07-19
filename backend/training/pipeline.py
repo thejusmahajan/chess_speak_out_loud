@@ -84,7 +84,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                         policy_cache.put(epd, policy_data)
                         
                     policy = policy_data["policy"]
-                    div = metrics.policy_divergence(policy, move.uci())
+                    div = metrics.policy_divergence(policy, metrics.policy_uci(board, move))
                     
                     if div and div["severity"] is not None:
                         flagged_moves.append({
@@ -150,7 +150,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             if not conf:
                 conf = {"swing_cp": 0, "confirmed": False}
                 
-            best_move = chess.Move.from_uci(flagged["best_uci"])
+            best_move = board_before.parse_uci(flagged["best_uci"])
             att = metrics.attention_blindness(b_data["saliency"], board_before, played_move, best_move)
             
             opening_match = openings.classify(flagged["uci_moves_so_far"])

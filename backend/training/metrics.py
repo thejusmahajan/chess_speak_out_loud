@@ -91,6 +91,33 @@ def policy_rank(policy: list[dict], uci: str) -> Optional[int]:
     return None
 
 
+def policy_uci(board_before: chess.Board, move: chess.Move) -> str:
+    """A move's UCI in the LC0 policy frame.
+
+    LC0 encodes castling as king-takes-rook ("e1h1"); python-chess's
+    Move.uci() gives the standard frame ("e1g1"). Policy lookups MUST go
+    through this helper or castling moves get prior 0.0 and produce false
+    "blind" findings. Idempotent for non-castling moves.
+    """
+    return board_before.uci(move, chess960=True)
+
+
+def accepted_ucis(board_before: chess.Board, uci: str) -> list[str]:
+    """Every UCI spelling of the same legal move — castling has two
+    (standard "e1g1" and LC0/chess960 "e1h1"), everything else one.
+    Drill answer checks must accept all spellings, because chessground
+    reports whichever square the user dropped the king on. Returns the
+    input unchanged (as a single-item list) if it is not legal here."""
+    try:
+        move = board_before.parse_uci(uci)
+    except ValueError:
+        return [uci]
+    return sorted({
+        board_before.uci(move, chess960=False),
+        board_before.uci(move, chess960=True),
+    })
+
+
 def eval_cp_number(evaluation) -> Optional[int]:
     """Normalize an LC0 evaluation to white-POV centipawns.
 
