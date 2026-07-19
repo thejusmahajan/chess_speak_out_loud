@@ -85,7 +85,19 @@ reported on the job object, not here.
 **Request Body:** `{"set_id": "set-123", "drill_id": "d-abc", "move_uci": "e2e4"}`
 **Response:** `{"correct": true, "reveal": {"swing_cp": 50, ...}}`
 
-### 10. `POST /api/training/repertoire`
+### 10. `GET /api/training/srs/due`
+Spaced-repetition review queue, most critical first (lapses, then overdue).
+**Response:** `{"count": 2, "due": [{"set_id", "due", "lapses", "drill": {…no reveal}}]}`
+
+### 11. `GET /api/training/trends`
+Longitudinal report: profile history series, per-motif blind trajectories,
+training accuracy by motif/source, due/lapse counts, latest regressions.
+**Response:** `{"profiles": [...], "motif_blind_series": {...}, "training": {...}, "latest_regressions": [...]}`
+
+Note: `POST /drills/attempt` now records every attempt (timestamped) and
+returns `next_due` + `lapses` alongside `correct`/`reveal`.
+
+### 12. `POST /api/training/repertoire`
 Returns the stored repertoire (`{}` if none). With `"build": true`, builds and
 stores a fresh one from the current profile (404 when no profile exists).
 **Request Body:** `{"color": "white" | "black", "build": false}`

@@ -474,3 +474,32 @@ sharp enough to force the patterns you miss."
 
 All planned phases (G1-G5.2, C1-C3) complete. M1-M5 all resolved.
 
+
+## 2026-07-19 — Leader — Phases T1 + T2 (training memory, spaced repetition, trends)
+Per `TRAINING_ROADMAP.md` (user expectations mapped 2026-07-19).
+
+- T1 `backend/training/attempts.py`: attempts.jsonl (append-only, timestamped)
+  + srs.json SM-2-lite (ladder 10min/1d/3d/7d/21d; fail -> step 0 + lapse).
+  Review queue orders lapses first. `escalate_regressions(profile)`: motifs
+  answered correctly in training that reappear blind in a new diagnosis reset
+  their drills to due-now +1 lapse; pipeline stores `profile["regressions"]`.
+- T2 `store.save_profile` now also writes `training/profiles/profile-<ts>.json`
+  (history, legacy profile migrated once); `list_profiles()` metadata incl.
+  confirmed_per_100. `backend/training/trends.py` -> `GET /api/training/trends`.
+  `GET /api/training/srs/due`; `POST /drills/attempt` records + returns
+  next_due/lapses. Contract §10-§12 updated.
+
+```
+backend\tests\test_training_attempts.py ......   6 passed
+full suite: 34 passed
+```
+
+Live (real drill set set-2026-07-19-210114-5cb8):
+```
+wrong attempt d-f661e2e5 -> lapses 1, due +10min
+right attempt d-70fa6e23 -> due +1d
+trends: 1 profile in history (auto-migrated), confirmed_per_100 = 10.01
+        (derdiedasdie baseline), 2 attempts recorded, by_source accuracies
+```
+
+UI for due-queue/trends/set-picker handed to Gemini as Phase G6.

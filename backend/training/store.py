@@ -89,11 +89,84 @@ def read_job(job_id: str) -> Optional[Dict[str, Any]]:
             return json.load(f)
     return None
 
+def _profiles_dir() -> str:
+    return os.path.join(TRAINING_DIR, "profiles")
+
+
+def _profile_version_id(created: str) -> str:
+    return "profile-" + "".join(c for c in created if c.isalnum())
+
+
 def save_profile(profile: dict):
+    """Write the current profile AND a timestamped copy under
+    training/profiles/ — diagnoses accumulate history instead of erasing it
+    (T2, longitudinal trends)."""
     _ensure_dirs()
     path = os.path.join(TRAINING_DIR, "profile.json")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(profile, f, indent=2)
+
+    os.makedirs(_profiles_dir(), exist_ok=True)
+    created = profile.get("created") or datetime.datetime.utcnow().isoformat()
+    version_path = os.path.join(
+        _profiles_dir(), f"{_profile_version_id(created)}.json")
+    with open(version_path, "w", encoding="utf-8") as f:
+        json.dump(profile, f, indent=2)
+
+
+def _migrate_legacy_profile():
+    """A profile.json saved before history existed enters the history once."""
+    current_path = os.path.join(TRAINING_DIR, "profile.json")
+    if not os.path.exists(current_path):
+        return
+    os.makedirs(_profiles_dir(), exist_ok=True)
+    if os.listdir(_profiles_dir()):
+        return
+    with open(current_path, "r", encoding="utf-8") as f:
+        profile = json.load(f)
+    created = profile.get("created") or datetime.datetime.utcnow().isoformat()
+    with open(os.path.join(_profiles_dir(),
+                           f"{_profile_version_id(created)}.json"),
+              "w", encoding="utf-8") as f:
+        json.dump(profile, f, indent=2)
+
+
+def list_profiles() -> List[Dict[str, Any]]:
+    """History metadata, oldest first: id + created + headline numbers."""
+    _ensure_dirs()
+    _migrate_legacy_profile()
+    metas = []
+    if not os.path.exists(_profiles_dir()):
+        return metas
+    for f_name in sorted(os.listdir(_profiles_dir())):
+        if not f_name.endswith(".json"):
+            continue
+        try:
+            with open(os.path.join(_profiles_dir(), f_name),
+                      "r", encoding="utf-8") as f:
+                p = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            continue
+        agg = p.get("aggregates", {})
+        findings = p.get("findings", [])
+        confirmed = sum(1 for x in findings
+                        if x.get("confirmation", {}).get("confirmed"))
+        moves = p.get("moves_analyzed", 0)
+        metas.append({
+            "id": f_name[:-5],
+            "created": p.get("created"),
+            "games": p.get("games_analyzed", 0),
+            "moves": moves,
+            "findings": len(findings),
+            "confirmed": confirmed,
+            "confirmed_per_100": round(100 * confirmed / moves, 2) if moves else 0.0,
+            "intuitive_blindness_rate": agg.get("intuitive_blindness_rate", 0.0),
+            "attention_blindness_rate": agg.get("attention_blindness_rate", 0.0),
+            "by_motif": agg.get("by_motif", {}),
+            "regressions": p.get("regressions", []),
+        })
+    metas.sort(key=lambda m: m.get("created") or "")
+    return metas
 
 def load_profile() -> Optional[Dict[str, Any]]:
     path = os.path.join(TRAINING_DIR, "profile.json")

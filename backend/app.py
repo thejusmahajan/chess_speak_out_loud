@@ -412,7 +412,7 @@ async def analyze_pgn(request: PGNRequest):
 # ------------------------------------------------------------------
 
 from backend.training.pipeline import run_diagnosis
-from backend.training import store, drills
+from backend.training import store, drills, attempts, trends
 import asyncio
 import json
 
@@ -522,13 +522,39 @@ async def attempt_drill(req: AttemptDrillRequest):
     ds = store.load_drill_set(req.set_id)
     if not ds:
         raise HTTPException(status_code=404, detail="Drill set not found")
-    
+
     for d in ds.get("drills", []):
         if d["id"] == req.drill_id:
             correct = req.move_uci in d.get("alt_solution_ucis", [])
-            return {"correct": correct, "reveal": d.get("reveal")}
-            
+            srs_entry = attempts.record_attempt(req.set_id, d, correct)
+            return {"correct": correct, "reveal": d.get("reveal"),
+                    "next_due": srs_entry.get("due"),
+                    "lapses": srs_entry.get("lapses", 0)}
+
     raise HTTPException(status_code=404, detail="Drill not found")
+
+@app.get("/api/training/srs/due")
+async def srs_due():
+    """Review queue: due drills (most critical first), reveals stripped."""
+    due = attempts.due_drills()
+    out = []
+    sets_cache = {}
+    for entry in due:
+        set_id = entry.get("set_id")
+        if set_id not in sets_cache:
+            sets_cache[set_id] = store.load_drill_set(set_id) or {}
+        drill = next((d for d in sets_cache[set_id].get("drills", [])
+                      if d["id"] == entry["drill_id"]), None)
+        if not drill:
+            continue
+        drill = {k: v for k, v in drill.items() if k != "reveal"}
+        out.append({"set_id": set_id, "due": entry["due"],
+                    "lapses": entry.get("lapses", 0), "drill": drill})
+    return {"count": len(out), "due": out}
+
+@app.get("/api/training/trends")
+async def training_trends():
+    return trends.trend_report()
 
 
 

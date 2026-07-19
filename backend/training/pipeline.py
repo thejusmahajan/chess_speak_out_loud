@@ -250,6 +250,9 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             "aggregates": aggregates
         }
         
+        from backend.training import attempts
+        profile["regressions"] = attempts.escalate_regressions(profile)
+
         store.save_profile(profile)
         store.update_job(job_id, status="done")
         
