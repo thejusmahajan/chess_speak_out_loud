@@ -48,7 +48,7 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
                     "motifs": f.get("motifs", []),
                     "concepts": f.get("concepts", []),
                     "pv_san": f.get("pv_san", []),
-                    "eval_cp": f.get("confirmation", {}).get("swing_cp", 0)
+                    "swing_cp": f.get("confirmation", {}).get("swing_cp", 0)
                 }
             })
             
@@ -96,7 +96,7 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
                 "motifs": p["themes"].split(),
                 "concepts": [],
                 "pv_san": pv_san_list,
-                "eval_cp": 0
+                "swing_cp": 0
             }
         })
         

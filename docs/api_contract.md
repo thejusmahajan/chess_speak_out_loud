@@ -64,3 +64,21 @@ Performs a deep tactical analysis of a PGN sequence using Lichess Tagger and Gem
   "commentary": "Magnus: The tension here on the light squares..."
 }
 ```
+
+### 5. `POST /api/training/jobs/diagnose`
+Starts a background diagnosis job on a given PGN.
+**Request Body:** `{"pgn": "...", "player_name": "?"}`
+**Response:** `{"job_id": "...", "status": "pending"}`
+
+### 6. `GET /api/training/jobs/{job_id}`
+**Response:** `{"id": "...", "status": "done", "progress": {...}, "error": null}`
+
+### 7. `GET /api/training/profile`
+**Response:** `{"games_analyzed": 25, "findings": [...], "aggregates": {...}}`
+
+### 8. `POST /api/training/drills/generate`
+**Response:** `{"id": "set-123", "drills": [{..., "reveal": {"swing_cp": 50, "pv_san": ["e4", "e5"], ...}}]}`
+
+### 9. `POST /api/training/drills/attempt`
+**Request Body:** `{"set_id": "set-123", "drill_id": "d-abc", "move_uci": "e2e4"}`
+**Response:** `{"correct": true, "reveal": {"swing_cp": 50, ...}}`

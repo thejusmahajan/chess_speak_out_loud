@@ -6,11 +6,13 @@ import 'chessground/assets/chessground.cburnett.css';
 import { Chess, Position } from 'chessops/chess';
 import { parseFen, INITIAL_FEN } from 'chessops/fen';
 import { chessgroundDests } from 'chessops/compat';
-import { makeUci, parseUci } from 'chessops/util';
+import { parseUci } from 'chessops/util';
 import { makeSan } from 'chessops/san';
+import type { Key } from 'chessground/types';
 
 interface TrainingBoardProps {
   fen: string;
+  lastMove?: [Key, Key];
   orientation?: 'white' | 'black';
   policy?: any[];
   saliency?: any;
@@ -22,6 +24,7 @@ interface TrainingBoardProps {
 
 export default function TrainingBoard({
   fen,
+  lastMove,
   orientation = 'white',
   policy = [],
   saliency = null,
@@ -46,6 +49,7 @@ export default function TrainingBoard({
 
     const cg = Chessground(boardRef.current, {
       fen: pos ? fen : INITIAL_FEN,
+      lastMove,
       orientation,
       movable: {
         free: false,
@@ -61,28 +65,17 @@ export default function TrainingBoard({
             if (!onMove) return;
             const uci = orig + dest;
             
-            let currentPos: Position;
+            let oldPos: Position;
             try {
-              currentPos = Chess.fromSetup(parseFen(cg.getFen()).unwrap()).unwrap();
+              oldPos = Chess.fromSetup(parseFen(fen).unwrap()).unwrap();
             } catch {
-              currentPos = Chess.default();
+              oldPos = Chess.default();
             }
             
-            const move = parseUci(uci);
-            if (move) {
-              // Wait, chessground gives us fen after move? No, chessground changes DOM, not internal chessops.
-              // We need to parse UCI from the *previous* pos to get SAN.
-              let oldPos: Position;
-              try {
-                oldPos = Chess.fromSetup(parseFen(fen).unwrap()).unwrap();
-              } catch {
-                oldPos = Chess.default();
-              }
-              const validMove = parseUci(uci);
-              if (validMove) {
-                const san = makeSan(oldPos, validMove);
-                onMove(uci, san);
-              }
+            const validMove = parseUci(uci);
+            if (validMove) {
+              const san = makeSan(oldPos, validMove);
+              onMove(uci, san);
             }
           }
         }

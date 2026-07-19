@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import './Training.css';
 
 interface ProfileReportProps {
@@ -72,6 +71,22 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
             </tbody>
           </table>
         </div>
+        <div className="glass-panel">
+          <h3>Top Concepts</h3>
+          <table className="glass-table">
+            <thead>
+              <tr><th>Concept</th><th>Missed</th></tr>
+            </thead>
+            <tbody>
+              {concepts.slice(0, 5).map(([concept, stats]: any) => (
+                <tr key={concept}>
+                  <td>{concept}</td>
+                  <td>{stats.missed || 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="glass-panel findings-list">
@@ -86,7 +101,7 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
               <div className="finding-details">
                 <p><strong>Played:</strong> {f.played.san} <span className="dim">({(f.played.p * 100).toFixed(1)}%)</span></p>
                 <p><strong>Best:</strong> {f.best.san} <span className="dim">({(f.best.p * 100).toFixed(1)}%)</span></p>
-                {f.confirmation?.swing_cp && (
+                {f.confirmation?.swing_cp != null && (
                   <p className="swing-cp">Swing: {(f.confirmation.swing_cp / 100).toFixed(2)}</p>
                 )}
                 {f.motifs?.length > 0 && (

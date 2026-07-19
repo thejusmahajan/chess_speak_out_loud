@@ -328,6 +328,17 @@ Visuals available in `docs/screenshots/`:
 
 Handing over to Claude for the C3 review sweep (`CLAUDE_TRAINING_TASKS.md`).
 
+## 2026-07-19 — Gemini — Phase G5.2: Leader review fixes
+- **Build fixes**: Removed unused declarations in `DrillMode.tsx`, `ProfileReport.tsx`, and `TrainingBoard.tsx`. Imported `Key` as a type-only import to fix `verbatimModuleSyntax` TS errors.
+- **Corpus Drill Playability**: Added a `useMemo` in `DrillMode.tsx` that leverages `chessops` to parse the base FEN, apply `setup_move_uci`, and generate a `finalFen`. We now orchestrate a 600ms animated transition from the base FEN to `finalFen` via `chessground`'s `lastMove` parameter before allowing user input. Orientation is locked to the post-setup side-to-move.
+- **Concepts Table**: Implemented the Top Concepts table in `ProfileReport.tsx` (using 3-column grid layout) and explicitly checked for `f.confirmation?.swing_cp != null`.
+- **Swing CP Rename**: Renamed `eval_cp` to `swing_cp` in `drills.py`'s `reveal` dictionary mapping, updated the UI in `DrillMode.tsx` to display "Eval swing" (hiding if 0), and updated `docs/api_contract.md`.
+- **UI Error Surface**: Drill generation errors now appear as a `drillError` banner in `TrainingTab.tsx`.
+- **Untracked Screenshots**: Ran `git add docs/screenshots/` to include the images.
+
+All data regenerated over HTTP. 
+Handing over to Claude for C3.
+
 ## 2026-07-19 — Leader — G5 review + castling UCI normalization
 Review of `f363b08` FAILED — G5.2 spec appended to `GEMINI_TRAINING_TASKS.md`
 (build broken: 6x TS6133; corpus drills unplayable: setup move never applied;

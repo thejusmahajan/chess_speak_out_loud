@@ -1,6 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getDrillSet, attemptDrill } from '../../api/training';
 import TrainingBoard from './TrainingBoard';
+import { Chess } from 'chessops/chess';
+import { parseFen, makeFen } from 'chessops/fen';
+import { parseUci } from 'chessops/util';
+import type { Key } from 'chessground/types';
 import './Training.css';
 
 interface DrillModeProps {
@@ -14,7 +18,10 @@ export default function DrillMode({ setId, onExit }: DrillModeProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [attemptResult, setAttemptResult] = useState<any>(null);
-  const [revealFen, setRevealFen] = useState<string | null>(null);
+  
+  const [activeFen, setActiveFen] = useState<string>('');
+  const [activeLastMove, setActiveLastMove] = useState<[Key, Key] | undefined>();
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -31,11 +38,48 @@ export default function DrillMode({ setId, onExit }: DrillModeProps) {
     load();
   }, [setId]);
 
+  const drill = drillSet?.drills?.[currentIndex];
+
+  const finalFen = useMemo(() => {
+    if (!drill) return '';
+    if (drill.setup_move_uci) {
+      try {
+        const pos = Chess.fromSetup(parseFen(drill.fen).unwrap()).unwrap();
+        const move = parseUci(drill.setup_move_uci);
+        if (move) pos.play(move);
+        return makeFen(pos.toSetup());
+      } catch {
+        return drill.fen;
+      }
+    }
+    return drill.fen;
+  }, [drill]);
+
+  useEffect(() => {
+    if (!drill) return;
+    
+    if (drill.setup_move_uci) {
+      setActiveFen(drill.fen);
+      setActiveLastMove(undefined);
+      setIsAnimating(true);
+      
+      const timer = setTimeout(() => {
+        setActiveFen(finalFen);
+        setActiveLastMove([drill.setup_move_uci.slice(0,2) as Key, drill.setup_move_uci.slice(2,4) as Key]);
+        setIsAnimating(false);
+      }, 600);
+      return () => clearTimeout(timer);
+    } else {
+      setActiveFen(drill.fen);
+      setActiveLastMove(undefined);
+      setIsAnimating(false);
+    }
+  }, [drill, finalFen]);
+
   if (loading) return <div className="glass-panel">Loading Drills...</div>;
   if (error) return <div className="glass-panel error-msg">{error}</div>;
   if (!drillSet || !drillSet.drills || drillSet.drills.length === 0) return <div className="glass-panel">No drills found.</div>;
 
-  const drill = drillSet.drills[currentIndex];
   const isFinished = currentIndex >= drillSet.drills.length;
 
   if (isFinished) {
@@ -48,16 +92,11 @@ export default function DrillMode({ setId, onExit }: DrillModeProps) {
     );
   }
 
-  const handleMove = async (uci: string, san: string) => {
-    if (attemptResult) return; // already attempted this drill
+  const handleMove = async (uci: string) => {
+    if (attemptResult) return; 
     try {
-      // Temporarily show the user's move on the board before the reveal data comes back
-      // The TrainingBoard will update its UI locally due to chessground, but we need to record the FEN for saliency
       const res = await attemptDrill(setId, drill.id, uci);
       setAttemptResult(res);
-      // Note: we might want to update the FEN to the post-move state, but usually the reveal 
-      // applies to the FEN *before* the move, or exactly after setup. 
-      // We'll leave the board as is (chessground played it) and just show overlays.
     } catch (err: any) {
       console.error('Attempt failed', err);
     }
@@ -65,21 +104,14 @@ export default function DrillMode({ setId, onExit }: DrillModeProps) {
 
   const nextDrill = () => {
     setAttemptResult(null);
-    setRevealFen(null);
     setCurrentIndex(i => i + 1);
   };
 
   const getOrientation = (fen: string) => {
+    if (!fen) return 'white';
     const turn = fen.split(' ')[1];
     return turn === 'w' ? 'white' : 'black';
   };
-  
-  // The interactive FEN is the drill.fen + setup move applied if corpus, but since frontend doesn't have 
-  // chess.js locally exposed without chessops, we'll just let TrainingBoard handle it or pass fen.
-  // Actually, wait: for corpus, setup_move_uci must be played!
-  // If setup_move_uci exists, we should show it playing. For simplicity in this demo,
-  // we can just let the board show the start FEN, and rely on the user to understand if it's their turn.
-  // Ideally, we'd use chessops to apply the setup_move_uci to the FEN.
   
   return (
     <div className="drill-mode">
@@ -96,9 +128,10 @@ export default function DrillMode({ setId, onExit }: DrillModeProps) {
       <div className="drill-content">
         <div className="board-container">
           <TrainingBoard 
-            fen={drill.fen}
-            orientation={getOrientation(drill.fen)}
-            interactive={!attemptResult}
+            fen={activeFen}
+            lastMove={activeLastMove}
+            orientation={getOrientation(finalFen)}
+            interactive={!attemptResult && !isAnimating}
             onMove={handleMove}
             policy={attemptResult?.reveal?.policy || []}
             saliency={attemptResult?.reveal?.saliency}
@@ -118,10 +151,10 @@ export default function DrillMode({ setId, onExit }: DrillModeProps) {
               <h3>{attemptResult.correct ? 'Correct!' : 'Incorrect!'}</h3>
               {attemptResult.reveal && (
                 <div className="reveal-data">
-                  {attemptResult.reveal.eval_cp !== undefined && (
-                    <p><strong>Eval:</strong> {(attemptResult.reveal.eval_cp / 100).toFixed(2)}</p>
+                  {attemptResult.reveal.swing_cp != null && attemptResult.reveal.swing_cp !== 0 && (
+                    <p><strong>Eval swing:</strong> {(attemptResult.reveal.swing_cp / 100).toFixed(2)}</p>
                   )}
-                  {attemptResult.reveal.pv_san && (
+                  {attemptResult.reveal.pv_san && attemptResult.reveal.pv_san.length > 0 && (
                     <p><strong>Line:</strong> {attemptResult.reveal.pv_san.join(' ')}</p>
                   )}
                 </div>

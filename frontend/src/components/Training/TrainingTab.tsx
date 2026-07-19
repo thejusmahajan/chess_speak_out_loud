@@ -12,6 +12,7 @@ export default function TrainingTab() {
   const [drillSetId, setDrillSetId] = useState<string | null>(null);
   const [selectedFinding, setSelectedFinding] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [drillError, setDrillError] = useState<string | null>(null);
 
   const fetchProfile = async () => {
     try {
@@ -32,12 +33,14 @@ export default function TrainingTab() {
   const handleGenerateDrills = async () => {
     try {
       setLoading(true);
+      setDrillError(null);
       const res = await generateDrills(5);
       setDrillSetId(res.set_id);
       setView('drills');
       setLoading(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to generate drills', err);
+      setDrillError(err.message || 'Failed to generate drills');
       setLoading(false);
     }
   };
@@ -65,6 +68,7 @@ export default function TrainingTab() {
         >
           {loading ? 'Generating...' : 'Training Drills'}
         </button>
+        {drillError && <div className="error-msg" style={{ marginLeft: 'auto', color: 'var(--color-danger)' }}>{drillError}</div>}
       </div>
 
       <div className="training-content">
