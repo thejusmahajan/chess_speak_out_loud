@@ -16,10 +16,22 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
             return (conf.get("confirmed", False), conf.get("swing_cp", 0))
             
         findings = sorted(profile["findings"], key=sort_key, reverse=True)
-        
-        for f in findings[:own_game_count]:
+
+        seen_epds = set()
+        seen_solutions = set()
+        own_game_added = 0
+        for f in findings:
+            if own_game_added >= own_game_count:
+                break
             board_before = chess.Board(f["fen_before"])
             epd = board_before.epd()
+            # findings are sorted best-first, so dedupe keeps the strongest
+            # instance of a repeated position or repeated solution move
+            if epd in seen_epds or f["best"]["uci"] in seen_solutions:
+                continue
+            seen_epds.add(epd)
+            seen_solutions.add(f["best"]["uci"])
+            own_game_added += 1
             policy_data = store.EpdCache("policy").get(epd)
             if policy_data and "policy" in policy_data:
                 alt_ucis = metrics.alt_solutions(policy_data["policy"])
@@ -70,6 +82,8 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
         fen_after_setup = board.fen()
         
         policy_dist = await engine.get_policy_distribution(fen_after_setup, nodes=1)
+        if not policy_dist:
+            continue  # engine in mock mode — never save mock data
         saliency = vision.saliency_absolute(fen_after_setup)
         
         pv_san_list = []
@@ -100,12 +114,33 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
             }
         })
         
-    try:
-        from backend.training.gems import scan_for_gems
-        gems = await scan_for_gems(hidden_gem_count, profile, engine, vision)
-    except ImportError:
-        pass
-        
+    if hidden_gem_count > 0:
+        from backend.training.gems import scan_for_gems, gem_candidates_from_profile
+        candidates = gem_candidates_from_profile(profile)
+        gem_results = await scan_for_gems(
+            candidates, engine, vision, max_bt3=hidden_gem_count * 5)
+        for g in gem_results[:hidden_gem_count]:
+            drills.append({
+                "id": f"d-{uuid.uuid4().hex[:8]}",
+                "source": "hidden_gem",
+                "fen": g["fen"],
+                "setup_move_uci": None,
+                "solution_uci": g["solution_uci"],
+                "alt_solution_ucis": g["alt_solution_ucis"],
+                "solution_san": g["solution_san"],
+                "tags": g["motifs"],
+                "difficulty": 1800,
+                "origin": {"finding_id": None, "puzzle_id": None, "eco": None},
+                "reveal": {
+                    "policy": g["policy"],
+                    "saliency": g["saliency"],
+                    "motifs": g["motifs"],
+                    "concepts": [],
+                    "pv_san": g["pv_san"],
+                    "swing_cp": 0
+                }
+            })
+
     drill_set = {
         "id": f"set-{datetime.datetime.utcnow().strftime('%Y-%m-%d-%H%M%S')}-{uuid.uuid4().hex[:4]}",
         "created": datetime.datetime.utcnow().isoformat(),
