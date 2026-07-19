@@ -28,11 +28,14 @@ def motif_profile(opening_tag: str) -> Dict[str, float]:
         
     return {theme: n / total for theme, n in rows}
 
-def sample_puzzles(themes: List[str], opening_tags: Optional[List[str]], rating_range: Tuple[int, int], limit: int) -> List[Dict[str, Any]]:
+def sample_puzzles(themes: Optional[List[str]], opening_tags: Optional[List[str]], rating_range: Tuple[int, int], limit: int) -> List[Dict[str, Any]]:
     """Sample puzzles matching criteria."""
     if not os.path.exists(DB_PATH):
         return []
         
+    if themes is None:
+        themes = []
+
     min_rating, max_rating = rating_range
     query = "SELECT id, fen, moves, rating, popularity, themes, opening_tags FROM puzzles WHERE rating >= ? AND rating <= ?"
     params = [min_rating, max_rating]

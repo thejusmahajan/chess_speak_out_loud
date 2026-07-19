@@ -17,6 +17,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         
         pgn_io = io.StringIO(pgn_text)
         games_to_process = []
+        all_players = set()
         
         # 1. Split multi-game PGN
         while True:
@@ -27,6 +28,9 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             white = game.headers.get("White", "")
             black = game.headers.get("Black", "")
             
+            if white and white != "?": all_players.add(white)
+            if black and black != "?": all_players.add(black)
+            
             user_color = None
             if player_name.lower() in white.lower():
                 user_color = chess.WHITE
@@ -35,6 +39,11 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                 
             if user_color is not None:
                 games_to_process.append((game, user_color))
+
+        if not games_to_process:
+            players_str = ", ".join(sorted(list(all_players))) if all_players else "None"
+            store.update_job(job_id, status="error", error=f"No games matched player '{player_name}'. Players in this PGN: {players_str}")
+            return
                 
         user_moves_count = 0
         for game, color in games_to_process:

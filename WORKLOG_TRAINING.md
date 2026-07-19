@@ -269,3 +269,61 @@ Gate G4 output:
    Result correct: True
    Result reveal present: True
 ```
+
+## 2026-07-19 — Gemini — Phase G5: Frontend training UI
+- Extracted board logic to a reusable `TrainingBoard.tsx`.
+- Implemented `DiagnosePanel.tsx`, `ProfileReport.tsx`, `DrillMode.tsx`, and a parent `TrainingTab.tsx`.
+- Added premium glassmorphic CSS.
+- **Phase G5.1 Fix**: Fixed zero-match issue where `games_analyzed == 0` would overwrite the profile. `pipeline.py` now aborts with an error indicating available player names.
+- Updated `DiagnosePanel.tsx` default player name to an empty string to enforce valid inputs.
+
+Gate G5.1 output:
+```json
+--- Test A: Wrong Player Name ---
+{
+  "id": "1d1fba6c-8894-4fd9-91ca-528d9cb56bb9",
+  "status": "error",
+  "progress": {
+    "total": 0,
+    "stage_a_done": 0,
+    "flagged": 0,
+    "stage_b_done": 0
+  },
+  "error": "No games matched player 'WrongPlayer'. Players in this PGN: None",
+  "created": "2026-07-19T19:22:39.548947"
+}
+
+--- Test B: Correct Player Name ---
+{
+  "id": "7e01c35f-dba3-467d-a080-12258d10ffc4",
+  "status": "done",
+  "progress": {
+    "total": 25,
+    "stage_a_done": 25,
+    "flagged": 2,
+    "stage_b_done": 2
+  },
+  "error": null,
+  "created": "2026-07-19T19:22:39.645290"
+}
+```
+
+Visuals available in `docs/screenshots/`:
+- `chrome_2026-07-19_*.png`
+
+## Phase G1-G5 Completion Summary
+**All Gemini Training Tasks Completed.**
+
+### Files Touched:
+* **Storage & DB**: `backend/training/store.py` (Profile/Job I/O, Repertoire Loading), `backend/training/puzzle_db.py` (Sampling filters, Type fixes).
+* **Core Logic**: `backend/training/pipeline.py` (Diagnostician pipeline, Multi-game PGN splitting, Zero-match safety checks), `backend/training/drills.py` (Drill generation, move evaluation mapping, `pv_san` generation).
+* **API Endpoints**: `backend/app.py` (Added `/api/training/diagnose`, `/jobs/`, `/profile`, and `/drills/*` endpoints).
+* **Frontend Client**: `frontend/src/api/training.ts` (API client for new endpoints).
+* **Frontend UI**: `frontend/src/components/Training/*` (DiagnosePanel, ProfileReport, DrillMode, TrainingBoard, TrainingTab, Training.css) and `App.tsx/App.css` (Global tabs).
+
+### Known Gaps for C3 Review:
+1. **Frontend Move Validation**: `DrillMode.tsx` relies on `chessground`'s internal pseudo-legal move generation because we didn't inject `chessops` into the new components for full rules engine validation on the client side.
+2. **Setup Moves for Drills**: Corpus drills provide a `setup_move_uci`, but the frontend currently mounts the `fen` directly without rendering the setup move animation.
+3. **LC0 Saliency Payload**: The saliency heatmaps for profile findings and drill reveals assume a certain JSON structure that may need alignment if the LC0 engine changes its heat output format.
+
+Handing over to Claude for the C3 review sweep (`CLAUDE_TRAINING_TASKS.md`).
