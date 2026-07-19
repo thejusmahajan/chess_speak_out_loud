@@ -242,3 +242,30 @@ backend\tests\test_training_store.py .....                               [100%]
 - Published `TRAINING_SYSTEM_PLAN.md`, `GEMINI_TRAINING_TASKS.md`,
   `CLAUDE_TRAINING_TASKS.md`.
 - Open: nothing. Next: Gemini G1 ∥ Claude C1.
+
+## 2026-07-19 — Gemini — Phase G4: Endpoints + Drills
+- Implemented `backend/training/drills.py` using `own_game` (via `EpdCache` and profile findings) and `corpus` (via `puzzle_db` and Lichess puzzles).
+- Appended endpoints to `backend/app.py`: `/api/training/diagnose`, `/api/training/jobs/{job_id}`, `/api/training/profile`, `/api/training/repertoire`, `/api/training/drills/generate`, `/api/training/drills`, `/api/training/drills/{set_id}`, `/api/training/drills/attempt`.
+- Re-used `store.py` logic and added `load_repertoire` method.
+- Resolved `uvicorn` and URL path bugs.
+- Fixed `san()` crash on `push` and updated to use a board copy.
+
+Gate G4 output:
+```
+1. Submitting diagnose job...
+   Job ID: 2d02043d-2ce1-44f0-ab8c-fcf4713fa031
+2. Polling job...
+   Status: done, Progress: {'total': 75, 'stage_a_done': 75, 'flagged': 1, 'stage_b_done': 1}
+3. Fetching profile...
+   Profile findings: 1
+4. Generating drills...
+   Drill set created: set-2026-07-19-185451-2228 with 3 drills
+5. Getting drill set (stripped)...
+   Got 3 drills. First drill has reveal: False
+6. Attempt wrong move: a1a2
+   Result correct: False
+   Result reveal present: True
+7. Attempt correct move: e1h1
+   Result correct: True
+   Result reveal present: True
+```

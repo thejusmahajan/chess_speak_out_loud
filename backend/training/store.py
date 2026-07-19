@@ -108,6 +108,13 @@ def save_repertoire(repertoire: dict):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(repertoire, f, indent=2)
 
+def load_repertoire() -> Optional[Dict[str, Any]]:
+    path = os.path.join(TRAINING_DIR, "repertoire.json")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return None
+
 def save_drill_set(drill_set: dict):
     _ensure_dirs()
     set_id = drill_set.get("id")

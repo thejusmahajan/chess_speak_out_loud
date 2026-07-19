@@ -407,13 +407,112 @@ async def analyze_pgn(request: PGNRequest):
 
 
 # ------------------------------------------------------------------
+# Elite Training System endpoints (Gemini-owned)
+# ------------------------------------------------------------------
+
+from backend.training.pipeline import run_diagnosis
+from backend.training import store, drills
+import asyncio
+import json
+
+class DiagnoseRequest(BaseModel):
+    pgn: str
+    player_name: str
+
+class RepertoireRequest(BaseModel):
+    color: str
+
+class GenerateDrillsRequest(BaseModel):
+    count: int = 20
+
+class AttemptDrillRequest(BaseModel):
+    set_id: str
+    drill_id: str
+    move_uci: str
+
+@app.post("/api/training/diagnose")
+async def start_diagnose(req: DiagnoseRequest):
+    import os
+    jobs_dir = Path(store.DATA_DIR) / "jobs"
+    if jobs_dir.exists():
+        for job_file in jobs_dir.glob("*.json"):
+            with open(job_file, "r") as f:
+                j = json.load(f)
+                if j.get("status") == "running":
+                    raise HTTPException(status_code=409, detail="A diagnosis job is already running")
+                    
+    job_id = store.create_job()
+    asyncio.create_task(run_diagnosis(job_id, req.pgn, req.player_name, lc0_engine, neural_vision))
+    return {"job_id": job_id}
+
+@app.get("/api/training/jobs/{job_id}")
+async def get_job(job_id: str):
+    job = store.read_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
+@app.get("/api/training/profile")
+async def get_profile():
+    profile = store.load_profile()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return profile
+
+@app.post("/api/training/repertoire")
+async def get_repertoire(req: RepertoireRequest):
+    rep = store.load_repertoire()
+    if not rep:
+        return {}
+    return rep
+
+@app.post("/api/training/drills/generate")
+async def generate_drills_ep(req: GenerateDrillsRequest):
+    profile = store.load_profile()
+    repertoire = store.load_repertoire()
+    drill_set = await drills.generate_drill_set(req.count, profile, repertoire, lc0_engine, neural_vision)
+    return drill_set
+
+@app.get("/api/training/drills")
+async def list_drills():
+    return store.list_drill_sets()
+
+@app.get("/api/training/drills/{set_id}")
+async def get_drill_set(set_id: str):
+    ds = store.load_drill_set(set_id)
+    if not ds:
+        raise HTTPException(status_code=404, detail="Drill set not found")
+    
+    import copy
+    cloned = copy.deepcopy(ds)
+    for d in cloned.get("drills", []):
+        if "reveal" in d:
+            del d["reveal"]
+    return cloned
+
+@app.post("/api/training/drills/attempt")
+async def attempt_drill(req: AttemptDrillRequest):
+    ds = store.load_drill_set(req.set_id)
+    if not ds:
+        raise HTTPException(status_code=404, detail="Drill set not found")
+    
+    for d in ds.get("drills", []):
+        if d["id"] == req.drill_id:
+            correct = req.move_uci in d.get("alt_solution_ucis", [])
+            return {"correct": correct, "reveal": d.get("reveal")}
+            
+    raise HTTPException(status_code=404, detail="Drill not found")
+
+
+
+# ------------------------------------------------------------------
 # Entry point
 # ------------------------------------------------------------------
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "app:app",
+        "backend.app:app",
         host="127.0.0.1",
         port=8000,
         reload=True,
