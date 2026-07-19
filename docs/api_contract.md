@@ -65,10 +65,12 @@ Performs a deep tactical analysis of a PGN sequence using Lichess Tagger and Gem
 }
 ```
 
-### 5. `POST /api/training/jobs/diagnose`
-Starts a background diagnosis job on a given PGN.
-**Request Body:** `{"pgn": "...", "player_name": "?"}`
-**Response:** `{"job_id": "...", "status": "pending"}`
+### 5. `POST /api/training/diagnose`
+Starts a background diagnosis job on a given PGN. One job at a time — returns
+409 while a job is running. Errors (e.g. no games matching `player_name`) are
+reported on the job object, not here.
+**Request Body:** `{"pgn": "...", "player_name": "MyLichessName"}`
+**Response:** `{"job_id": "..."}`
 
 ### 6. `GET /api/training/jobs/{job_id}`
 **Response:** `{"id": "...", "status": "done", "progress": {...}, "error": null}`
