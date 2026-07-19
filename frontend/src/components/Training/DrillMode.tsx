@@ -152,7 +152,9 @@ export default function DrillMode({ setId, onExit }: DrillModeProps) {
               {attemptResult.reveal && (
                 <div className="reveal-data">
                   {attemptResult.reveal.swing_cp != null && attemptResult.reveal.swing_cp !== 0 && (
-                    <p><strong>Eval swing:</strong> {(attemptResult.reveal.swing_cp / 100).toFixed(2)}</p>
+                    <p><strong>Eval swing:</strong> {Math.abs(attemptResult.reveal.swing_cp) >= 9000
+                      ? 'decisive (mate)'
+                      : (attemptResult.reveal.swing_cp / 100).toFixed(2)}</p>
                   )}
                   {attemptResult.reveal.pv_san && attemptResult.reveal.pv_san.length > 0 && (
                     <p><strong>Line:</strong> {attemptResult.reveal.pv_san.join(' ')}</p>

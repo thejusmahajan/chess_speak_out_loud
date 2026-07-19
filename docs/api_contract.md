@@ -84,3 +84,10 @@ reported on the job object, not here.
 ### 9. `POST /api/training/drills/attempt`
 **Request Body:** `{"set_id": "set-123", "drill_id": "d-abc", "move_uci": "e2e4"}`
 **Response:** `{"correct": true, "reveal": {"swing_cp": 50, ...}}`
+
+### 10. `POST /api/training/repertoire`
+Returns the stored repertoire (`{}` if none). With `"build": true`, builds and
+stores a fresh one from the current profile (404 when no profile exists).
+**Request Body:** `{"color": "white" | "black", "build": false}`
+**Response:** `{"color": "...", "targets": [...], "recommendations": [{"eco",
+"name", "line_pgn", "score", "eval_cp", "draw_pct", "rationale", ...}]}`

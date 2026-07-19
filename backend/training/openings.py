@@ -82,3 +82,21 @@ def classify(uci_moves: List[str]) -> Optional[Dict[str, str]]:
 def tabiya_fen(eco: str, name: str) -> Optional[str]:
     _load_openings()
     return _tabiya_fens.get((eco, name))
+
+def lines_by_tag() -> Dict[str, Dict]:
+    """opening_tag -> {"eco","name","uci_moves","fen"}, keeping the shortest
+    (defining) line per tag. Read-only accessor added for C2 repertoire
+    selection (leader addition, logged in WORKLOG_TRAINING.md)."""
+    _load_openings()
+    result: Dict[str, Dict] = {}
+    for seq, info in _openings_trie.items():
+        tag = to_opening_tag(info["name"])
+        current = result.get(tag)
+        if current is None or len(seq) < len(current["uci_moves"]):
+            result[tag] = {
+                "eco": info["eco"],
+                "name": info["name"],
+                "uci_moves": list(seq),
+                "fen": _tabiya_fens.get((info["eco"], info["name"])),
+            }
+    return result

@@ -70,6 +70,7 @@ async def lifespan(app: FastAPI):
         logger.info("LC0 engine is LIVE.")
     else:
         logger.info("LC0 engine not found — running in MOCK mode.")
+    _sweep_orphaned_training_jobs()
     yield
     # Shutdown
     await lc0_engine.stop()
@@ -421,6 +422,7 @@ class DiagnoseRequest(BaseModel):
 
 class RepertoireRequest(BaseModel):
     color: str
+    build: bool = False
 
 class GenerateDrillsRequest(BaseModel):
     count: int = 20
@@ -430,10 +432,26 @@ class AttemptDrillRequest(BaseModel):
     drill_id: str
     move_uci: str
 
+def _sweep_orphaned_training_jobs():
+    """A server restart mid-diagnosis leaves a job 'running' forever, which
+    would 409-block every future diagnosis (C3 finding M5)."""
+    jobs_dir = Path(store.TRAINING_DIR) / "jobs"
+    if not jobs_dir.exists():
+        return
+    for job_file in jobs_dir.glob("*.json"):
+        try:
+            with open(job_file, "r") as f:
+                j = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            continue
+        if j.get("status") in ("running", "queued"):
+            store.update_job(j["id"], status="error",
+                             error="Orphaned by server restart")
+            logger.info("Marked orphaned training job %s as error", j["id"])
+
 @app.post("/api/training/diagnose")
 async def start_diagnose(req: DiagnoseRequest):
-    import os
-    jobs_dir = Path(store.DATA_DIR) / "jobs"
+    jobs_dir = Path(store.TRAINING_DIR) / "jobs"
     if jobs_dir.exists():
         for job_file in jobs_dir.glob("*.json"):
             with open(job_file, "r") as f:
@@ -461,6 +479,15 @@ async def get_profile():
 
 @app.post("/api/training/repertoire")
 async def get_repertoire(req: RepertoireRequest):
+    if req.build:
+        from backend.training.select_repertoire import build_repertoire
+        profile = store.load_profile()
+        if not profile:
+            raise HTTPException(status_code=404,
+                                detail="No profile — run a diagnosis first")
+        rep = await build_repertoire(profile, req.color, lc0_engine)
+        store.save_repertoire(rep)
+        return rep
     rep = store.load_repertoire()
     if not rep:
         return {}
