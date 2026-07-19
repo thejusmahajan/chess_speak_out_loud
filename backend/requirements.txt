@@ -32,3 +32,5 @@ numpy==2.4.6
 #     by backend/llm_client.py, so still required to boot. Remove only if that
 #     import is made lazy. ---
 google-generativeai==0.8.6
+requests
+zstandard
