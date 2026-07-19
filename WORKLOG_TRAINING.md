@@ -364,3 +364,57 @@ backend\tests\test_training_store.py .....                               [100%]
 EPD caches store raw LC0 output and remain VALID. `profile.json` findings
 generated before this commit are tainted (castling false positives) — Gemini
 re-runs diagnosis in G5.2 item 7.
+
+## 2026-07-19 — Leader (completing Claude worker after quota) — Phase C3: Review sweep
+Claude Opus 4.6 worker hit quota mid-C3; it left `scratch/c3_gate.py` +
+`scratch/c3_test.pgn` (3-game PGN, TestPlayer both colors, deliberate mistakes)
+but no committed findings. Leader completed the sweep. Checklist per spec:
+
+1. Metric re-derivation — CLEAN. No inline thresholds/formulas in Gemini files;
+   all judgments route through `backend.training.metrics`.
+2. Frame bugs — CLEAN. Training code calls only `saliency_absolute`; the two
+   `saliency()` call sites are the pre-existing Analysis Mode endpoints.
+3. PV format — CLEAN. `pipeline.py` splits `pv_lines[0]` before `analyze_pv`.
+4. Lichess Moves[0] — CLEAN. `drills.py` treats Moves[0] as setup, Moves[1] as
+   solution; frontend applies the setup move since G5.2.
+5. Mock-mode leaks — ONE FINDING (M1, low/med): `drills.py:72` corpus path has
+   no empty-policy guard; in mock mode an empty `reveal.policy` would be saved.
+   (Did not occur — engine_mode was "live" — but guard it like pipeline does.)
+6. Engine discipline — CLEAN. App singletons only; BT3 bounded (corpus <= 40%
+   of count; Stage B one forward per flagged move).
+7. Hallucinated APIs — CLEAN. All oracle calls executed live end-to-end.
+
+Additional findings (non-blocking, for Gemini/G6 or C1):
+- M2: `drills.py:103-107` calls `scan_for_gems(hidden_gem_count, profile, engine,
+  vision)` — signature differs from the C1 spec AND the result is discarded, so
+  hidden-gem drills will silently never appear even after C1 lands. Fix at C1
+  integration time.
+- M3: `swing_cp` inherits the mate->±10000 mapping (observed reveal swing_cp
+  11410 -> UI shows "Eval swing: 114.10"). Cap or label as mate in the UI.
+- M4: own_game drills are not deduped (two drills in one set shared solution
+  e6g4 from adjacent findings). Dedupe by EPD at generation.
+- M5: a server crash mid-diagnosis leaves a job "running" forever ->
+  `start_diagnose` 409s permanently. Sweep running->error on app startup.
+  (No stale "running" jobs exist today; one harmless stale "queued" from 18:37.)
+
+Re-verified Gemini gate claims (fabrication history):
+```
+backend/tests: 13 passed in 43.89s (G1 gate green, incl. leader castling tests)
+puzzles.sqlite: 300000 rows, min popularity 70, idx_rating present,
+opening_motifs 27563 rows, Sicilian top: middlegame 7257 / short 5019 /
+advantage 4077, 0 null-fen rows. /api/health: engine_mode "live".
+```
+
+End-to-end HTTP gate (run by leader, `scratch/c3_gate.py`):
+```
+Diagnose 200 -> job done: total 82, flagged 18, stage_b 18
+Profile: 3 games, 82 moves, 18 findings; no castling false positives
+(castling motif appears once, legitimately, via PV motif tagging).
+Drills: 4/5 (2 own_game + 2 corpus; hidden_gem absent — gems.py is C1, M2).
+Corpus attempt d-8df3831b (d4d3): correct=True, pv Qd3+ e4 Qxf3 (consistent).
+Own-game attempt d-981e3e1d (e6g4): correct=True, swing_cp 11410 (see M3).
+```
+
+**C3 SIGN-OFF: 2026-07-19** — scope: G1-G5.2 as committed through `2fcab31`.
+M1-M5 are follow-ups, none block merge. C1 (gems) and C2 (repertoire) remain
+open; the Claude worker spec stands.
