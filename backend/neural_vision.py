@@ -117,6 +117,24 @@ class NeuralVision:
             
         return saliency_map
 
+    def saliency_absolute(self, fen: str) -> dict[str, float]:
+        """
+        Public API: BT3 attention saliency keyed by TRUE absolute squares,
+        correct for BOTH white-to-move and black-to-move positions.
+
+        Training-system code (diagnostician, drills, hidden gems) MUST use
+        this instead of saliency(), which is only frame-correct for
+        white-to-move positions. Falls back to policy_fallback shape (all
+        zeros without a policy dist) if attention mode is unavailable.
+        """
+        if self.mode != "attention" or self.model is None:
+            return self._policy_fallback(fen, None)
+        try:
+            return self._saliency_absolute(chess.Board(fen))
+        except Exception as exc:
+            logger.error("saliency_absolute failed (%s) — fallback", exc)
+            return self._policy_fallback(fen, None)
+
     def _saliency_absolute(self, board: "chess.Board") -> dict[str, float]:
         """
         BT3 attention for `board`, always keyed by TRUE absolute squares.
