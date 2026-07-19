@@ -8,11 +8,21 @@ import type { Key } from 'chessground/types';
 import './Training.css';
 
 interface DrillModeProps {
-  setId: string;
+  setId?: string;
+  dueItems?: any[];
   onExit: () => void;
 }
 
-export default function DrillMode({ setId, onExit }: DrillModeProps) {
+function formatRelativeTime(isoString: string) {
+  const diff = new Date(isoString).getTime() - new Date().getTime();
+  if (diff < 0) return 'now';
+  const hours = diff / (1000 * 60 * 60);
+  if (hours < 1) return 'in < 1 hour';
+  if (hours < 24) return `in ${Math.round(hours)} hours`;
+  return `in ${Math.round(hours / 24)} days`;
+}
+
+export default function DrillMode({ setId, dueItems, onExit }: DrillModeProps) {
   const [drillSet, setDrillSet] = useState<any>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -25,18 +35,25 @@ export default function DrillMode({ setId, onExit }: DrillModeProps) {
 
   useEffect(() => {
     async function load() {
-      try {
-        setLoading(true);
-        const ds = await getDrillSet(setId);
-        setDrillSet(ds);
+      if (dueItems) {
+        setDrillSet({ drills: dueItems.map(item => ({...item.drill, _srsItem: item})) });
         setLoading(false);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load drills');
-        setLoading(false);
+        return;
+      }
+      if (setId) {
+        try {
+          setLoading(true);
+          const ds = await getDrillSet(setId);
+          setDrillSet(ds);
+          setLoading(false);
+        } catch (err: any) {
+          setError(err.message || 'Failed to load drills');
+          setLoading(false);
+        }
       }
     }
     load();
-  }, [setId]);
+  }, [setId, dueItems]);
 
   const drill = drillSet?.drills?.[currentIndex];
 
@@ -95,7 +112,9 @@ export default function DrillMode({ setId, onExit }: DrillModeProps) {
   const handleMove = async (uci: string) => {
     if (attemptResult) return; 
     try {
-      const res = await attemptDrill(setId, drill.id, uci);
+      const currentSetId = drill._srsItem?.set_id || setId;
+      if (!currentSetId) return;
+      const res = await attemptDrill(currentSetId, drill.id, uci);
       setAttemptResult(res);
     } catch (err: any) {
       console.error('Attempt failed', err);
@@ -149,6 +168,16 @@ export default function DrillMode({ setId, onExit }: DrillModeProps) {
           ) : (
             <div className={`result-card ${attemptResult.correct ? 'correct' : 'incorrect'}`}>
               <h3>{attemptResult.correct ? 'Correct!' : 'Incorrect!'}</h3>
+              
+              {attemptResult.next_due && (
+                <div className="srs-info" style={{marginTop: '10px', marginBottom: '10px'}}>
+                  <span style={{marginRight: '10px'}}><strong>Next review:</strong> {formatRelativeTime(attemptResult.next_due)}</span>
+                  {attemptResult.lapses > 0 && (
+                    <span className="badge" style={{backgroundColor: 'var(--color-danger)', padding: '2px 6px', borderRadius: '4px'}}>Lapses: {attemptResult.lapses}</span>
+                  )}
+                </div>
+              )}
+
               {attemptResult.reveal && (
                 <div className="reveal-data">
                   {attemptResult.reveal.swing_cp != null && attemptResult.reveal.swing_cp !== 0 && (

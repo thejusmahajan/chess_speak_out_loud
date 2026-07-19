@@ -56,3 +56,18 @@ export async function attemptDrill(setId: string, drillId: string, moveUci: stri
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
+export async function getDueDrills() {
+  const res = await fetch(`${BASE_URL}/srs/due`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getTrends() {
+  const res = await fetch(`${BASE_URL}/trends`);
+  if (!res.ok) {
+    if (res.status === 404) return null;
+    throw new Error(await res.text());
+  }
+  return res.json();
+}
