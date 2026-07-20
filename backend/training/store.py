@@ -194,17 +194,49 @@ def load_profile() -> Optional[Dict[str, Any]]:
             return json.load(f)
     return None
 
-def save_repertoire(repertoire: dict):
-    _ensure_dirs()
-    path = os.path.join(TRAINING_DIR, "repertoire.json")
-    _write_json_atomic(path, repertoire)
+def _variant_slug(style: Optional[str], color: Optional[str]) -> Optional[str]:
+    if style and color:
+        return f"{style}_{color}"
+    return None
 
-def load_repertoire() -> Optional[Dict[str, Any]]:
-    path = os.path.join(TRAINING_DIR, "repertoire.json")
+def save_repertoire(repertoire: dict):
+    """Persist a built repertoire per (style, color) variant, so all four
+    coexist instead of clobbering one slot. Also mirrors the newest build to
+    the legacy repertoire.json (kept for the no-arg loader / drill generation)."""
+    _ensure_dirs()
+    slug = _variant_slug(repertoire.get("style"), repertoire.get("color"))
+    if slug:
+        _write_json_atomic(
+            os.path.join(TRAINING_DIR, f"repertoire_{slug}.json"), repertoire)
+    _write_json_atomic(os.path.join(TRAINING_DIR, "repertoire.json"), repertoire)
+
+def load_repertoire(style: Optional[str] = None,
+                    color: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Load a specific (style, color) variant when both are given, else the
+    legacy last-built repertoire.json."""
+    slug = _variant_slug(style, color)
+    name = f"repertoire_{slug}.json" if slug else "repertoire.json"
+    path = os.path.join(TRAINING_DIR, name)
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     return None
+
+def list_repertoires() -> List[Dict[str, Any]]:
+    """All saved repertoire variants, newest first. Each item is the full
+    repertoire dict (they are small — a handful of recommendations each)."""
+    _ensure_dirs()
+    out = []
+    for fname in os.listdir(TRAINING_DIR):
+        if fname.startswith("repertoire_") and fname.endswith(".json"):
+            try:
+                with open(os.path.join(TRAINING_DIR, fname), "r",
+                          encoding="utf-8") as f:
+                    out.append(json.load(f))
+            except (json.JSONDecodeError, OSError):
+                continue
+    out.sort(key=lambda r: r.get("created", ""), reverse=True)
+    return out
 
 def save_drill_set(drill_set: dict):
     _ensure_dirs()

@@ -84,3 +84,19 @@ def test_atomic_write_gives_up_eventually(monkeypatch, tmp_path):
     import pytest as _pytest
     with _pytest.raises(PermissionError):
         store._write_json_atomic(str(tmp_path / "job.json"), {})
+
+def test_repertoire_variants_coexist(monkeypatch, tmp_path):
+    monkeypatch.setattr(store, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(store, "TRAINING_DIR", str(tmp_path / "training"))
+    for style in ("weakness", "sacrificial"):
+        for color in ("white", "black"):
+            store.save_repertoire({"style": style, "color": color,
+                                   "created": f"2026-07-20T{len(style):02d}:00:00",
+                                   "recommendations": [{"eco": "C20"}]})
+    variants = store.list_repertoires()
+    assert len(variants) == 4  # all four persist, no clobber
+    # specific-variant load
+    r = store.load_repertoire("sacrificial", "black")
+    assert r["style"] == "sacrificial" and r["color"] == "black"
+    # legacy no-arg load returns the last-written build
+    assert store.load_repertoire() is not None

@@ -625,3 +625,21 @@ untouched (user-facing latency). Runner JOB_TIMEOUT_HOURS 14->20.
 Restarted backend+runner (~02:55; stage A was cached, stage B not yet
 started — nothing lost). New ETA for 693 games: ~17-19h wall, i.e.
 evening 2026-07-20. Suite: 56 passed.
+
+## 2026-07-20 (day) — Leader — Repertoire view wired up (all 4 variants)
+Closes the known gap: server kept a single repertoire.json slot (last
+build won), and the frontend had NO repertoire UI at all — the four
+overnight variants existed only as runner-written JSON files.
+
+- store: save_repertoire writes per-variant repertoire_<style>_<color>.json
+  (still mirrors legacy repertoire.json for the no-arg loader / drill gen);
+  load_repertoire(style,color) + list_repertoires(). Test:
+  test_repertoire_variants_coexist (4 coexist, specific + legacy load).
+- app.py: GET /api/training/repertoires; POST /repertoire (build=False)
+  now loads the requested variant. Verified live: 4 variants served.
+- Frontend RepertoirePanel.tsx: 4-variant selector (built ones selectable,
+  missing ones show a Build button -> POST build), recommendation cards
+  (ECO, line, eval, draw%, primary motif), and a TrainingBoard tabiya
+  preview replayed from line_pgn SAN + rationale. New "Repertoire" tab in
+  TrainingTab. api: listRepertoires, buildRepertoire.
+Suite 57 passed; tsc + vite build clean.

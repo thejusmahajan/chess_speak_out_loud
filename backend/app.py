@@ -497,10 +497,15 @@ async def get_repertoire(req: RepertoireRequest):
                                      style=req.style)
         store.save_repertoire(rep)
         return rep
-    rep = store.load_repertoire()
+    rep = store.load_repertoire(req.style, req.color)
     if not rep:
         return {}
     return rep
+
+@app.get("/api/training/repertoires")
+async def list_repertoires():
+    """All built repertoire variants (weakness/sacrificial x white/black)."""
+    return store.list_repertoires()
 
 @app.post("/api/training/drills/generate")
 async def generate_drills_ep(req: GenerateDrillsRequest):

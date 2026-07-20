@@ -63,6 +63,22 @@ export async function getDueDrills() {
   return res.json();
 }
 
+export async function listRepertoires() {
+  const res = await fetch(`${BASE_URL}/repertoires`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function buildRepertoire(color: 'white' | 'black', style: 'weakness' | 'sacrificial') {
+  const res = await fetch(`${BASE_URL}/repertoire`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ color, style, build: true }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
 export async function getTrends() {
   const res = await fetch(`${BASE_URL}/trends`);
   if (!res.ok) {

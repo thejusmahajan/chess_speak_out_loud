@@ -332,3 +332,133 @@
   20% { fill: rgba(255,0,0,0.4); }
   100% { fill: rgba(255,0,0,0); }
 }
+
+/* Repertoire Panel */
+.repertoire-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.repertoire-panel .subtle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  margin: 0.25rem 0 1rem;
+}
+
+.variant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.variant-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.variant-card:hover:not(.empty) {
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+.variant-card.active {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.variant-card.empty {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.variant-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.variant-meta {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.repertoire-detail {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.2fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.rec-item {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.rec-item:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.rec-item.active {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.rec-name {
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.rec-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.rec-line {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.rec-stats {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.6);
+  align-items: center;
+}
+
+.tag.hot {
+  background: rgba(251, 146, 60, 0.18);
+  color: #fdba74;
+}
+
+.rec-board {
+  position: sticky;
+  top: 1rem;
+}
+
+.rec-rationale {
+  margin-top: 1rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 800px) {
+  .repertoire-detail {
+    grid-template-columns: 1fr;
+  }
+}
