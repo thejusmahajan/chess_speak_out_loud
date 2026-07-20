@@ -4,6 +4,141 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-20 — Gemini — Phase: Surface per-color opening ownership in the Weakness Profile (frontend)
+- Edited `frontend/src/components/Training/ProfileReport.tsx` to add `openingColorLabel` helper function which derives opening color ownership.
+- Added a "Color" column to the "Top Openings" table to present explicit color ownership alongside the ECO.
+
+Gate check output:
+```
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+vite v8.1.4 building client environment for production...
+transforming...✓ 64 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.45 kB │ gzip:  0.29 kB
+dist/assets/index-DEOkXQvU.css   27.21 kB │ gzip:  7.38 kB
+dist/assets/index-D1zeEab3.js   294.41 kB │ gzip: 92.05 kB
+
+✓ built in 1.04s
+
+> frontend@0.0.0 lint
+> oxlint
+
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+   ,-[src/components/Training/ProfileReport.tsx:3:17]
+ 2 | 
+ 3 | export function openingColorLabel(stats: { moves_white?: number; moves_black?: number }): string {
+   :                 ^^^^^^^^^^^^^^^^^
+ 4 |   const w = stats.moves_white ?? 0;
+   `----
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'paintOverlays'
+    ,-[src/components/PgnViewer.tsx:93:6]
+ 91 |   useEffect(() => {
+ 92 |     paintOverlays(gameStates.current[currentIndexRef.current]);
+    :     ^^^^^^|^^^^^^
+    :           `-- useEffect uses `paintOverlays` here
+ 93 |   }, [glowMode]);
+    :      ^^^^^^^^^^
+ 94 | 
+    `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has missing dependencies: 'lastMove', 'fen', 'interactive', and 'orientation'
+     ,-[src/components/Training/TrainingBoard.tsx:146:6]
+ 100 | 
+ 101 |     const pos = posFromFen(fen);
+     :                            ^^^
+ 102 | 
+ 103 |     const cg = Chessground(boardRef.current, {
+ 104 |       fen: pos ? fen : INITIAL_FEN,
+ 105 |       lastMove,
+     :       ^^^^^^^^
+ 106 |       orientation,
+     :       ^^^^^^^^^^^
+ 107 |       // turnColor must always mirror the FEN: chessground only allows a
+ 108 |       // real drag when turnColor matches movable.color, and otherwise
+ 109 |       // silently captures the drag as a premove (piece moves on screen,
+ 110 |       // no move event fires). Premoves are meaningless in drills.
+ 111 |       turnColor: pos.turn,
+ 112 |       premovable: { enabled: false },
+ 113 |       movable: {
+ 114 |         free: false,
+ 115 |         color: interactive ? pos.turn : undefined,
+     :                ^^^^^^^^^^^
+ 116 |         dests: interactive ? chessgroundDests(pos) : new Map(),
+ 117 |       },
+ 118 |     });
+ 119 | 
+ 120 |     cg.set({
+ 121 |       movable: {
+ 122 |         events: {
+ 123 |           after: (orig, dest) => {
+ 124 |             if (!onMoveRef.current) return;
+ 125 | 
+ 126 |             const oldPos = posFromFen(fenRef.current);
+ 127 |             const piece = oldPos.board.get(parseSquare(orig) ?? -1);
+ 128 |             if (piece?.role === 'pawn' && (dest[1] === '1' || dest[1] === '8')) {
+ 129 |               // Pawn reached the last rank: ask which piece before submitting.
+ 130 |               setPromo({ orig: orig as Key, dest: dest as Key });
+ 131 |               return;
+ 132 |             }
+ 133 | 
+ 134 |             emitMoveRef.current(orig + dest);
+ 135 |           }
+ 136 |         }
+ 137 |       }
+ 138 |     });
+ 139 | 
+ 140 |     cgRef.current = cg;
+ 141 | 
+ 142 |     return () => {
+ 143 |       cg.destroy();
+ 144 |       cgRef.current = null;
+ 145 |     };
+ 146 |   }, []);
+     :      ^^
+ 147 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'syncBoard'
+     ,-[src/components/Training/TrainingBoard.tsx:151:6]
+ 149 |   useEffect(() => {
+ 150 |     syncBoard();
+     :     ^^^^|^^^^
+     :         `-- useEffect uses `syncBoard` here
+ 151 |   }, [fen, lastMove, orientation, interactive]);
+     :      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 152 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'load'
+    ,-[src/components/Training/RepertoirePanel.tsx:67:32]
+ 66 | 
+ 67 |   useEffect(() => { load(); }, []);
+    :                     ^^|^       ^^
+    :                       `-- useEffect uses `load` here
+ 68 | 
+    `----
+  help: Either include it or remove the dependency array.
+
+Found 5 warnings and 0 errors.
+Finished in 52ms on 16 files with 103 rules using 4 threads.
+```
+
+opening-color UI ready for review
+
+> Leader (Opus) sign-off: approved. Gemini's inline export tripped a new
+> `react(only-export-components)` oxlint warning (fast-refresh rule). Extracted
+> `openingColorLabel` into `frontend/src/components/Training/openingColor.ts` per
+> oxlint's own hint. Re-ran `npm run build` (clean) + `npm run lint` → back to the
+> 4 pre-existing hooks warnings, 0 errors, `only-export-components` gone.
+
 ## 2026-07-20 — Gemini — Phase: Lock in the color-authoritative repertoire branch (test-only)
 - Added `test_color_counts_override_parity` and `test_color_count_below_min_moves_excluded` in `backend/tests/test_training_select.py` to test the new authoritative `moves_white`/`moves_black` keys.
 - Ran tests successfully for `test_training_select.py` and the full suite.

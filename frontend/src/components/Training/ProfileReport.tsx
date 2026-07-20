@@ -1,4 +1,5 @@
 import './Training.css';
+import { openingColorLabel } from './openingColor';
 
 interface ProfileReportProps {
   profile: any;
@@ -58,12 +59,13 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
           <h3>Top Openings</h3>
           <table className="glass-table">
             <thead>
-              <tr><th>ECO</th><th>Moves</th><th>Blind Rate</th></tr>
+              <tr><th>ECO</th><th>Color</th><th>Moves</th><th>Blind Rate</th></tr>
             </thead>
             <tbody>
               {openings.slice(0, 5).map(([eco, stats]: any) => (
                 <tr key={eco}>
                   <td>{eco}</td>
+                  <td>{openingColorLabel(stats)}</td>
                   <td>{stats.moves || 0}</td>
                   <td>{((stats.blind_rate || 0) * 100).toFixed(1)}%</td>
                 </tr>
