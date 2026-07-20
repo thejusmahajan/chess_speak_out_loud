@@ -201,6 +201,7 @@ export default function DrillMode({ setId, dueItems, onExit }: DrillModeProps) {
             onMove={handleMove}
             policy={attemptResult?.reveal?.policy || []}
             saliency={attemptResult?.reveal?.saliency}
+            minefield={attemptResult?.reveal?.minefield}
             blunderFlash={attemptResult && !attemptResult.correct}
           />
         </div>
@@ -232,6 +233,25 @@ export default function DrillMode({ setId, dueItems, onExit }: DrillModeProps) {
 
               {attemptResult.reveal && (
                 <div className="reveal-data">
+                  {drill.source === 'steer' && (
+                    <div className="steer-legend" style={{marginBottom: '10px', padding: '8px', background: 'rgba(255, 150, 0, 0.1)', borderLeft: '3px solid orange'}}>
+                      <p style={{margin: 0, fontSize: '0.9em'}}><em>Legend: Sharpness = danger to the opponent, not objective eval.</em></p>
+                      {attemptResult.reveal.steer_uci && attemptResult.reveal.best_uci && (
+                        <div style={{marginTop: '8px', fontSize: '0.85em', display: 'flex', gap: '10px'}}>
+                          <div>
+                            <strong>Steer Move:</strong> {attemptResult.reveal.steer_uci}<br/>
+                            Eval: {(attemptResult.reveal.steer_eval_cp / 100).toFixed(2)}
+                            {attemptResult.reveal.complexity_components?.score != null && 
+                              <><br/>Complexity: {attemptResult.reveal.complexity_components.score.toFixed(2)}</>}
+                          </div>
+                          <div>
+                            <strong>Best Move:</strong> {attemptResult.reveal.best_uci}<br/>
+                            Eval: {(attemptResult.reveal.best_eval_cp / 100).toFixed(2)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {attemptResult.reveal.swing_cp != null && attemptResult.reveal.swing_cp !== 0 && (
                     <p><strong>Eval swing:</strong> {Math.abs(attemptResult.reveal.swing_cp) >= 9000
                       ? 'decisive (mate)'

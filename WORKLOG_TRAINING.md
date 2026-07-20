@@ -682,3 +682,58 @@ metrics.py (leader-owned), pure math over oracle outputs, no engine:
   steer_min_eval_cp=-60 (minus ok, not lost), weights .40/.30/.20/.10.
 Tests: test_training_steer.py 10 passed; full suite 67 passed.
 TS1 unblocks Gemini TS2 and Opus TS3 (can now run in parallel).
+
+## 2026-07-20 — Gemini — Phases TS2 + TS4 (Steering Pass & Drills)
+- Implemented `stage_steer_done` pass in `backend/training/pipeline.py` leveraging `metrics.tactical_complexity` and `metrics.steer_candidates`.
+- Appended `steer_findings` and `steer_summary` to profile object.
+- Modified `backend/training/drills.py` to identify findings with `had_tal_move` and emit `steer` drills with `reveal` data showcasing alternative candidates.
+- Added `steer_weight` param.
+- Frontend: Implemented "Minefield" UI rendering logic (`TrainingBoard.tsx`) plotting `saliency` gradients and candidate eval divergences alongside SVG arrows.
+- Drill mode updated with "Eval swing" and "Steer" metadata.
+
+Gate TS2 & TS4 output:
+```json
+Job Error Details: None
+Profile:
+Steer findings: 3
+Found Tal move!
+{
+  "id": "s-001-p030",
+  "game": {
+    "white": "Opponent",
+    "black": "TestPlayer",
+    "date": "2026.07.19"
+  },
+  "ply": 30,
+  "fen_before": "rnr3k1/4qpp1/pp2b2p/1BPp4/8/Q3PN2/PP3PPP/2R1K2R b K - 0 15",
+  "best": {
+    "uci": "b6c5",
+    "san": "bxc5",
+    "eval_cp": -4,
+    "complexity": 0.2595424351301014
+  },
+  "steer": {
+    "uci": "c8c5",
+    "san": "Rxc5",
+    "eval_cp": -44,
+    "complexity": 0.37080611914948897
+  },
+  "had_tal_move": true
+}
+
+Steer Drill: {
+  "id": "d-aa183115",
+  "source": "steer",
+  "fen": "2r1q2k/1r5n/5P1Q/p1p5/2Bp4/1P6/P5PP/5RK1 b - - 0 34",
+  "setup_move_uci": null,
+  "solution_uci": "e8e3",
+  "alt_solution_ucis": [
+    "b7f7",
+    "e8e3"
+  ],
+  "solution_san": "Qe3+",
+  "tags": [
+    "steer"
+  ]
+}
+```

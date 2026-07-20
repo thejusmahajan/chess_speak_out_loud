@@ -46,6 +46,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         
         policy_cache = store.EpdCache("policy")
         stage_b_cache = store.EpdCache("stage_b")
+        steer_cache = store.EpdCache("steer")
         
         pgn_io = io.StringIO(pgn_text)
         games_to_process = []
@@ -98,6 +99,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         games_analyzed = len(games_to_process)
         
         flagged_moves = []
+        user_decision_nodes = []
         
         # STAGE A
         for game_idx, (game, user_color) in enumerate(games_to_process):
@@ -145,6 +147,16 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                             "uci_moves_so_far": list(uci_moves)
                         })
                         flagged_count += 1
+                        
+                    user_decision_nodes.append({
+                        "game_idx": game_idx,
+                        "game": game,
+                        "ply": ply,
+                        "user_color": user_color,
+                        "fen_before": board.fen(),
+                        "epd": epd,
+                        "uci_moves_so_far": list(uci_moves)
+                    })
                         
                     moves_processed += 1
                     if moves_processed % 20 == 0:
@@ -232,6 +244,128 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             stage_b_done += 1
             _progress(job_id, stage_b_done=stage_b_done)
             
+        # STAGE TS2: Steering Pass
+        steer_findings = []
+        by_opening_steer = defaultdict(lambda: {"moves": 0, "complexity_sum": 0.0, "tal_moves": 0})
+        bt3_budget_remaining = metrics.DEFAULT_CONFIG.steer_bt3_budget
+        steer_processed = 0
+
+        for node in user_decision_nodes:
+            epd = node["epd"]
+            fen_before = node["fen_before"]
+            user_color = node["user_color"]
+            board_before = chess.Board(fen_before)
+            
+            policy_data = policy_cache.get(epd)
+            if not policy_data or not policy_data.get("policy"):
+                continue
+            
+            policy = policy_data["policy"]
+            top_k = metrics.DEFAULT_CONFIG.steer_top_k
+            top_moves = policy[:top_k]
+            
+            candidates = []
+            
+            for p_entry in top_moves:
+                uci = p_entry.get("uci")
+                try:
+                    move = board_before.parse_uci(uci)
+                except ValueError:
+                    continue
+                    
+                board_after = board_before.copy(stack=False)
+                board_after.push(move)
+                fen_after_m = board_after.fen()
+                epd_after_m = board_after.epd()
+                
+                s_data = steer_cache.get(epd_after_m)
+                if not s_data:
+                    analysis = await engine.analyze(
+                        fen_after_m, depth=None, multipv=2,
+                        time_limit=metrics.DEFAULT_CONFIG.confirm_played_seconds)
+                    if not analysis:
+                        raise Exception("engine in mock mode")
+                    pol_after = await engine.get_policy_distribution(fen_after_m, nodes=1)
+                    s_data = {"analysis": analysis, "policy": pol_after}
+                    steer_cache.put(epd_after_m, s_data)
+                    
+                analysis_after = s_data["analysis"]
+                policy_after = s_data["policy"]
+                
+                if bt3_budget_remaining > 0:
+                    saliency = vision.saliency_absolute(fen_after_m)
+                    bt3_budget_remaining -= 1
+                else:
+                    saliency = None
+                    
+                complexity = metrics.tactical_complexity(analysis_after, policy_after, saliency)
+                
+                cp_eval = metrics.eval_cp_number(analysis_after.get("evaluation"))
+                if cp_eval is None:
+                    continue
+                # evaluation is white-POV after move. If mover is white, they want it positive (white winning).
+                # If mover is black, they want it negative (black winning).
+                eval_cp_mover = cp_eval if user_color == chess.WHITE else -cp_eval
+                
+                candidates.append({
+                    "uci": uci,
+                    "san": p_entry.get("san"),
+                    "eval_cp": eval_cp_mover,
+                    "complexity": complexity["score"],
+                    "components": complexity
+                })
+                
+            if not candidates:
+                continue
+                
+            best_eval_cp = max(c["eval_cp"] for c in candidates)
+            steer_res = metrics.steer_candidates(candidates, best_eval_cp)
+            
+            if steer_res["had_tal_move"] or (steer_res["objective_best"] and steer_res["objective_best"]["complexity"] >= 0.6):
+                opening_match = openings.classify(node["uci_moves_so_far"])
+                eco = opening_match["eco"] if opening_match else "???"
+                
+                best_c = steer_res["objective_best"]
+                tal_c = steer_res["tal_move"]
+                
+                steer_findings.append({
+                    "id": f"s-{node['game_idx']:03d}-p{node['ply']:03d}",
+                    "game": {
+                        "white": node["game"].headers.get("White", "?"),
+                        "black": node["game"].headers.get("Black", "?"),
+                        "date": node["game"].headers.get("Date", "?")
+                    },
+                    "ply": node["ply"],
+                    "fen_before": fen_before,
+                    "best": {"uci": best_c["uci"], "san": best_c["san"], "eval_cp": best_c["eval_cp"], "complexity": best_c["complexity"], "components": best_c["components"]},
+                    "steer": {"uci": tal_c["uci"], "san": tal_c["san"], "eval_cp": tal_c["eval_cp"], "complexity": tal_c["complexity"], "components": tal_c["components"]} if tal_c else {"uci": best_c["uci"], "san": best_c["san"], "eval_cp": best_c["eval_cp"], "complexity": best_c["complexity"], "components": best_c["components"]},
+                    "playable_candidates": [{"uci": c["uci"], "complexity": c["complexity"], "eval_cp": c["eval_cp"]} for c in steer_res["playable"]],
+                    "eval_loss_cp": best_eval_cp - (tal_c["eval_cp"] if tal_c else best_eval_cp),
+                    "had_tal_move": steer_res["had_tal_move"],
+                    "opening": {"eco": eco}
+                })
+                
+                by_opening_steer[eco]["tal_moves"] += 1 if steer_res["had_tal_move"] else 0
+                
+            # Keep aggregate for ALL nodes processed
+            opening_match_all = openings.classify(node["uci_moves_so_far"])
+            eco_all = opening_match_all["eco"] if opening_match_all else "???"
+            by_opening_steer[eco_all]["moves"] += 1
+            if candidates and steer_res["objective_best"]:
+                by_opening_steer[eco_all]["complexity_sum"] += steer_res["objective_best"]["complexity"]
+
+            steer_processed += 1
+            if steer_processed % 10 == 0:
+                _progress(job_id, stage_steer_done=steer_processed)
+
+        steer_summary = {}
+        for eco, st in by_opening_steer.items():
+            steer_summary[eco] = {
+                "moves": st["moves"],
+                "tal_moves": st["tal_moves"],
+                "mean_complexity": st["complexity_sum"] / max(1, st["moves"])
+            }
+            
         # Aggregate
         by_motif = defaultdict(lambda: {"missed": 0, "blind": 0, "confirmed": 0})
         by_opening = defaultdict(lambda: {"moves": 0, "missed": 0, "blind": 0, "blind_rate": 0.0})
@@ -290,7 +424,9 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             "moves_analyzed": moves_processed,
             "time_scramble_skipped": scramble_skipped,
             "findings": findings,
-            "aggregates": aggregates
+            "aggregates": aggregates,
+            "steer_findings": steer_findings,
+            "steer_summary": steer_summary
         }
         
         from backend.training import attempts

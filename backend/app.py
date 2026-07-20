@@ -427,6 +427,7 @@ class RepertoireRequest(BaseModel):
 
 class GenerateDrillsRequest(BaseModel):
     count: int = 20
+    steer_weight: float = 0.0
 
 class AttemptDrillRequest(BaseModel):
     set_id: str
@@ -511,7 +512,7 @@ async def list_repertoires():
 async def generate_drills_ep(req: GenerateDrillsRequest):
     profile = store.load_profile()
     repertoire = store.load_repertoire()
-    drill_set = await drills.generate_drill_set(req.count, profile, repertoire, lc0_engine, neural_vision)
+    drill_set = await drills.generate_drill_set(req.count, profile, repertoire, lc0_engine, neural_vision, req.steer_weight)
     return drill_set
 
 @app.get("/api/training/drills")

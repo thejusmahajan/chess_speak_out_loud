@@ -31,6 +31,7 @@ interface TrainingBoardProps {
   orientation?: 'white' | 'black';
   policy?: any[];
   saliency?: any;
+  minefield?: any[];
   hotSquares?: string[];
   blunderFlash?: boolean;
   onMove?: (uci: string, san: string) => void;
@@ -43,6 +44,7 @@ export default function TrainingBoard({
   orientation = 'white',
   policy = [],
   saliency = null,
+  minefield = [],
   hotSquares = [],
   blunderFlash = false,
   onMove,
@@ -257,7 +259,37 @@ export default function TrainingBoard({
       }
     }
 
-    if (policy && policy.length > 0) {
+    if (minefield && minefield.length > 0) {
+      let maxComp = Math.max(...minefield.map(m => m.complexity || 0));
+      for (const move of minefield) {
+        if (!move.uci) continue;
+        const origSq = move.uci.slice(0, 2);
+        const destSq = move.uci.slice(2, 4);
+        const { x: x1, y: y1 } = squareToCoords(origSq);
+        const { x: x2, y: y2 } = squareToCoords(destSq);
+
+        const isBest = move.complexity === maxComp && move.complexity > 0;
+        const comp = Math.max(0.1, move.complexity || 0.1);
+        
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', `${x1}%`);
+        line.setAttribute('y1', `${y1}%`);
+        line.setAttribute('x2', `${x2}%`);
+        line.setAttribute('y2', `${y2}%`);
+        
+        const r = Math.floor(255);
+        const g = Math.floor(150 * (1 - comp));
+        line.setAttribute('stroke', `rgba(${r}, ${g}, 0, 0.8)`);
+        line.setAttribute('stroke-width', `${Math.max(comp * 3, 0.5)}%`);
+        line.setAttribute('marker-end', isBest ? 'url(#arrowhead-hot)' : 'url(#arrowhead)');
+        
+        if (isBest) {
+          line.style.filter = 'drop-shadow(0 0 2px rgba(255,0,0,0.5))';
+        }
+        
+        svg.appendChild(line);
+      }
+    } else if (policy && policy.length > 0) {
       let maxP = policy[0].p;
       for (const move of policy) {
         if (move.p < 0.05) continue; // Noise
@@ -286,7 +318,7 @@ export default function TrainingBoard({
       }
     }
 
-  }, [fen, policy, saliency, hotSquares, blunderFlash]);
+  }, [fen, policy, saliency, minefield, hotSquares, blunderFlash]);
 
   const promoColor = promo?.dest[1] === '8' ? 'white' : 'black';
   const promoFile = promo ? promo.dest.charCodeAt(0) - 97 : 0;

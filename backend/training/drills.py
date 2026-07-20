@@ -47,12 +47,65 @@ def check_attempt(drill: dict, ply: int, move_uci: str) -> dict:
     reply = line[ply + 1] if ply + 1 < len(line) else None
     return {"correct": True, "complete": complete, "reply_uci": reply}
 
-async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine, vision) -> dict:
-    own_game_count = int(count * 0.4)
-    corpus_count = int(count * 0.4)
-    hidden_gem_count = count - own_game_count - corpus_count
+async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine, vision, steer_weight: float = 0.0) -> dict:
+    steer_count = int(count * steer_weight)
+    rem_count = count - steer_count
+    own_game_count = int(rem_count * 0.4)
+    corpus_count = int(rem_count * 0.4)
+    hidden_gem_count = rem_count - own_game_count - corpus_count
 
     drills = []
+    
+    if steer_count > 0 and profile and "steer_findings" in profile:
+        s_findings = [f for f in profile["steer_findings"] if f.get("had_tal_move")]
+        s_findings.sort(key=lambda x: x["steer"]["complexity"], reverse=True)
+        seen_s_epds = set()
+        
+        for f in s_findings:
+            if len([d for d in drills if d["source"] == "steer"]) >= steer_count:
+                break
+            board_before = chess.Board(f["fen_before"])
+            epd = board_before.epd()
+            if epd in seen_s_epds:
+                continue
+            seen_s_epds.add(epd)
+            
+            p_data = store.EpdCache("policy").get(epd)
+            policy = p_data["policy"] if p_data else []
+            s_data = store.EpdCache("stage_b").get(epd)
+            saliency = s_data["saliency"] if s_data and "saliency" in s_data else {}
+            
+            playable_ucis = [c["uci"] for c in f.get("playable_candidates", [])]
+            alt_ucis = sorted({u for a in playable_ucis for u in metrics.accepted_ucis(board_before, a)})
+            
+            drills.append({
+                "id": f"d-{uuid.uuid4().hex[:8]}",
+                "source": "steer",
+                "fen": f["fen_before"],
+                "setup_move_uci": None,
+                "solution_uci": f["steer"]["uci"],
+                "line_uci": [f["steer"]["uci"]],
+                "alt_solution_ucis": alt_ucis,
+                "solution_san": f["steer"]["san"],
+                "tags": ["steer"],
+                "difficulty": 1700,
+                "origin": {"finding_id": f["id"], "puzzle_id": None, "eco": f.get("opening", {}).get("eco")},
+                "reveal": {
+                    "policy": policy,
+                    "saliency": saliency,
+                    "complexity_components": f["steer"]["components"],
+                    "best_uci": f["best"]["uci"],
+                    "best_eval_cp": f["best"]["eval_cp"],
+                    "steer_uci": f["steer"]["uci"],
+                    "steer_eval_cp": f["steer"]["eval_cp"],
+                    "eval_loss_cp": f.get("eval_loss_cp", 0),
+                    "minefield": f.get("playable_candidates", []),
+                    "motifs": [],
+                    "concepts": [],
+                    "pv_san": [],
+                    "swing_cp": 0
+                }
+            })
     
     if profile and "findings" in profile:
         def sort_key(f):
