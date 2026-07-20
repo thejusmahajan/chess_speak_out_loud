@@ -89,6 +89,11 @@ class TrainingConfig:
     steer_min_eval_cp: int = -60      # absolute floor (mover POV): "minus ok, not lost"
     steer_top_k: int = 4              # candidate moves scored per node (caller uses)
     steer_bt3_budget: int = 200       # max saliency forwards per steering pass (caller enforces)
+    steer_search_budget: int = 4000   # max engine.analyze calls (cache MISSES) per steering
+                                      # run — the real cost cap. A run stops when hit; the
+                                      # steer EPD cache makes the next run resume for free.
+    steer_highlight_complexity: float = 0.6  # record a non-Tal node when the best move's own
+                                             # complexity is at least this (the "sharp anyway" case)
     # complexity component weights (need not sum to 1 — score is normalized by
     # the weights actually used, so dropping the attention term still works):
     steer_w_decisiveness: float = 0.40   # WDL: low draw share = decisive
