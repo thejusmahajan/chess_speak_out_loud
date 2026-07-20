@@ -90,3 +90,56 @@ def test_any_checkmate_wins_immediately():
                    solution_uci="d2d3", line_uci=["d2d3"])
     v = drills.check_attempt(d, 0, "f3f7")
     assert v == {"correct": True, "complete": True, "reply_uci": None}
+
+
+@pytest.mark.anyio
+async def test_generated_steer_drill_carries_and_accepts_bounded_alt(monkeypatch, tmp_path):
+    """End-to-end steer-drill path: generate_drill_set turns a had_tal_move
+    steer finding into a source='steer' drill whose alt_solution_ucis include
+    the finding's bounded-sharp playable candidates, and check_attempt then
+    accepts one of those alts at the decision ply.
+
+    check_attempt has no steer-specific branch, so acceptance rides the generic
+    ply-0 alt path (covered by test_alt_solution_at_ply0_completes_off_line).
+    The new coverage here is the GENERATION step attaching the bounded alts --
+    which is what 'steer drill accepts a bounded alt' actually depends on.
+    """
+    from backend.training import store, puzzle_db
+
+    monkeypatch.setattr(store, "TRAINING_DIR", str(tmp_path))
+    monkeypatch.setattr(store, "DATA_DIR", str(tmp_path))
+    # This unit exercises only the steer branch; keep the corpus branch inert.
+    monkeypatch.setattr(puzzle_db, "sample_puzzles", lambda *a, **k: [])
+
+    # Black to move after 1.e4 e5 2.Nf3: Nf6 (steer/sharp), Nc6 (best), d6 (a
+    # bounded-sharp sideline) are all legal.
+    fen = "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
+    profile = {
+        "steer_findings": [{
+            "id": "s-000-p003",
+            "fen_before": fen,
+            "had_tal_move": True,
+            "best": {"uci": "b8c6", "san": "Nc6", "eval_cp": 20, "complexity": 0.2, "components": {}},
+            "steer": {"uci": "g8f6", "san": "Nf6", "eval_cp": 10, "complexity": 0.8, "components": {}},
+            "playable_candidates": [
+                {"uci": "g8f6", "complexity": 0.8, "eval_cp": 10},
+                {"uci": "d7d6", "complexity": 0.5, "eval_cp": 5},
+            ],
+            "opening": {"eco": "C20"},
+        }],
+        "findings": [],
+    }
+
+    drill_set = await drills.generate_drill_set(
+        count=1, profile=profile, repertoire={}, engine=None, vision=None, steer_weight=1.0)
+
+    steer_drills = [d for d in drill_set["drills"] if d["source"] == "steer"]
+    assert len(steer_drills) == 1
+    d = steer_drills[0]
+
+    # generation attached the bounded-sharp sideline as an accepted alt
+    assert "d7d6" in d["alt_solution_ucis"]
+
+    # and check_attempt accepts that bounded alt at the decision ply
+    v = drills.check_attempt(d, 0, "d7d6")
+    assert v == {"correct": True, "complete": True, "reply_uci": None}

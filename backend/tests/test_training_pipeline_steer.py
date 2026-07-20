@@ -89,3 +89,78 @@ async def test_opening_sidelines_excluded(monkeypatch, tmp_path):
     finally:
         object.__setattr__(metrics.DEFAULT_CONFIG, "steer_search_budget", orig_budget)
         object.__setattr__(metrics.DEFAULT_CONFIG, "opening_max_ply", orig_ply)
+
+
+# A steer finding is suppressed at a lost node because steer_candidates drops
+# every candidate below the steer_min_eval_cp floor, leaving nothing playable.
+# To make THAT the thing under test (not some unrelated short-circuit) the test
+# below pins two knobs:
+#   * the eval is a plain int, the real LC0 shape. A dict makes eval_cp_number
+#     return None -> candidates never build -> a vacuous pass that survives even
+#     if the floor is deleted.
+#   * steer_highlight_complexity is set to 0, so ANY playable node emits via the
+#     complexity branch. The loss floor is then the ONLY thing that can suppress
+#     the finding -> deleting the floor makes the losing assertion fail.
+# The sound-eval run is the positive control proving the node is genuinely live.
+class IntEvalEngine(MockEngine):
+    async def get_policy_distribution(self, fen, nodes=None):
+        return [
+            {"uci": "e2e4", "san": "e4", "p": 0.6},
+            {"uci": "d2d4", "san": "d4", "p": 0.4},
+        ]
+
+    async def analyze(self, fen, depth=None, multipv=1, time_limit=None):
+        self.analyze_calls += 1
+        return {
+            "evaluation": self.evaluate_val,  # plain int == real LC0 shape
+            "wdl": [333, 333, 334],
+            "best_moves": [{"move": "e2e4", "score": self.evaluate_val},
+                           {"move": "d2d4", "score": self.evaluate_val - 10}],
+            "pv_lines": ["e2e4"],
+        }
+
+
+_STEER_PGN = '[White "TestPlayer"]\n[Black "Opponent"]\n\n1. e4 e5 *'
+
+
+async def _run_steer_pass(monkeypatch, tmp_path, evaluate_val):
+    """Run one diagnosis over _STEER_PGN with the highlight threshold pinned to
+    0 (so any *playable* node emits via the complexity branch) and return the
+    resulting steer_findings. Each call gets its own tmp_path from pytest, which
+    keeps the on-disk steer cache from leaking one run's analysis into another."""
+    monkeypatch.setattr(store, "TRAINING_DIR", str(tmp_path))
+    monkeypatch.setattr(store, "DATA_DIR", str(tmp_path))
+    cfg = metrics.DEFAULT_CONFIG
+    orig_hi = cfg.steer_highlight_complexity
+    orig_budget = cfg.steer_search_budget
+    object.__setattr__(cfg, "steer_highlight_complexity", 0.0)
+    object.__setattr__(cfg, "steer_search_budget", 100)
+    try:
+        await run_diagnosis("job_steer", _STEER_PGN, "TestPlayer",
+                            IntEvalEngine(evaluate_val=evaluate_val), MockVision())
+        profile = store.load_profile()
+        assert profile is not None
+        return profile.get("steer_findings", [])
+    finally:
+        object.__setattr__(cfg, "steer_highlight_complexity", orig_hi)
+        object.__setattr__(cfg, "steer_search_budget", orig_budget)
+
+
+@pytest.mark.anyio
+async def test_losing_node_emits_no_steer_finding(monkeypatch, tmp_path):
+    # Best eval (-300 mover POV) sits below the -60 floor -> steer_candidates
+    # finds nothing playable -> no steer finding. With highlight pinned to 0 the
+    # floor is the ONLY thing that can suppress emission here, so deleting it
+    # would make this assertion fail. The paired positive control below proves
+    # the node is genuinely live (not silently short-circuited).
+    findings = await _run_steer_pass(monkeypatch, tmp_path, evaluate_val=-300)
+    assert len(findings) == 0
+
+
+@pytest.mark.anyio
+async def test_sound_node_emits_steer_finding(monkeypatch, tmp_path):
+    # Positive control for test_losing_node_emits_no_steer_finding: the SAME node
+    # with a sound eval (>= floor) is playable and DOES emit under highlight=0.
+    findings = await _run_steer_pass(monkeypatch, tmp_path, evaluate_val=50)
+    assert len(findings) >= 1
+

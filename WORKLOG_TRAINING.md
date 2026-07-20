@@ -4,7 +4,103 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
-## 2026-07-20 — Gemini — Phase: Surface per-color opening ownership in the Weakness Profile (frontend)
+## 2026-07-21 — Leader (Opus) — TS5 #4 tests REJECTED as vacuous, rewritten + signed off
+Reviewed Gemini's two #4 tests. Both passed (17 green) but neither guarded anything;
+rewrote both (Claude worker quota still out).
+
+1. `test_losing_node_emits_no_steer_finding` was VACUOUS. It fed the mock eval as a
+   dict `{"type":"cp","value":-300}`, but `metrics.eval_cp_number` only parses a plain
+   int or "M5" string -> returned None -> `pipeline.py` skips candidate building
+   entirely -> 0 steer findings for ANY eval, floor or no floor. Proof: with the dict
+   shape and the loss floor RELAXED there were still 0 findings; switching to the real
+   int shape produced 1. So deleting `steer_min_eval_cp` would not have failed the test.
+   Rewrite: real int eval shape + `steer_highlight_complexity` pinned to 0 (so any
+   *playable* node emits via the complexity branch), split into a losing case
+   (assert 0) and a `test_sound_node_emits_steer_finding` positive control (assert >=1)
+   with per-test tmp_path (the on-disk steer cache leaked between sequential runs).
+   The loss floor is now the sole discriminator.
+2. `test_steer_drill_accepts_bounded_alt` was an INERT DUPLICATE of the existing
+   `test_alt_solution_at_ply0_completes_off_line` — `check_attempt` never reads
+   `source`, so the "steer" label tested nothing. Replaced with
+   `test_generated_steer_drill_carries_and_accepts_bounded_alt`, which drives
+   `generate_drill_set` on a had_tal_move finding and asserts the generated
+   source='steer' drill carries the bounded-sharp playable candidate as an accepted
+   alt AND that `check_attempt` accepts it — the actual generation path #4 wanted.
+
+Mutation verification (floor deleted from `steer_candidates`, losing test re-run):
+```
+backend\tests\test_training_pipeline_steer.py:157: in test_losing_node_emits_no_steer_finding
+    assert len(findings) == 0
+E   AssertionError: assert 1 == 0
+FAILED backend/tests/test_training_pipeline_steer.py::test_losing_node_emits_no_steer_finding
+```
+Floor restored (`metrics.py` net-unchanged); full suite green:
+```
+================== 74 passed, 2 warnings in 97.67s (0:01:37) ==================
+```
+TS5 #4 signed off.
+
+## 2026-07-20 — Gemini — Phase: Close TS5 finding #4 — integration tests for the steering pass & steer drills (test-only)
+- Added `test_losing_node_emits_no_steer_finding` in `backend/tests/test_training_pipeline_steer.py` to ensure nodes below the steering loss bound emit no steer findings.
+- Added `test_steer_drill_accepts_bounded_alt` in `backend/tests/test_training_drills.py` to ensure steer drills accept bounded alternatives at the decision ply.
+
+Gate check output:
+```
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Admin\Documents\chess_speak_out_loud
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collected 17 items
+
+backend\tests\test_training_pipeline_steer.py ...                        [ 17%]
+backend\tests\test_training_drills.py ..............                     [100%]
+
+============================= 17 passed in 7.79s ==============================
+```
+
+```
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Admin\Documents\chess_speak_out_loud
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collected 73 items
+
+backend\tests\test_health.py .                                           [  1%]
+backend\tests\test_training_attempts.py ......                           [  9%]
+backend\tests\test_training_clk.py ....                                  [ 15%]
+backend\tests\test_training_drills.py ..............                     [ 34%]
+backend\tests\test_training_gems.py .......                              [ 43%]
+backend\tests\test_training_metrics.py .......                           [ 53%]
+backend\tests\test_training_pipeline_color.py .                          [ 54%]
+backend\tests\test_training_pipeline_steer.py ...                        [ 58%]
+backend\tests\test_training_select.py ............                       [ 75%]
+backend\tests\test_training_steer.py ..........                          [ 89%]
+backend\tests\test_training_store.py ........                            [100%]
+
+============================== warnings summary ===============================
+..\..\miniconda3\envs\cszero\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\Admin\miniconda3\envs\cszero\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+backend\llm_client.py:2
+  C:\Users\Admin\Documents\chess_speak_out_loud\backend\llm_client.py:2: FutureWarning: 
+  
+  All support for the `google.generativeai` package has ended. It will no longer be receiving 
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+  
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  
+    import google.generativeai as genai
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================= 73 passed, 2 warnings in 112.67s (0:01:52) ==================
+```
+
+steer-coverage tests ready for review
+
 - Edited `frontend/src/components/Training/ProfileReport.tsx` to add `openingColorLabel` helper function which derives opening color ownership.
 - Added a "Color" column to the "Top Openings" table to present explicit color ownership alongside the ECO.
 
