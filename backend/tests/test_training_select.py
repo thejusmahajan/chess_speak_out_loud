@@ -1,10 +1,16 @@
-"""C2 gate: repertoire target ranking, color filtering, soundness sign
-handling, engine budget cap — all against stubbed puzzle_db/openings/engine."""
+"""TS3 gate: style-rooted tactical repertoire — ingrained openings mined,
+classified kept/repaired/dry, tinted via steer_candidates.
+
+Mock engine returns wdl AND evaluation as a real int or "M5" string (not a
+dict), exactly matching the LC0 wire format.
+"""
 
 import anyio
 import chess
 
 from backend.training import select_repertoire as sr
+from backend.training import openings, metrics
+
 
 START_FEN = chess.Board().fen()
 
@@ -13,191 +19,429 @@ def run(coro):
     return anyio.run(lambda: coro)
 
 
-def make_profile(by_motif):
-    return {"aggregates": {"by_motif": by_motif}}
+# -----------------------------------------------------------------------
+# Fixtures
+# -----------------------------------------------------------------------
+
+def _make_profile(
+    by_opening: dict,
+    findings: list | None = None,
+    steer_summary: dict | None = None,
+    by_motif: dict | None = None,
+):
+    return {
+        "aggregates": {
+            "by_opening": by_opening,
+            "by_motif": by_motif or {},
+        },
+        "findings": findings or [],
+        "steer_summary": steer_summary or {},
+    }
 
 
-PROFILE = make_profile({
-    "sacrifice": {"blind": 2, "missed": 4},   # 2*2+4 = 8
-    "pin":       {"blind": 1, "missed": 5},   # 2*1+5 = 7
-    "fork":      {"blind": 3, "missed": 0},   # 2*3+0 = 6
-    "skewer":    {"blind": 0, "missed": 2},   # 2*0+2 = 2 (cut by top-3)
-})
+class MockEngine:
+    """Mock engine whose analyze returns wdl AND evaluation as int/str."""
 
-
-class FakeEngine:
-    def __init__(self, evals_by_fen, wdl=(400, 300, 300)):
-        self.evals = evals_by_fen
+    def __init__(self, eval_by_fen=None, wdl=(400, 300, 300),
+                 policy_by_fen=None, best_moves_by_fen=None):
+        self.eval_by_fen = eval_by_fen or {}
         self.wdl = list(wdl)
-        self.calls = []
+        self.policy_by_fen = policy_by_fen or {}
+        self.best_moves_by_fen = best_moves_by_fen or {}
+        self.analyze_calls = []
 
     async def analyze(self, fen, depth=None, multipv=1, time_limit=None):
-        self.calls.append(fen)
-        return {"evaluation": self.evals.get(fen, 0),
-                "pv_lines": [], "wdl": self.wdl}
+        self.analyze_calls.append(fen)
+        ev = self.eval_by_fen.get(fen, 0)
+        bm = self.best_moves_by_fen.get(fen, [])
+        return {"evaluation": ev, "pv_lines": [], "wdl": self.wdl,
+                "best_moves": bm}
+
+    async def get_policy_distribution(self, fen, nodes=1):
+        return self.policy_by_fen.get(fen, [])
 
 
-def stub_data(monkeypatch, tags):
-    """tags: dict tag -> {"uci_moves": [...], "fen": str}"""
-    lines = {t: {"eco": "B00", "name": t.replace("_", " "),
-                 "uci_moves": spec["uci_moves"], "fen": spec["fen"]}
-             for t, spec in tags.items()}
-    monkeypatch.setattr(sr.openings, "lines_by_tag", lambda: lines)
-    monkeypatch.setattr(sr.puzzle_db, "opening_tags_ranked",
-                        lambda motif, **kw: [(t, 0.2, 500) for t in tags])
-    monkeypatch.setattr(sr.puzzle_db, "motif_profile",
-                        lambda tag: {"sacrifice": 0.30, "pin": 0.20,
-                                     "fork": 0.10, "skewer": 0.05})
+def _stub_openings(monkeypatch, eco_lines):
+    """eco_lines: dict eco -> {"name", "uci_moves", "fen"}"""
+    # Populate the trie directly
+    trie = {}
+    fens = {}
+    for eco, info in eco_lines.items():
+        seq = tuple(info["uci_moves"])
+        trie[seq] = {"eco": eco, "name": info["name"]}
+        fens[(eco, info["name"])] = info["fen"]
+
+    monkeypatch.setattr(openings, "_openings_trie", trie)
+    monkeypatch.setattr(openings, "_tabiya_fens", fens)
+    monkeypatch.setattr(openings, "_loaded", True)
 
 
-def test_target_ranking_weights():
-    targets = sr._target_motifs(PROFILE)
-    assert targets == [("sacrifice", 8), ("pin", 7), ("fork", 6)]
+# -----------------------------------------------------------------------
+# Test: leaky ECO → origin:"repaired"
+# -----------------------------------------------------------------------
 
-
-def test_zero_weight_motifs_excluded():
-    profile = make_profile({"fork": {"blind": 0, "missed": 0}})
-    assert sr._target_motifs(profile) == []
-
-
-def test_color_filtering(monkeypatch):
-    tags = {
-        "White_Line": {"uci_moves": ["e2e4"], "fen": START_FEN},          # white owns
-        "Black_Line": {"uci_moves": ["e2e4", "c7c5"], "fen": START_FEN},  # black owns
+def test_leaky_eco_gets_repaired(monkeypatch):
+    """A profile whose by_opening has a leaky ECO (Track A findings in it)
+    should produce a recommendation with origin:"repaired"."""
+    fen_after_e4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+    eco_lines = {
+        "B00": {
+            "name": "King's Pawn Opening",
+            "uci_moves": ["e2e4"],
+            "fen": fen_after_e4,
+        },
     }
-    stub_data(monkeypatch, tags)
-    engine = FakeEngine({START_FEN: 0})
+    _stub_openings(monkeypatch, eco_lines)
 
-    rep = run(sr.build_repertoire(PROFILE, "black", engine))
-    assert [r["tag"] for r in rep["recommendations"]] == ["Black_Line"]
-
-    rep = run(sr.build_repertoire(PROFILE, "white", FakeEngine({START_FEN: 0})))
-    assert [r["tag"] for r in rep["recommendations"]] == ["White_Line"]
-
-
-def test_soundness_sign_for_black(monkeypatch):
-    """White-POV +200 is UNSOUND for a black repertoire; -20 is fine."""
-    fen_bad = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
-    fen_ok = "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1"
-    tags = {
-        "Bad_For_Black": {"uci_moves": ["e2e4", "c7c5"], "fen": fen_bad},
-        "Ok_For_Black":  {"uci_moves": ["d2d4", "d7d5"], "fen": fen_ok},
-    }
-    stub_data(monkeypatch, tags)
-    engine = FakeEngine({fen_bad: 200, fen_ok: -20})
-
-    rep = run(sr.build_repertoire(PROFILE, "black", engine))
-    assert [r["tag"] for r in rep["recommendations"]] == ["Ok_For_Black"]
-    assert rep["recommendations"][0]["eval_cp"] == -20
-
-
-def test_soundness_sign_for_white(monkeypatch):
-    tags = {"Bad_For_White": {"uci_moves": ["e2e4"], "fen": START_FEN}}
-    stub_data(monkeypatch, tags)
-    engine = FakeEngine({START_FEN: -200})
-
-    rep = run(sr.build_repertoire(PROFILE, "white", engine))
-    assert rep["recommendations"] == []
-
-
-def test_sharpness_gate(monkeypatch):
-    """Draw share above max_draw_pct (45%) rejects the line."""
-    tags = {"Drawish": {"uci_moves": ["e2e4"], "fen": START_FEN}}
-    stub_data(monkeypatch, tags)
-    engine = FakeEngine({START_FEN: 0}, wdl=(200, 600, 200))  # 60% draws
-
-    rep = run(sr.build_repertoire(PROFILE, "white", engine))
-    assert rep["recommendations"] == []
-
-
-def test_engine_budget_cap(monkeypatch):
-    """20 sound-looking candidates, all rejected: never more than 15 calls."""
-    tags = {}
-    evals = {}
-    for i in range(20):
-        fen = chess.Board().fen().replace(" 0 1", f" 0 {i + 2}")
-        # distinct fen strings; ownership white (1 move)
-        tags[f"Tag_{i:02d}"] = {"uci_moves": ["e2e4"], "fen": fen}
-        evals[fen] = -200  # unsound for white -> no early top_n break
-    stub_data(monkeypatch, tags)
-    engine = FakeEngine(evals)
-
-    rep = run(sr.build_repertoire(PROFILE, "white", engine, top_n=20))
-    assert rep["recommendations"] == []
-    assert len(engine.calls) == 15
-
-
-def test_sacrificial_style_targets_fixed(monkeypatch):
-    """Sacrificial style ignores the weakness profile's motifs entirely."""
-    tags = {"White_Line": {"uci_moves": ["e2e4"], "fen": START_FEN}}
-    stub_data(monkeypatch, tags)
-    monkeypatch.setattr(sr.puzzle_db, "motif_profile",
-                        lambda tag: {"sacrifice": 0.2, "attraction": 0.1})
-    engine = FakeEngine({START_FEN: 0})
-
-    rep = run(sr.build_repertoire(PROFILE, "white", engine, style="sacrificial"))
-    assert rep["style"] == "sacrificial"
-    assert rep["targets"][0] == {"motif": "sacrifice", "weight": 3}
-    assert all(t["motif"] != "pin" for t in rep["targets"])
-    rec = rep["recommendations"][0]
-    assert rec["primary_motif"] == "sacrifice"
-
-
-def test_sacrificial_familiarity_boost(monkeypatch):
-    """Equal motif scores: the ECO the user already plays ranks first."""
-    fen_a = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
-    fen_b = "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1"
-    tags = {
-        "Familiar": {"uci_moves": ["e2e4"], "fen": fen_a},
-        "Stranger": {"uci_moves": ["d2d4"], "fen": fen_b},
-    }
-    lines = {t: {"eco": ("C33" if t == "Familiar" else "Z99"),
-                 "name": t, "uci_moves": s["uci_moves"], "fen": s["fen"]}
-             for t, s in tags.items()}
-    monkeypatch.setattr(sr.openings, "lines_by_tag", lambda: lines)
-    monkeypatch.setattr(sr.puzzle_db, "opening_tags_ranked",
-                        lambda motif, **kw: [(t, 0.2, 500) for t in tags])
-    monkeypatch.setattr(sr.puzzle_db, "motif_profile",
-                        lambda tag: {"sacrifice": 0.2})
-    profile = dict(PROFILE)
-    profile["aggregates"] = dict(PROFILE["aggregates"],
-                                 by_opening={"C33": {"moves": 50}})
-    engine = FakeEngine({fen_a: 0, fen_b: 0})
-
-    rep = run(sr.build_repertoire(profile, "white", engine, style="sacrificial"))
-    recs = [r["tag"] for r in rep["recommendations"]]
-    assert recs == ["Familiar", "Stranger"]
-    scores = {r["tag"]: r["score"] for r in rep["recommendations"]}
-    assert scores["Familiar"] == 2 * scores["Stranger"]  # 2x familiarity cap
-
-
-def test_weakness_style_unchanged_by_familiarity(monkeypatch):
-    tags = {"White_Line": {"uci_moves": ["e2e4"], "fen": START_FEN}}
-    stub_data(monkeypatch, tags)
-    profile = dict(PROFILE)
-    profile["aggregates"] = dict(PROFILE["aggregates"],
-                                 by_opening={"B00": {"moves": 50}})
-    engine = FakeEngine({START_FEN: 0})
+    profile = _make_profile(
+        by_opening={"B00": {"moves": 10, "missed": 2, "blind": 1, "blind_rate": 0.1}},
+        findings=[{"opening": {"eco": "B00", "name": "King's Pawn Opening"}}],
+        steer_summary={"B00": {"moves": 10, "tal_moves": 1, "mean_complexity": 0.35}},
+    )
+    # Engine: tabiya is sound (+10cp), sharp (40/30/30 wdl), no policy → no tint
+    engine = MockEngine(eval_by_fen={fen_after_e4: 10})
 
     rep = run(sr.build_repertoire(profile, "white", engine))
-    assert rep["style"] == "weakness"
-    # base score only: 8*0.30 + 7*0.20 + 6*0.10 = 4.4, no familiarity boost
-    assert rep["recommendations"][0]["score"] == 4.4
-
-
-def test_recommendation_output(monkeypatch):
-    tags = {"Kings_Gambit": {"uci_moves": ["e2e4", "e7e5", "f2f4"],
-                             "fen": START_FEN}}
-    stub_data(monkeypatch, tags)
-    engine = FakeEngine({START_FEN: 25})
-
-    rep = run(sr.build_repertoire(PROFILE, "white", engine))
-    assert rep["color"] == "white"
-    assert rep["targets"][0] == {"motif": "sacrifice", "weight": 8}
+    assert len(rep["recommendations"]) == 1
     rec = rep["recommendations"][0]
-    assert rec["line_pgn"] == "1. e4 e5 2. f4"
-    assert rec["primary_motif"] == "sacrifice"
-    assert rec["draw_pct"] == 30.0
-    assert "Kings Gambit" in rec["rationale"]
-    assert "30.0%" in rec["rationale"]
-    assert "25cp" in rec["rationale"]
+    assert rec["origin"] == "repaired"
+    assert rec["eco"] == "B00"
+    assert rec["eval_cp"] == 10
+
+
+# -----------------------------------------------------------------------
+# Test: tinted rec with eval_loss_cp <= steer_max_loss_cp
+# -----------------------------------------------------------------------
+
+def test_tinted_rec_bounded_eval_loss(monkeypatch):
+    """A mocked engine yielding a Tal move should produce a tinted rec whose
+    eval_loss_cp <= steer_max_loss_cp."""
+    fen_tab = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+    # After e4 e5
+    fen_after_e5 = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
+    # After e4 c5
+    fen_after_c5 = "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
+
+    eco_lines = {
+        "C00": {
+            "name": "French Opening",
+            "uci_moves": ["e2e4"],
+            "fen": fen_tab,
+        },
+    }
+    _stub_openings(monkeypatch, eco_lines)
+
+    profile = _make_profile(
+        by_opening={"C00": {"moves": 20, "missed": 0, "blind": 0, "blind_rate": 0.0}},
+        steer_summary={"C00": {"moves": 20, "tal_moves": 0, "mean_complexity": 0.30}},
+    )
+
+    # Policy at tabiya: two candidate moves
+    policy_tab = [
+        {"uci": "e7e5", "san": "e5", "p": 0.5},
+        {"uci": "c7c5", "san": "c5", "p": 0.3},
+    ]
+
+    # After e5: calm (complexity low) — the "best" move
+    # After c5: sharp (complexity high) — the "Tal" move
+    # Both well within eval loss bound
+    best_moves_calm = [
+        {"move": "d2d4", "score": 30},
+        {"move": "g1f3", "score": 25},
+    ]
+    best_moves_sharp = [
+        {"move": "d2d4", "score": 50},   # big gap → narrow
+        {"move": "g1f3", "score": -100},  # = 150cp gap → narrowness 0.75
+    ]
+    # Policy after c5: saving reply has LOW prior → policy trap fires
+    policy_after_c5 = [
+        {"uci": "d2d4", "p": 0.08},  # sole saving reply, low prior
+        {"uci": "g1f3", "p": 0.4},
+    ]
+    policy_after_e5 = [
+        {"uci": "d2d4", "p": 0.5},
+        {"uci": "g1f3", "p": 0.3},
+    ]
+
+    engine = MockEngine(
+        eval_by_fen={
+            fen_tab: 10,           # tabiya sound
+            fen_after_e5: 15,      # after e5: +15 (best)
+            fen_after_c5: -10,     # after c5: -10 (slight cost but within bound)
+        },
+        wdl=(400, 300, 300),       # sharp (30% draws)
+        policy_by_fen={
+            fen_tab: policy_tab,
+            fen_after_e5: policy_after_e5,
+            fen_after_c5: policy_after_c5,
+        },
+        best_moves_by_fen={
+            fen_after_e5: best_moves_calm,
+            fen_after_c5: best_moves_sharp,
+        },
+    )
+
+    rep = run(sr.build_repertoire(profile, "white", engine))
+    assert len(rep["recommendations"]) >= 1
+    rec = rep["recommendations"][0]
+    # Must be tinted since the Tal move (c5) has higher complexity than e5
+    assert rec["origin"] == "tinted"
+    assert rec["tint_move"] is not None
+    assert rec["eval_loss_cp"] is not None
+    assert rec["eval_loss_cp"] <= metrics.DEFAULT_CONFIG.steer_max_loss_cp
+
+
+# -----------------------------------------------------------------------
+# Test: no rec has eval_cp below the floor
+# -----------------------------------------------------------------------
+
+def test_no_rec_below_eval_floor(monkeypatch):
+    """Recommendations must not have an eval worse than -sound_eval_cp
+    for the requested color."""
+    fen_good = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+    fen_bad = "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1"
+
+    eco_lines = {
+        "B00": {
+            "name": "King Pawn",
+            "uci_moves": ["e2e4"],
+            "fen": fen_good,
+        },
+        "D00": {
+            "name": "Queen Pawn",
+            "uci_moves": ["d2d4"],
+            "fen": fen_bad,
+        },
+    }
+    _stub_openings(monkeypatch, eco_lines)
+
+    profile = _make_profile(
+        by_opening={
+            "B00": {"moves": 10, "missed": 0, "blind": 0, "blind_rate": 0.0},
+            "D00": {"moves": 10, "missed": 0, "blind": 0, "blind_rate": 0.0},
+        },
+    )
+
+    # D00's tabiya is -200 white POV → unsound for white (pov_cp = -200 < -50)
+    engine = MockEngine(eval_by_fen={fen_good: 10, fen_bad: -200})
+
+    rep = run(sr.build_repertoire(profile, "white", engine))
+    for rec in rep["recommendations"]:
+        pov_cp = rec["eval_cp"] if "white" == "white" else -rec["eval_cp"]
+        assert pov_cp >= -metrics.DEFAULT_CONFIG.sound_eval_cp, \
+            f"rec {rec['eco']} has pov_cp {pov_cp} below floor"
+    # D00 should be filtered out
+    ecos = [r["eco"] for r in rep["recommendations"]]
+    assert "D00" not in ecos
+    assert "B00" in ecos
+
+
+# -----------------------------------------------------------------------
+# Test: black repertoire filters by color
+# -----------------------------------------------------------------------
+
+def test_black_repertoire_color_filter(monkeypatch):
+    """Only ECOs whose line is black-owned appear in a black repertoire."""
+    fen_w = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+    fen_b = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
+
+    eco_lines = {
+        "B00": {
+            "name": "King Pawn",
+            "uci_moves": ["e2e4"],            # white-owned (1 move)
+            "fen": fen_w,
+        },
+        "C20": {
+            "name": "Open Game",
+            "uci_moves": ["e2e4", "e7e5"],    # black-owned (2 moves)
+            "fen": fen_b,
+        },
+    }
+    _stub_openings(monkeypatch, eco_lines)
+
+    profile = _make_profile(
+        by_opening={
+            "B00": {"moves": 15, "missed": 0, "blind": 0, "blind_rate": 0.0},
+            "C20": {"moves": 15, "missed": 0, "blind": 0, "blind_rate": 0.0},
+        },
+    )
+
+    engine = MockEngine(eval_by_fen={fen_w: 10, fen_b: -5})
+
+    rep = run(sr.build_repertoire(profile, "black", engine))
+    ecos = [r["eco"] for r in rep["recommendations"]]
+    assert "C20" in ecos
+    assert "B00" not in ecos
+
+
+# -----------------------------------------------------------------------
+# Test: soundness sign handling for black
+# -----------------------------------------------------------------------
+
+def test_soundness_sign_for_black(monkeypatch):
+    """White-POV +200 is UNSOUND for a black repertoire."""
+    fen = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
+
+    eco_lines = {
+        "C20": {
+            "name": "Open Game",
+            "uci_moves": ["e2e4", "e7e5"],
+            "fen": fen,
+        },
+    }
+    _stub_openings(monkeypatch, eco_lines)
+
+    profile = _make_profile(
+        by_opening={"C20": {"moves": 10, "missed": 0, "blind": 0, "blind_rate": 0.0}},
+    )
+
+    # +200 white POV = -200 for black → unsound
+    engine = MockEngine(eval_by_fen={fen: 200})
+
+    rep = run(sr.build_repertoire(profile, "black", engine))
+    assert rep["recommendations"] == []
+
+
+# -----------------------------------------------------------------------
+# Test: sharpness gate (too drawish rejected)
+# -----------------------------------------------------------------------
+
+def test_sharpness_gate(monkeypatch):
+    fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+
+    eco_lines = {
+        "B00": {
+            "name": "King Pawn",
+            "uci_moves": ["e2e4"],
+            "fen": fen,
+        },
+    }
+    _stub_openings(monkeypatch, eco_lines)
+
+    profile = _make_profile(
+        by_opening={"B00": {"moves": 10, "missed": 0, "blind": 0, "blind_rate": 0.0}},
+    )
+
+    # 60% draws → too drawish
+    engine = MockEngine(eval_by_fen={fen: 0}, wdl=(200, 600, 200))
+
+    rep = run(sr.build_repertoire(profile, "white", engine))
+    assert rep["recommendations"] == []
+
+
+# -----------------------------------------------------------------------
+# Test: engine budget cap
+# -----------------------------------------------------------------------
+
+def test_engine_budget_cap(monkeypatch):
+    """Engine calls must not exceed MAX_ENGINE_CALLS."""
+    eco_lines = {}
+    evals = {}
+    by_opening = {}
+    for i in range(20):
+        eco = f"X{i:02d}"
+        fen = f"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 {i + 1}"
+        eco_lines[eco] = {
+            "name": f"Line {i}",
+            "uci_moves": ["e2e4"],  # white-owned
+            "fen": fen,
+        }
+        evals[fen] = -200  # all unsound → no early top_n break
+        by_opening[eco] = {"moves": 10, "missed": 0, "blind": 0, "blind_rate": 0.0}
+
+    _stub_openings(monkeypatch, eco_lines)
+
+    profile = _make_profile(by_opening=by_opening)
+    engine = MockEngine(eval_by_fen=evals)
+
+    rep = run(sr.build_repertoire(profile, "white", engine, top_n=20))
+    assert rep["recommendations"] == []
+    assert len(engine.analyze_calls) <= sr.MAX_ENGINE_CALLS
+
+
+# -----------------------------------------------------------------------
+# Test: dry classification
+# -----------------------------------------------------------------------
+
+def test_dry_eco_classification(monkeypatch):
+    """An ECO with low mean_complexity and 0 tal_moves among enough moves
+    is classified as 'dry'."""
+    fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+
+    eco_lines = {
+        "A00": {
+            "name": "Boring Opening",
+            "uci_moves": ["e2e4"],
+            "fen": fen,
+        },
+    }
+    _stub_openings(monkeypatch, eco_lines)
+
+    profile = _make_profile(
+        by_opening={"A00": {"moves": 15, "missed": 0, "blind": 0, "blind_rate": 0.0}},
+        steer_summary={"A00": {"moves": 10, "tal_moves": 0, "mean_complexity": 0.15}},
+    )
+
+    engine = MockEngine(eval_by_fen={fen: 5})
+
+    rep = run(sr.build_repertoire(profile, "white", engine))
+    assert len(rep["recommendations"]) == 1
+    rec = rep["recommendations"][0]
+    assert rec["classification"] == "dry"
+    # Without a tint, origin falls back to classification → "kept" (dry is
+    # just a classification, origin is kept unless tinted or repaired)
+    assert rec["origin"] == "kept"
+
+
+# -----------------------------------------------------------------------
+# Test: ECOs below min moves threshold are excluded
+# -----------------------------------------------------------------------
+
+def test_min_moves_threshold(monkeypatch):
+    fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+
+    eco_lines = {
+        "B00": {
+            "name": "King Pawn",
+            "uci_moves": ["e2e4"],
+            "fen": fen,
+        },
+    }
+    _stub_openings(monkeypatch, eco_lines)
+
+    profile = _make_profile(
+        by_opening={"B00": {"moves": 3}},  # below REPERTOIRE_MIN_MOVES=5
+    )
+
+    engine = MockEngine(eval_by_fen={fen: 0})
+
+    rep = run(sr.build_repertoire(profile, "white", engine))
+    assert rep["recommendations"] == []
+    assert len(engine.analyze_calls) == 0  # no engine calls wasted
+
+
+# -----------------------------------------------------------------------
+# Test: version 2 in output
+# -----------------------------------------------------------------------
+
+def test_output_version(monkeypatch):
+    fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+
+    eco_lines = {
+        "B00": {
+            "name": "King Pawn",
+            "uci_moves": ["e2e4"],
+            "fen": fen,
+        },
+    }
+    _stub_openings(monkeypatch, eco_lines)
+
+    profile = _make_profile(
+        by_opening={"B00": {"moves": 10, "missed": 0, "blind": 0, "blind_rate": 0.0}},
+    )
+
+    engine = MockEngine(eval_by_fen={fen: 0})
+
+    rep = run(sr.build_repertoire(profile, "white", engine))
+    assert rep["version"] == 2
+    assert rep["color"] == "white"

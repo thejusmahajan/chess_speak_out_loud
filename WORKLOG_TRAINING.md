@@ -870,3 +870,32 @@ windows-dev" claim was inaccurate — no commit existed). Verified independently
   real LC0 int/"M5" shape, so eval_cp_number->None there; the steer-FINDING eval
   path stays unit-uncovered (it was validated live on c3_test.pgn instead).
 Leader committed it (Gemini didn't). Clean base for Opus TS3.
+
+## 2026-07-20 (night) — Leader — TS3 completed + 2 bugs fixed (live gate) + signed off
+Opus wrote build_repertoire (mine/classify/tint) + 10 tests and stopped before
+the live gate, worklog, and commit. Its unit tests passed but the LIVE build
+(the gate it skipped) exposed two bugs the stubbed openings hid:
+
+1. [COLOR ATTRIBUTION] Opus classified an opening's color by the parity of its
+   tabiya line length. All 3 of the user's ingrained ECOs (D55, C99, B92) have
+   odd-length tabiyas -> all mislabeled "white": black repertoire came back
+   EMPTY and the Najdorf (a black defense the user plays as WHITE) was misfiled.
+   Root cause: by_opening carries no color. Fix (leader, select_repertoire.py):
+   _plays_as_color resolves color by precedence — per-color counts
+   (moves_white/black, pipeline TODO) > findings user_color (correct for every
+   leaky/repair target, works NOW) > parity (legacy last resort). Removed dead
+   _eco_color.
+2. [SHARPNESS GATE vs REPAIR] The sharpness gate excluded D55 (QGD) purely for
+   being drawish (50.8%), though it is sound for black and a repair target.
+   Refusing to help fix a solid opening the user plays defeats the goal. Fix:
+   soundness still gates all; a rec earns a slot if repaired OR tinted OR sharp
+   — sharpness no longer excludes repaired openings (also excludes calm
+   'dry'/'kept' lines with nothing to offer, addressing the earlier dry note).
+
+Live verification (real profile, backend restarted to load the code):
+  weakness/black -> D55 QGD repaired (draw 50.8, sound -20)
+  weakness/white -> C99 Chigorin (+43) & B92 Najdorf (+25), both repaired
+  All color-correct vs the user's actual play; no eval-loss-bound violations.
+Full suite 68 passed. FOLLOW-UP for Gemini: pipeline must aggregate per-color
+move counts into by_opening so color is exact for NON-leaky openings too
+(findings-color only covers leaky ones). TS3 signed off.
