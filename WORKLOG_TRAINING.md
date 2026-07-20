@@ -737,3 +737,38 @@ Steer Drill: {
   ]
 }
 ```
+
+## 2026-07-20 (eve) — Leader — TS5-style review of Gemini's TS2/TS4 (commit b60b44e)
+Verified independently (not on the gate claim): ownership clean (no
+metrics/select_repertoire/gems touched); full suite 67 passed; tsc + vite
+build clean. Pushed b60b44e to origin/windows-dev as the base for Opus/Debian.
+
+PASS / guardrails:
+- Guardrail 1 HOLDS: the recorded `steer` move only ever comes from
+  metrics.steer_candidates, which enforces the loss bound + floor. No losing
+  steer can leak. Confirmed on the real finding (best -4 / steer -44: loss 40
+  <= 60, -44 >= -60). POV correct: complexity computed on the opponent-to-move
+  position, eval negated for a black mover.
+- BT3 budget respected; time-scramble filter respected (nodes built inside the
+  Stage-A guard); no-mock-data guard present; steer_cache keyed by post-move EPD.
+- Steer drills accept any bounded-sharp move (alt = accepted_ucis of playable);
+  reveal carries best-vs-steer contrast + minefield + complexity_components.
+
+FINDINGS (follow-ups, not blockers to the checkpoint):
+1. [HIGH/scaling] Steering pass has NO search budget — only BT3 is capped.
+   Loops ALL user_decision_nodes x up to steer_top_k engine.analyze (3s each):
+   ~17k nodes on the full corpus => tens of hours. MUST add a node cap /
+   search-time budget before a full-693 steer run. (pipeline.py, Gemini.)
+2. [MED/integration] metrics.is_opening_mistake is defined but never called —
+   Track A still flags sound opening sidelines as mistakes by policy
+   divergence. This pollutes TS3's "repair" classification (Opus consumes
+   Track A findings). Wire into Stage A/B before/with TS3. (pipeline.py, Gemini.)
+3. [LOW/design] Steer drills also accept the calm objective-best move (it is in
+   playable_candidates). Decide: accept-any-playable vs reward-only-sharp.
+4. [LOW/coverage] No unit tests for the steering pass or steer-drill judging
+   (gates were HTTP only). Add: losing-position node -> no steer finding; steer
+   drill accepts a bounded alt.
+5. [NIT] magic 0.6 "highly complex best" threshold should be a cfg field.
+
+Recommendation: safe base for Opus TS3 to start on. Fix #1 before any
+full-corpus steering run; fix #2 before TS3 leans on Track A findings.
