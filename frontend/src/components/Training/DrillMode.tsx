@@ -13,6 +13,17 @@ interface DrillModeProps {
   onExit: () => void;
 }
 
+function applyUci(fen: string, uci: string): string {
+  try {
+    const pos = Chess.fromSetup(parseFen(fen).unwrap()).unwrap();
+    const move = parseUci(uci);
+    if (move) pos.play(move);
+    return makeFen(pos.toSetup());
+  } catch {
+    return fen;
+  }
+}
+
 function formatRelativeTime(isoString: string) {
   const diff = new Date(isoString).getTime() - new Date().getTime();
   if (diff < 0) return 'now';
@@ -28,13 +39,19 @@ export default function DrillMode({ setId, dueItems, onExit }: DrillModeProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [attemptResult, setAttemptResult] = useState<any>(null);
-  
+  const [ply, setPly] = useState(0);
+  const [lineProgress, setLineProgress] = useState<string[]>([]);
+
   const [activeFen, setActiveFen] = useState<string>('');
   const [activeLastMove, setActiveLastMove] = useState<[Key, Key] | undefined>();
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     async function load() {
+      setCurrentIndex(0);
+      setAttemptResult(null);
+      setPly(0);
+      setLineProgress([]);
       if (dueItems) {
         setDrillSet({ drills: dueItems.map(item => ({...item.drill, _srsItem: item})) });
         setLoading(false);
@@ -74,7 +91,9 @@ export default function DrillMode({ setId, dueItems, onExit }: DrillModeProps) {
 
   useEffect(() => {
     if (!drill) return;
-    
+
+    setPly(0);
+    setLineProgress([]);
     if (drill.setup_move_uci) {
       setActiveFen(drill.fen);
       setActiveLastMove(undefined);
@@ -109,12 +128,38 @@ export default function DrillMode({ setId, dueItems, onExit }: DrillModeProps) {
     );
   }
 
-  const handleMove = async (uci: string) => {
-    if (attemptResult) return; 
+  const handleMove = async (uci: string, san: string) => {
+    if (attemptResult || isAnimating) return;
     try {
       const currentSetId = drill._srsItem?.set_id || setId;
       if (!currentSetId) return;
-      const res = await attemptDrill(currentSetId, drill.id, uci);
+      const res = await attemptDrill(currentSetId, drill.id, uci, ply);
+
+      if (res.correct && !res.complete) {
+        // Mid-line: play the user's move, then auto-play the opponent's reply.
+        const fenAfterUser = applyUci(activeFen, uci);
+        setActiveFen(fenAfterUser);
+        setActiveLastMove([uci.slice(0, 2) as Key, uci.slice(2, 4) as Key]);
+        setLineProgress(p => [...p, san]);
+        setPly(p => p + 2);
+        if (res.reply_uci) {
+          setIsAnimating(true);
+          setTimeout(() => {
+            setActiveFen(applyUci(fenAfterUser, res.reply_uci));
+            setActiveLastMove([res.reply_uci.slice(0, 2) as Key, res.reply_uci.slice(2, 4) as Key]);
+            setIsAnimating(false);
+          }, 450);
+        }
+        return;
+      }
+
+      if (res.correct && res.complete) {
+        // Show the final position with the winning move played.
+        const fenAfterUser = applyUci(activeFen, uci);
+        setActiveFen(res.reply_uci ? applyUci(fenAfterUser, res.reply_uci) : fenAfterUser);
+        setActiveLastMove([uci.slice(0, 2) as Key, uci.slice(2, 4) as Key]);
+        setLineProgress(p => [...p, san]);
+      }
       setAttemptResult(res);
     } catch (err: any) {
       console.error('Attempt failed', err);
@@ -123,6 +168,8 @@ export default function DrillMode({ setId, dueItems, onExit }: DrillModeProps) {
 
   const nextDrill = () => {
     setAttemptResult(null);
+    setPly(0);
+    setLineProgress([]);
     setCurrentIndex(i => i + 1);
   };
 
@@ -162,7 +209,12 @@ export default function DrillMode({ setId, dueItems, onExit }: DrillModeProps) {
           {!attemptResult ? (
             <div className="instruction">
               <h3>Your Turn</h3>
-              <p>Find the best move in this position.</p>
+              <p>{lineProgress.length === 0
+                ? 'Find the best move in this position.'
+                : 'Correct — keep going, find the next move.'}</p>
+              {lineProgress.length > 0 && (
+                <p className="line-progress"><strong>So far:</strong> {lineProgress.join(' ')}</p>
+              )}
               <button className="glass-btn" onClick={onExit}>Exit Drills</button>
             </div>
           ) : (

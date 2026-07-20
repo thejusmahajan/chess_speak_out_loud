@@ -3,6 +3,50 @@ import uuid
 import chess
 from backend.training import store, puzzle_db, metrics
 
+
+def check_attempt(drill: dict, ply: int, move_uci: str) -> dict:
+    """Judge one user move of a drill, following Lichess puzzle rules:
+    the stored line (line_uci: user move, opponent reply, user move, ...)
+    must be followed move by move; replies are auto-played by the client;
+    the drill completes only at the end of the line. Two extra acceptances,
+    also from Lichess: any move that delivers checkmate wins immediately,
+    and at ply 0 near-equal engine alternatives (alt_solution_ucis) count
+    as correct. Raises ValueError if ply does not address a user move.
+
+    Older drill sets carry only solution_uci; they act as one-move lines.
+    """
+    line = drill.get("line_uci") or [drill["solution_uci"]]
+    if ply < 0 or ply >= len(line) or ply % 2 != 0:
+        raise ValueError("ply outside solution line")
+
+    board = chess.Board(drill["fen"])
+    if drill.get("setup_move_uci"):
+        board.push_uci(drill["setup_move_uci"])
+    for m in line[:ply]:
+        board.push_uci(m)
+
+    expected = set(metrics.accepted_ucis(board, line[ply]))
+    alt = set(drill.get("alt_solution_ucis") or []) if ply == 0 else set()
+
+    if move_uci not in expected and move_uci not in alt:
+        try:
+            after = board.copy(stack=False)
+            after.push(board.parse_uci(move_uci))
+            if after.is_checkmate():
+                return {"correct": True, "complete": True, "reply_uci": None}
+        except ValueError:
+            pass
+        return {"correct": False, "complete": False, "reply_uci": None}
+
+    if move_uci not in expected:
+        # An accepted alternative diverges from the stored line, so there
+        # is no line left to walk — the drill counts as solved here.
+        return {"correct": True, "complete": True, "reply_uci": None}
+
+    complete = ply + 2 >= len(line)  # no further user move in the line
+    reply = line[ply + 1] if ply + 1 < len(line) else None
+    return {"correct": True, "complete": complete, "reply_uci": reply}
+
 async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine, vision) -> dict:
     own_game_count = int(count * 0.4)
     corpus_count = int(count * 0.4)
@@ -49,6 +93,7 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
                 "fen": f["fen_before"],
                 "setup_move_uci": None,
                 "solution_uci": f["best"]["uci"],
+                "line_uci": [f["best"]["uci"]],
                 "alt_solution_ucis": alt_ucis,
                 "solution_san": f["best"]["san"],
                 "tags": f.get("motifs", []),
@@ -99,6 +144,7 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
             "fen": p["fen"],
             "setup_move_uci": setup_move_uci,
             "solution_uci": solution_uci,
+            "line_uci": moves[1:],
             "alt_solution_ucis": metrics.accepted_ucis(board, solution_uci),
             "solution_san": board.san(chess.Move.from_uci(solution_uci)),
             "tags": p["themes"].split(),
@@ -126,6 +172,7 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
                 "fen": g["fen"],
                 "setup_move_uci": None,
                 "solution_uci": g["solution_uci"],
+                "line_uci": [g["solution_uci"]],
                 "alt_solution_ucis": g["alt_solution_ucis"],
                 "solution_san": g["solution_san"],
                 "tags": g["motifs"],

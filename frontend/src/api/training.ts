@@ -47,11 +47,11 @@ export async function getDrillSet(setId: string) {
   return res.json();
 }
 
-export async function attemptDrill(setId: string, drillId: string, moveUci: string) {
+export async function attemptDrill(setId: string, drillId: string, moveUci: string, ply: number = 0) {
   const res = await fetch(`${BASE_URL}/drills/attempt`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ set_id: setId, drill_id: drillId, move_uci: moveUci }),
+    body: JSON.stringify({ set_id: setId, drill_id: drillId, move_uci: moveUci, ply }),
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();

@@ -423,6 +423,7 @@ class DiagnoseRequest(BaseModel):
 class RepertoireRequest(BaseModel):
     color: str
     build: bool = False
+    style: str = "weakness"
 
 class GenerateDrillsRequest(BaseModel):
     count: int = 20
@@ -431,6 +432,9 @@ class AttemptDrillRequest(BaseModel):
     set_id: str
     drill_id: str
     move_uci: str
+    ply: int = 0  # index of the user's move within the drill's solution line
+
+_training_tasks: set = set()
 
 def _sweep_orphaned_training_jobs():
     """A server restart mid-diagnosis leaves a job 'running' forever, which
@@ -460,7 +464,11 @@ async def start_diagnose(req: DiagnoseRequest):
                     raise HTTPException(status_code=409, detail="A diagnosis job is already running")
                     
     job_id = store.create_job()
-    asyncio.create_task(run_diagnosis(job_id, req.pgn, req.player_name, lc0_engine, neural_vision))
+    task = asyncio.create_task(
+        run_diagnosis(job_id, req.pgn, req.player_name, lc0_engine, neural_vision))
+    # keep a strong reference — bare create_task results can be GC'd mid-run
+    _training_tasks.add(task)
+    task.add_done_callback(_training_tasks.discard)
     return {"job_id": job_id}
 
 @app.get("/api/training/jobs/{job_id}")
@@ -485,7 +493,8 @@ async def get_repertoire(req: RepertoireRequest):
         if not profile:
             raise HTTPException(status_code=404,
                                 detail="No profile — run a diagnosis first")
-        rep = await build_repertoire(profile, req.color, lc0_engine)
+        rep = await build_repertoire(profile, req.color, lc0_engine,
+                                     style=req.style)
         store.save_repertoire(rep)
         return rep
     rep = store.load_repertoire()
@@ -525,11 +534,21 @@ async def attempt_drill(req: AttemptDrillRequest):
 
     for d in ds.get("drills", []):
         if d["id"] == req.drill_id:
-            correct = req.move_uci in d.get("alt_solution_ucis", [])
-            srs_entry = attempts.record_attempt(req.set_id, d, correct)
-            return {"correct": correct, "reveal": d.get("reveal"),
-                    "next_due": srs_entry.get("due"),
-                    "lapses": srs_entry.get("lapses", 0)}
+            try:
+                verdict = drills.check_attempt(d, req.ply, req.move_uci)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+            # The drill is scored once: on the first wrong move, or on
+            # reaching the end of the line. Mid-line success is unscored.
+            if verdict["correct"] and not verdict["complete"]:
+                return dict(verdict, reveal=None, next_due=None, lapses=0)
+
+            srs_entry = attempts.record_attempt(
+                req.set_id, d, verdict["correct"])
+            return dict(verdict, reveal=d.get("reveal"),
+                        next_due=srs_entry.get("due"),
+                        lapses=srs_entry.get("lapses", 0))
 
     raise HTTPException(status_code=404, detail="Drill not found")
 

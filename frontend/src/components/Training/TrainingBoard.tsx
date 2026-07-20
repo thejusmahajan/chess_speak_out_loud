@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Chessground } from 'chessground';
 import 'chessground/assets/chessground.base.css';
 import 'chessground/assets/chessground.brown.css';
@@ -6,9 +6,24 @@ import 'chessground/assets/chessground.cburnett.css';
 import { Chess, Position } from 'chessops/chess';
 import { parseFen, INITIAL_FEN } from 'chessops/fen';
 import { chessgroundDests } from 'chessops/compat';
-import { parseUci } from 'chessops/util';
+import { parseUci, parseSquare } from 'chessops/util';
 import { makeSan } from 'chessops/san';
 import type { Key } from 'chessground/types';
+
+function posFromFen(fen: string): Position {
+  try {
+    return Chess.fromSetup(parseFen(fen).unwrap()).unwrap();
+  } catch {
+    return Chess.default();
+  }
+}
+
+const PROMO_PIECES = [
+  { role: 'queen', letter: 'q', white: '♕', black: '♛' },
+  { role: 'rook', letter: 'r', white: '♖', black: '♜' },
+  { role: 'bishop', letter: 'b', white: '♗', black: '♝' },
+  { role: 'knight', letter: 'n', white: '♘', black: '♞' },
+];
 
 interface TrainingBoardProps {
   fen: string;
@@ -36,24 +51,66 @@ export default function TrainingBoard({
   const boardRef = useRef<HTMLDivElement>(null);
   const cgRef = useRef<ReturnType<typeof Chessground> | null>(null);
 
+  // Pawn waiting on the last rank for the user to pick a promotion piece.
+  // Chessground has no promotion dialog: it reports the drag as plain
+  // orig+dest, so the piece choice has to be collected here before the
+  // move (e.g. g2g1q) can be submitted.
+  const [promo, setPromo] = useState<{ orig: Key; dest: Key } | null>(null);
+
+  // The chessground move handler is registered once on mount, so it must
+  // read the current fen/onMove through refs — capturing the props directly
+  // would freeze it on the first drill's position and handler.
+  const fenRef = useRef(fen);
+  const onMoveRef = useRef(onMove);
+  fenRef.current = fen;
+  onMoveRef.current = onMove;
+
+  const emitMove = (uci: string) => {
+    const move = parseUci(uci);
+    if (!move || !onMoveRef.current) return;
+    let san = uci;
+    try {
+      san = makeSan(posFromFen(fenRef.current), move);
+    } catch { /* keep uci as fallback */ }
+    onMoveRef.current(uci, san);
+  };
+  const emitMoveRef = useRef(emitMove);
+  emitMoveRef.current = emitMove;
+
+  const syncBoard = () => {
+    if (!cgRef.current) return;
+    const pos = posFromFen(fen);
+    cgRef.current.set({
+      fen,
+      lastMove,
+      orientation,
+      turnColor: pos.turn,
+      movable: {
+        color: interactive ? pos.turn : undefined,
+        dests: interactive ? chessgroundDests(pos) : new Map(),
+      }
+    });
+  };
+
   // Initialize board
   useEffect(() => {
     if (!boardRef.current) return;
-    
-    let pos: Position;
-    try {
-      pos = Chess.fromSetup(parseFen(fen).unwrap()).unwrap();
-    } catch {
-      pos = Chess.default();
-    }
+
+    const pos = posFromFen(fen);
 
     const cg = Chessground(boardRef.current, {
       fen: pos ? fen : INITIAL_FEN,
       lastMove,
       orientation,
+      // turnColor must always mirror the FEN: chessground only allows a
+      // real drag when turnColor matches movable.color, and otherwise
+      // silently captures the drag as a premove (piece moves on screen,
+      // no move event fires). Premoves are meaningless in drills.
+      turnColor: pos.turn,
+      premovable: { enabled: false },
       movable: {
         free: false,
-        color: interactive ? orientation : undefined,
+        color: interactive ? pos.turn : undefined,
         dests: interactive ? chessgroundDests(pos) : new Map(),
       },
     });
@@ -62,21 +119,17 @@ export default function TrainingBoard({
       movable: {
         events: {
           after: (orig, dest) => {
-            if (!onMove) return;
-            const uci = orig + dest;
-            
-            let oldPos: Position;
-            try {
-              oldPos = Chess.fromSetup(parseFen(fen).unwrap()).unwrap();
-            } catch {
-              oldPos = Chess.default();
+            if (!onMoveRef.current) return;
+
+            const oldPos = posFromFen(fenRef.current);
+            const piece = oldPos.board.get(parseSquare(orig) ?? -1);
+            if (piece?.role === 'pawn' && (dest[1] === '1' || dest[1] === '8')) {
+              // Pawn reached the last rank: ask which piece before submitting.
+              setPromo({ orig: orig as Key, dest: dest as Key });
+              return;
             }
-            
-            const validMove = parseUci(uci);
-            if (validMove) {
-              const san = makeSan(oldPos, validMove);
-              onMove(uci, san);
-            }
+
+            emitMoveRef.current(orig + dest);
           }
         }
       }
@@ -92,24 +145,21 @@ export default function TrainingBoard({
 
   // Update FEN, orientation, and interactability
   useEffect(() => {
-    if (!cgRef.current) return;
-    
-    let pos: Position;
-    try {
-      pos = Chess.fromSetup(parseFen(fen).unwrap()).unwrap();
-    } catch {
-      pos = Chess.default();
-    }
-    
-    cgRef.current.set({
-      fen,
-      orientation,
-      movable: {
-        color: interactive ? pos.turn : undefined,
-        dests: interactive ? chessgroundDests(pos) : new Map(),
-      }
-    });
-  }, [fen, orientation, interactive]);
+    syncBoard();
+  }, [fen, lastMove, orientation, interactive]);
+
+  const choosePromotion = (letter: string) => {
+    if (!promo) return;
+    const uci = promo.orig + promo.dest + letter;
+    setPromo(null);
+    emitMove(uci);
+  };
+
+  const cancelPromotion = () => {
+    // Put the pawn back: chessground already shows it on the last rank.
+    setPromo(null);
+    syncBoard();
+  };
 
   // Update overlays
   useEffect(() => {
@@ -238,12 +288,54 @@ export default function TrainingBoard({
 
   }, [fen, policy, saliency, hotSquares, blunderFlash]);
 
+  const promoColor = promo?.dest[1] === '8' ? 'white' : 'black';
+  const promoFile = promo ? promo.dest.charCodeAt(0) - 97 : 0;
+  const promoX = orientation === 'black' ? 7 - promoFile : promoFile;
+  // Promotion square as seen by the viewer: stack the picker from that
+  // edge toward the middle of the board.
+  const promoRank = promo ? parseInt(promo.dest[1], 10) - 1 : 0;
+  const promoY = orientation === 'black' ? promoRank : 7 - promoRank;
+  const promoDir = promoY <= 3 ? 1 : -1;
+
   return (
-    <div style={{ width: '100%', maxWidth: '600px', margin: '0 auto' }}>
+    <div style={{ width: '100%', maxWidth: '600px', margin: '0 auto', position: 'relative' }}>
       <div
         ref={boardRef}
         style={{ width: '100%', paddingBottom: '100%', position: 'relative' }}
       />
+      {promo && (
+        <div
+          onClick={cancelPromotion}
+          style={{
+            position: 'absolute', inset: 0, zIndex: 100,
+            background: 'rgba(0, 0, 0, 0.4)',
+          }}
+        >
+          {PROMO_PIECES.map((p, i) => (
+            <button
+              key={p.role}
+              onClick={(e) => { e.stopPropagation(); choosePromotion(p.letter); }}
+              aria-label={`Promote to ${p.role}`}
+              style={{
+                position: 'absolute',
+                left: `${promoX * 12.5}%`,
+                top: `${(promoY + i * promoDir) * 12.5}%`,
+                width: '12.5%', height: '12.5%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 'clamp(24px, 5.5vmin, 48px)', lineHeight: 1,
+                color: promoColor === 'white' ? '#fff' : '#111',
+                background: 'rgba(240, 217, 181, 0.95)',
+                border: '1px solid rgba(0,0,0,0.4)', borderRadius: '6px',
+                cursor: 'pointer', padding: 0,
+                textShadow: promoColor === 'white'
+                  ? '0 0 3px rgba(0,0,0,0.9)' : '0 0 3px rgba(255,255,255,0.6)',
+              }}
+            >
+              {promoColor === 'white' ? p.white : p.black}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
