@@ -445,3 +445,93 @@ def test_output_version(monkeypatch):
     rep = run(sr.build_repertoire(profile, "white", engine))
     assert rep["version"] == 2
     assert rep["color"] == "white"
+
+
+# -----------------------------------------------------------------------
+# Test: explicitly authoritative color counts override parity
+# -----------------------------------------------------------------------
+
+def test_color_counts_override_parity(monkeypatch):
+    """An ECO whose uci_moves length parity points to one color but whose
+    explicit counts point to the other should use the explicit counts."""
+    fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+
+    eco_lines = {
+        "B00": {
+            "name": "King Pawn",
+            "uci_moves": ["e2e4"],  # 1 move = parity "white"
+            "fen": fen,
+        },
+    }
+    _stub_openings(monkeypatch, eco_lines)
+
+    profile = _make_profile(
+        by_opening={
+            "B00": {
+                "moves": 10,
+                "moves_white": 0,
+                "moves_black": 10,  # >= REPERTOIRE_MIN_MOVES
+                "missed": 0,
+                "blind": 0,
+                "blind_rate": 0.0,
+            }
+        },
+    )
+
+    # Engine eval is good for black (-10 cp white POV -> +10 black POV)
+    engine = MockEngine(eval_by_fen={fen: -10})
+
+    # For black, it should be included
+    rep_black = run(sr.build_repertoire(profile, "black", engine))
+    ecos_black = [r["eco"] for r in rep_black["recommendations"]]
+    assert "B00" in ecos_black
+
+    # For white, it should be excluded (moves_white = 0 < 5)
+    # Re-mock engine with a good eval for white just to be sure it's not excluded by eval
+    engine = MockEngine(eval_by_fen={fen: 10})
+    rep_white = run(sr.build_repertoire(profile, "white", engine))
+    ecos_white = [r["eco"] for r in rep_white["recommendations"]]
+    assert "B00" not in ecos_white
+
+
+# -----------------------------------------------------------------------
+# Test: color count below min moves is excluded
+# -----------------------------------------------------------------------
+
+def test_color_count_below_min_moves_excluded(monkeypatch):
+    """An ECO with total moves >= 5 but neither color >= 5 is excluded."""
+    fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+
+    eco_lines = {
+        "B00": {
+            "name": "King Pawn",
+            "uci_moves": ["e2e4"],
+            "fen": fen,
+        },
+    }
+    _stub_openings(monkeypatch, eco_lines)
+
+    profile = _make_profile(
+        by_opening={
+            "B00": {
+                "moves": 6,          # >= REPERTOIRE_MIN_MOVES (5)
+                "moves_white": 3,
+                "moves_black": 3,
+                "missed": 0,
+                "blind": 0,
+                "blind_rate": 0.0,
+            }
+        },
+    )
+
+    # Give it a good eval for both colors
+    engine = MockEngine(eval_by_fen={fen: 10})
+
+    rep_white = run(sr.build_repertoire(profile, "white", engine))
+    ecos_white = [r["eco"] for r in rep_white["recommendations"]]
+    assert "B00" not in ecos_white
+
+    engine = MockEngine(eval_by_fen={fen: -10})
+    rep_black = run(sr.build_repertoire(profile, "black", engine))
+    ecos_black = [r["eco"] for r in rep_black["recommendations"]]
+    assert "B00" not in ecos_black

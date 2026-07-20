@@ -4,7 +4,65 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
-## 2026-07-20 — Gemini — Phase TS3: Color-Aware Opening Aggregate (pipeline)
+## 2026-07-20 — Gemini — Phase: Lock in the color-authoritative repertoire branch (test-only)
+- Added `test_color_counts_override_parity` and `test_color_count_below_min_moves_excluded` in `backend/tests/test_training_select.py` to test the new authoritative `moves_white`/`moves_black` keys.
+- Ran tests successfully for `test_training_select.py` and the full suite.
+
+Gate check output:
+```
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Admin\Documents\chess_speak_out_loud
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collected 12 items
+
+backend\tests\test_training_select.py ............                       [100%]
+
+============================= 12 passed in 0.60s ==============================
+
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Admin\Documents\chess_speak_out_loud
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collected 71 items
+
+backend\tests\test_health.py .                                           [  1%]
+backend\tests\test_training_attempts.py ......                           [  9%]
+backend\tests\test_training_clk.py ....                                  [ 15%]
+backend\tests\test_training_drills.py .............                      [ 33%]
+backend\tests\test_training_gems.py .......                              [ 43%]
+backend\tests\test_training_metrics.py .......                           [ 53%]
+backend\tests\test_training_pipeline_color.py .                          [ 54%]
+backend\tests\test_training_pipeline_steer.py ..                         [ 57%]
+backend\tests\test_training_select.py ............                       [ 74%]
+backend\tests\test_training_steer.py ..........                          [ 88%]
+backend\tests\test_training_store.py ........                            [100%]
+
+============================== warnings summary ===============================
+..\..\miniconda3\envs\cszero\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\Admin\miniconda3\envs\cszero\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+backend\llm_client.py:2
+  C:\Users\Admin\Documents\chess_speak_out_loud\backend\llm_client.py:2: FutureWarning: 
+  
+  All support for the `google.generativeai` package has ended. It will no longer be receiving 
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+  
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  
+    import google.generativeai as genai
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 71 passed, 2 warnings in 46.07s =======================
+```
+
+color-branch tests ready for review
+
+## 2026-07-20 — Gemini — Phase: Color-Aware Opening Aggregate (pipeline)
 - Added `moves_white` and `moves_black` keys to the `by_opening` aggregate in `pipeline.py` so that opening color ownership is always explicitly captured.
 - Added a unit test in `backend/tests/test_training_pipeline_color.py` to confirm the per-color aggregates over a mock PGN.
 
