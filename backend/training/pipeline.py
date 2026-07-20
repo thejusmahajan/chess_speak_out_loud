@@ -168,6 +168,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
 
         # STAGE B
         stage_b_done = 0
+        opening_sidelines_excluded = 0
         for flagged in flagged_moves:
             epd = flagged["epd"]
             board_before = chess.Board(flagged["fen_before"])
@@ -203,6 +204,10 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             conf = metrics.confirmation_swing(b_data["eval_best_cp"], b_data["eval_played_cp"], mover_is_white)
             if not conf:
                 conf = {"swing_cp": 0, "confirmed": False}
+                
+            if not metrics.is_opening_mistake(flagged["ply"], flagged["severity"], conf.get("swing_cp")):
+                opening_sidelines_excluded += 1
+                continue
                 
             best_move = board_before.parse_uci(flagged["best_uci"])
             att = metrics.attention_blindness(b_data["saliency"], board_before, played_move, best_move)
@@ -249,6 +254,8 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         by_opening_steer = defaultdict(lambda: {"moves": 0, "complexity_sum": 0.0, "tal_moves": 0})
         bt3_budget_remaining = metrics.DEFAULT_CONFIG.steer_bt3_budget
         steer_processed = 0
+        search_used = 0
+        steer_budget_exhausted = False
 
         for node in user_decision_nodes:
             epd = node["epd"]
@@ -280,6 +287,10 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                 
                 s_data = steer_cache.get(epd_after_m)
                 if not s_data:
+                    if search_used >= metrics.DEFAULT_CONFIG.steer_search_budget:
+                        steer_budget_exhausted = True
+                        break
+                    
                     analysis = await engine.analyze(
                         fen_after_m, depth=None, multipv=2,
                         time_limit=metrics.DEFAULT_CONFIG.confirm_played_seconds)
@@ -288,6 +299,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                     pol_after = await engine.get_policy_distribution(fen_after_m, nodes=1)
                     s_data = {"analysis": analysis, "policy": pol_after}
                     steer_cache.put(epd_after_m, s_data)
+                    search_used += 1
                     
                 analysis_after = s_data["analysis"]
                 policy_after = s_data["policy"]
@@ -315,13 +327,16 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                     "components": complexity
                 })
                 
+            if steer_budget_exhausted:
+                break
+                
             if not candidates:
                 continue
                 
             best_eval_cp = max(c["eval_cp"] for c in candidates)
             steer_res = metrics.steer_candidates(candidates, best_eval_cp)
             
-            if steer_res["had_tal_move"] or (steer_res["objective_best"] and steer_res["objective_best"]["complexity"] >= 0.6):
+            if steer_res["had_tal_move"] or (steer_res["objective_best"] and steer_res["objective_best"]["complexity"] >= metrics.DEFAULT_CONFIG.steer_highlight_complexity):
                 opening_match = openings.classify(node["uci_moves_so_far"])
                 eco = opening_match["eco"] if opening_match else "???"
                 
@@ -357,6 +372,8 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             steer_processed += 1
             if steer_processed % 10 == 0:
                 _progress(job_id, stage_steer_done=steer_processed)
+
+        _progress(job_id, stage_steer_done=steer_processed, steer_search_used=search_used)
 
         steer_summary = {}
         for eco, st in by_opening_steer.items():
@@ -423,10 +440,12 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             "games_analyzed": games_analyzed,
             "moves_analyzed": moves_processed,
             "time_scramble_skipped": scramble_skipped,
+            "opening_sidelines_excluded": opening_sidelines_excluded,
             "findings": findings,
             "aggregates": aggregates,
             "steer_findings": steer_findings,
-            "steer_summary": steer_summary
+            "steer_summary": steer_summary,
+            "steer_budget_exhausted": steer_budget_exhausted
         }
         
         from backend.training import attempts

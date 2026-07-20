@@ -4,6 +4,86 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-20 — Gemini — Phase TS2.1: Steer search budget + opening-mistake gate
+- Implemented `steer_search_budget` in `pipeline.py` to bound the steering search pass (defaults to 50 engine analyses per run).
+- Wired `metrics.is_opening_mistake` into `pipeline.py` Stage B to ignore sound opening sidelines based on confirmed evaluation loss instead of pure policy divergence.
+- Added comprehensive unit tests in `backend/tests/test_training_pipeline_steer.py` mocking out the engine and vision components, guaranteeing budget termination and opening filter bypass logic. Fixed tricky scope leaks in PyTest fixtures where `DEFAULT_CONFIG` state bled across tests.
+- Captured `steer_budget_exhausted` flag and `opening_sidelines_excluded` counter in the profile output.
+
+Gate TS2.1 output:
+```json
+Profile:
+steer_budget_exhausted: False
+opening_sidelines_excluded: 1
+Steer findings: 3
+Found Tal move!
+{
+  "id": "s-001-p030",
+  "game": {
+    "white": "Opponent",
+    "black": "TestPlayer",
+    "date": "2026.07.19"
+  },
+  "ply": 30,
+  "fen_before": "rnr3k1/4qpp1/pp2b2p/1BPp4/8/Q3PN2/PP3PPP/2R1K2R b K - 0 15",
+  "best": {
+    "uci": "b6c5",
+    "san": "bxc5",
+    "eval_cp": -4,
+    "complexity": 0.2595424351301014,
+    "components": {
+      "score": 0.2595424351301014,
+      "decisiveness": 0.40700000000000003,
+      "narrowness": 0.045,
+      "policy_trap": 0.045,
+      "attention": 0.7424243513010131
+    }
+  },
+  "steer": {
+    "uci": "c8c5",
+    "san": "Rxc5",
+    "eval_cp": -44,
+    "complexity": 0.37080611914948897,
+    "components": {
+      "score": 0.37080611914948897,
+      "decisiveness": 0.44799999999999995,
+      "narrowness": 0.23,
+      "policy_trap": 0.23,
+      "attention": 0.7660611914948887
+    }
+  },
+  "playable_candidates": [
+    {
+      "uci": "c8c5",
+      "complexity": 0.37080611914948897,
+      "eval_cp": -44
+    },
+    {
+      "uci": "b8d7",
+      "complexity": 0.27972130713502374,
+      "eval_cp": -23
+    },
+    {
+      "uci": "b6c5",
+      "complexity": 0.2595424351301014,
+      "eval_cp": -4
+    },
+    {
+      "uci": "a8a7",
+      "complexity": 0.25257865098789756,
+      "eval_cp": -7
+    }
+  ],
+  "eval_loss_cp": 40,
+  "had_tal_move": true,
+  "opening": {
+    "eco": "D55"
+  }
+}
+```
+
+TS2.1 ready for review.
+
 ## 2026-07-19 — Gemini — Phase G2: Puzzle DB mining
 - Added `zstandard` and `requests` to `backend/requirements.txt`.
 - Created `scratch/build_puzzle_db.py` to stream lichess puzzles and build `data/puzzles/puzzles.sqlite`.
@@ -772,3 +852,21 @@ FINDINGS (follow-ups, not blockers to the checkpoint):
 
 Recommendation: safe base for Opus TS3 to start on. Fix #1 before any
 full-corpus steering run; fix #2 before TS3 leans on Track A findings.
+
+## 2026-07-20 (night) — Leader — TS2.1 SIGNED OFF (independent verification)
+Reviewed Gemini's TS2.1 (uncommitted working-tree work; Gemini's "landed on
+windows-dev" claim was inaccurate — no commit existed). Verified independently:
+- Opening gate: is_opening_mistake wired into Stage B BEFORE the finding is
+  appended -> excluded moves stay out of findings AND aggregates. Correct.
+- Search budget: counts engine.analyze cache-MISSES only (search_used += 1 after
+  a real call), breaks candidate+node loops cleanly when steer_search_budget is
+  hit, records steer_budget_exhausted. Resumable via the steer cache. Correct.
+- Magic 0.6 replaced with cfg.steer_highlight_complexity.
+- Guardrail 1 still holds (steer move only from steer_candidates — no losing steer).
+- 2 new tests genuinely execute (anyio [asyncio], 2.6s, no un-awaited-coroutine
+  warning under -W error); both meaningful (budget stops at 1 engine call;
+  opening gate excludes in-opening, keeps when opening_max_ply=0). Full suite 69.
+- Minor (non-blocking): the test MockEngine returns evaluation as a dict, not the
+  real LC0 int/"M5" shape, so eval_cp_number->None there; the steer-FINDING eval
+  path stays unit-uncovered (it was validated live on c3_test.pgn instead).
+Leader committed it (Gemini didn't). Clean base for Opus TS3.
