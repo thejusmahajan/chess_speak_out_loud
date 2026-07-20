@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import uuid
 import datetime
 from typing import Optional, List, Dict, Any
@@ -48,6 +49,28 @@ class EpdCache:
         with open(self.path, "a", encoding="utf-8") as f:
             f.write(json.dumps(record) + "\n")
 
+def _write_json_atomic(path: str, obj):
+    """Write via tmp + os.replace so concurrent readers (the 1s job poll,
+    the SRS queue) never see a half-written file.
+
+    On Windows os.replace is denied (WinError 5) while ANY other handle
+    holds the target open — a concurrent reader, or antivirus scanning the
+    just-written file. Those holds last milliseconds, so retry with backoff
+    instead of letting a multi-hour diagnosis die on a progress write
+    (which is exactly how the 2026-07-20 overnight run failed)."""
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(obj, f, indent=2)
+    for attempt in range(10):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:
+            if attempt == 9:
+                raise
+            time.sleep(0.05 * (attempt + 1))
+
+
 def _job_path(job_id: str) -> str:
     return os.path.join(TRAINING_DIR, "jobs", f"{job_id}.json")
 
@@ -66,8 +89,7 @@ def create_job() -> str:
         "error": None,
         "created": datetime.datetime.utcnow().isoformat()
     }
-    with open(_job_path(job_id), "w", encoding="utf-8") as f:
-        json.dump(job, f)
+    _write_json_atomic(_job_path(job_id), job)
     return job_id
 
 def update_job(job_id: str, **fields):
@@ -79,8 +101,7 @@ def update_job(job_id: str, **fields):
             job[k].update(v)
         else:
             job[k] = v
-    with open(_job_path(job_id), "w", encoding="utf-8") as f:
-        json.dump(job, f)
+    _write_json_atomic(_job_path(job_id), job)
 
 def read_job(job_id: str) -> Optional[Dict[str, Any]]:
     path = _job_path(job_id)
@@ -103,15 +124,13 @@ def save_profile(profile: dict):
     (T2, longitudinal trends)."""
     _ensure_dirs()
     path = os.path.join(TRAINING_DIR, "profile.json")
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(profile, f, indent=2)
+    _write_json_atomic(path, profile)
 
     os.makedirs(_profiles_dir(), exist_ok=True)
     created = profile.get("created") or datetime.datetime.utcnow().isoformat()
     version_path = os.path.join(
         _profiles_dir(), f"{_profile_version_id(created)}.json")
-    with open(version_path, "w", encoding="utf-8") as f:
-        json.dump(profile, f, indent=2)
+    _write_json_atomic(version_path, profile)
 
 
 def _migrate_legacy_profile():
@@ -178,8 +197,7 @@ def load_profile() -> Optional[Dict[str, Any]]:
 def save_repertoire(repertoire: dict):
     _ensure_dirs()
     path = os.path.join(TRAINING_DIR, "repertoire.json")
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(repertoire, f, indent=2)
+    _write_json_atomic(path, repertoire)
 
 def load_repertoire() -> Optional[Dict[str, Any]]:
     path = os.path.join(TRAINING_DIR, "repertoire.json")
@@ -194,8 +212,7 @@ def save_drill_set(drill_set: dict):
     if not set_id:
         raise ValueError("drill_set must have an 'id' field")
     path = os.path.join(TRAINING_DIR, "drills", f"{set_id}.json")
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(drill_set, f, indent=2)
+    _write_json_atomic(path, drill_set)
 
 def load_drill_set(set_id: str) -> Optional[Dict[str, Any]]:
     path = os.path.join(TRAINING_DIR, "drills", f"{set_id}.json")

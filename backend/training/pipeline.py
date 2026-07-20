@@ -1,12 +1,44 @@
 import io
+import re
 import asyncio
 import datetime
 from collections import defaultdict
+from typing import Optional
 import chess
 import chess.pgn
 from backend.training import store, openings, metrics
 from backend.tactics import MotifDetector
 from backend.concept_mapper import analyze_position
+
+_CLK_RE = re.compile(r"\[%clk\s+(\d+):(\d+):(\d+(?:\.\d+)?)\]")
+
+
+def clock_seconds(comment: str) -> Optional[float]:
+    """Seconds left on the mover's clock, read from a lichess-style
+    [%clk H:MM:SS] annotation. None when the comment carries no clock."""
+    m = _CLK_RE.search(comment or "")
+    if not m:
+        return None
+    return int(m.group(1)) * 3600 + int(m.group(2)) * 60 + float(m.group(3))
+
+
+def is_time_scramble(comment: str,
+                     cfg: metrics.TrainingConfig = metrics.DEFAULT_CONFIG) -> bool:
+    """True when the move was played in a time scramble (clock below
+    cfg.min_clock_seconds). Moves without clock data never count as
+    scrambles, so PGNs without [%clk] are analyzed in full."""
+    secs = clock_seconds(comment)
+    return secs is not None and secs < cfg.min_clock_seconds
+
+
+def _progress(job_id: str, **prog):
+    """Best-effort progress ping. Progress is cosmetic — a locked job file
+    (antivirus scan, concurrent poll) must never abort a multi-hour run.
+    Status transitions still go through store.update_job directly and raise."""
+    try:
+        store.update_job(job_id, progress=prog)
+    except OSError:
+        pass
 
 async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vision):
     try:
@@ -46,14 +78,19 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             return
                 
         user_moves_count = 0
+        scramble_skipped = 0
         for game, color in games_to_process:
             board = game.board()
-            for move in game.mainline_moves():
+            for node in game.mainline():
                 if board.turn == color:
-                    user_moves_count += 1
-                board.push(move)
-                
-        store.update_job(job_id, progress={"total": user_moves_count})
+                    if is_time_scramble(node.comment):
+                        scramble_skipped += 1
+                    else:
+                        user_moves_count += 1
+                board.push(node.move)
+
+        _progress(job_id, total=user_moves_count,
+                  time_scramble_skipped=scramble_skipped)
         
         findings = []
         moves_processed = 0
@@ -67,12 +104,13 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             board = game.board()
             ply = 0
             uci_moves = []
-            
-            for move in game.mainline_moves():
+
+            for node in game.mainline():
+                move = node.move
                 ply += 1
                 uci_moves.append(move.uci())
-                
-                if board.turn == user_color:
+
+                if board.turn == user_color and not is_time_scramble(node.comment):
                     epd = board.epd()
                     
                     policy_data = policy_cache.get(epd)
@@ -110,12 +148,12 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                         
                     moves_processed += 1
                     if moves_processed % 20 == 0:
-                        store.update_job(job_id, progress={"stage_a_done": moves_processed, "flagged": flagged_count})
+                        _progress(job_id, stage_a_done=moves_processed, flagged=flagged_count)
                         
                 board.push(move)
                 
-        store.update_job(job_id, progress={"stage_a_done": moves_processed, "flagged": flagged_count})
-        
+        _progress(job_id, stage_a_done=moves_processed, flagged=flagged_count)
+
         # STAGE B
         stage_b_done = 0
         for flagged in flagged_moves:
@@ -126,13 +164,17 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             b_data = stage_b_cache.get(epd)
             if b_data is None:
                 b_data = {}
-                analysis_before = await engine.analyze(flagged["fen_before"], depth=None, multipv=2, time_limit=3.0)
+                analysis_before = await engine.analyze(
+                    flagged["fen_before"], depth=None, multipv=2,
+                    time_limit=metrics.DEFAULT_CONFIG.confirm_best_seconds)
                 b_data["eval_best_cp"] = analysis_before["evaluation"]
                 b_data["pv_lines"] = analysis_before["pv_lines"]
                 
                 board_after = board_before.copy()
                 board_after.push(played_move)
-                analysis_after = await engine.analyze(board_after.fen(), depth=None, multipv=1, time_limit=1.5)
+                analysis_after = await engine.analyze(
+                    board_after.fen(), depth=None, multipv=1,
+                    time_limit=metrics.DEFAULT_CONFIG.confirm_played_seconds)
                 b_data["eval_played_cp"] = analysis_after["evaluation"]
                 
                 saliency = vision.saliency_absolute(flagged["fen_before"])
@@ -188,7 +230,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             findings.append(finding)
             
             stage_b_done += 1
-            store.update_job(job_id, progress={"stage_b_done": stage_b_done})
+            _progress(job_id, stage_b_done=stage_b_done)
             
         # Aggregate
         by_motif = defaultdict(lambda: {"missed": 0, "blind": 0, "confirmed": 0})
@@ -201,13 +243,13 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         for game_idx, (game, user_color) in enumerate(games_to_process):
             board = game.board()
             uci_moves = []
-            for move in game.mainline_moves():
-                uci_moves.append(move.uci())
-                if board.turn == user_color:
+            for node in game.mainline():
+                uci_moves.append(node.move.uci())
+                if board.turn == user_color and not is_time_scramble(node.comment):
                     opening_match = openings.classify(uci_moves)
                     if opening_match:
                         by_opening[opening_match["eco"]]["moves"] += 1
-                board.push(move)
+                board.push(node.move)
                 
         for f in findings:
             weight = 2 if f["confirmation"].get("confirmed") else 1
@@ -246,6 +288,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             "created": datetime.datetime.utcnow().isoformat(),
             "games_analyzed": games_analyzed,
             "moves_analyzed": moves_processed,
+            "time_scramble_skipped": scramble_skipped,
             "findings": findings,
             "aggregates": aggregates
         }

@@ -67,6 +67,21 @@ class TrainingConfig:
     # --- Repertoire sharpness (Engine 2) ---
     max_draw_pct: float = 45.0    # WDL draw% above this = too drawish to train
 
+    # --- Engine time budgets, seconds (user-tuned 2026-07-20: doubled
+    # from 3.0/1.5/0.8/3.0/2.0 — "2 or 3 seconds won't be enough") ---
+    confirm_best_seconds: float = 6.0      # stage B best-move eval (multipv=2)
+    confirm_played_seconds: float = 3.0    # stage B played-move eval
+    gem_screen_seconds: float = 1.6        # gems quick quietness screen
+    gem_confirm_seconds: float = 6.0       # gems confirmation eval
+    repertoire_eval_seconds: float = 4.0   # repertoire soundness gate
+
+    # --- Time-scramble filter (diagnosis) ---
+    # Moves played with less than this many seconds on the mover's clock
+    # are excluded from diagnosis: they measure flag-fall panic, not chess
+    # understanding. Applies only when the PGN carries [%clk] annotations;
+    # games without clocks are analyzed in full.
+    min_clock_seconds: float = 20.0
+
 
 DEFAULT_CONFIG = TrainingConfig()
 

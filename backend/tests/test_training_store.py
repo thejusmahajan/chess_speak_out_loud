@@ -51,3 +51,36 @@ def test_drills():
     assert sets[0]["id"] == "set1"
     assert sets[0]["size"] == 2
     assert "corpus" in sets[0]["sources"]
+
+def test_atomic_write_retries_windows_lock(monkeypatch, tmp_path):
+    """os.replace is denied while a reader/antivirus holds the target open
+    (WinError 5) — the write must retry, not kill a multi-hour job."""
+    import os as _os
+    real_replace = _os.replace
+    calls = {"n": 0}
+
+    def flaky_replace(src, dst):
+        calls["n"] += 1
+        if calls["n"] <= 2:
+            raise PermissionError(5, "Access is denied", dst)
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(store.os, "replace", flaky_replace)
+    monkeypatch.setattr(store.time, "sleep", lambda s: None)
+    path = str(tmp_path / "job.json")
+    store._write_json_atomic(path, {"ok": True})
+    assert calls["n"] == 3
+    import json as _json
+    with open(path, encoding="utf-8") as f:
+        assert _json.load(f) == {"ok": True}
+
+
+def test_atomic_write_gives_up_eventually(monkeypatch, tmp_path):
+    def always_denied(src, dst):
+        raise PermissionError(5, "Access is denied", dst)
+
+    monkeypatch.setattr(store.os, "replace", always_denied)
+    monkeypatch.setattr(store.time, "sleep", lambda s: None)
+    import pytest as _pytest
+    with _pytest.raises(PermissionError):
+        store._write_json_atomic(str(tmp_path / "job.json"), {})

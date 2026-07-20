@@ -503,3 +503,125 @@ trends: 1 profile in history (auto-migrated), confirmed_per_100 = 10.01
 ```
 
 UI for due-queue/trends/set-picker handed to Gemini as Phase G6.
+
+## 2026-07-20 — Leader — Drill/Review bugfixes + full-line solutions (Lichess semantics)
+User check found: only the first drill accepted moves; every Review puzzle
+showed drill #1's solution; variations never played out.
+
+- Root cause of the first two: `TrainingBoard` registered chessground's
+  `movable.events.after` once on mount, closing over the first render's
+  `fen`/`onMove`. Every later move was submitted as an attempt on drill #1
+  (hence its reveal, "Qxa7+", everywhere) and the board then desynced and
+  went dead. Fix: handler reads `fen`/`onMove` through refs; `lastMove` now
+  also updates on the update path. `DrillMode` additionally resets
+  index/result/ply state when a new set or review queue loads.
+- Full-line solutions, following Lichess puzzle rules (no reinvention):
+  drills now carry `line_uci` (corpus = Lichess `moves[1:]`, user move /
+  reply alternating; own_game + hidden_gem = 1-move lines for now).
+  New `drills.check_attempt(drill, ply, move_uci)`: walks the line ply by
+  ply, client auto-plays `reply_uci`, drill completes only at line end;
+  any checkmate wins immediately (Lichess rule); ply-0 alt solutions
+  accepted and end the drill (they leave the stored line). `POST
+  /drills/attempt` takes `ply`, scores SRS once per drill (first wrong
+  move or completion — mid-line successes unscored, no reveal leaked).
+  Old saved sets without `line_uci` keep working as single-move drills.
+- Frontend: `DrillMode` tracks ply, animates the opponent reply (450ms),
+  shows "So far: <san...>" progress, result card only on fail/completion.
+
+```
+backend\tests\test_training_drills.py .........   9 passed (new)
+full suite: 49 passed; frontend tsc -b + vite build clean
+```
+
+## 2026-07-20 — Leader — Fix: drills dead after N moves (chessground turnColor/premove)
+User repro: drill 3 of set-...-233211 (first multi-move drill) — pieces
+drag but moves never register; other saved drills alternately dead.
+
+Root cause: chessground's internal `turnColor` starts at 'white' and is
+only flipped by moves chessground itself registers — we never synced it to
+the FEN. When `turnColor` disagrees with `movable.color`, chessground
+captures the drag as a *premove* (piece moves on screen, no `after` event
+fires) — hence "moves, but not registered", parity-dependent per drill.
+Backend verified correct via live probes (ply 0/2 on d-b34a7b5d).
+
+Fix (`TrainingBoard.tsx`): `turnColor: pos.turn` on init and every
+update, `premovable: {enabled: false}`. Analysis board (`PgnViewer`)
+unaffected — `movable.color: 'both'` bypasses the turnColor check.
+
+```
+tsc -b + vite build clean
+```
+
+## 2026-07-20 — Leader — Promotion picker (g1=Q line endings)
+User repro: line ...Qh2+ Kf1 g2+ Ke2 Qxf4 Bxf4 g1=Q — promotion judged
+wrong. Chessground has no promotion dialog: the drag reports plain
+"g2g1" while the line stores "g2g1q".
+
+`TrainingBoard.tsx`: pawn-to-last-rank drags now open a Lichess-style
+piece picker (Q/R/B/N column over the promotion square, click-away
+cancels and resyncs the board); the chosen letter is appended before
+submitting. Refactor: posFromFen/emitMove/syncBoard helpers.
+Backend already judged full promotion UCIs correctly —
+test_promotion_move_accepted added as a guard (13 pass in file).
+
+## 2026-07-20 — Leader — %clk time-scramble filter + overnight runner
+New corpus: 693 bullet games (120+1) of derdiedasdie with [%clk]; 20,804
+user moves, 17,969 unique EPDs, 18% played under 20s.
+
+- Pipeline: `clock_seconds` / `is_time_scramble` (cfg.min_clock_seconds=20,
+  TrainingConfig); scramble moves excluded from stage A, opening
+  denominators, and moves_analyzed; profile records
+  `time_scramble_skipped`. PGNs without clocks unaffected.
+  backend/tests/test_training_clk.py (4 tests; suite 54 passed).
+- `scripts/overnight_run.py`: health preflight (waits for LC0), newest-N
+  text-level PGN slice (clk comments preserved, verified re-parse of 300),
+  diagnose+poll with retries, 4 repertoire variants (weakness/sacrificial
+  x white/black; each saved to repertoire_<style>_<color>.json since the
+  server keeps only last build), drill set gen, morning report
+  overnight_report.md + overnight_run.log. Crash-resumable via EPD caches.
+- `overnight.bat`: refuses if :8000 occupied (stale code guard), starts
+  fresh backend (no --reload) + runner.
+Estimated: 300 games ≈ 7.4k analyzed moves, ~2k findings -> ~4.5-5.5h.
+
+## 2026-07-20 — Leader — Pre-flight audit of overnight path (3 bugs fixed)
+1. overnight.bat: `findstr /r ":8000 .*LISTENING"` treats the space as OR
+   -> matched ANY listener -> bat would always refuse to start. Now piped
+   double findstr; verified live both ways (detects :8000, ignores bogus).
+2. Runner submit: a retried diagnose POST whose first attempt landed gets
+   409 and died mid-night. Now: 409 -> attach to the running job (scan
+   data/training/jobs for status=running, newest mtime).
+3. api_retry treated all HTTPErrors as final: one transient 5xx during
+   ~600 polls (e.g. read racing the atomic job-file rename on Windows)
+   killed the run. Now 5xx+connection errors retry (20x30s); only 4xx are
+   final. Also: per-variant repertoire/drill failures can't sink the run,
+   report writing is non-fatal, fatal errors are logged to
+   overnight_run.log (SystemExit previously went to stderr only).
+Full suite 54 passed; runner compiles; slicing + attach-scan smoke-tested.
+
+## 2026-07-20 (night) — Leader — Overnight run died on WinError 5; fixed + relaunched with 693 games
+First run (300 games) died 3 min in: `store._write_json_atomic`'s
+os.replace on the job file was denied (WinError 5) — on Windows the
+rename fails while ANY handle holds the target (poll read, or antivirus
+scanning the just-written file). The audit had hardened the READ side
+only; the writer crashed the whole diagnosis on a progress ping.
+
+Fix (two layers):
+1. `_write_json_atomic`: retry os.replace on PermissionError, 10 attempts
+   with 50ms+ backoff (tests: retries-then-succeeds, gives-up-eventually).
+2. `pipeline._progress`: progress pings are best-effort (swallow OSError);
+   status transitions still raise. Suite: 56 passed.
+
+Relaunched 02:44 with --games 693 (user wants max statistics; bat now
+passes --games 693, JOB_TIMEOUT_HOURS 11->14). 20.8k user moves, ~18%
+scramble-filtered; first run's 1,940 stage-A positions come from cache.
+ETA ~12:30-13:00. Job 874627f4 (300-game attempt) left status=error.
+
+## 2026-07-20 (night, cont.) — Leader — Engine time budgets doubled (user request)
+"Give the LC0 double the time to analyze. Just 2 or 3 seconds won't be
+enough." All training-path time_limits moved into TrainingConfig and
+doubled: stage B best 3.0->6.0, played 1.5->3.0; gems screen 0.8->1.6,
+confirm 3.0->6.0; repertoire gate 2.0->4.0. Analysis-mode endpoints
+untouched (user-facing latency). Runner JOB_TIMEOUT_HOURS 14->20.
+Restarted backend+runner (~02:55; stage A was cached, stage B not yet
+started — nothing lost). New ETA for 693 games: ~17-19h wall, i.e.
+evening 2026-07-20. Suite: 56 passed.

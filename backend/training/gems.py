@@ -71,7 +71,8 @@ async def scan_for_gems(
             continue
 
         # 2. Quiet gate
-        quick = await engine.analyze(fen, depth=None, multipv=1, time_limit=0.8)
+        quick = await engine.analyze(fen, depth=None, multipv=1,
+                                     time_limit=cfg.gem_screen_seconds)
         evaluation = quick["evaluation"]
         if not metrics.is_quiet(evaluation, cfg):
             continue
@@ -84,7 +85,8 @@ async def scan_for_gems(
             continue
 
         # 4. Confirmation search
-        confirm = await engine.analyze(fen, depth=None, multipv=2, time_limit=3.0)
+        confirm = await engine.analyze(fen, depth=None, multipv=2,
+                                       time_limit=cfg.gem_confirm_seconds)
         pv_san = confirm["pv_lines"][0].split() if confirm["pv_lines"] else []
         top = policy[0]
         alt_solution_ucis = sorted({
