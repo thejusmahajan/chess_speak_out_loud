@@ -643,3 +643,24 @@ overnight variants existed only as runner-written JSON files.
   preview replayed from line_pgn SAN + rationale. New "Repertoire" tab in
   TrainingTab. api: listRepertoires, buildRepertoire.
 Suite 57 passed; tsc + vite build clean.
+
+## 2026-07-20 (day) — Leader — Epoch II roadmap: Tactical Steering ("Tal engine")
+User reoriented the goal: apply LC0's signals to steer toward soundly-sharp
+tactical positions rooted in the user's own style — NOT a canned attacking
+repertoire. Two tracks that bound each other:
+- Track A (KEEP): objective mistake/blunder analysis from own games + drills
+  so they don't recur — the realism anchor (a losing "tactical" position only
+  beats sub-1100).
+- Track B (NEW): tactical_complexity metric from wdl decisiveness + only-move
+  narrowness + policy-trap (low prior of the sole saving move) + saliency
+  diffusion; steer_candidates picks the sharpest move within an eval bound
+  (steer_max_loss_cp, steer_min_eval_cp — never losing). Repertoire is MINED
+  from the user's played openings and repaired/tinted, not generated.
+
+Wrote TRAINING_ROADMAP.md "Epoch II" (two tracks, metric def, phases TS1–TS5,
+ownership); marked T3 sacrificial mode SUPERSEDED. Handed out worker specs:
+GEMINI_TRAINING_TASKS.md §TS2 (steering pass in pipeline) + §TS4 (steer
+drills + minefield viz); CLAUDE_TRAINING_TASKS.md §TS3 (style-rooted
+repertoire in select_repertoire) + §TS5 (interlock review). TS1 (the metric +
+phase-aware mistake gating in leader-owned metrics.py) reserved for leader —
+unblocks the rest. No code yet; spec only.

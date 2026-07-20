@@ -93,3 +93,69 @@ specifically — these are the historical Gemini failure modes:
 Report findings as a checklist in `WORKLOG_TRAINING.md` (file:line, severity,
 suggested fix). Gemini fixes; you re-verify. When all clear, run the end-to-end gate
 (G4's HTTP transcript) yourself once and sign off: `C3 SIGN-OFF: <date>`.
+
+---
+
+# EPOCH II — Tactical Steering (Opus phases TS3, TS5)
+
+> **Design is authoritative in `TRAINING_ROADMAP.md` → "Epoch II — Tactical
+> Steering".** Read that section and `backend/training/metrics.py` (the
+> normative math — import `tactical_complexity`, `steer_candidates`; never
+> re-derive). If those symbols are absent, STOP: TS3 depends on TS1 (leader).
+> **You own:** `backend/training/select_repertoire.py`, `test_training_select.py`.
+> **Never edit:** `metrics.py`, `pipeline.py`, `drills.py`, `gems.py`, app.py,
+> frontend. Branch `windows-dev`; commit `[training] TS<n>: …`; log gate
+> output in `WORKLOG_TRAINING.md`.
+
+## TS3 — Style-rooted tactical repertoire (`select_repertoire.py`)
+
+Retire the `SACRIFICE_TARGETS` target-selection (the roadmap explains why —
+it is the "random attacking openings" the user rejected). Keep the
+soundness/sharpness gate (`sound_eval_cp`, `sharpness_from_wdl`) and the
+`build_repertoire(profile, color, engine, style=...)` signature. New logic:
+
+1. **Mine the ingrained repertoire.** From `profile["aggregates"]["by_opening"]`
+   take ECOs the user actually reaches with `≥ cfg.repertoire_min_moves`
+   played moves, of the requested `color`. These — not a canned list — are the
+   candidate base openings.
+2. **Classify each base opening:**
+   - `leaky` if it has Track A `findings` (mistakes) in that ECO → mark as a
+     **repair** target (the rec should point at the corrected line).
+   - `dry` if its `steer_summary` complexity (from TS2, if present on the
+     profile) is low → deprioritize or suggest a sharper sound sibling within
+     the same opening family.
+   - else `sound-keep`.
+3. **Tactical tint.** For a base opening's tabiya (via `openings.tabiya_fen`),
+   gather `multipv` for the top few moves and call `steer_candidates` to find
+   the sound-but-sharper continuation within `cfg.steer_max_loss_cp`. That
+   branch is the tint. Engine budget: reuse the existing `MAX_ENGINE_CALLS`
+   cap; time via `cfg.repertoire_eval_seconds`.
+4. **Recommendations** carry: base opening (theirs), `origin:
+   kept|repaired|tinted`, the tint/repair move, `complexity`, `eval_cp`,
+   `eval_loss_cp` (the bound proof), `draw_pct`, rationale assembled from JSON
+   fields (NO LLM). Still drop anything failing sound+sharp.
+
+If `steer_candidates`/`steer_summary` are unavailable (TS1/TS2 not merged),
+build the kept/repaired classification only and note the missing tint in the
+worklog — do NOT fall back to `SACRIFICE_TARGETS`.
+
+**Gate TS3:** `test_training_select.py` covers: (a) a profile whose by_opening
+has a leaky ECO → that ECO appears as `origin:"repaired"`; (b) a mocked
+engine (like the existing test's `analyze` stub, now returning `wdl`) yields a
+`tinted` rec whose `eval_loss_cp ≤ steer_max_loss_cp`; (c) no rec has
+`eval_cp` below the loss bound. Paste pytest output. Then a live build over
+HTTP for `weakness`+`sacrificial`/both colors on the real profile; paste the
+recommendations (must be openings the user actually plays). Commit
+`[training] TS3: style-rooted tactical repertoire`.
+
+## TS5 — Interlock review (report + guardrail audit)
+
+After Gemini's TS2/TS4 land, produce the reconciliation the roadmap names:
+per opening, Track A error rate beside Track B steer-opportunity density, so
+repair-vs-tint is legible. As the review sweep (like C3): read Gemini's TS2/
+TS4 diffs and verify the two guardrails held on a REAL profile —
+(1) no `steer_finding`/steer drill with `eval_cp < steer_min_eval_cp` (no
+losing steers), (2) no sound opening sideline flagged as a Track A mistake
+(spot-check `is_opening_mistake` behaviour on the user's pet lines). Report
+findings in `WORKLOG_TRAINING.md`; Gemini applies non-trivial fixes, you may
+apply one-liners. Leader signs off.

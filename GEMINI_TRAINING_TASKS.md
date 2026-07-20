@@ -234,3 +234,96 @@ Then hand over to Claude for C3.
 **When all gates pass**, write a final `WORKLOG_TRAINING.md` entry summarizing files
 touched and known gaps, and hand over to Claude for the C3 review sweep
 (`CLAUDE_TRAINING_TASKS.md`). Do not merge or push without the review.
+
+---
+
+# EPOCH II — Tactical Steering (Gemini phases TS2, TS4)
+
+> **Design is authoritative in `TRAINING_ROADMAP.md` → "Epoch II — Tactical
+> Steering".** Read it first. The metric math (`tactical_complexity`,
+> `steer_candidates`, `is_opening_mistake`) is **leader-owned in
+> `backend/training/metrics.py`** — import and call it, NEVER re-derive or
+> inline the formula. If `metrics.tactical_complexity` is not yet present,
+> STOP and write a blocker in `WORKLOG_TRAINING.md`: TS2/TS4 depend on TS1
+> (leader). Ownership and hard rules from the top of this file still apply:
+> you own `pipeline.py`, `drills.py`, the marked `app.py` section, frontend;
+> you must NOT edit `metrics.py`, `select_repertoire.py`, `gems.py`,
+> `neural_vision.py`. Saliency ONLY via `neural_vision.saliency_absolute(fen)`.
+> No mock data. Per-phase: acceptance gate output pasted into the worklog,
+> commit `[training] TS<n>: …`.
+
+## PHASE TS2 — Steering pass over own games (`backend/training/pipeline.py`)
+
+Add a **budgeted second pass**, reusing the positions Track A already visited
+(do not re-split the PGN; extend the existing Stage-A/Stage-B loop or add a
+pass right after, using the SAME `games_to_process` and the policy/stage_b
+EPD caches). For each user decision point (the position BEFORE the user's
+move, `fen_before`):
+
+1. From the cached policy distribution, take the top `cfg.steer_top_k` legal
+   candidate moves (leader will expose `steer_top_k`; until then default 4).
+2. For each candidate `m`: push it, and call
+   `engine.analyze(fen_after_m, depth=None, multipv=2,
+   time_limit=metrics.DEFAULT_CONFIG.confirm_played_seconds)`. EPD-cache the
+   result in a NEW cache `store.EpdCache("steer")` keyed by the post-move EPD.
+   Empty/mock engine output → mark job `error: "engine in mock mode"`, stop.
+3. Compute complexity per candidate with
+   `metrics.tactical_complexity(analysis_after_m, policy_after_m, saliency, cfg)`
+   — get `policy_after_m` via `engine.get_policy_distribution(fen_after_m,
+   nodes=1)` (cached), `saliency` via `vision.saliency_absolute(fen_after_m)`
+   (this is the BT3 budget — cap at `cfg.steer_bt3_budget` forwards per run;
+   when exhausted, skip complexity's attention term, do not stop).
+4. Call `metrics.steer_candidates(...)` to rank and to decide whether a
+   bounded Tal move exists at this node.
+
+Emit a `steer_findings` list on the profile (SEPARATE from `findings`), each:
+`{id, game ref, ply, fen_before, best: {uci,san,eval_cp},
+  steer: {uci,san,eval_cp,complexity,components}, eval_loss_cp,
+  had_tal_move: bool}`. Only keep nodes where `had_tal_move` is true OR the
+best move itself is highly complex (record both — the contrast is the point).
+Add `profile["steer_summary"]` = counts + mean complexity, per opening ECO
+(reuse `openings.classify`). Respect the time-scramble filter
+(`is_time_scramble`) exactly as Stage A does. Wrap in the existing try/except.
+
+**Gate TS2:** over HTTP, diagnose a small real PGN (5–10 games), then show
+`data/training/profile.json` contains a non-empty `steer_findings` with at
+least one `had_tal_move: true` whose `eval_loss_cp` is within
+`cfg.steer_max_loss_cp` and `steer.complexity > best`'s. Paste the finding +
+the `steer_summary` block. Confirm no `steer_finding` has
+`steer.eval_cp < cfg.steer_min_eval_cp` (no losing steers leaked).
+
+## PHASE TS4 — Steering drills + minefield visualization
+
+### TS4a `backend/training/drills.py` — `"steer"` drill source
+Add a fourth source alongside own_game/corpus/hidden_gem. Draw from the
+profile's `steer_findings` (had_tal_move). Each steer drill:
+`{source:"steer", fen: fen_before, setup_move_uci: null,
+  solution_uci: steer.uci, line_uci: [steer.uci],
+  alt_solution_ucis: <all steer_candidates within bound, via the finding>,
+  solution_san, tags: ["steer"] + motifs, difficulty: 1700,
+  reveal: {policy, saliency, complexity_components, best_uci (contrast),
+           eval_loss_cp, ...}}`. **Judging rule (coordinate with the existing
+`check_attempt`):** a steer drill is correct if the move is in
+`alt_solution_ucis` (any bounded sharp move), NOT if it equals the objective
+best. Do not break existing own_game/corpus judging — steer drills carry
+their own accepted set. Add a share knob so a generated set can be
+steer-weighted; keep old sets working (no `line_uci`/steer fields → unchanged).
+
+### TS4b Frontend — minefield view
+Reuse `TrainingBoard`'s SVG overlay. Given a position + its per-candidate
+complexity (new endpoint or embedded in the drill reveal), render each
+candidate move as an arrow whose weight/colour encodes complexity, and paint
+the `saliency_absolute` map underneath as the "how LC0 sees the fire" heat.
+Add a small legend: "sharpness = danger to the opponent, not objective eval."
+In steer-drill reveal, show `best` (objective) vs `steer` (what you were
+asked for) side by side with their evals and complexity. No text generation;
+all labels from JSON.
+
+**Gate TS4:** `npm run build` exits 0 (paste output). Over HTTP: generate a
+set with steer drills, GET it (reveals stripped), attempt (a) the objective
+best move on a steer drill → judged per the accepted-set rule, (b) a bounded
+sharp move → `correct: true`. Paste both attempt transcripts and a DOM/
+screenshot of the minefield overlay. Commit `[training] TS4: steer drills + minefield`.
+
+**When TS2 + TS4 gates pass:** worklog summary + known gaps, hand to Opus for
+TS3/TS5 review. Do not push without the review.
