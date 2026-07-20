@@ -93,10 +93,19 @@ def lines_by_tag() -> Dict[str, Dict]:
         tag = to_opening_tag(info["name"])
         current = result.get(tag)
         if current is None or len(seq) < len(current["uci_moves"]):
+            # Recompute the fen from THIS line's moves — _tabiya_fens keys on
+            # (eco, name), which duplicate names overwrite, so its fen may
+            # belong to a different (deeper) line than the shortest one.
+            board = chess.Board()
+            try:
+                for uci in seq:
+                    board.push_uci(uci)
+            except ValueError:
+                continue
             result[tag] = {
                 "eco": info["eco"],
                 "name": info["name"],
                 "uci_moves": list(seq),
-                "fen": _tabiya_fens.get((info["eco"], info["name"])),
+                "fen": board.fen(),
             }
     return result

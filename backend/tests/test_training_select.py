@@ -44,7 +44,7 @@ def stub_data(monkeypatch, tags):
              for t, spec in tags.items()}
     monkeypatch.setattr(sr.openings, "lines_by_tag", lambda: lines)
     monkeypatch.setattr(sr.puzzle_db, "opening_tags_ranked",
-                        lambda motif: [(t, 0.2, 500) for t in tags])
+                        lambda motif, **kw: [(t, 0.2, 500) for t in tags])
     monkeypatch.setattr(sr.puzzle_db, "motif_profile",
                         lambda tag: {"sacrifice": 0.30, "pin": 0.20,
                                      "fork": 0.10, "skewer": 0.05})
@@ -125,6 +125,64 @@ def test_engine_budget_cap(monkeypatch):
     rep = run(sr.build_repertoire(PROFILE, "white", engine, top_n=20))
     assert rep["recommendations"] == []
     assert len(engine.calls) == 15
+
+
+def test_sacrificial_style_targets_fixed(monkeypatch):
+    """Sacrificial style ignores the weakness profile's motifs entirely."""
+    tags = {"White_Line": {"uci_moves": ["e2e4"], "fen": START_FEN}}
+    stub_data(monkeypatch, tags)
+    monkeypatch.setattr(sr.puzzle_db, "motif_profile",
+                        lambda tag: {"sacrifice": 0.2, "attraction": 0.1})
+    engine = FakeEngine({START_FEN: 0})
+
+    rep = run(sr.build_repertoire(PROFILE, "white", engine, style="sacrificial"))
+    assert rep["style"] == "sacrificial"
+    assert rep["targets"][0] == {"motif": "sacrifice", "weight": 3}
+    assert all(t["motif"] != "pin" for t in rep["targets"])
+    rec = rep["recommendations"][0]
+    assert rec["primary_motif"] == "sacrifice"
+
+
+def test_sacrificial_familiarity_boost(monkeypatch):
+    """Equal motif scores: the ECO the user already plays ranks first."""
+    fen_a = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+    fen_b = "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1"
+    tags = {
+        "Familiar": {"uci_moves": ["e2e4"], "fen": fen_a},
+        "Stranger": {"uci_moves": ["d2d4"], "fen": fen_b},
+    }
+    lines = {t: {"eco": ("C33" if t == "Familiar" else "Z99"),
+                 "name": t, "uci_moves": s["uci_moves"], "fen": s["fen"]}
+             for t, s in tags.items()}
+    monkeypatch.setattr(sr.openings, "lines_by_tag", lambda: lines)
+    monkeypatch.setattr(sr.puzzle_db, "opening_tags_ranked",
+                        lambda motif, **kw: [(t, 0.2, 500) for t in tags])
+    monkeypatch.setattr(sr.puzzle_db, "motif_profile",
+                        lambda tag: {"sacrifice": 0.2})
+    profile = dict(PROFILE)
+    profile["aggregates"] = dict(PROFILE["aggregates"],
+                                 by_opening={"C33": {"moves": 50}})
+    engine = FakeEngine({fen_a: 0, fen_b: 0})
+
+    rep = run(sr.build_repertoire(profile, "white", engine, style="sacrificial"))
+    recs = [r["tag"] for r in rep["recommendations"]]
+    assert recs == ["Familiar", "Stranger"]
+    scores = {r["tag"]: r["score"] for r in rep["recommendations"]}
+    assert scores["Familiar"] == 2 * scores["Stranger"]  # 2x familiarity cap
+
+
+def test_weakness_style_unchanged_by_familiarity(monkeypatch):
+    tags = {"White_Line": {"uci_moves": ["e2e4"], "fen": START_FEN}}
+    stub_data(monkeypatch, tags)
+    profile = dict(PROFILE)
+    profile["aggregates"] = dict(PROFILE["aggregates"],
+                                 by_opening={"B00": {"moves": 50}})
+    engine = FakeEngine({START_FEN: 0})
+
+    rep = run(sr.build_repertoire(profile, "white", engine))
+    assert rep["style"] == "weakness"
+    # base score only: 8*0.30 + 7*0.20 + 6*0.10 = 4.4, no familiarity boost
+    assert rep["recommendations"][0]["score"] == 4.4
 
 
 def test_recommendation_output(monkeypatch):

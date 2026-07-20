@@ -67,17 +67,19 @@ def sample_puzzles(themes: Optional[List[str]], opening_tags: Optional[List[str]
         
     return [dict(row) for row in rows]
 
-def opening_tags_ranked(theme: str) -> List[Tuple[str, float, int]]:
-    """Returns [(tag, freq, n)] where n >= 200, sorted by freq desc."""
+def opening_tags_ranked(theme: str, min_n: int = 200) -> List[Tuple[str, float, int]]:
+    """Returns [(tag, freq, n)] where n >= min_n, sorted by freq desc.
+    min_n=200 suits common themes; rare themes (sacrifice family) need a
+    lower floor on the 300k-row sample or the candidate pool starves."""
     if not os.path.exists(DB_PATH):
         return []
-        
+
     with _get_connection() as conn:
         cur = conn.cursor()
         cur.execute("SELECT opening_tag, SUM(n) FROM opening_motifs GROUP BY opening_tag")
         totals = dict(cur.fetchall())
-        
-        cur.execute("SELECT opening_tag, n FROM opening_motifs WHERE theme = ? AND n >= 200", (theme,))
+
+        cur.execute("SELECT opening_tag, n FROM opening_motifs WHERE theme = ? AND n >= ?", (theme, min_n))
         rows = cur.fetchall()
         
     result = []

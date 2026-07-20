@@ -29,6 +29,27 @@ from backend.training.metrics import DEFAULT_CONFIG, TrainingConfig
 
 MAX_ENGINE_CALLS = 15
 
+# T3 "sacrificial" style: fixed target motifs (puzzle-DB theme names) with
+# deterministic weights, instead of deriving targets from weaknesses.
+SACRIFICE_TARGETS = [
+    ("sacrifice", 3),
+    ("attraction", 2),
+    ("deflection", 2),
+    ("clearance", 2),
+    ("discoveredAttack", 2),
+    ("kingsideAttack", 1),
+]
+
+# Familiarity: openings the user already reaches (profile by_opening move
+# counts) score up to 2x — the repertoire bends toward lines one branch away
+# from their existing play, not a cold restart.
+FAMILIARITY_CAP_MOVES = 50
+
+# Sacrifice-family themes are rare in the puzzle sample; the default
+# min_n=200 tag floor starves the candidate pool (observed: 5 white-owned
+# candidates total). Lower floor for sacrificial style only.
+SACRIFICIAL_MIN_N = 30
+
 RATIONALE_TEMPLATE = (
     "Play the {name} ({line_pgn}). Structures from this opening produce "
     "{motif} in {pct:.1f}% of tagged master-game puzzles; LC0 holds the "
@@ -54,33 +75,47 @@ def _line_color(uci_moves: list[str]) -> str:
     return "white" if len(uci_moves) % 2 == 1 else "black"
 
 
+def _familiarity(profile: dict, eco: str) -> float:
+    moves = ((profile or {}).get("aggregates", {})
+             .get("by_opening", {}).get(eco, {}).get("moves", 0))
+    return 1.0 + min(moves, FAMILIARITY_CAP_MOVES) / FAMILIARITY_CAP_MOVES
+
+
 async def build_repertoire(
     profile: dict,
     color: str,
     engine,
     top_n: int = 5,
     cfg: TrainingConfig = DEFAULT_CONFIG,
+    style: str = "weakness",
 ) -> dict:
     if color not in ("white", "black"):
         raise ValueError(f"color must be 'white' or 'black', got {color!r}")
+    if style not in ("weakness", "sacrificial"):
+        raise ValueError(f"style must be 'weakness' or 'sacrificial', got {style!r}")
 
-    targets = _target_motifs(profile)
+    targets = (list(SACRIFICE_TARGETS) if style == "sacrificial"
+               else _target_motifs(profile))
     lines = openings.lines_by_tag()
 
     # Candidate tags: union over targets of tags where the motif is frequent,
     # kept only when mappable to an ECO line of the right color.
     candidate_tags: set[str] = set()
+    min_n = SACRIFICIAL_MIN_N if style == "sacrificial" else 200
     for motif, _weight in targets:
-        for tag, _freq, _n in puzzle_db.opening_tags_ranked(motif):
+        for tag, _freq, _n in puzzle_db.opening_tags_ranked(motif, min_n=min_n):
             line = lines.get(tag)
             if line and line["fen"] and _line_color(line["uci_moves"]) == color:
                 candidate_tags.add(tag)
 
-    # Score = sum over targets of weight_t * motif_profile(tag)[t]
+    # Score = sum over targets of weight_t * motif_profile(tag)[t],
+    # boosted by familiarity with the line's ECO in sacrificial style.
     scored: list[tuple[float, str, dict]] = []
     for tag in candidate_tags:
         freqs = puzzle_db.motif_profile(tag)
         score = sum(w * freqs.get(m, 0.0) for m, w in targets)
+        if style == "sacrificial":
+            score *= _familiarity(profile, lines[tag]["eco"])
         if score > 0:
             scored.append((score, tag, freqs))
     scored.sort(key=lambda x: (-x[0], x[1]))
@@ -90,7 +125,8 @@ async def build_repertoire(
     for score, tag, freqs in scored[:MAX_ENGINE_CALLS]:
         line = lines[tag]
         analysis = await engine.analyze(
-            line["fen"], depth=None, multipv=1, time_limit=2.0)
+            line["fen"], depth=None, multipv=1,
+            time_limit=cfg.repertoire_eval_seconds)
 
         cp = metrics.eval_cp_number(analysis["evaluation"])
         if cp is None:
@@ -136,6 +172,7 @@ async def build_repertoire(
     return {
         "version": 1,
         "color": color,
+        "style": style,
         "created": datetime.datetime.utcnow().isoformat(),
         "targets": [{"motif": m, "weight": w} for m, w in targets],
         "recommendations": recommendations,

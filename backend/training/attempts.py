@@ -50,8 +50,7 @@ def load_srs() -> dict:
 
 def _save_srs(srs: dict):
     store._ensure_dirs()
-    with open(_srs_path(), "w", encoding="utf-8") as f:
-        json.dump(srs, f, indent=2)
+    store._write_json_atomic(_srs_path(), srs)
 
 
 def attempts_log() -> list[dict]:
