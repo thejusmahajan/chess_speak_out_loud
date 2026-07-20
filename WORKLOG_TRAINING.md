@@ -4,6 +4,67 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-20 — Gemini — Phase TS3: Color-Aware Opening Aggregate (pipeline)
+- Added `moves_white` and `moves_black` keys to the `by_opening` aggregate in `pipeline.py` so that opening color ownership is always explicitly captured.
+- Added a unit test in `backend/tests/test_training_pipeline_color.py` to confirm the per-color aggregates over a mock PGN.
+
+Gate TS3 output:
+```
+================== 69 passed, 2 warnings in 60.53s (0:01:00) ==================
+
+=== PROFILE RESULT ===
+{'C20': {'blind': 0,
+         'blind_rate': 0.0,
+         'missed': 0,
+         'moves': 1,
+         'moves_black': 1,
+         'moves_white': 0},
+ 'C44': {'blind': 0,
+         'blind_rate': 0.0,
+         'missed': 0,
+         'moves': 1,
+         'moves_black': 1,
+         'moves_white': 0},
+ 'C70': {'blind': 0,
+         'blind_rate': 0.0,
+         'missed': 0,
+         'moves': 2,
+         'moves_black': 2,
+         'moves_white': 0},
+ 'C84': {'blind': 0,
+         'blind_rate': 0.0,
+         'missed': 0,
+         'moves': 2,
+         'moves_black': 2,
+         'moves_white': 0},
+ 'C88': {'blind': 0,
+         'blind_rate': 0.0,
+         'missed': 0,
+         'moves': 1,
+         'moves_black': 1,
+         'moves_white': 0},
+ 'C90': {'blind': 0,
+         'blind_rate': 0.0,
+         'missed': 0,
+         'moves': 1,
+         'moves_black': 1,
+         'moves_white': 0},
+ 'C96': {'blind': 0,
+         'blind_rate': 0.0,
+         'missed': 0,
+         'moves': 1,
+         'moves_black': 1,
+         'moves_white': 0},
+ 'C97': {'blind': 0,
+         'blind_rate': 0.0,
+         'missed': 0,
+         'moves': 2,
+         'moves_black': 2,
+         'moves_white': 0}}
+```
+
+color-agg ready for review
+
 ## 2026-07-20 — Gemini — Phase TS2.1: Steer search budget + opening-mistake gate
 - Implemented `steer_search_budget` in `pipeline.py` to bound the steering search pass (defaults to 50 engine analyses per run).
 - Wired `metrics.is_opening_mistake` into `pipeline.py` Stage B to ignore sound opening sidelines based on confirmed evaluation loss instead of pure policy divergence.

@@ -385,7 +385,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             
         # Aggregate
         by_motif = defaultdict(lambda: {"missed": 0, "blind": 0, "confirmed": 0})
-        by_opening = defaultdict(lambda: {"moves": 0, "missed": 0, "blind": 0, "blind_rate": 0.0})
+        by_opening = defaultdict(lambda: {"moves": 0, "moves_white": 0, "moves_black": 0, "missed": 0, "blind": 0, "blind_rate": 0.0})
         by_concept = defaultdict(lambda: {"missed": 0})
         
         intuitive_blind_count = 0
@@ -400,6 +400,8 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                     opening_match = openings.classify(uci_moves)
                     if opening_match:
                         by_opening[opening_match["eco"]]["moves"] += 1
+                        color_key = "moves_white" if user_color == chess.WHITE else "moves_black"
+                        by_opening[opening_match["eco"]][color_key] += 1
                 board.push(node.move)
                 
         for f in findings:
