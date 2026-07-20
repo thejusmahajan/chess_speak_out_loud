@@ -82,6 +82,27 @@ class TrainingConfig:
     # games without clocks are analyzed in full.
     min_clock_seconds: float = 20.0
 
+    # --- Tactical steering / "Tal engine" (Epoch II, TS1) ---
+    # User dials (2026-07-20): a steer move may cost ~0.5+ pawn vs best, and a
+    # slight objective minus is acceptable, but never an objectively lost move.
+    steer_max_loss_cp: int = 60       # max cp below best (mover POV) a steer may cost
+    steer_min_eval_cp: int = -60      # absolute floor (mover POV): "minus ok, not lost"
+    steer_top_k: int = 4              # candidate moves scored per node (caller uses)
+    steer_bt3_budget: int = 200       # max saliency forwards per steering pass (caller enforces)
+    # complexity component weights (need not sum to 1 — score is normalized by
+    # the weights actually used, so dropping the attention term still works):
+    steer_w_decisiveness: float = 0.40   # WDL: low draw share = decisive
+    steer_w_narrowness: float = 0.30     # only-move: gap best vs 2nd-best reply
+    steer_w_policy_trap: float = 0.20    # sole saving reply has a low policy prior
+    steer_w_attention: float = 0.10      # saliency diffusion (fires-everywhere = hard)
+    steer_narrow_full_cp: int = 200   # reply eval-gap that saturates narrowness at 1.0
+    steer_complexity_edge: float = 0.10  # a "Tal move" must beat best's complexity by this
+
+    # --- Phase-aware mistake gating (Track A correctness, TS1) ---
+    # In the opening a policy-divergent but objectively sound sideline is a
+    # style choice, not a mistake — only confirmed eval loss counts there.
+    opening_max_ply: int = 16
+
 
 DEFAULT_CONFIG = TrainingConfig()
 
@@ -341,3 +362,150 @@ def alt_solutions(policy: list[dict], cfg: TrainingConfig = DEFAULT_CONFIG) -> l
     p_best = float(policy[0].get("p", 0.0))
     return [e["uci"] for e in policy
             if p_best - float(e.get("p", 0.0)) <= cfg.alt_solution_margin]
+
+
+# ----------------------------------------------------------------------
+# Tactical steering — the "Tal engine" (Epoch II, TS1). LEADER-OWNED.
+#
+# Pure math over oracle outputs. The engine calls that gather per-candidate
+# multipv / policy / saliency happen in the callers (pipeline, select_
+# repertoire); these functions never touch the engine. See TRAINING_ROADMAP.md
+# "Epoch II — Tactical Steering" for the design.
+# ----------------------------------------------------------------------
+
+def _move_uci(entry: dict) -> Optional[str]:
+    """best_moves entries carry the uci under 'move' (plan §2); tolerate 'uci'."""
+    return entry.get("move") or entry.get("uci")
+
+
+def tactical_complexity(
+    analysis: dict,
+    policy: list[dict],
+    saliency: Optional[dict[str, float]] = None,
+    cfg: TrainingConfig = DEFAULT_CONFIG,
+) -> dict:
+    """How much tactical danger a position holds *for the side to move* — the
+    Tal sense. Call it on the position AFTER a candidate move (opponent to
+    move): a high score means the opponent is likely to go wrong.
+
+    Inputs (all from the analyzed position):
+      analysis — engine.analyze(...): needs "wdl":[w,d,l] and
+                 "best_moves":[{"move","score",...}, ...] (score = side-to-move
+                 POV cp, best first).
+      policy   — get_policy_distribution(...): [{"uci","p"}, ...].
+      saliency — saliency_absolute(...), or None to skip the attention term
+                 (e.g. BT3 budget exhausted) — weights renormalize.
+
+    Returns {"score":0..1, "decisiveness","narrowness","policy_trap",
+             "attention"}. Components are each 0..1; score is their
+    weight-normalized combination.
+    """
+    # Decisiveness: win+loss share of the WDL (low draw = sharp).
+    sharp = sharpness_from_wdl(analysis.get("wdl"), cfg)
+    decisiveness = (1.0 - sharp["draw_pct"] / 100.0) if sharp else 0.0
+
+    # Only-move narrowness: eval gap between the best and 2nd-best reply.
+    best_moves = analysis.get("best_moves") or []
+    gap_cp = 0.0
+    best_reply_uci = _move_uci(best_moves[0]) if best_moves else None
+    if len(best_moves) >= 2:
+        s0 = eval_cp_number(best_moves[0].get("score"))
+        s1 = eval_cp_number(best_moves[1].get("score"))
+        if s0 is not None and s1 is not None:
+            gap_cp = max(0.0, s0 - s1)
+    narrowness = min(gap_cp / cfg.steer_narrow_full_cp, 1.0) if cfg.steer_narrow_full_cp else 0.0
+
+    # Policy trap: the sole saving reply carries a LOW prior — a human is
+    # unlikely to find it. Only a trap where the reply is also narrow (else
+    # many moves hold and low prior is meaningless), so scale by narrowness.
+    if best_reply_uci is not None:
+        p_saving = policy_prior(policy, best_reply_uci)
+        policy_trap = (1.0 - p_saving) * narrowness
+    else:
+        policy_trap = 0.0
+
+    # Attention diffusion: fires-everywhere boards are hard to read.
+    use_attention = saliency is not None and len(saliency) > 0
+    attention = (1.0 - saliency_concentration(saliency)["top4_mass"]) if use_attention else 0.0
+
+    terms = [
+        (cfg.steer_w_decisiveness, decisiveness),
+        (cfg.steer_w_narrowness, narrowness),
+        (cfg.steer_w_policy_trap, policy_trap),
+    ]
+    if use_attention:
+        terms.append((cfg.steer_w_attention, attention))
+    wsum = sum(w for w, _ in terms) or 1.0
+    score = sum(w * v for w, v in terms) / wsum
+
+    return {
+        "score": score,
+        "decisiveness": decisiveness,
+        "narrowness": narrowness,
+        "policy_trap": policy_trap,
+        "attention": attention,
+    }
+
+
+def steer_candidates(
+    candidates: list[dict],
+    best_eval_cp: int,
+    cfg: TrainingConfig = DEFAULT_CONFIG,
+) -> dict:
+    """Pick the sharpest *sound* move at a node the user is to move from.
+
+    candidates — one dict per legal candidate move already evaluated by the
+      caller: {"uci","san","eval_cp"(mover POV, of the position after the
+      move),"complexity"(0..1 from tactical_complexity)}.
+    best_eval_cp — mover-POV eval of the objective-best move at this node.
+
+    A candidate is *playable* when it costs at most steer_max_loss_cp vs best
+    AND its own eval stays >= steer_min_eval_cp (never objectively lost).
+    Returns:
+      {"playable": [playable candidates, complexity desc],
+       "objective_best": <playable candidate with the highest eval_cp>,
+       "tal_move": <highest-complexity playable candidate>,
+       "had_tal_move": bool}
+    had_tal_move is True only when the sharpest playable move is a *different*
+    move than the objective best and beats its complexity by
+    steer_complexity_edge — i.e. steering actually buys danger over just
+    playing the best move.
+    """
+    playable = [
+        c for c in candidates
+        if best_eval_cp - c["eval_cp"] <= cfg.steer_max_loss_cp
+        and c["eval_cp"] >= cfg.steer_min_eval_cp
+    ]
+    if not playable:
+        return {"playable": [], "objective_best": None,
+                "tal_move": None, "had_tal_move": False}
+
+    playable.sort(key=lambda c: c["complexity"], reverse=True)
+    objective_best = max(playable, key=lambda c: c["eval_cp"])
+    tal_move = playable[0]
+    had_tal_move = (
+        tal_move["uci"] != objective_best["uci"]
+        and tal_move["complexity"] - objective_best["complexity"]
+        >= cfg.steer_complexity_edge
+    )
+    return {"playable": playable, "objective_best": objective_best,
+            "tal_move": tal_move, "had_tal_move": had_tal_move}
+
+
+def is_opening_mistake(
+    ply: int,
+    divergence_severity: Optional[str],
+    swing_cp: Optional[int],
+    cfg: TrainingConfig = DEFAULT_CONFIG,
+) -> bool:
+    """Phase-aware Track A gate. In the opening (ply <= opening_max_ply) a
+    move counts as a mistake ONLY if objectively unsound (confirmed swing >=
+    confirm_swing_cp) — a policy-divergent but sound pet sideline is style,
+    not error. Past the opening, policy severity ("blind"/"missed") stands.
+
+    Keeps the diagnosis from telling the user to abandon the very repertoire
+    Epoch II means to repair and polish.
+    """
+    if ply <= cfg.opening_max_ply:
+        return swing_cp is not None and swing_cp >= cfg.confirm_swing_cp
+    return divergence_severity in ("blind", "missed")

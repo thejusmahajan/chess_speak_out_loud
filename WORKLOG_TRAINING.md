@@ -664,3 +664,21 @@ drills + minefield viz); CLAUDE_TRAINING_TASKS.md §TS3 (style-rooted
 repertoire in select_repertoire) + §TS5 (interlock review). TS1 (the metric +
 phase-aware mistake gating in leader-owned metrics.py) reserved for leader —
 unblocks the rest. No code yet; spec only.
+
+## 2026-07-20 (day) — Leader — TS1 landed: tactical-complexity metric (the Tal engine core)
+metrics.py (leader-owned), pure math over oracle outputs, no engine:
+- tactical_complexity(analysis, policy, saliency?) -> {score, decisiveness,
+  narrowness, policy_trap, attention}. Decisiveness = 1-draw share (wdl);
+  narrowness = reply eval-gap / steer_narrow_full_cp; policy_trap =
+  (1 - prior of sole saving reply) * narrowness (a trap needs both); attention
+  = saliency diffusion (1 - top4_mass), dropped+renormalized when saliency None.
+- steer_candidates(candidates, best_eval_cp): playable = within
+  steer_max_loss_cp of best AND >= steer_min_eval_cp floor; had_tal_move when
+  sharpest playable != objective best and beats its complexity by
+  steer_complexity_edge.
+- is_opening_mistake(ply, severity, swing_cp): opening (<=16 ply) counts only
+  confirmed eval loss, not policy divergence — protects sound pet lines.
+- Config dials (user 2026-07-20): steer_max_loss_cp=60 (~0.5+),
+  steer_min_eval_cp=-60 (minus ok, not lost), weights .40/.30/.20/.10.
+Tests: test_training_steer.py 10 passed; full suite 67 passed.
+TS1 unblocks Gemini TS2 and Opus TS3 (can now run in parallel).
