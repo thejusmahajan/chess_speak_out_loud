@@ -327,3 +327,264 @@ async def build_repertoire(
         "created": datetime.datetime.utcnow().isoformat(),
         "recommendations": recommendations,
     }
+
+
+def _replies_from(transitions, epd, min_games):
+    """Opponent replies actually seen from a position, frequency-weighted.
+    Prunes moves seen in fewer than min_games games."""
+    trans = transitions.get(epd, {})
+    kept = [(u, d) for u, d in trans.items() if d["count"] >= min_games]
+    total = sum(d["count"] for _, d in kept)
+    replies = [{"uci": u, "san": d["san"], "count": d["count"],
+                "pct": round(d["count"] / total, 4) if total else 0.0}
+               for u, d in kept]
+    return sorted(replies, key=lambda r: r["count"], reverse=True)
+
+
+async def build_repertoire_tree(
+    eco: str,
+    color: str,
+    pgn_path_or_text: str,
+    player_name: str,
+    engine,
+    profile: Optional[dict] = None,
+    cfg: TrainingConfig = DEFAULT_CONFIG,
+    min_games: int = 2,
+    max_depth: int = 8,
+) -> dict:
+    """Build an engine-vetted, critical-marked variation tree of the user's OWN
+    games in one opening (Epoch III, R1).
+
+    Rooted at the initial position and grown down the paths the user actually
+    played (games that reach this ECO's tabiya), NOT at the deep tabiya itself.
+    A repertoire's decisions live in the plies leading into the opening, and a
+    deep-tabiya root collapses to a single node. Explicit nodes are the user's
+    decision points; opponent moves are frequency-weighted edges. user_move at
+    each user node is the most-played *sound* move (steer-vetted). A node is
+    critical when the user is genuinely blind there (from profile findings),
+    or a wrong reply swings >= 150cp, or the position is tactically sharp.
+    """
+    import os
+    import io
+    from collections import defaultdict
+    import chess.pgn
+    from backend.training import store
+
+    if os.path.exists(pgn_path_or_text):
+        pgn_io = open(pgn_path_or_text, "r", encoding="utf-8")
+    else:
+        pgn_io = io.StringIO(pgn_path_or_text)
+
+    try:
+        user_color_enum = chess.WHITE if color == "white" else chess.BLACK
+        line_info = _find_eco_line(eco)
+        if not line_info:
+            raise ValueError(f"Unknown ECO: {eco}")
+        tabiya_epd = chess.Board(line_info["fen"]).epd()
+        tabiya_ply = len(line_info["uci_moves"])
+        # cover the whole opening trunk plus a few plies past the tabiya
+        max_ply = tabiya_ply + max_depth
+
+        # --- select the user's games that reach this opening --------------
+        valid_games = []
+        while True:
+            game = chess.pgn.read_game(pgn_io)
+            if game is None:
+                break
+            white = game.headers.get("White", "")
+            black = game.headers.get("Black", "")
+            if player_name.lower() in white.lower():
+                gcol = chess.WHITE
+            elif player_name.lower() in black.lower():
+                gcol = chess.BLACK
+            else:
+                continue
+            if gcol != user_color_enum:
+                continue
+            # Membership by longest-prefix ECO classification — the same way
+            # the profile groups games. Matching the exact deep tabiya EPD is
+            # far too strict (transpositions / move-order variants never hit it,
+            # so deep ECOs like C99 select zero games).
+            ucis = [n.move.uci() for n in game.mainline()]
+            if not ucis:
+                continue
+            match = openings.classify(ucis)
+            if match and match.get("eco") == eco:
+                valid_games.append(game)
+        n_valid = len(valid_games)
+
+        # --- move-frequency transitions, recorded from ply 0 --------------
+        transitions = defaultdict(dict)   # epd -> {uci: {"san","count"}}
+        for game in valid_games:
+            board = game.board()
+            for node in game.mainline():
+                epd = board.epd()
+                move = node.move
+                uci = move.uci()
+                t = transitions[epd]
+                if uci not in t:
+                    t[uci] = {"san": board.san(move), "count": 0}
+                t[uci]["count"] += 1
+                board.push(move)
+
+        # --- real blindness per position, from the profile findings -------
+        # user_blind_rate = (blind/missed findings at this position) / (games
+        # the user reached it) -- the actual intuitive-blindness signal, not
+        # the move-inconsistency proxy.
+        blind_by_epd = defaultdict(int)
+        if profile:
+            for f in profile.get("findings", []):
+                fb = f.get("fen_before")
+                if not fb:
+                    continue
+                try:
+                    fepd = chess.Board(fb).epd()
+                except ValueError:
+                    continue
+                if f.get("severity") in ("blind", "missed"):
+                    blind_by_epd[fepd] += 1
+
+        # --- BFS the tree from the initial position -----------------------
+        nodes = []
+        node_by_id = {}
+        visited = set()
+        root_board = chess.Board()
+        queue = [(root_board.epd(), root_board.fen(), 0, None)]
+        counter = 1
+
+        while queue:
+            epd, fen, ply, parent_id = queue.pop(0)
+            if epd in visited:
+                continue
+            visited.add(epd)
+            if ply > max_ply:
+                continue
+
+            board = chess.Board(fen)
+            is_user_node = (board.turn == user_color_enum)
+            node_id = f"{eco}-{color[0]}-{counter:04d}"
+            counter += 1
+
+            node = {
+                "id": node_id,
+                "fen_before": fen,
+                "ply": ply,
+                "is_user_node": is_user_node,
+                "n_games": sum(t["count"] for t in transitions.get(epd, {}).values()),
+                "parent": parent_id,
+                "children": [],
+            }
+            if parent_id is not None and parent_id in node_by_id:
+                node_by_id[parent_id]["children"].append(node_id)
+            nodes.append(node)
+            node_by_id[node_id] = node
+
+            if is_user_node:
+                played = list(transitions.get(epd, {}).keys())
+                if not played:
+                    node["opponent_replies"] = []
+                    continue
+
+                # candidates = the user's played moves + the policy-best move
+                policy = await engine.get_policy_distribution(fen, nodes=1)
+                cand_ucis = set(played)
+                if policy:
+                    cand_ucis.add(policy[0]["uci"])
+
+                candidates = []
+                for cuci in cand_ucis:
+                    try:
+                        mv = board.parse_uci(cuci)
+                    except ValueError:
+                        continue
+                    after = board.copy(stack=False)
+                    after.push(mv)
+                    analysis = await engine.analyze(
+                        after.fen(), depth=None, multipv=2,
+                        time_limit=cfg.repertoire_eval_seconds)
+                    cand_pol = await engine.get_policy_distribution(after.fen(), nodes=1)
+                    cp = metrics.eval_cp_number(analysis.get("evaluation"))
+                    if cp is None:
+                        continue
+                    eval_mover = cp if color == "white" else -cp
+                    comp = metrics.tactical_complexity(analysis, cand_pol or [], None, cfg)
+                    candidates.append({
+                        "uci": cuci, "san": board.san(mv),
+                        "eval_cp": eval_mover, "complexity": comp["score"],
+                    })
+
+                if not candidates:
+                    node["opponent_replies"] = []
+                    continue
+
+                best_eval = max(c["eval_cp"] for c in candidates)
+                steer = metrics.steer_candidates(candidates, best_eval, cfg)
+                playable = {c["uci"] for c in steer["playable"]}
+
+                # user_move = most-played SOUND move; fall back to objective best
+                chosen, best_ct = None, -1
+                for c in candidates:
+                    if c["uci"] in playable:
+                        ct = transitions[epd].get(c["uci"], {}).get("count", 0)
+                        if ct > best_ct:
+                            chosen, best_ct = c, ct
+                if chosen is None:
+                    chosen = steer.get("objective_best")
+                if chosen is None:
+                    node["opponent_replies"] = []
+                    continue
+
+                node["user_move"] = {"uci": chosen["uci"], "san": chosen["san"]}
+                node["eval_cp"] = chosen["eval_cp"]
+                node["complexity"] = round(chosen["complexity"], 4)
+
+                n_here = node["n_games"]
+                blind_rate = min(1.0, blind_by_epd.get(epd, 0) / n_here) if n_here else 0.0
+                node["user_blind_rate"] = round(blind_rate, 4)
+
+                evals = sorted((c["eval_cp"] for c in candidates), reverse=True)
+                eval_swing = evals[0] - evals[1] if len(evals) > 1 else 0
+
+                critical, reason = False, None
+                if blind_rate >= 0.5:
+                    critical, reason = True, "blind_rate"
+                elif eval_swing >= 150:
+                    critical, reason = True, "eval_swing"
+                elif chosen["complexity"] >= cfg.steer_highlight_complexity:
+                    critical, reason = True, "complexity"
+                node["critical"] = critical
+                if critical:
+                    node["critical_reason"] = reason
+
+                # opponent replies FOLLOW the user_move; queue the grandchild
+                # user nodes that result.
+                after_user = board.copy(stack=False)
+                after_user.push_uci(chosen["uci"])
+                node["opponent_replies"] = _replies_from(
+                    transitions, after_user.epd(), min_games)
+                for rep in node["opponent_replies"]:
+                    cb = chess.Board(after_user.fen())
+                    cb.push_uci(rep["uci"])
+                    queue.append((cb.epd(), cb.fen(), ply + 2, node_id))
+            else:
+                node["opponent_replies"] = _replies_from(transitions, epd, min_games)
+                for rep in node["opponent_replies"]:
+                    cb = board.copy(stack=False)
+                    cb.push_uci(rep["uci"])
+                    queue.append((cb.epd(), cb.fen(), ply + 1, node_id))
+
+        tree = {
+            "eco": eco,
+            "color": color,
+            "root_fen": root_board.fen(),
+            "tabiya_ply": tabiya_ply,
+            "depth": max_depth,
+            "n_games": n_valid,
+            "nodes": nodes,
+        }
+        filepath = os.path.join(store.TRAINING_DIR, f"repertoire_tree_{eco}_{color}.json")
+        store._write_json_atomic(filepath, tree)
+        return tree
+    finally:
+        if os.path.exists(pgn_path_or_text):
+            pgn_io.close()

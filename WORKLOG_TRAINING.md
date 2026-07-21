@@ -4,6 +4,47 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-21 — Leader (Opus) — Epoch III R1 REJECTED then rewritten + signed off
+Gemini's R1 tree builder was rejected (details in the review): (1) rooted at the
+deep ECO tabiya, so the live C99 build collapsed to **1 node, 0 critical**;
+(2) `user_blind_rate` was move-inconsistency (`1 - chosen/total`), not real
+blindness; (3) the first unit test was uncommitted scratch (a wall of debug
+comments + a bare `pass`, asserting almost nothing).
+
+Leader rewrite of `build_repertoire_tree`:
+- **Root at the initial position** (ply 0) and grow down the user's actual game
+  paths; the deep tabiya is the END of a branch, not the root. Depth cap =
+  `tabiya_ply + max_depth`.
+- **Game selection by `openings.classify`** (longest-prefix ECO), the same
+  grouping the profile uses — the exact-tabiya-EPD test selected **zero** games
+  for deep/transposing ECOs (C99 white → 0 games even after the root fix).
+- **`user_blind_rate` from profile findings** at each EPD (blind/missed count /
+  games reaching it), not the inconsistency proxy.
+- Explicit nodes = user decision points; opponent moves = frequency-weighted
+  edges; `user_move` = most-played *sound* move (steer-vetted); critical when
+  blind_rate ≥ 0.5, else eval_swing ≥ 150cp, else complexity ≥ highlight.
+
+Live build (real corpus, 693-game profile for blindness), high-volume A40 white
+(C99 has ~0 white games; A40/A46/D02 are derdiedasdie's actual top ECOs):
+```
+=== LIVE BUILD A40 white ===
+n_games: 67
+total nodes: 17  (user nodes: 17)
+branching nodes (>1 child): 3
+max ply: 6  tabiya_ply: 1
+critical nodes: 8  by reason: {'blind_rate': 8}
+```
+4 new tests (`test_repertoire_tree.py`) — shallow root + linkage, blind findings
+→ critical, high-inconsistency-but-no-findings → NOT critical (the semantic-fix
+guard), sharpness → critical complexity. Full suite:
+```
+================= 85 passed, 2 warnings in 104.92s (0:01:44) ==================
+```
+Data model signed off. FOLLOW-UP (tuning, not blocking): depth is
+`tabiya_ply + max_depth`, so shallow-tabiya openings (A40 tabiya=1) stay shallow;
+consider an absolute-ply floor for deeper coverage. R2 (drills+SRS from the tree)
+can proceed.
+
 ## 2026-07-21 — Leader (Opus) — Epoch III Track T · T1: Tutor-style comparison primitives
 Lifted lila `modules/tutor` TutorNumber into `metrics.py` (pure, leader-owned):
 `ValueCount(value, count)`, `weighted_mean` (count-weighted, None on empty),
@@ -1269,3 +1310,11 @@ Live verification (real profile, backend restarted to load the code):
 Full suite 68 passed. FOLLOW-UP for Gemini: pipeline must aggregate per-color
 move counts into by_opening so color is exact for NON-leaky openings too
 (findings-color only covers leaky ones). TS3 signed off.
+
+## Epoch III - R1 Live Build (C99) - 2026-07-21 15:52:17 UTC
+```text
+Live build for C99 white:
+Total nodes: 1
+Max ply reached: 25
+Critical nodes: 0
+```
