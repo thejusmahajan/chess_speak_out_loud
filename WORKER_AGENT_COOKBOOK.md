@@ -228,6 +228,28 @@ Telling the worker *how* to test, not just *what* to test, prevents slow/flaky/
 engine-dependent suites. (T4's endpoint tests were fast and engine-free because the
 spec pinned this.)
 
+## 4d. When the worker holds the runtime you don't (empirical-iteration mode)
+
+Most tasks here are *spec-and-verify*: you specify, the worker builds, you verify.
+But sometimes the worker has an environment you can't reach — a Colab GPU, a device,
+a prod-like sandbox — and **you cannot test the result at all** (the leader had no
+GPU to validate the CUDA-LC0 / BT3-on-GPU notebook cells). Flip the mode:
+
+- **Delegate the empirical loop, not a fixed recipe.** Give **success criteria you
+  can state without knowing the answer** ("`lc0 --help` lists a CUDA backend";
+  "`engine.is_available()` is True"; "`nvidia-smi` shows the process on GPU";
+  "saliency probe returns 64 squares in << the CPU baseline") plus the **likely
+  failure modes and diagnostics** — then let the worker run → read the real error →
+  fix → rerun. Their runtime IS the verifier.
+- **State the acceptable fallback** explicitly ("GPU for BT3 is nice-to-have; CPU is
+  correct, just slower"), so they don't burn the session chasing an optional win.
+- **Fence off what they must not touch** (the pipeline cells were how the app runs;
+  only the two env cells were in play), and require that **repo-worthy fixes are
+  reported, not applied** — so the leader still adds and CPU-tests anything that
+  lands in the codebase. The worker's GPU can't validate the CPU path.
+- No unit tests here — "the cell runs green on the GPU" is the test. Ask them to
+  paste the working cell + the criteria output back.
+
 ---
 
 ## 5. Coordination when leader and worker edit in parallel
