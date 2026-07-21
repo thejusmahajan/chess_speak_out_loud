@@ -596,6 +596,37 @@ async def generate_drills_ep(req: GenerateDrillsRequest):
     drill_set = await drills.generate_drill_set(req.count, profile, repertoire, lc0_engine, neural_vision, req.steer_weight)
     return drill_set
 
+@app.post("/api/training/repertoire/drills")
+async def generate_repertoire_drills(req: RepertoireTreeRequest):
+    """Turn an opening's variation tree into an SRS-tracked drill set: one drill
+    per CRITICAL node (stable EPD-derived ids, coach explanation in the reveal).
+    Saved so it flows through the existing DrillMode + Review/SRS queues."""
+    import os
+    filepath = os.path.join(store.TRAINING_DIR, f"repertoire_tree_{req.eco}_{req.color}.json")
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            tree = json.load(f)
+    else:
+        from backend.training.select_repertoire import build_repertoire_tree
+        profile = store.load_profile()
+        pgn_path = PROJECT_DIR / "games_of_derdiedasdie" / "lichess_derdiedasdie_2026-07-19.pgn"
+        if not pgn_path.exists():
+            raise HTTPException(status_code=404, detail="Repertoire tree PGN file not found")
+        tree = await build_repertoire_tree(
+            req.eco, req.color, str(pgn_path), "derdiedasdie", lc0_engine, profile=profile
+        )
+    # attach coach explanations so drills carry them in their reveal
+    from backend.training import explanations
+    tree = await explanations.enrich_tree_explanations(tree)
+
+    drill_set = drills.build_repertoire_drill_set(tree)
+    if not drill_set["drills"]:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No critical nodes to drill for {req.eco} {req.color} (tree too thin).")
+    store.save_drill_set(drill_set)
+    return drill_set
+
 @app.get("/api/training/drills")
 async def list_drills():
     return store.list_drill_sets()

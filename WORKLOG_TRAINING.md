@@ -4,6 +4,17 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-21 — Leader (Opus) — Epoch III R2: repertoire drills + SRS (+ endpoint)
+`build_repertoire_drills`/`build_repertoire_drill_set` (drills.py) turn a tree's
+CRITICAL nodes into check_attempt line drills with stable EPD-derived ids (SRS
+tracks the same position across rebuilds), source 'repertoire', castling alts,
+and the node's coach reveal (incl. R3 explanation). 7 tests incl. SRS
+scheduling/due-queue. Endpoint `POST /api/training/repertoire/drills` (app.py)
+builds/loads the tree, enriches explanations, builds + saves the set so it flows
+through DrillMode + Review/SRS. Live: A40 white -> 8 drills (5-ply lines,
+explanations attached), verified against the running backend. Committed
+98dc5be (core) + this endpoint.
+
 ## 2026-07-21 — Gemini — Epoch III · Track R · R3: LLM coach explanations for critical repertoire nodes
 
 - Added `generate_move_explanation(context: dict, llm_model: str)` to `backend/llm_client.py`:
