@@ -4,6 +4,151 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-21 — Gemini — Epoch III Track R · R4: Repertoire Trainer UI
+
+- Implemented backend endpoint `POST /api/training/repertoire/tree` in `backend/app.py` serving cached repertoire tree JSONs (`repertoire_tree_<eco>_<color>.json`) or generating missing trees via `select_repertoire.build_repertoire_tree`.
+- Added `getRepertoireTree(eco, color)` fetch function in `frontend/src/api/training.ts`.
+- Integrated "Train Repertoire" mode inside `frontend/src/components/Training/RepertoirePanel.tsx`:
+  - Added a mode toggle ("Recommendations" / "Train Repertoire") preserving existing recommendation views and board previews.
+  - Built interactive `RepertoireTrainer` component reusing `TrainingBoard` with board orientation matching the opening color (`white` / `black`).
+  - Implemented move validation at user decision points, accepting both kingside (`e1g1`/`e1h1`) and queenside castling spellings.
+  - Implemented auto-playing frequency-weighted opponent replies with animation delays.
+  - Implemented robust child node matching by target FEN after user move + reply.
+  - Displayed critical badges (`blind_rate`, `eval_swing`, `complexity`) on critical nodes alongside `eval_cp`, `complexity`, and `user_blind_rate`.
+  - Added a reserved Coach Explanation panel (placeholder displaying mechanical line details, ready for R3 LLM explanations).
+  - Provided opponent reply selection/re-rolling and branch completion ("Walk another line").
+
+Gate check output:
+```
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+vite v8.1.4 building client environment for production...
+transforming...✓ 65 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.45 kB │ gzip:  0.29 kB
+dist/assets/index-DEOkXQvU.css   27.21 kB │ gzip:  7.38 kB
+dist/assets/index-CyAOB_qb.js   302.56 kB │ gzip: 93.93 kB
+
+✓ built in 4.41s
+
+> frontend@0.0.0 lint
+> oxlint
+
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'load'
+     ,-[src/components/Training/RepertoirePanel.tsx:417:32]
+ 416 | 
+ 417 |   useEffect(() => { load(); }, []);
+     :                     ^^|^       ^^
+     :                       `-- useEffect uses `load` here
+ 418 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'paintOverlays'
+    ,-[src/components/PgnViewer.tsx:93:6]
+ 91 |   useEffect(() => {
+ 92 |     paintOverlays(gameStates.current[currentIndexRef.current]);
+    :     ^^^^^^|^^^^^^
+    :           `-- useEffect uses `paintOverlays` here
+ 93 |   }, [glowMode]);
+    :      ^^^^^^^^^^
+ 94 | 
+    `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has missing dependencies: 'lastMove', 'fen', 'interactive', and 'orientation'
+     ,-[src/components/Training/TrainingBoard.tsx:146:6]
+ 100 | 
+ 101 |     const pos = posFromFen(fen);
+     :                            ^^^
+ 102 | 
+ 103 |     const cg = Chessground(boardRef.current, {
+ 104 |       fen: pos ? fen : INITIAL_FEN,
+ 105 |       lastMove,
+     :       ^^^^^^^^
+ 106 |       orientation,
+     :       ^^^^^^^^^^^
+ 107 |       // turnColor must always mirror the FEN: chessground only allows a
+ 108 |       // real drag when turnColor matches movable.color, and otherwise
+ 109 |       // silently captures the drag as a premove (piece moves on screen,
+ 110 |       // no move event fires). Premoves are meaningless in drills.
+ 111 |       turnColor: pos.turn,
+ 112 |       premovable: { enabled: false },
+ 113 |       movable: {
+ 114 |         free: false,
+ 115 |         color: interactive ? pos.turn : undefined,
+     :                ^^^^^^^^^^^
+ 116 |         dests: interactive ? chessgroundDests(pos) : new Map(),
+ 117 |       },
+ 118 |     });
+ 119 | 
+ 120 |     cg.set({
+ 121 |       movable: {
+ 122 |         events: {
+ 123 |           after: (orig, dest) => {
+ 124 |             if (!onMoveRef.current) return;
+ 125 | 
+ 126 |             const oldPos = posFromFen(fenRef.current);
+ 127 |             const piece = oldPos.board.get(parseSquare(orig) ?? -1);
+ 128 |             if (piece?.role === 'pawn' && (dest[1] === '1' || dest[1] === '8')) {
+ 129 |               // Pawn reached the last rank: ask which piece before submitting.
+ 130 |               setPromo({ orig: orig as Key, dest: dest as Key });
+ 131 |               return;
+ 132 |             }
+ 133 | 
+ 134 |             emitMoveRef.current(orig + dest);
+ 135 |           }
+ 136 |         }
+ 137 |       }
+ 138 |     });
+ 139 | 
+ 140 |     cgRef.current = cg;
+ 141 | 
+ 142 |     return () => {
+ 143 |       cg.destroy();
+ 144 |       cgRef.current = null;
+ 145 |     };
+ 146 |   }, []);
+     :      ^^
+ 147 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'syncBoard'
+     ,-[src/components/Training/TrainingBoard.tsx:151:6]
+ 149 |   useEffect(() => {
+ 150 |     syncBoard();
+     :     ^^^^|^^^^
+     :         `-- useEffect uses `syncBoard` here
+ 151 |   }, [fen, lastMove, orientation, interactive]);
+     :      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 152 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+Found 4 warnings and 0 errors.
+Finished in 224ms on 17 files with 103 rules using 4 threads.
+```
+
+Tested `POST /api/training/repertoire/tree` against cached `A40` `white` tree (17 nodes, 8 critical) — interactive tree walk works end-to-end with move validation, auto-played frequency-weighted opponent replies, node matching by FEN, critical badges, metrics, explanation placeholder, and line re-rolling.
+
+R4 trainer UI ready for review
+
+> Leader (Opus) sign-off: APPROVED. Independently verified — build clean, lint
+> 4 pre-existing warnings / 0 errors / no new, tree tests 4 passed, app.py parses
+> and endpoint names resolve. Reviewed the walker: castling normalized on both
+> sides (all 4 spellings), default opponent reply = highest-count (replies sorted
+> desc), termination handled. Chased the one real risk — FEN-based child matching:
+> confirmed chessops `legalEpSquare` uses the SAME legal-en-passant convention as
+> python-chess (both emit "-" after 1.d4 / 1.e4 c5), so the 4-field normFen match
+> holds. Stripped 4 stray trailing blank lines Gemini added to test_repertoire_tree.py.
+> Notes (non-blocking): endpoint hardcodes player_name/PGN path (fine for single-user)
+> and builds synchronously on cache-miss (loading state present; big first builds
+> could approach HTTP timeouts). Needs a backend restart to load the new route.
+
 ## 2026-07-21 — Leader (Opus) — Epoch III R1 REJECTED then rewritten + signed off
 Gemini's R1 tree builder was rejected (details in the review): (1) rooted at the
 deep ECO tabiya, so the live C99 build collapsed to **1 node, 0 critical**;

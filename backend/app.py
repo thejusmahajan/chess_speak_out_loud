@@ -425,6 +425,10 @@ class RepertoireRequest(BaseModel):
     build: bool = False
     style: str = "weakness"
 
+class RepertoireTreeRequest(BaseModel):
+    eco: str
+    color: str
+
 class GenerateDrillsRequest(BaseModel):
     count: int = 20
     steer_weight: float = 0.0
@@ -507,6 +511,25 @@ async def get_repertoire(req: RepertoireRequest):
 async def list_repertoires():
     """All built repertoire variants (weakness/sacrificial x white/black)."""
     return store.list_repertoires()
+
+@app.post("/api/training/repertoire/tree")
+async def get_repertoire_tree(req: RepertoireTreeRequest):
+    import os
+    filepath = os.path.join(store.TRAINING_DIR, f"repertoire_tree_{req.eco}_{req.color}.json")
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    from backend.training.select_repertoire import build_repertoire_tree
+    profile = store.load_profile()
+    pgn_path = PROJECT_DIR / "games_of_derdiedasdie" / "lichess_derdiedasdie_2026-07-19.pgn"
+    player_name = "derdiedasdie"
+    if not pgn_path.exists():
+        raise HTTPException(status_code=404, detail="Repertoire tree PGN file not found")
+    tree = await build_repertoire_tree(
+        req.eco, req.color, str(pgn_path), player_name, lc0_engine, profile=profile
+    )
+    return tree
 
 @app.post("/api/training/drills/generate")
 async def generate_drills_ep(req: GenerateDrillsRequest):

@@ -87,3 +87,13 @@ export async function getTrends() {
   }
   return res.json();
 }
+
+export async function getRepertoireTree(eco: string, color: 'white' | 'black') {
+  const res = await fetch(`${BASE_URL}/repertoire/tree`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ eco, color }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
