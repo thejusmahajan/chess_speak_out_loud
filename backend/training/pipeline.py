@@ -31,6 +31,92 @@ def is_time_scramble(comment: str,
     return secs is not None and secs < cfg.min_clock_seconds
 
 
+def _clock_bucket(secs: Optional[float]) -> str:
+    """Classify clock time into buckets.
+    None -> "no_clock"; secs < 60 -> "fast"; 60 <= secs < 180 -> "normal"; secs >= 180 -> "slow"."""
+    if secs is None:
+        return "no_clock"
+    if secs < 60:
+        return "fast"
+    if secs < 180:
+        return "normal"
+    return "slow"
+
+
+def aggregate_phase_clock(games_to_process, findings,
+                          cfg: metrics.TrainingConfig = metrics.DEFAULT_CONFIG):
+    """Pure. Returns (by_phase, by_clock), each
+    {bucket: {"moves","blind","missed","blind_rate"}}, computed over the user's
+    NON-time-scramble decision nodes (the analyzed population). No engine, no I/O."""
+    def _get_game_idx(f: dict) -> Optional[int]:
+        if "game_idx" in f:
+            return f["game_idx"]
+        if "id" in f and isinstance(f["id"], str) and f["id"].startswith("g"):
+            try:
+                return int(f["id"].split("-")[0][1:])
+            except ValueError:
+                pass
+        return None
+
+    blind_keys = {
+        (_get_game_idx(f), f["ply"])
+        for f in findings
+        if f.get("severity") == "blind" and _get_game_idx(f) is not None and "ply" in f
+    }
+    missed_keys = {
+        (_get_game_idx(f), f["ply"])
+        for f in findings
+        if f.get("severity") == "missed" and _get_game_idx(f) is not None and "ply" in f
+    }
+
+    by_phase = {
+        "opening": {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0},
+        "middlegame": {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0},
+        "endgame": {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0},
+    }
+    by_clock = {
+        "fast": {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0},
+        "normal": {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0},
+        "slow": {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0},
+        "no_clock": {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0},
+    }
+
+    for game_idx, (game, user_color) in enumerate(games_to_process):
+        board = game.board()
+        ply = 0
+        for node in game.mainline():
+            ply += 1
+            if board.turn == user_color and not is_time_scramble(node.comment, cfg):
+                phase = metrics.classify_phase(board)
+                bucket = _clock_bucket(clock_seconds(node.comment))
+
+                if phase not in by_phase:
+                    by_phase[phase] = {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0}
+                if bucket not in by_clock:
+                    by_clock[bucket] = {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0}
+
+                by_phase[phase]["moves"] += 1
+                by_clock[bucket]["moves"] += 1
+
+                key = (game_idx, ply)
+                if key in blind_keys:
+                    by_phase[phase]["blind"] += 1
+                    by_clock[bucket]["blind"] += 1
+                if key in missed_keys:
+                    by_phase[phase]["missed"] += 1
+                    by_clock[bucket]["missed"] += 1
+
+            board.push(node.move)
+
+    for d in (by_phase, by_clock):
+        for b_data in d.values():
+            moves = b_data["moves"]
+            b_data["blind_rate"] = b_data["blind"] / moves if moves > 0 else 0.0
+
+    return by_phase, by_clock
+
+
+
 def _progress(job_id: str, **prog):
     """Best-effort progress ping. Progress is cosmetic — a locked job file
     (antivirus scan, concurrent poll) must never abort a multi-hour run.
@@ -427,11 +513,15 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         for eco, st in by_opening.items():
             if st["moves"] > 0:
                 st["blind_rate"] = st["blind"] / st["moves"]
-                
+
+        by_phase, by_clock = aggregate_phase_clock(games_to_process, findings, metrics.DEFAULT_CONFIG)
+
         aggregates = {
             "by_motif": {k: dict(v) for k, v in by_motif.items()},
             "by_opening": {k: dict(v) for k, v in by_opening.items()},
             "by_concept": {k: dict(v) for k, v in by_concept.items()},
+            "by_phase": by_phase,
+            "by_clock": by_clock,
             "intuitive_blindness_rate": intuitive_blind_count / max(1, moves_processed),
             "attention_blindness_rate": attention_blind_count / max(1, moves_processed)
         }

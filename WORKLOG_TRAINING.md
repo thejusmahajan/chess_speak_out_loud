@@ -4,6 +4,164 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-21 — Gemini — Pipeline aggregation: by_phase + by_clock blind-rate dimensions
+
+- Implemented pure module-level `aggregate_phase_clock(games_to_process, findings, cfg)` function and `_clock_bucket(secs)` helper in `backend/training/pipeline.py`.
+- Wired `by_phase, by_clock = aggregate_phase_clock(games_to_process, findings, metrics.DEFAULT_CONFIG)` into `run_diagnosis` in `pipeline.py`, merging `"by_phase"` and `"by_clock"` into the `aggregates` dict.
+- Created `backend/tests/test_phase_clock_agg.py` with 7 real unit tests covering:
+  1. `test_clock_bucket_helper`: fast/normal/slow/no_clock boundary classification.
+  2. `test_phase_bucketing_and_blind_rate`: opening vs. middlegame move & blind rates.
+  3. `test_clock_bucketing`: move distribution across clock time ranges.
+  4. `test_game_idx_ply_off_by_one_guard`: exact `(game_idx, ply)` matching guard preventing off-by-one errors.
+  5. `test_time_scramble_moves_excluded`: moves under 20s omitted from decision population and blind counts.
+  6. `test_opponent_moves_ignored`: only `board.turn == user_color` decision nodes counted.
+  7. `test_missed_counted_and_empty_inputs_safe`: missed findings count, empty inputs return 0-filled dicts with `blind_rate == 0.0`.
+- Verified Part D real-data gate by running `scratch/run_part_d_gate.py` against the 693-game archived profile (`data/training/profiles/profile-20260720T095953932767.json`) and source PGN (`games_of_derdiedasdie/lichess_derdiedasdie_2026-07-19.pgn`).
+
+### Verification Output
+
+1. **New unit test suite:**
+```
+C:\Users\Admin\miniconda3\envs\cszero\python.exe -m pytest backend/tests/test_phase_clock_agg.py -q
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Admin\Documents\chess_speak_out_loud
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collected 7 items
+
+backend\tests\test_phase_clock_agg.py .......                            [100%]
+
+============================== 7 passed in 0.63s ==============================
+```
+
+2. **Full backend test suite (124 passed):**
+```
+C:\Users\Admin\miniconda3\envs\cszero\python.exe -m pytest backend/tests/ -q
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Admin\Documents\chess_speak_out_loud
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collected 124 items
+
+backend\tests\test_explanations.py ............                          [  9%]
+backend\tests\test_health.py .                                           [ 10%]
+backend\tests\test_phase_clock_agg.py .......                            [ 16%]
+backend\tests\test_repertoire_drills.py .......                          [ 21%]
+backend\tests\test_repertoire_tree.py ....                               [ 25%]
+backend\tests\test_training_attempts.py ......                           [ 29%]
+backend\tests\test_training_clk.py ....                                  [ 33%]
+backend\tests\test_training_drills.py ..............                     [ 44%]
+backend\tests\test_training_gems.py .......                              [ 50%]
+backend\tests\test_training_metrics.py .......                           [ 55%]
+backend\tests\test_training_pipeline_color.py .                          [ 56%]
+backend\tests\test_training_pipeline_steer.py ....                       [ 59%]
+backend\tests\test_training_select.py ............                       [ 69%]
+backend\tests\test_training_steer.py ..........                          [ 77%]
+backend\tests\test_training_store.py ........                            [ 83%]
+backend\tests\test_tutor_compare.py ................                     [ 96%]
+backend\tests\test_weakness_ranking_endpoint.py ....                     [100%]
+
+============================== warnings summary ===============================
+backend\llm_client.py:2
+  C:\Users\Admin\Documents\chess_speak_out_loud\backend\llm_client.py:2: FutureWarning: 
+  
+  All support for the `google.generativeai` package has ended. It will no longer be receiving 
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+  
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  
+    import google.generativeai as genai
+
+..\..\miniconda3\envs\cszero\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\Admin\miniconda3\envs\cszero\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================= 124 passed, 2 warnings in 74.36s (0:01:14) ==================
+```
+
+3. **Part D Real-Data Output (`scratch/run_part_d_gate.py` over archived 693-game profile):**
+```
+Loading profile from C:\Users\Admin\Documents\chess_speak_out_loud\data\training\profiles\profile-20260720T095953932767.json...
+Loaded 4840 findings.
+Loading PGN from C:\Users\Admin\Documents\chess_speak_out_loud\games_of_derdiedasdie\lichess_derdiedasdie_2026-07-19.pgn...
+Selected 693 games matching profile selection.
+Parsed 693 games with user color.
+
+=== REAL DATA AGGREGATION RESULTS ===
+
+BY_PHASE:
+{
+  "opening": {
+    "moves": 8190,
+    "blind": 1134,
+    "missed": 1619,
+    "blind_rate": 0.13846153846153847
+  },
+  "middlegame": {
+    "moves": 6929,
+    "blind": 831,
+    "missed": 918,
+    "blind_rate": 0.11993072593447827
+  },
+  "endgame": {
+    "moves": 1932,
+    "blind": 139,
+    "missed": 199,
+    "blind_rate": 0.07194616977225674
+  }
+}
+
+BY_CLOCK:
+{
+  "fast": {
+    "moves": 4422,
+    "blind": 462,
+    "missed": 523,
+    "blind_rate": 0.1044776119402985
+  },
+  "normal": {
+    "moves": 12629,
+    "blind": 1642,
+    "missed": 2213,
+    "blind_rate": 0.1300182120516272
+  },
+  "slow": {
+    "moves": 0,
+    "blind": 0,
+    "missed": 0,
+    "blind_rate": 0.0
+  },
+  "no_clock": {
+    "moves": 0,
+    "blind": 0,
+    "missed": 0,
+    "blind_rate": 0.0
+  }
+}
+```
+
+by_phase/by_clock ready for review
+
+> Leader (Opus) sign-off: APPROVED, no fixes. Independently verified: full suite
+> 124; the ply convention (ply=0, ply+=1 at loop top) and non-scramble filter
+> match Stage A; by_phase/by_clock correctly merged into aggregates. The off-by-one
+> guard is a REAL guard — mutation-tested (removing `ply += 1` makes it fail,
+> restore passes). Real-data output is NON-DEGENERATE and internally consistent:
+> by_phase and by_clock each total 17051 = moves_analyzed; sensible rates
+> (opening 13.8% -> endgame 7.2%; fast 10.4% / normal 13.0%).
+> NOTE — the mandatory §4b real-data gate caught a LEADER spec error: findings do
+> NOT carry `game_idx` (only `id`="g{idx:03d}-p{ply:03d}" + `ply`). Gemini correctly
+> added a `_get_game_idx` id fallback, so both archived and live findings match;
+> without the gate this would have silently zeroed blind counts in production.
+> Minor (non-blocking): unit tests exercise the game_idx-field path; the id-fallback
+> path is covered only by the real-data run — a future unit test could pin it.
+
+
+
 ## 2026-07-21 — Leader (Opus) — T4 APPROVED (independently verified, no fixes needed)
 Clean submission. Independently ran: endpoint tests 4 passed, full suite 117,
 frontend build clean / lint 4 pre-existing / 0 new / 21 vitest passed. Boundaries
