@@ -4,6 +4,20 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-21 — Leader (Opus) — Epoch III Track T · T3: phase classifier + ranking assembler
+Pure/leader-owned additions to `metrics.py`:
+- `classify_phase(board|fen)` — opening/middlegame/endgame by ply + non-pawn
+  material (the building block for a future 'phase' ranking dimension).
+- `weakness_ranking(profile, n)` — assembles the openings dimension the profile
+  ALREADY carries (blind_rate over moves per ECO) into a ranked mixed_bag via the
+  T2 DimAvg comparison (reverse, weakness-first). This is the first end-to-end
+  "what to work on" from real profile data.
+3 tests incl. the thin-line-doesn't-top-a-well-sampled-weakness guard. Suite 113.
+SCOPE NOTE: full phase/time/conversion RANKED dimensions need per-move
+aggregation the profile doesn't emit yet — that's a pipeline pass (candidate
+Gemini task), not pure metrics. T4 will wire weakness_ranking into the profile +
+Weakness Profile UI.
+
 ## 2026-07-21 — Leader (Opus) — Epoch III R2: repertoire drills + SRS (+ endpoint)
 `build_repertoire_drills`/`build_repertoire_drill_set` (drills.py) turn a tree's
 CRITICAL nodes into check_attempt line drills with stable EPD-derived ids (SRS

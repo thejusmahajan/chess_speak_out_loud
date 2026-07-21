@@ -624,3 +624,50 @@ def mixed_bag(comparisons: "list[DimComparison]", n: int) -> "list[DimComparison
     w = weaknesses[:max(n // 2, n - len(strengths))]
     s = strengths[:n - len(w)]
     return w + s
+
+
+# --- T3: game-phase classifier + a ranking assembled from the profile -------
+# The phase classifier is the pure building block for a future 'phase' ranking
+# dimension (per-phase aggregation belongs in the pipeline). weakness_ranking
+# turns the dimensions the profile ALREADY carries into a ranked "what to work
+# on" via the T2 comparison — no new inputs required.
+
+# blind-rate gap that counts as one full 'grade' (10 percentage points).
+WEAKNESS_BLIND_DIVISOR = 0.10
+
+
+def classify_phase(board_or_fen) -> str:
+    """opening / middlegame / endgame, from ply + non-pawn material. Pure.
+
+    endgame: few pieces left (<= 6 non-pawn, non-king pieces total);
+    opening: within the first 12 full moves and not already an endgame;
+    else middlegame."""
+    board = (chess.Board(board_or_fen)
+             if isinstance(board_or_fen, str) else board_or_fen)
+    non_pawn = 0
+    for pt in (chess.KNIGHT, chess.BISHOP, chess.ROOK, chess.QUEEN):
+        non_pawn += len(board.pieces(pt, chess.WHITE))
+        non_pawn += len(board.pieces(pt, chess.BLACK))
+    if non_pawn <= 6:
+        return "endgame"
+    if board.fullmove_number <= 12:
+        return "opening"
+    return "middlegame"
+
+
+def weakness_ranking(profile: dict, n: int = 6,
+                     divisor: float = WEAKNESS_BLIND_DIVISOR) -> "list[DimComparison]":
+    """Rank the user's openings by self-relative blindness (the dimension the
+    profile already carries): each ECO's blind_rate graded against the user's
+    own baseline, weighted by move count so thin lines don't dominate. Returns
+    a mixed_bag (weaknesses first). blind_rate is lower-is-better, so reverse."""
+    by_opening = (profile or {}).get("aggregates", {}).get("by_opening", {})
+    points = [
+        (eco, ValueCount(float(st.get("blind_rate", 0.0)), int(st.get("moves", 0))))
+        for eco, st in by_opening.items()
+        if int(st.get("moves", 0)) > 0
+    ]
+    if not points:
+        return []
+    comps = compare_to_dim_avg(points, divisor=divisor, reverse=True)
+    return mixed_bag(comps, n)

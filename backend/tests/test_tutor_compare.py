@@ -122,3 +122,42 @@ def test_mixed_bag_fills_from_weaknesses_when_strengths_short():
 
 def test_mixed_bag_empty_for_nonpositive_n():
     assert m.mixed_bag([_cmp("w1", -1, 10)], 0) == []
+
+
+# --- T3: phase classifier + weakness_ranking assembler ---------------------
+
+def test_classify_phase_opening_middlegame_endgame():
+    import chess
+    assert m.classify_phase(chess.Board().fen()) == "opening"  # startpos
+    # bare kings + a couple pawns -> endgame (<= 6 non-pawn pieces)
+    assert m.classify_phase("8/5k2/8/8/8/2K5/4P3/8 w - - 0 40") == "endgame"
+    # full material, move 20 -> middlegame
+    mid = "r1bq1rk1/pppp1ppp/2n2n2/2b1p3/2B1P3/2N2N2/PPPP1PPP/R1BQ1RK1 w - - 8 20"
+    assert m.classify_phase(mid) == "middlegame"
+
+
+def test_weakness_ranking_surfaces_the_leaky_opening():
+    profile = {"aggregates": {"by_opening": {
+        "A40": {"blind_rate": 0.10, "moves": 200},
+        "A46": {"blind_rate": 0.12, "moves": 180},
+        "D02": {"blind_rate": 0.11, "moves": 160},
+        "C61": {"blind_rate": 0.40, "moves": 120},   # the leak
+    }}}
+    ranked = m.weakness_ranking(profile, n=4)
+    assert ranked[0].dim == "C61"
+    assert ranked[0].grade < 0  # weaker than the user's own baseline
+
+
+def test_weakness_ranking_ignores_thin_lines_and_empty():
+    # a thin (1-move) extreme must not top a well-sampled moderate weakness
+    profile = {"aggregates": {"by_opening": {
+        "BIG1": {"blind_rate": 0.20, "moves": 200},
+        "BIG2": {"blind_rate": 0.20, "moves": 200},
+        "THIN": {"blind_rate": 0.90, "moves": 1},
+        "SOLID": {"blind_rate": 0.35, "moves": 200},
+    }}}
+    ranked = m.weakness_ranking(profile, n=4)
+    dims = [c.dim for c in ranked]
+    assert dims.index("SOLID") < dims.index("THIN")
+    assert m.weakness_ranking({}, n=4) == []
+    assert m.weakness_ranking({"aggregates": {"by_opening": {}}}) == []
