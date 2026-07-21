@@ -45,6 +45,14 @@ PROJECT_DIR = BACKEND_DIR.parent
 FRONTEND_DIR = PROJECT_DIR / "frontend"
 ENGINE_DIR = PROJECT_DIR / "engine"
 
+
+def _corpus_pgn() -> Path:
+    """The user's games corpus: the NEWEST .pgn in games_of_derdiedasdie/
+    (so replacing it with a bigger export just works — no hardcoded filename)."""
+    d = PROJECT_DIR / "games_of_derdiedasdie"
+    pgns = sorted(d.glob("*.pgn"), key=lambda p: p.stat().st_mtime, reverse=True)
+    return pgns[0] if pgns else d / "lichess_derdiedasdie.pgn"
+
 logger = logging.getLogger("chess_speak_out_loud")
 logging.basicConfig(level=logging.INFO)
 
@@ -523,7 +531,7 @@ async def get_repertoire_tree(req: RepertoireTreeRequest):
     else:
         from backend.training.select_repertoire import build_repertoire_tree
         profile = store.load_profile()
-        pgn_path = PROJECT_DIR / "games_of_derdiedasdie" / "lichess_derdiedasdie_2026-07-19.pgn"
+        pgn_path = _corpus_pgn()
         player_name = "derdiedasdie"
         if not pgn_path.exists():
             raise HTTPException(status_code=404, detail="Repertoire tree PGN file not found")
@@ -554,7 +562,7 @@ async def repertoire_top_openings(limit: int = 12):
         return {"white": data.get("white", [])[:limit],
                 "black": data.get("black", [])[:limit]}
 
-    pgn_path = PROJECT_DIR / "games_of_derdiedasdie" / "lichess_derdiedasdie_2026-07-19.pgn"
+    pgn_path = _corpus_pgn()
     player_name = "derdiedasdie"
     if not pgn_path.exists():
         raise HTTPException(status_code=404, detail="Corpus PGN not found")
@@ -610,7 +618,7 @@ async def generate_repertoire_drills(req: RepertoireTreeRequest):
     else:
         from backend.training.select_repertoire import build_repertoire_tree
         profile = store.load_profile()
-        pgn_path = PROJECT_DIR / "games_of_derdiedasdie" / "lichess_derdiedasdie_2026-07-19.pgn"
+        pgn_path = _corpus_pgn()
         if not pgn_path.exists():
             raise HTTPException(status_code=404, detail="Repertoire tree PGN file not found")
         tree = await build_repertoire_tree(
