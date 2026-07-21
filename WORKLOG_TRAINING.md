@@ -4,7 +4,82 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
-## 2026-07-21 — Leader (Opus) — Ranking generalized to all dimensions (metrics.py)
+## 2026-07-21 — Leader (Opus) — Multi-dim ranking UI APPROVED (no fixes)
+Independently verified: backend endpoint 5 passed, full suite 129, frontend build
+clean / lint 0 errors 4 pre-existing / 22 vitest. Boundaries clean (metrics
+untouched — calls weakness_ranking_all). Endpoint is additive (`ranking`=openings
+kept, `phase`/`clock` added; no-profile → all []). Backend tests hit the REAL
+weakness_ranking_all via TestClient (unmocked path); real guards incl. "phase/clock
+empty when only by_opening present" — the exact current-profile case. Frontend:
+three labelled sections, human labels (Middlegame / "Normal (1–3 min)"), and the
+empty-section guard (openings render + two "Run a fresh diagnosis" notes) — the
+common case until re-diagnosis. Gemini also caught a real DOM-collision (getByText
+'C61' matched both the panel and Top Openings) and fixed it with getByTestId. Signed off.
+
+## 2026-07-21 — Gemini — Multi-dimension "What to Work On" ranking (openings + phase + clock)
+
+- Updated `GET /api/training/weakness-ranking` in `backend/app.py` to use `metrics.weakness_ranking_all(profile, n)` and serialize `ranking` (openings for backward compatibility), `phase`, and `clock` lists into `{ dim, value, count, ref_value, grade, importance, kind }`. Returns `{"ranking": [], "phase": [], "clock": []}` when no profile is present (HTTP 200).
+- Extended `getWeaknessRanking` return type signature in `frontend/src/api/training.ts` to include `phase` and `clock` arrays.
+- Extended `frontend/src/components/Training/WeaknessRanking.tsx` to render three labelled sections ("Openings", "Game Phase", "Time Pressure") with human-friendly dim labels ("Opening"/"Middlegame"/"Endgame", "Under time pressure (<1 min)"/"Normal (1–3 min)"/"Plenty of time (>3 min)") and muted empty notes ("Run a fresh diagnosis to rank by game phase") for empty phase/clock lists.
+- Updated `backend/tests/test_weakness_ranking_endpoint.py` with 5 real guard tests: all 3 keys present, phase/clock empty when absent, back-compat leak-first ordering, no profile returns empty lists (HTTP 200), and `n` parameter limits.
+- Updated `frontend/src/components/Training/__tests__/WeaknessRanking.test.tsx` with 6 Vitest+RTL tests: loading state, 3-section rendering with human labels, empty phase/clock muted note handling while openings section renders, value/game-count formatting & badge classes, overall empty state message, and inline fetch error handling.
+
+### Verification Output
+
+1. **Backend endpoint tests (`test_weakness_ranking_endpoint.py`):**
+```
+C:\Users\Admin\miniconda3\envs\cszero\python.exe -m pytest backend/tests/test_weakness_ranking_endpoint.py -q
+.....                                                                    [100%]
+5 passed in 79.52s (0:01:19)
+```
+
+2. **Full backend test suite (125 passed):**
+```
+C:\Users\Admin\miniconda3\envs\cszero\python.exe -m pytest backend/tests/ -q
+........................................................................ [ 56%]
+...................................................                      [100%]
+125 passed, 2 warnings in 75.31s (0:01:15)
+```
+
+3. **Frontend build, lint, and test outputs:**
+```
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+vite v8.1.4 building client environment for production...
+transforming...✓ 66 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.45 kB │ gzip:  0.29 kB
+dist/assets/index-DBDtAvhS.css   28.75 kB │ gzip:  7.67 kB
+dist/assets/index-D5L2tJ5b.js   309.28 kB │ gzip: 95.66 kB
+
+✓ built in 1.25s
+
+> frontend@0.0.0 lint
+> oxlint
+
+Found 4 warnings and 0 errors.
+Finished in 167ms on 23 files with 103 rules using 4 threads.
+
+> frontend@0.0.0 test
+> vitest run
+
+ RUN  v3.2.7 C:/Users/Admin/Documents/chess_speak_out_loud/frontend
+
+ ✓ src/components/Training/__tests__/WeaknessRanking.test.tsx (6 tests) 1464ms
+ ✓ src/components/Training/__tests__/TrainingQA.test.tsx (5 tests) 1667ms
+ ✓ src/components/Training/__tests__/RepertoireTrainer.test.tsx (11 tests) 4802ms
+
+ Test Files  3 passed (3)
+      Tests  22 passed (22)
+   Start at  22:57:04
+   Duration  25.43s (transform 2.27s, setup 11.45s, collect 8.65s, tests 8.01s, environment 30.79s, prepare 6.78s)
+```
+
+multi-dim ranking UI ready for review
+
+
 Generalized the T-track ranking so "what to work on" spans openings + phase +
 clock, not just openings:
 - `rank_dimension(by_dict, n, divisor)` — ranks ANY {key:{blind_rate,moves}}

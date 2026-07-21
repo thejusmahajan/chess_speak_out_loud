@@ -113,6 +113,10 @@ export async function getTopOpenings(limit = 12): Promise<{
 export async function getWeaknessRanking(n = 6): Promise<{
   ranking: { dim: string; value: number; count: number; ref_value: number;
              grade: number; importance: number; kind: 'weakness' | 'strength' }[];
+  phase: { dim: string; value: number; count: number; ref_value: number;
+           grade: number; importance: number; kind: 'weakness' | 'strength' }[];
+  clock: { dim: string; value: number; count: number; ref_value: number;
+           grade: number; importance: number; kind: 'weakness' | 'strength' }[];
 }> {
   const res = await fetch(`${BASE_URL}/weakness-ranking?n=${n}`);
   if (!res.ok) throw new Error(await res.text());

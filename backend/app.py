@@ -694,17 +694,19 @@ async def srs_due():
 async def training_trends():
     return trends.trend_report()
 
+def _ser(items):
+    return [{**dataclasses.asdict(c), "kind": "weakness" if c.grade < 0 else "strength"} for c in items]
+
+
 @app.get("/api/training/weakness-ranking")
 async def weakness_ranking_ep(n: int = 6):
     from backend.training import metrics
     profile = store.load_profile()
     if not profile:
-        return {"ranking": []}
-    ranking = metrics.weakness_ranking(profile, n)
-    return {"ranking": [
-        {**dataclasses.asdict(c), "kind": "weakness" if c.grade < 0 else "strength"}
-        for c in ranking
-    ]}
+        return {"ranking": [], "phase": [], "clock": []}
+    allr = metrics.weakness_ranking_all(profile, n)
+    return {"ranking": _ser(allr["openings"]), "phase": _ser(allr["phase"]), "clock": _ser(allr["clock"])}
+
 
 
 
