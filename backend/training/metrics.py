@@ -570,3 +570,57 @@ def importance(grade_value: float, count: int, weight: float = 1.0) -> float:
     is. Always >= 0 — use grade_value's sign for direction (strength vs
     weakness)."""
     return abs(grade_value) * sqrt(max(0, count) * max(0.0, weight))
+
+
+@dataclass(frozen=True)
+class DimComparison:
+    """One dimension graded against the user's own baseline (self-relative)."""
+
+    dim: str
+    value: float
+    count: int
+    ref_value: float   # count-weighted mean of the OTHER dimensions
+    grade: float       # signed effect size; > 0 = stronger than own baseline
+    importance: float  # ranking key: |grade| * sqrt(count * weight)
+
+
+def compare_to_dim_avg(
+    points: "list[tuple[str, ValueCount]]",
+    divisor: float,
+    weight: float = 1.0,
+    reverse: bool = False,
+) -> "list[DimComparison]":
+    """Grade each dimension against the user's OWN baseline — the count-weighted
+    mean of the *other* dimensions (lila TutorCompare's DimAvg reference). Needs
+    no peer dataset. Returns comparisons sorted by importance, most notable
+    first. `reverse=True` for lower-is-better metrics (blind rate, time trouble)
+    so that grade > 0 still means 'stronger than your baseline'.
+
+    Excluding the dimension itself from its reference keeps a single dominant
+    dimension from diluting its own baseline."""
+    out: list[DimComparison] = []
+    for i, (dim, vc) in enumerate(points):
+        others = [p for j, (_, p) in enumerate(points) if j != i]
+        ref = weighted_mean(others)
+        if ref is None:
+            continue
+        g = grade(vc.value, ref.value, divisor, reverse=reverse)
+        out.append(DimComparison(
+            dim=dim, value=vc.value, count=vc.count, ref_value=ref.value,
+            grade=g, importance=importance(g, vc.count, weight)))
+    out.sort(key=lambda c: c.importance, reverse=True)
+    return out
+
+
+def mixed_bag(comparisons: "list[DimComparison]", n: int) -> "list[DimComparison]":
+    """Balanced selection (lila): the top weaknesses and top strengths by
+    importance, up to n total, weaknesses first (they are what to train).
+    `comparisons` is expected pre-sorted by importance desc (as
+    compare_to_dim_avg returns)."""
+    if n <= 0:
+        return []
+    weaknesses = [c for c in comparisons if c.grade < 0]
+    strengths = [c for c in comparisons if c.grade > 0]
+    w = weaknesses[:max(n // 2, n - len(strengths))]
+    s = strengths[:n - len(w)]
+    return w + s

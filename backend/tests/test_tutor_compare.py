@@ -57,3 +57,68 @@ def test_importance_ranks_wellsampled_over_thin_extreme():
     thin = m.importance(m.grade(1.0, 0.2, 0.5, reverse=True), count=1)      # extreme, n=1
     solid = m.importance(m.grade(0.45, 0.2, 0.5, reverse=True), count=200)  # moderate, n=200
     assert solid > thin
+
+
+# --- T2: DimAvg comparison + mixed_bag -------------------------------------
+
+def test_compare_to_dim_avg_flags_the_outlier_weakness():
+    # blind rate (lower is better). Three openings ~0.1, one at 0.40 -> the 0.40
+    # one is the weakness: graded negative, ranked first by importance.
+    points = [
+        ("A40", m.ValueCount(0.10, 100)),
+        ("A46", m.ValueCount(0.12, 90)),
+        ("D02", m.ValueCount(0.11, 80)),
+        ("C61", m.ValueCount(0.40, 60)),  # the leak
+    ]
+    comps = m.compare_to_dim_avg(points, divisor=0.10, reverse=True)
+    assert comps[0].dim == "C61"
+    assert comps[0].grade < 0  # weaker than the user's own baseline
+    # its reference EXCLUDES itself: mean of the other three
+    assert comps[0].ref_value == pytest.approx(
+        (0.10 * 100 + 0.12 * 90 + 0.11 * 80) / 270, abs=1e-9)
+
+
+def test_compare_to_dim_avg_reverse_flips_direction():
+    points = [("x", m.ValueCount(0.5, 50)), ("y", m.ValueCount(0.1, 50))]
+    fwd = {c.dim: c.grade for c in m.compare_to_dim_avg(points, 0.1)}
+    rev = {c.dim: c.grade for c in m.compare_to_dim_avg(points, 0.1, reverse=True)}
+    # higher-is-better: x (0.5) is the strength; reverse: x becomes the weakness
+    assert fwd["x"] > 0 and rev["x"] < 0
+    assert fwd["y"] < 0 and rev["y"] > 0
+
+
+def test_compare_ranks_by_importance_not_raw_gap():
+    # a thin dim with a big gap must NOT outrank a well-sampled moderate one
+    points = [
+        ("baseline1", m.ValueCount(0.20, 200)),
+        ("baseline2", m.ValueCount(0.20, 200)),
+        ("thin_extreme", m.ValueCount(0.60, 1)),
+        ("solid_mod", m.ValueCount(0.35, 200)),
+    ]
+    comps = m.compare_to_dim_avg(points, divisor=0.10, reverse=True)
+    ranks = [c.dim for c in comps]
+    assert ranks.index("solid_mod") < ranks.index("thin_extreme")
+
+
+def _cmp(dim, grade, imp):
+    return m.DimComparison(dim=dim, value=0.0, count=100, ref_value=0.0,
+                           grade=grade, importance=imp)
+
+
+def test_mixed_bag_balances_weaknesses_and_strengths():
+    comps = [_cmp("w1", -1, 10), _cmp("s1", 1, 9), _cmp("w2", -1, 8),
+             _cmp("s2", 1, 7), _cmp("w3", -1, 6)]
+    bag = m.mixed_bag(comps, 4)
+    assert [c.dim for c in bag] == ["w1", "w2", "s1", "s2"]  # 2 + 2, weaknesses first
+
+
+def test_mixed_bag_fills_from_weaknesses_when_strengths_short():
+    comps = [_cmp("w1", -1, 10), _cmp("w2", -1, 9), _cmp("w3", -1, 8),
+             _cmp("s1", 1, 7)]
+    bag = m.mixed_bag(comps, 4)
+    assert len(bag) == 4
+    assert sum(1 for c in bag if c.grade < 0) == 3  # only one strength existed
+
+
+def test_mixed_bag_empty_for_nonpositive_n():
+    assert m.mixed_bag([_cmp("w1", -1, 10)], 0) == []

@@ -4,6 +4,23 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-21 — Leader (Opus) — Epoch III Track T · T2: self-relative (DimAvg) ranking
+Built the Tutor-style ranking on T1's primitives (lila TutorCompare), pure/leader-
+owned in `metrics.py`:
+- `DimComparison` + `compare_to_dim_avg(points, divisor, weight, reverse)` — grades
+  each dimension against the count-weighted mean of the *other* dimensions (the
+  user's own baseline; excludes self so a dominant dim can't dilute its own ref).
+  No peer dataset needed. Sorted by importance. `reverse` for lower-is-better rates.
+- `mixed_bag(comparisons, n)` — balanced top weaknesses + strengths, weakness-first,
+  with fill when one side is short.
+6 new tests incl. a guard that a thin big-gap dimension (n=1) does NOT outrank a
+well-sampled moderate one (ranking is by importance, not raw gap). Full suite:
+```
+================== 91 passed, 2 warnings in 78.96s (0:01:18) ==================
+```
+Next: T3 (phase/time/conversion dimensions from the existing parse) then T4 (wire
+a ranked "what to work on" block into the profile + Weakness Profile UI).
+
 ## 2026-07-21 — Leader (Opus) — R4 QA APPROVED (independently verified, incl. mutation)
 Strongest Gemini submission yet — the tests are REAL guards. Independently ran:
 build clean; lint 4 pre-existing / 0 errors; `npm run test` = 16 passed (11
