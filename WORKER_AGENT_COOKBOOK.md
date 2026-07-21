@@ -50,6 +50,16 @@ Anything that depends on an *unstated* domain convention is a landmine.
 wrong*. It rarely fails loudly. It fails by looking correct. Your verification
 exists to catch exactly this.
 
+**Refinement (learned later): the real risk axis is `novelty × under-specification`,
+not frontend-vs-backend.** A *backend* endpoint task (T4: serve a ranking, call an
+existing tested function) came back flawless because it was tightly specced and
+required no new judgment. The failures were backend, but what made them fail was
+that they were *novel and under-specified* (invent a tree-rooting strategy, decide
+a blind-rate definition). So: don't reflexively withhold backend work — withhold
+*novel, judgment-heavy* work, and when you must delegate it, spec it until no
+judgment remains. A well-bounded backend task that mostly wires existing, tested
+pieces is low-risk regardless of layer.
+
 ---
 
 ## 2. How to write the prompt (the spec anatomy)
@@ -175,6 +185,37 @@ Do these in order. Stop and reject at the first serious failure.
 If you fix a contained defect yourself (a one-liner, a stray file), do it and note
 it. If the design is wrong (wrong root, wrong semantics), reject and either
 re-spec or take it over — don't paper over it.
+
+---
+
+## 4b. Design the task for cheap verification
+
+The R1 tree builder passed its synthetic unit test and collapsed to 1 node on the
+real corpus. The fix isn't just "run on real data" (§3.3) — it's to **structure
+the work so running on real data is cheap.**
+
+- **Extract the logic into a PURE function** (inputs in, result out, no engine / no
+  I/O). A pure aggregator that takes `(games, findings)` and returns the buckets
+  can be run over the *real* archived findings + PGN in seconds — no re-diagnosis,
+  no engine — giving you a real-data check for free. Contrast: logic buried inside
+  a 9-hour pipeline is only verifiable by re-running the pipeline.
+- **Require the worker to expose that seam** in the spec, and to include the
+  real-data run as a gate step ("load the archived profile's findings + the games,
+  call the pure function, paste the buckets"). This is how you get §3.3's guarantee
+  without §3.3's cost.
+- Corollary: when reviewing, prefer verifying the pure seam on real inputs over
+  trusting a synthetic fixture. Fixtures test the mechanism; real inputs test the
+  assumptions.
+
+## 4c. Tell the worker the safe pattern when the harness has traps
+
+If the test harness has a footgun (a FastAPI `TestClient` that starts the engine
+via lifespan when used as `with TestClient(app)`, a heavy import, a global that
+needs monkeypatching), **name the exact safe pattern in the spec** — e.g. "use
+`TestClient(app)` WITHOUT a `with` block so lifespan/the engine does not start."
+Telling the worker *how* to test, not just *what* to test, prevents slow/flaky/
+engine-dependent suites. (T4's endpoint tests were fast and engine-free because the
+spec pinned this.)
 
 ---
 
