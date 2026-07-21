@@ -4,6 +4,149 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-21 — Leader (Opus) — T4 APPROVED (independently verified, no fixes needed)
+Clean submission. Independently ran: endpoint tests 4 passed, full suite 117,
+frontend build clean / lint 4 pre-existing / 0 new / 21 vitest passed. Boundaries
+respected (metrics.py/pipeline untouched). The 4 backend tests use TestClient
+without `with` (no engine start) and monkeypatch load_profile → exercise the REAL
+weakness_ranking + serialization (the required unmocked path); real guards (leak
+first, exact key set, empty→[], n honored). Frontend WeaknessRanking is its own
+file (no new lint warning), handles loading/empty/error (empty-state lesson
+applied), and its 5 tests are real guards (DOM order, weakness/strength classes,
+40.0%/games formatting, raw ref_value/importance NOT dumped, profile intact on
+empty/error). ProfileReport integration minimal; the TrainingQA shared-mock
+update was necessary. Signed off.
+
+## 2026-07-21 — Gemini — Epoch III · Track T · T4: surface "What to Work On" ranking (endpoint + Weakness Profile UI)
+
+- Added `GET /api/training/weakness-ranking` endpoint in `backend/app.py` surfacing Tutor-style self-relative opening weakness rankings from `metrics.weakness_ranking`. Serializes each `DimComparison` item to `{ dim, value, count, ref_value, grade, importance, kind }`. Returns `{"ranking": []}` on empty/missing profile (HTTP 200).
+- Added `getWeaknessRanking(n = 6)` fetch function in `frontend/src/api/training.ts`.
+- Created `frontend/src/components/Training/WeaknessRanking.tsx` and mounted it inside `frontend/src/components/Training/ProfileReport.tsx`:
+  - Renders "What to Work On" panel with relative baseline description header.
+  - Handles loading state with a clean glass spinner/placeholder.
+  - Handles empty ranking (`[]`) with friendly message ("Not enough games analyzed yet to rank your openings").
+  - Handles error state gracefully inline without crashing or uncaught exceptions.
+  - Displays ranked list in order with formatted blind rate (`(value * 100).toFixed(1)%`), games count (`count`), and visually prominent red-tinted weakness / green-tinted strength badges.
+- Created `backend/tests/test_weakness_ranking_endpoint.py` with 4 pytest end-to-end tests using `TestClient(app)` (unmocked real metrics path): leak ranking order, serialized shape, empty/None profile handling, and `n` parameter passthrough.
+- Created `frontend/src/components/Training/__tests__/WeaknessRanking.test.tsx` with 5 Vitest+RTL tests covering loading state, ranked items order & badges, percentage/games formatting, empty ranking message, and graceful error handling.
+
+Gate check output (backend endpoint tests):
+```
+C:\Users\Admin\miniconda3\envs\cszero\python.exe -m pytest backend/tests/test_weakness_ranking_endpoint.py -q
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Admin\Documents\chess_speak_out_loud
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collected 4 items
+
+backend\tests\test_weakness_ranking_endpoint.py ....                     [100%]
+
+============================== warnings summary ===============================
+..\..\miniconda3\envs\cszero\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\Admin\miniconda3\envs\cszero\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+backend\llm_client.py:2
+  C:\Users\Admin\Documents\chess_speak_out_loud\backend\llm_client.py:2: FutureWarning: 
+  
+  All support for the `google.generativeai` package has ended. It will no longer be receiving 
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+  
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  
+    import google.generativeai as genai
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================== 4 passed, 2 warnings in 80.12s (0:01:20) ===================
+```
+
+Full backend test suite output:
+```
+C:\Users\Admin\miniconda3\envs\cszero\python.exe -m pytest backend/tests/ -q
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Admin\Documents\chess_speak_out_loud
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collected 117 items
+
+backend\tests\test_explanations.py ............                          [ 10%]
+backend\tests\test_health.py .                                           [ 11%]
+backend\tests\test_repertoire_drills.py .......                          [ 17%]
+backend\tests\test_repertoire_tree.py ....                               [ 20%]
+backend\tests\test_training_attempts.py ......                           [ 25%]
+backend\tests\test_training_clk.py ....                                  [ 29%]
+backend\tests\test_training_drills.py ..............                     [ 41%]
+backend\tests\test_training_gems.py .......                              [ 47%]
+backend\tests\test_training_metrics.py .......                           [ 52%]
+backend\tests\test_training_pipeline_color.py .                          [ 53%]
+backend\tests\test_training_pipeline_steer.py ....                       [ 57%]
+backend\tests\test_training_select.py ............                       [ 67%]
+backend\tests\test_training_steer.py ..........                          [ 76%]
+backend\tests\test_training_store.py ........                            [ 82%]
+backend\tests\test_tutor_compare.py ................                     [ 96%]
+backend\tests\test_weakness_ranking_endpoint.py ....                     [100%]
+
+============================== warnings summary ===============================
+backend\llm_client.py:2
+  C:\Users\Admin\Documents\chess_speak_out_loud\backend\llm_client.py:2: FutureWarning: 
+  
+  All support for the `google.generativeai` package has ended. It will no longer be receiving 
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+  
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  
+    import google.generativeai as genai
+
+..\..\miniconda3\envs\cszero\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\Admin\miniconda3\envs\cszero\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================= 117 passed, 2 warnings in 70.16s (0:01:10) ==================
+```
+
+Frontend build, lint, and test outputs:
+```
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+vite v8.1.4 building client environment for production...
+transforming...✓ 66 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.45 kB │ gzip:  0.29 kB
+dist/assets/index-DBDtAvhS.css   28.75 kB │ gzip:  7.67 kB
+dist/assets/index-piW8sQik.js   308.06 kB │ gzip: 95.31 kB
+
+✓ built in 1.76s
+
+> frontend@0.0.0 lint
+> oxlint
+
+Found 4 warnings and 0 errors.
+Finished in 201ms on 23 files with 103 rules using 4 threads.
+
+> frontend@0.0.0 test
+> vitest run
+
+ RUN  v3.2.7 C:/Users/Admin/Documents/chess_speak_out_loud/frontend
+
+ ✓ src/components/Training/__tests__/WeaknessRanking.test.tsx (5 tests) 1514ms
+ ✓ src/components/Training/__tests__/TrainingQA.test.tsx (5 tests) 1706ms
+ ✓ src/components/Training/__tests__/RepertoireTrainer.test.tsx (11 tests) 4832ms
+
+ Test Files  3 passed (3)
+      Tests  21 passed (21)
+   Start at  22:50:07
+   Duration  25.40s (transform 2.18s, setup 11.28s, collect 8.94s, tests 8.05s, environment 30.43s, prepare 6.70s)
+```
+
+T4 ranking UI ready for review
+
 ## 2026-07-21 — Leader (Opus) — Epoch III Track T · T3: phase classifier + ranking assembler
 Pure/leader-owned additions to `metrics.py`:
 - `classify_phase(board|fen)` — opening/middlegame/endgame by ply + non-pawn

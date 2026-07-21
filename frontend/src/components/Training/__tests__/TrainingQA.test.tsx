@@ -16,6 +16,7 @@ vi.mock('../../../api/training', () => ({
   buildRepertoire: vi.fn(),
   getRepertoireTree: vi.fn(),
   getTopOpenings: vi.fn(() => Promise.resolve([])),
+  getWeaknessRanking: vi.fn(() => Promise.resolve({ ranking: [] })),
 }));
 
 vi.mock('../TrainingBoard', () => ({

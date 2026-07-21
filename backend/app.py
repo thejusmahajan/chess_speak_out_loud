@@ -8,6 +8,7 @@ Serves the frontend static files and provides REST API endpoints for:
 """
 
 import asyncio
+import dataclasses
 import io
 import logging
 from contextlib import asynccontextmanager
@@ -692,6 +693,18 @@ async def srs_due():
 @app.get("/api/training/trends")
 async def training_trends():
     return trends.trend_report()
+
+@app.get("/api/training/weakness-ranking")
+async def weakness_ranking_ep(n: int = 6):
+    from backend.training import metrics
+    profile = store.load_profile()
+    if not profile:
+        return {"ranking": []}
+    ranking = metrics.weakness_ranking(profile, n)
+    return {"ranking": [
+        {**dataclasses.asdict(c), "kind": "weakness" if c.grade < 0 else "strength"}
+        for c in ranking
+    ]}
 
 
 

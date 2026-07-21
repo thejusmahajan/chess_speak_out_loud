@@ -1,5 +1,6 @@
 import './Training.css';
 import { openingColorLabel } from './openingColor';
+import WeaknessRanking from './WeaknessRanking';
 
 interface ProfileReportProps {
   profile: any;
@@ -37,6 +38,7 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
       </div>
 
       <div className="profile-grid">
+        <WeaknessRanking />
         <div className="glass-panel">
           <h3>Top Motifs Missed</h3>
           <table className="glass-table">
