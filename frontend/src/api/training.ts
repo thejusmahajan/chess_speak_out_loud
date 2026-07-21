@@ -97,3 +97,15 @@ export async function getRepertoireTree(eco: string, color: 'white' | 'black') {
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
+// The user's most-played openings per color (by ECO), for the Train-mode
+// selector — so trees are built for high-volume lines, not just the low-volume
+// weakness recommendations.
+export async function getTopOpenings(limit = 12): Promise<{
+  white: { eco: string; name: string; count: number }[];
+  black: { eco: string; name: string; count: number }[];
+}> {
+  const res = await fetch(`${BASE_URL}/repertoire/top-openings?limit=${limit}`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}

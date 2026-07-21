@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { listRepertoires, buildRepertoire, getRepertoireTree } from '../../api/training';
+import { listRepertoires, buildRepertoire, getRepertoireTree, getTopOpenings } from '../../api/training';
 import TrainingBoard from './TrainingBoard';
 import { Chess } from 'chessops/chess';
 import { parseFen, makeFen } from 'chessops/fen';
@@ -78,9 +78,10 @@ interface RepertoireTrainerProps {
   eco: string;
   color: Color;
   openingName: string;
+  onSelectMode?: (mode: 'recommendations' | 'train') => void;
 }
 
-function RepertoireTrainer({ eco, color, openingName }: RepertoireTrainerProps) {
+function RepertoireTrainer({ eco, color, openingName, onSelectMode }: RepertoireTrainerProps) {
   const [tree, setTree] = useState<any>(null);
   const [treeLoading, setTreeLoading] = useState(true);
   const [treeError, setTreeError] = useState<string | null>(null);
@@ -96,12 +97,20 @@ function RepertoireTrainer({ eco, color, openingName }: RepertoireTrainerProps) 
 
   useEffect(() => {
     let isMounted = true;
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        setTreeError('Tree build timed out after 120s. Engine analysis takes longer for un-cached lines; please try again.');
+        setTreeLoading(false);
+      }
+    }, 120000);
+
     async function loadTree() {
       try {
         setTreeLoading(true);
         setTreeError(null);
         const data = await getRepertoireTree(eco, color);
         if (!isMounted) return;
+        clearTimeout(timeoutId);
         setTree(data);
         if (data && data.nodes && data.nodes.length > 0) {
           const root = data.nodes[0];
@@ -119,12 +128,16 @@ function RepertoireTrainer({ eco, color, openingName }: RepertoireTrainerProps) 
         setTreeLoading(false);
       } catch (err: any) {
         if (!isMounted) return;
+        clearTimeout(timeoutId);
         setTreeError(err.message || 'Failed to load tree');
         setTreeLoading(false);
       }
     }
     loadTree();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
   }, [eco, color]);
 
   const nodeMap = useMemo(() => {
@@ -139,9 +152,17 @@ function RepertoireTrainer({ eco, color, openingName }: RepertoireTrainerProps) 
 
   const currentNode = currentNodeId ? nodeMap.get(currentNodeId) : null;
 
+  // Check for degenerate / un-trainable trees (e.g. 0 nodes, single root without user_move, or no user_moves anywhere)
+  const isDegenerateTree = useMemo(() => {
+    if (!tree || !tree.nodes || tree.nodes.length === 0) return true;
+    if (tree.nodes.length === 1 && tree.nodes[0].is_user_node && !tree.nodes[0].user_move) return true;
+    const hasAnyUserMove = tree.nodes.some((n: any) => n.is_user_node && Boolean(n.user_move));
+    return !hasAnyUserMove;
+  }, [tree]);
+
   // Handle opponent turn at current node (e.g. root node for Black or after branching)
   useEffect(() => {
-    if (!currentNode || currentNode.is_user_node || isAnimating || completedBranch) return;
+    if (isDegenerateTree || !currentNode || currentNode.is_user_node || isAnimating || completedBranch) return;
 
     const replies = currentNode.opponent_replies || [];
     if (replies.length === 0) {
@@ -173,28 +194,64 @@ function RepertoireTrainer({ eco, color, openingName }: RepertoireTrainerProps) 
     }, 450);
 
     return () => clearTimeout(timer);
-  }, [currentNode, replyIndex, isAnimating, completedBranch, tree]);
+  }, [currentNode, replyIndex, isAnimating, completedBranch, tree, isDegenerateTree]);
 
   if (treeLoading) {
     return (
-      <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
-        <h3 className="gradient-text">Building / Loading Variation Tree...</h3>
-        <p className="subtle">Evaluating position nodes with LC0 engine for ECO {eco} ({color})...</p>
+      <div className="glass-panel" style={{ padding: '2.5rem', textAlign: 'center' }}>
+        <div
+          className="spinner"
+          style={{
+            margin: '0 auto 1rem auto',
+            width: '36px',
+            height: '36px',
+            border: '3px solid rgba(56, 189, 248, 0.2)',
+            borderTopColor: '#38bdf8',
+            borderRadius: '50%',
+          }}
+        />
+        <h3 className="gradient-text" style={{ margin: '0 0 0.5rem 0' }}>Building / Loading Variation Tree...</h3>
+        <p className="subtle" style={{ maxWidth: '500px', margin: '0 auto' }}>
+          Evaluating position nodes with LC0 engine for <strong>{openingName}</strong> ({eco}). This can take up to a minute for un-cached openings...
+        </p>
       </div>
     );
   }
 
   if (treeError) {
-    return <div className="glass-panel error-msg">{treeError}</div>;
+    return (
+      <div className="glass-panel error-msg" style={{ padding: '1.5rem', textAlign: 'center' }}>
+        <p style={{ margin: '0 0 1rem 0' }}>{treeError}</p>
+        <button className="glass-btn primary" onClick={() => onSelectMode?.('recommendations')}>
+          Back to Recommendations
+        </button>
+      </div>
+    );
   }
 
-  if (!tree || !currentNode) {
-    return <div className="glass-panel">No variation tree available.</div>;
+  if (isDegenerateTree) {
+    return (
+      <div className="glass-panel" style={{ padding: '2.5rem', textAlign: 'center' }}>
+        <h3 className="gradient-text" style={{ margin: '0 0 0.5rem 0' }}>No Trainable Variation Tree</h3>
+        <p className="subtle" style={{ maxWidth: '520px', margin: '0 auto 1.5rem auto', lineHeight: 1.5 }}>
+          No variation tree could be built for <strong>{openingName}</strong> ({eco}) — too few of your games reach this line.
+        </p>
+        <button className="glass-btn primary" onClick={() => onSelectMode?.('recommendations')}>
+          Back to Recommendations
+        </button>
+      </div>
+    );
   }
+
+  const isInteractive = Boolean(
+    !isAnimating &&
+    !completedBranch &&
+    currentNode?.is_user_node &&
+    currentNode?.user_move
+  );
 
   const handleUserMove = (uci: string, san: string) => {
-    if (isAnimating || completedBranch) return;
-    if (!currentNode || !currentNode.is_user_node || !currentNode.user_move) return;
+    if (!isInteractive || !currentNode || !currentNode.is_user_node || !currentNode.user_move) return;
 
     const targetUci = currentNode.user_move.uci;
     const isCorrect = normCastling(uci) === normCastling(targetUci);
@@ -206,7 +263,7 @@ function RepertoireTrainer({ eco, color, openingName }: RepertoireTrainerProps) 
     }
 
     setUserError(null);
-    setUserSuccess(`Correct! Played ${san}`);
+    setUserSuccess(`Correct! Played ${san || currentNode.user_move.san}`);
 
     // Play user move
     const afterUser = applyUciMove(activeFen, currentNode.user_move.uci);
@@ -279,7 +336,7 @@ function RepertoireTrainer({ eco, color, openingName }: RepertoireTrainerProps) 
           fen={activeFen}
           lastMove={activeLastMove}
           orientation={color}
-          interactive={!isAnimating && !completedBranch && (currentNode?.is_user_node ?? false)}
+          interactive={isInteractive}
           onMove={handleUserMove}
           blunderFlash={Boolean(userError)}
         />
@@ -300,6 +357,23 @@ function RepertoireTrainer({ eco, color, openingName }: RepertoireTrainerProps) 
               ? 'Branch complete!'
               : 'Facing opponent response...'}
           </p>
+        </div>
+
+        {/* Expected Move & Branch Line Overview */}
+        <div className="glass-card" style={{ borderLeft: '3px solid #38bdf8' }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#38bdf8', marginBottom: '0.25rem' }}>
+            Expected Repertoire Move:
+            <span style={{ color: '#fff', fontSize: '1rem', marginLeft: '0.5rem' }}>
+              {currentNode?.user_move?.san || (completedBranch ? 'Branch complete' : 'Opponent turn')}
+            </span>
+          </div>
+          <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+            {currentNode?.is_user_node && currentNode?.user_move
+              ? `Play ${currentNode.user_move.san} on the board.`
+              : completedBranch
+              ? 'You reached the end of this variation branch.'
+              : 'Facing opponent reply...'}
+          </div>
         </div>
 
         {/* Node status & Critical Badge */}
@@ -350,6 +424,7 @@ function RepertoireTrainer({ eco, color, openingName }: RepertoireTrainerProps) 
                   key={r.uci + idx}
                   className={`glass-btn ${(replyIndex % availableReplies.length) === idx ? 'active' : ''}`}
                   style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
+                  disabled={isAnimating}
                   onClick={() => setReplyIndex(idx)}
                 >
                   {r.san} ({(r.pct * 100).toFixed(0)}%)
@@ -378,10 +453,10 @@ function RepertoireTrainer({ eco, color, openingName }: RepertoireTrainerProps) 
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: 'auto' }}>
-          <button className="glass-btn primary" style={{ flex: 1 }} onClick={reRollLine}>
+          <button className="glass-btn primary" style={{ flex: 1 }} disabled={isAnimating} onClick={reRollLine}>
             Walk Another Line
           </button>
-          <button className="glass-btn" onClick={resetWalk}>
+          <button className="glass-btn" disabled={isAnimating || history.length === 0} onClick={resetWalk}>
             Reset Line
           </button>
         </div>
@@ -398,6 +473,15 @@ export default function RepertoirePanel() {
   const [buildingKey, setBuildingKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'recommendations' | 'train'>('recommendations');
+  // Train-mode opening selector, seeded with the user's high-volume openings
+  // (not just the low-volume weakness recommendations, which build empty trees).
+  const [topOpenings, setTopOpenings] = useState<{ white: any[]; black: any[] }>({ white: [], black: [] });
+  const [trainColor, setTrainColor] = useState<Color>('white');
+  const [trainPick, setTrainPick] = useState<{ eco: string; name: string } | null>(null);
+
+  useEffect(() => {
+    getTopOpenings(12).then(setTopOpenings).catch(() => { /* selector just stays empty */ });
+  }, []);
 
   const load = async () => {
     try {
@@ -564,13 +648,52 @@ export default function RepertoirePanel() {
         </div>
       )}
 
-      {mode === 'train' && (
-        <RepertoireTrainer
-          eco={rec?.eco || 'A40'}
-          color={selected?.color || 'white'}
-          openingName={rec?.name || 'Repertoire Variation'}
-        />
-      )}
+      {mode === 'train' && (() => {
+        const list = topOpenings[trainColor] || [];
+        const pick = trainPick || list[0] || { eco: 'A40', name: 'Queen’s Pawn' };
+        return (
+          <>
+            <div className="glass-panel" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1rem' }}>
+              <span style={{ fontWeight: 600 }}>Train opening:</span>
+              <div style={{ display: 'flex', gap: '0.25rem' }}>
+                {(['white', 'black'] as Color[]).map((c) => (
+                  <button
+                    key={c}
+                    className={`glass-btn ${trainColor === c ? 'active' : ''}`}
+                    style={{ textTransform: 'capitalize' }}
+                    onClick={() => { setTrainColor(c); setTrainPick(null); }}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+              <select
+                className="glass-input"
+                style={{ minWidth: '280px' }}
+                value={pick.eco}
+                onChange={(e) => {
+                  const o = list.find((x: any) => x.eco === e.target.value);
+                  if (o) setTrainPick({ eco: o.eco, name: o.name });
+                }}
+              >
+                {list.length === 0 && <option value={pick.eco}>{pick.eco}</option>}
+                {list.map((o: any) => (
+                  <option key={o.eco} value={o.eco}>
+                    {o.eco} — {o.name} ({o.count} games)
+                  </option>
+                ))}
+              </select>
+            </div>
+            <RepertoireTrainer
+              key={`${trainColor}-${pick.eco}`}
+              eco={pick.eco}
+              color={trainColor}
+              openingName={pick.name}
+              onSelectMode={setMode}
+            />
+          </>
+        );
+      })()}
 
       {selected && recs.length === 0 && mode === 'recommendations' && (
         <div className="glass-panel">

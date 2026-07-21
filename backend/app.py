@@ -531,6 +531,60 @@ async def get_repertoire_tree(req: RepertoireTreeRequest):
     )
     return tree
 
+@app.get("/api/training/repertoire/top-openings")
+async def repertoire_top_openings(limit: int = 12):
+    """The user's most-played openings per color, by ECO classification of the
+    corpus. Seeds the Train-mode opening selector so trees are built for
+    high-volume lines (A40/A46/D02...) instead of only the low-volume weakness
+    recommendations (which build empty trees). Cached to disk after first pass."""
+    import os
+    import chess.pgn
+    from collections import Counter
+    from backend.training import openings as _openings
+
+    cache_path = os.path.join(store.TRAINING_DIR, "top_openings.json")
+    if os.path.exists(cache_path):
+        with open(cache_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return {"white": data.get("white", [])[:limit],
+                "black": data.get("black", [])[:limit]}
+
+    pgn_path = PROJECT_DIR / "games_of_derdiedasdie" / "lichess_derdiedasdie_2026-07-19.pgn"
+    player_name = "derdiedasdie"
+    if not pgn_path.exists():
+        raise HTTPException(status_code=404, detail="Corpus PGN not found")
+
+    counts = {"white": Counter(), "black": Counter()}
+    names: dict[str, str] = {}
+    with open(pgn_path, "r", encoding="utf-8") as fh:
+        while True:
+            game = chess.pgn.read_game(fh)
+            if game is None:
+                break
+            w = game.headers.get("White", "")
+            b = game.headers.get("Black", "")
+            if player_name.lower() in w.lower():
+                col = "white"
+            elif player_name.lower() in b.lower():
+                col = "black"
+            else:
+                continue
+            ucis = [n.move.uci() for n in game.mainline()]
+            if not ucis:
+                continue
+            m = _openings.classify(ucis)
+            if m:
+                counts[col][m["eco"]] += 1
+                names[m["eco"]] = m.get("name", m["eco"])
+
+    def top(col):
+        return [{"eco": eco, "name": names.get(eco, eco), "count": n}
+                for eco, n in counts[col].most_common()]
+
+    result = {"white": top("white"), "black": top("black")}
+    store._write_json_atomic(cache_path, result)
+    return {"white": result["white"][:limit], "black": result["black"][:limit]}
+
 @app.post("/api/training/drills/generate")
 async def generate_drills_ep(req: GenerateDrillsRequest):
     profile = store.load_profile()

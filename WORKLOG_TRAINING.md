@@ -4,6 +4,20 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-21 — Leader (Opus) — Train-mode opening selector (high-volume openings)
+The Train-mode UI only offered the low-volume weakness recommendations (C99/D55),
+which build empty trees -> dead trainer. Added:
+- `GET /api/training/repertoire/top-openings` — classifies the corpus PGN and
+  returns the user's most-played openings per color (cached to
+  `top_openings.json`). Live output: white A40(67)/A46(59)/D02(56)…, black
+  C61(41)/D02(30)…
+- `getTopOpenings()` in `api/training.ts`; a color toggle + opening dropdown in
+  RepertoirePanel Train mode, keyed so RepertoireTrainer reloads on change.
+Build clean, lint 4 pre-existing warnings / 0 errors. NOTE: this touches
+`RepertoirePanel.tsx` + `api/training.ts`, which Gemini's parallel R4-QA task
+also edits — leader will merge the QA'd trainer internals with this selector at
+review time. (Empty-state handling for still-thin openings is part of the QA task.)
+
 ## 2026-07-21 — Gemini — Epoch III Track R · R4: Repertoire Trainer UI
 
 - Implemented backend endpoint `POST /api/training/repertoire/tree` in `backend/app.py` serving cached repertoire tree JSONs (`repertoire_tree_<eco>_<color>.json`) or generating missing trees via `select_repertoire.build_repertoire_tree`.
