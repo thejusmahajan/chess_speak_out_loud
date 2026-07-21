@@ -206,6 +206,17 @@ the work so running on real data is cheap.**
 - Corollary: when reviewing, prefer verifying the pure seam on real inputs over
   trusting a synthetic fixture. Fixtures test the mechanism; real inputs test the
   assumptions.
+- **The real-data gate catches the LEADER's spec errors too, not just the worker's.**
+  In the phase/clock task the spec confidently pinned "findings carry `game_idx`" —
+  they don't (only an `id` like `"g003-p045"`). A worker that followed the spec
+  literally would have shipped an all-zeros aggregate that passed every synthetic
+  unit test. The mandatory real-data run surfaced the degeneracy, and the worker
+  adapted (derived the index from the `id`). Two lessons: (a) **your pinned shapes
+  can be wrong — the real-data gate is the ground truth that exposes it**, so never
+  rely on pinned shapes alone; and (b) **a worker deviating from the spec to match
+  reality is a GOOD sign, not a boundary violation** — when a submission diverges
+  from the spec, first ask "is reality different from what I said?" and verify the
+  deviation is correct, rather than reflexively rejecting it.
 
 ## 4c. Tell the worker the safe pattern when the harness has traps
 
