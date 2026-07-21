@@ -4,6 +4,26 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-21 — Leader (Opus) — Epoch III Track T · T1: Tutor-style comparison primitives
+Lifted lila `modules/tutor` TutorNumber into `metrics.py` (pure, leader-owned):
+`ValueCount(value, count)`, `weighted_mean` (count-weighted, None on empty),
+`grade(mine, ref, divisor, reverse)` (signed effect size normalized by a
+meaningful divisor; reverse for lower-is-better rates), and
+`importance = |grade| * sqrt(count * weight)` (lila's ranking key). Replaces the
+raw blind-count/rate sort's small-sample distortion — a dedicated test proves a
+well-sampled moderate weakness (n=200) outranks a 1-game 100%-blind opening.
+Next (T2): DimAvg self-relative comparison + mixed_bag over these.
+
+Gate:
+```
+backend\tests\test_tutor_compare.py .......                              [100%]
+============================== 7 passed in 0.56s ==============================
+
+(full suite) ===== 81 passed, 2 warnings in 80.01s (0:01:20) =====
+```
+Plan: `REPERTOIRE_TUTOR_EPOCH.md`. Gemini's first task = Track R / R1 (own-games
+variation-tree builder + data model).
+
 ## 2026-07-21 — Leader (Opus) — TS5 #4 tests REJECTED as vacuous, rewritten + signed off
 Reviewed Gemini's two #4 tests. Both passed (17 green) but neither guarded anything;
 rewrote both (Claude worker quota still out).

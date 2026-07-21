@@ -28,7 +28,8 @@ WORKLOG_TRAINING.md.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from math import sqrt
+from typing import Iterable, Optional
 
 import chess
 
@@ -514,3 +515,58 @@ def is_opening_mistake(
     if ply <= cfg.opening_max_ply:
         return swing_cp is not None and swing_cp >= cfg.confirm_swing_cp
     return divergence_severity in ("blind", "missed")
+
+
+# ======================================================================
+# Tutor-style comparison primitives  (Epoch III, Track T — leader)
+# ----------------------------------------------------------------------
+# Lifted from lila `modules/tutor` (TutorNumber / TutorCompare): represent
+# every metric as a (value, count) pair, reduce a reference set to a
+# count-weighted mean, and grade the gap by a *meaningful* divisor so only
+# material differences surface. Ranking scales the gap by how well-sampled
+# and how impactful the dimension is. Pure math; no I/O, no engine.
+# ======================================================================
+
+
+@dataclass(frozen=True)
+class ValueCount:
+    """A metric value together with the sample size behind it. Keeping the
+    count lets the ranking discount thin evidence (a 1-game 100%-blind
+    opening must not outrank a well-sampled real weakness)."""
+
+    value: float
+    count: int
+
+
+def weighted_mean(items: Iterable[ValueCount]) -> Optional[ValueCount]:
+    """Count-weighted mean of ValueCounts -> a single reference whose count is
+    the pooled sample size. None when there is no sample at all."""
+    total_val = 0.0
+    total_n = 0
+    for vc in items:
+        total_val += vc.value * vc.count
+        total_n += vc.count
+    if total_n == 0:
+        return None
+    return ValueCount(total_val / total_n, total_n)
+
+
+def grade(mine: float, ref: float, divisor: float,
+          reverse: bool = False) -> float:
+    """Signed effect size of `mine` vs a reference, normalized by `divisor`
+    (the gap that counts as one full 'grade' — e.g. lila uses 150 Elo for
+    ratings, a percent scale for rates). Positive = the user is *better*.
+    `reverse=True` for metrics where lower is better (blind rate, time-trouble
+    rate), so a lower value still grades positive."""
+    if divisor <= 0:
+        raise ValueError("divisor must be positive")
+    g = (mine - ref) / divisor
+    return -g if reverse else g
+
+
+def importance(grade_value: float, count: int, weight: float = 1.0) -> float:
+    """Ranking key (lila: grade * sqrt(count * position_weight)). Combines the
+    magnitude of the gap with how well-sampled and how impactful the dimension
+    is. Always >= 0 — use grade_value's sign for direction (strength vs
+    weakness)."""
+    return abs(grade_value) * sqrt(max(0, count) * max(0.0, weight))
