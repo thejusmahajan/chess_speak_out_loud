@@ -4,6 +4,22 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-21 — Leader (Opus) — Ranking generalized to all dimensions (metrics.py)
+Generalized the T-track ranking so "what to work on" spans openings + phase +
+clock, not just openings:
+- `rank_dimension(by_dict, n, divisor)` — ranks ANY {key:{blind_rate,moves}}
+  aggregate via the existing compare_to_dim_avg (self-relative, weakness-first).
+- `weakness_ranking(profile)` now delegates to it (openings — backward-compatible;
+  the T4 endpoint is unaffected).
+- `weakness_ranking_all(profile)` -> {"openings":[...], "phase":[...], "clock":[...]};
+  missing dims (older profiles) come back as []. 
+4 new tests incl. the edge case that a SINGLE-bucket dimension returns [] (DimAvg
+excludes self, so one bucket has no baseline). Suite 128.
+NOTE: no existing profile carries by_phase/by_clock yet (both predate the
+aggregation), so phase/clock rankings populate only after a fresh diagnosis.
+NEXT: Gemini task to surface phase/clock rankings via the endpoint + Weakness
+Profile UI.
+
 ## 2026-07-21 — Gemini — Pipeline aggregation: by_phase + by_clock blind-rate dimensions
 
 - Implemented pure module-level `aggregate_phase_clock(games_to_process, findings, cfg)` function and `_clock_bucket(secs)` helper in `backend/training/pipeline.py`.

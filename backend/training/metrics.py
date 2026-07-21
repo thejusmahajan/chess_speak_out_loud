@@ -655,19 +655,38 @@ def classify_phase(board_or_fen) -> str:
     return "middlegame"
 
 
-def weakness_ranking(profile: dict, n: int = 6,
-                     divisor: float = WEAKNESS_BLIND_DIVISOR) -> "list[DimComparison]":
-    """Rank the user's openings by self-relative blindness (the dimension the
-    profile already carries): each ECO's blind_rate graded against the user's
-    own baseline, weighted by move count so thin lines don't dominate. Returns
-    a mixed_bag (weaknesses first). blind_rate is lower-is-better, so reverse."""
-    by_opening = (profile or {}).get("aggregates", {}).get("by_opening", {})
+def rank_dimension(by_dict: dict, n: int = 6,
+                   divisor: float = WEAKNESS_BLIND_DIVISOR) -> "list[DimComparison]":
+    """Rank ANY {key: {"blind_rate", "moves"}} aggregate (by_opening / by_phase /
+    by_clock) by self-relative blindness: each bucket's blind_rate graded against
+    the user's own baseline (the other buckets), weighted by move count so thin
+    buckets don't dominate. Returns a mixed_bag (weaknesses first). blind_rate is
+    lower-is-better, so reverse."""
     points = [
-        (eco, ValueCount(float(st.get("blind_rate", 0.0)), int(st.get("moves", 0))))
-        for eco, st in by_opening.items()
+        (key, ValueCount(float(st.get("blind_rate", 0.0)), int(st.get("moves", 0))))
+        for key, st in (by_dict or {}).items()
         if int(st.get("moves", 0)) > 0
     ]
     if not points:
         return []
-    comps = compare_to_dim_avg(points, divisor=divisor, reverse=True)
-    return mixed_bag(comps, n)
+    return mixed_bag(compare_to_dim_avg(points, divisor=divisor, reverse=True), n)
+
+
+def weakness_ranking(profile: dict, n: int = 6,
+                     divisor: float = WEAKNESS_BLIND_DIVISOR) -> "list[DimComparison]":
+    """The openings ranking (kept for the existing endpoint)."""
+    agg = (profile or {}).get("aggregates", {})
+    return rank_dimension(agg.get("by_opening", {}), n, divisor)
+
+
+def weakness_ranking_all(profile: dict, n: int = 6,
+                         divisor: float = WEAKNESS_BLIND_DIVISOR) -> "dict":
+    """Rank every dimension the profile carries — openings, game phase, and clock
+    pressure — so 'what to work on' spans more than just openings. Missing
+    dimensions (older profiles without by_phase/by_clock) come back as []."""
+    agg = (profile or {}).get("aggregates", {})
+    return {
+        "openings": rank_dimension(agg.get("by_opening", {}), n, divisor),
+        "phase": rank_dimension(agg.get("by_phase", {}), n, divisor),
+        "clock": rank_dimension(agg.get("by_clock", {}), n, divisor),
+    }

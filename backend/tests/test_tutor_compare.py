@@ -161,3 +161,55 @@ def test_weakness_ranking_ignores_thin_lines_and_empty():
     assert dims.index("SOLID") < dims.index("THIN")
     assert m.weakness_ranking({}, n=4) == []
     assert m.weakness_ranking({"aggregates": {"by_opening": {}}}) == []
+
+
+# --- T-gen: rank_dimension (generic) + weakness_ranking_all -----------------
+
+def test_rank_dimension_generic_phase_dict():
+    by_phase = {
+        "opening":    {"blind_rate": 0.14, "moves": 8000},
+        "middlegame": {"blind_rate": 0.12, "moves": 7000},
+        "endgame":    {"blind_rate": 0.07, "moves": 2000},
+    }
+    ranked = m.rank_dimension(by_phase, n=3)
+    assert [c.dim for c in ranked][0] == "opening"      # worst vs own baseline
+    assert ranked[0].grade < 0
+    # endgame is the relative strength
+    assert next(c for c in ranked if c.dim == "endgame").grade > 0
+    assert m.rank_dimension({}) == []
+
+
+def test_weakness_ranking_all_spans_dimensions():
+    profile = {"aggregates": {
+        "by_opening": {"A40": {"blind_rate": 0.30, "moves": 100},
+                       "D02": {"blind_rate": 0.10, "moves": 100}},
+        "by_phase":   {"opening": {"blind_rate": 0.14, "moves": 8000},
+                       "endgame": {"blind_rate": 0.07, "moves": 2000}},
+        "by_clock":   {"fast": {"blind_rate": 0.10, "moves": 4000},
+                       "normal": {"blind_rate": 0.13, "moves": 12000}},
+    }}
+    allr = m.weakness_ranking_all(profile)
+    assert set(allr.keys()) == {"openings", "phase", "clock"}
+    assert allr["openings"][0].dim == "A40"
+    assert {c.dim for c in allr["phase"]} == {"opening", "endgame"}
+    assert {c.dim for c in allr["clock"]} == {"fast", "normal"}
+    # backward-compat: weakness_ranking still returns just the openings list
+    assert m.weakness_ranking(profile)[0].dim == "A40"
+
+
+def test_weakness_ranking_all_missing_dims_are_empty():
+    # an older profile without by_phase/by_clock (2 openings so there IS a
+    # baseline to compare against — a single-bucket dimension has none).
+    profile = {"aggregates": {"by_opening": {
+        "A40": {"blind_rate": 0.3, "moves": 50},
+        "D02": {"blind_rate": 0.1, "moves": 50},
+    }}}
+    allr = m.weakness_ranking_all(profile)
+    assert allr["phase"] == [] and allr["clock"] == []
+    assert len(allr["openings"]) == 2
+    assert m.weakness_ranking_all({}) == {"openings": [], "phase": [], "clock": []}
+
+
+def test_single_bucket_dimension_has_no_baseline():
+    # self-relative ranking needs >= 2 buckets; one alone can't be graded.
+    assert m.rank_dimension({"only": {"blind_rate": 0.5, "moves": 100}}) == []
