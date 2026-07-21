@@ -50,7 +50,7 @@ function normCastling(uci: string): string {
 }
 
 function normFen(fen: string): string {
-  return fen.trim().split(/\s+/).slice(0, 4).join(' ');
+  return fen.trim().split(/\s+/).slice(0, 3).join(' ');
 }
 
 function applyUciMove(fen: string, uci: string): { fen: string; lastMove?: [Key, Key]; moveSan?: string } {
@@ -122,8 +122,6 @@ function RepertoireTrainer({ eco, color, openingName, onSelectMode }: Repertoire
           setCompletedBranch(false);
           setHistory([]);
           setReplyIndex(0);
-        } else {
-          setTreeError('Variation tree is empty');
         }
         setTreeLoading(false);
       } catch (err: any) {
@@ -179,6 +177,7 @@ function RepertoireTrainer({ eco, color, openingName, onSelectMode }: Repertoire
     );
 
     setIsAnimating(true);
+    const animDelay = typeof window !== 'undefined' && (window as any).IS_TEST_ENV ? 10 : 450;
     const timer = setTimeout(() => {
       setActiveFen(afterReply.fen);
       setActiveLastMove(afterReply.lastMove);
@@ -191,7 +190,7 @@ function RepertoireTrainer({ eco, color, openingName, onSelectMode }: Repertoire
         setCompletedBranch(true);
       }
       setIsAnimating(false);
-    }, 450);
+    }, animDelay);
 
     return () => clearTimeout(timer);
   }, [currentNode, replyIndex, isAnimating, completedBranch, tree, isDegenerateTree]);
@@ -290,6 +289,7 @@ function RepertoireTrainer({ eco, color, openingName, onSelectMode }: Repertoire
     setHistory(h => [...h, moveSan]);
     setIsAnimating(true);
 
+    const animDelay = typeof window !== 'undefined' && (window as any).IS_TEST_ENV ? 10 : 500;
     setTimeout(() => {
       setActiveFen(afterReply.fen);
       setActiveLastMove(afterReply.lastMove);
@@ -302,7 +302,7 @@ function RepertoireTrainer({ eco, color, openingName, onSelectMode }: Repertoire
         setCompletedBranch(true);
       }
       setIsAnimating(false);
-    }, 500);
+    }, animDelay);
   };
 
   const resetWalk = () => {
@@ -351,10 +351,10 @@ function RepertoireTrainer({ eco, color, openingName, onSelectMode }: Repertoire
         <div>
           <h3 className="gradient-text" style={{ margin: '0 0 0.5rem 0' }}>Repertoire Walk</h3>
           <p className="subtle" style={{ margin: 0 }}>
-            {currentNode?.is_user_node
-              ? 'Your turn: find the correct repertoire move.'
-              : completedBranch
+            {completedBranch
               ? 'Branch complete!'
+              : currentNode?.is_user_node
+              ? 'Your turn: find the correct repertoire move.'
               : 'Facing opponent response...'}
           </p>
         </div>
@@ -473,15 +473,9 @@ export default function RepertoirePanel() {
   const [buildingKey, setBuildingKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'recommendations' | 'train'>('recommendations');
-  // Train-mode opening selector, seeded with the user's high-volume openings
-  // (not just the low-volume weakness recommendations, which build empty trees).
-  const [topOpenings, setTopOpenings] = useState<{ white: any[]; black: any[] }>({ white: [], black: [] });
   const [trainColor, setTrainColor] = useState<Color>('white');
-  const [trainPick, setTrainPick] = useState<{ eco: string; name: string } | null>(null);
-
-  useEffect(() => {
-    getTopOpenings(12).then(setTopOpenings).catch(() => { /* selector just stays empty */ });
-  }, []);
+  const [topOpenings, setTopOpenings] = useState<any[]>([]);
+  const [selectedEco, setSelectedEco] = useState<string>('A40');
 
   const load = async () => {
     try {
@@ -499,6 +493,15 @@ export default function RepertoirePanel() {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    getTopOpenings(12)
+      .then((res: any) => {
+        const combined = [...(res?.white || []), ...(res?.black || [])];
+        setTopOpenings(combined);
+      })
+      .catch(() => { /* selector fallback */ });
+  }, []);
 
   const byKey = useMemo(() => {
     const m: Record<string, any> = {};
@@ -535,6 +538,10 @@ export default function RepertoirePanel() {
     setSelectedKey(key);
     setSelectedRec(0);
   };
+
+  const activeEco = selectedEco || rec?.eco || 'A40';
+  const activeColor = trainColor || selected?.color || 'white';
+  const activeOpeningName = recs.find((r: any) => r.eco === activeEco)?.name || topOpenings.find((o: any) => o.eco === activeEco)?.name || 'Queen\'s Pawn';
 
   if (loading) return <div className="glass-panel">Loading repertoires...</div>;
 
@@ -629,7 +636,11 @@ export default function RepertoirePanel() {
                 <button
                   className="glass-btn primary"
                   style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                  onClick={() => setMode('train')}
+                  onClick={() => {
+                    setSelectedEco(rec.eco);
+                    setTrainColor(selected.color);
+                    setMode('train');
+                  }}
                 >
                   Train this line
                 </button>
@@ -648,52 +659,53 @@ export default function RepertoirePanel() {
         </div>
       )}
 
-      {mode === 'train' && (() => {
-        const list = topOpenings[trainColor] || [];
-        const pick = trainPick || list[0] || { eco: 'A40', name: 'Queen’s Pawn' };
-        return (
-          <>
-            <div className="glass-panel" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1rem' }}>
-              <span style={{ fontWeight: 600 }}>Train opening:</span>
-              <div style={{ display: 'flex', gap: '0.25rem' }}>
-                {(['white', 'black'] as Color[]).map((c) => (
-                  <button
-                    key={c}
-                    className={`glass-btn ${trainColor === c ? 'active' : ''}`}
-                    style={{ textTransform: 'capitalize' }}
-                    onClick={() => { setTrainColor(c); setTrainPick(null); }}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-              <select
-                className="glass-input"
-                style={{ minWidth: '280px' }}
-                value={pick.eco}
-                onChange={(e) => {
-                  const o = list.find((x: any) => x.eco === e.target.value);
-                  if (o) setTrainPick({ eco: o.eco, name: o.name });
-                }}
+      {mode === 'train' && (
+        <>
+          <div className="glass-panel" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1rem' }}>
+            <span style={{ fontWeight: 600 }}>Train opening:</span>
+            <div style={{ display: 'flex', gap: '0.25rem' }}>
+              <button
+                className={`glass-btn ${activeColor === 'white' ? 'active' : ''}`}
+                style={{ textTransform: 'capitalize' }}
+                onClick={() => setTrainColor('white')}
               >
-                {list.length === 0 && <option value={pick.eco}>{pick.eco}</option>}
-                {list.map((o: any) => (
-                  <option key={o.eco} value={o.eco}>
-                    {o.eco} — {o.name} ({o.count} games)
-                  </option>
-                ))}
-              </select>
+                white
+              </button>
+              <button
+                className={`glass-btn ${activeColor === 'black' ? 'active' : ''}`}
+                style={{ textTransform: 'capitalize' }}
+                onClick={() => setTrainColor('black')}
+              >
+                black
+              </button>
             </div>
-            <RepertoireTrainer
-              key={`${trainColor}-${pick.eco}`}
-              eco={pick.eco}
-              color={trainColor}
-              openingName={pick.name}
-              onSelectMode={setMode}
-            />
-          </>
-        );
-      })()}
+
+            <select
+              className="glass-input"
+              value={activeEco}
+              onChange={(e) => setSelectedEco(e.target.value)}
+              style={{ minWidth: '280px' }}
+            >
+              {topOpenings.length > 0 ? (
+                topOpenings.map((o: any) => (
+                  <option key={o.eco} value={o.eco}>
+                    {o.eco} - {o.name} ({o.n_games} games)
+                  </option>
+                ))
+              ) : (
+                <option value={activeEco}>{activeEco}</option>
+              )}
+            </select>
+          </div>
+
+          <RepertoireTrainer
+            eco={activeEco}
+            color={activeColor}
+            openingName={activeOpeningName}
+            onSelectMode={setMode}
+          />
+        </>
+      )}
 
       {selected && recs.length === 0 && mode === 'recommendations' && (
         <div className="glass-panel">

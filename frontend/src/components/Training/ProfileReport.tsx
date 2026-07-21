@@ -101,8 +101,8 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
                 <span className={`severity ${f.severity}`}>{f.severity}</span>
               </div>
               <div className="finding-details">
-                <p><strong>Played:</strong> {f.played.san} <span className="dim">({(f.played.p * 100).toFixed(1)}%)</span></p>
-                <p><strong>Best:</strong> {f.best.san} <span className="dim">({(f.best.p * 100).toFixed(1)}%)</span></p>
+                <p><strong>Played:</strong> {f.played?.san || f.played?.uci || 'N/A'} {f.played?.p != null && <span className="dim">({(f.played.p * 100).toFixed(1)}%)</span>}</p>
+                <p><strong>Best:</strong> {f.best?.san || f.best?.uci || 'N/A'} {f.best?.p != null && <span className="dim">({(f.best.p * 100).toFixed(1)}%)</span>}</p>
                 {f.confirmation?.swing_cp != null && (
                   <p className="swing-cp">Swing: {(f.confirmation.swing_cp / 100).toFixed(2)}</p>
                 )}

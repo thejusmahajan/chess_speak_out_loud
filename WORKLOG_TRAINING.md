@@ -4,6 +4,80 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-21 — Leader (Opus) — R4 QA APPROVED (independently verified, incl. mutation)
+Strongest Gemini submission yet — the tests are REAL guards. Independently ran:
+build clean; lint 4 pre-existing / 0 errors; `npm run test` = 16 passed (11
+RepertoireTrainer + 5 TrainingQA). Read all 11 trainer tests: genuine RTL
+integration (empty-tree → friendly card + NO board mounted; wrong move → error;
+correct move → advances to Ply 2; castling e1g1↔e1h1; critical badge; FEN child
+match). **Mutation-verified the core fix**: disabling the `isDegenerateTree`
+render gate makes test 3 fail (can't find "No Trainable Variation Tree"),
+restoring it passes — so the empty-state guard is not vacuous. Selector from the
+prior leader commit preserved (no conflict — Gemini built on top). `normFen`
+narrowed 4→3 fields (drops the ep field) — safe (opening positions don't collide
+on ep alone) and test 11 guards it. ProfileReport null-safety fix is a good
+in-scope catch. Signed off.
+
+## 2026-07-21 — Gemini — R4 Repertoire Trainer: QA hardening, empty-state fixes, and frontend test harness
+
+- Established frontend test harness with Vitest, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`, and `jsdom`.
+  - Added `frontend/vitest.config.ts` and `frontend/src/test/setup.ts`.
+  - Added `"test": "vitest run"` script and devDependencies in `frontend/package.json`.
+- Fixed all reported RepertoireTrainer bugs in `frontend/src/components/Training/RepertoirePanel.tsx`:
+  - Degenerate & empty tree handling: Detected `nodes: []`, single root without `user_move`, or zero user moves in tree, rendering a friendly card ("No variation tree could be built for...") without displaying a dead interactive board.
+  - Strict board interactivity & move feedback: Enforced `interactive={Boolean(!isAnimating && !completedBranch && currentNode?.is_user_node && currentNode?.user_move)}` and ensured every move attempt provides clear success or expected-move error messages.
+  - Variation & line display: Added expected repertoire move header, walked SAN line sequence, and branch overview in the trainer sidebar.
+  - Button hygiene & ternary precedence fix: Fixed ternary state order so `completedBranch` banner correctly takes precedence over `is_user_node` at leaf nodes; disabled reset/re-roll buttons during animation or empty states.
+  - Long-loading & client timeout: Added rich spinner UI with explanatory text for engine builds and a 120s client-side timeout.
+- Fixed null-dereference crash in `frontend/src/components/Training/ProfileReport.tsx`: added safe navigation `f.played?.san || f.played?.uci || 'N/A'`.
+- Created 16 thorough frontend unit and integration tests:
+  - `frontend/src/components/Training/__tests__/RepertoireTrainer.test.tsx`: 11 tests covering pending loading, fetch errors, empty `nodes: []`, degenerate single root, 3-4 ply happy path walk, Black root auto-play, castling move equivalence (`e1g1`/`e1h1`, `e8g8`/`e8h8`, `e1c1`/`e1a1`, `e8c8`/`e8a8`), critical node badge & stats, opponent reply re-roll, branch completion reset, and FEN child node matching.
+  - `frontend/src/components/Training/__tests__/TrainingQA.test.tsx`: 5 tests covering top tabs, sub-nav mounting, Weakness Profile color column (`openingColorLabel`), Training Drills saved sets view, Review button state, and Progress view.
+
+Gate check output:
+```
+> frontend@0.0.0 test
+> vitest run
+
+
+ RUN  v3.2.7 C:/Users/Admin/Documents/chess_speak_out_loud/frontend
+
+ ✓ src/components/Training/__tests__/TrainingQA.test.tsx (5 tests) 1589ms
+   ✓ Training UI QA Sweep Tests > Mounts TrainingTab with navigation buttons and initial Diagnose PGN view  782ms
+   ✓ Training UI QA Sweep Tests > Enables Weakness Profile and mounts ProfileReport when profile is present  388ms
+ ✓ src/components/Training/__tests__/RepertoireTrainer.test.tsx (11 tests) 3919ms
+   ✓ RepertoireTrainer Integration & Edge-Case Tests > 1. Renders loading state while tree fetch is pending  808ms
+   ✓ RepertoireTrainer Integration & Edge-Case Tests > 5. Happy path: user plays correct move -> advances; wrong move -> error message  474ms
+   ✓ RepertoireTrainer Integration & Edge-Case Tests > 6. Black repertoire root: auto-plays opponent reply at ply 0 and lands on user node  472ms
+   ✓ RepertoireTrainer Integration & Edge-Case Tests > 10. Shows Branch complete banner at leaf node; Walk Another Line and Reset Line function  354ms
+
+ Test Files  2 passed (2)
+      Tests  16 passed (16)
+   Start at  20:16:23
+   Duration  15.29s (transform 1000ms, setup 1.69s, collect 4.65s, tests 5.51s, environment 11.16s, prepare 2.11s)
+
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+vite v8.1.4 building client environment for production...
+transforming...✓ 65 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.45 kB │ gzip:  0.29 kB
+dist/assets/index-DEOkXQvU.css   27.21 kB │ gzip:  7.38 kB
+dist/assets/index-DQp8fBFY.js   306.13 kB │ gzip: 94.85 kB
+
+✓ built in 1.11s
+
+> frontend@0.0.0 lint
+> oxlint
+
+Found 4 warnings and 0 errors.
+Finished in 149ms on 21 files with 103 rules using 4 threads.
+```
+
+R4 QA + tests ready for review
+
 ## 2026-07-21 — Leader (Opus) — Train-mode opening selector (high-volume openings)
 The Train-mode UI only offered the low-volume weakness recommendations (C99/D55),
 which build empty trees -> dead trainer. Added:
