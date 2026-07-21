@@ -248,3 +248,119 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
     }
     store.save_drill_set(drill_set)
     return drill_set
+
+
+# ======================================================================
+# Repertoire drills (Epoch III, R2) — turn a variation tree's CRITICAL
+# nodes into SRS-tracked line drills the user must solve. Reuses
+# check_attempt for judging and record_attempt (attempts.py) for
+# scheduling. Deterministic; no engine calls.
+# ======================================================================
+
+import hashlib
+
+
+def _rep_drill_id(color: str, epd: str) -> str:
+    """Stable id for a critical position, so the SRS tracks the SAME node
+    across tree rebuilds (tree node ids are per-build counters and change)."""
+    return "rep-" + hashlib.sha1(f"{color}:{epd}".encode("utf-8")).hexdigest()[:12]
+
+
+def _walk_line(tree: dict, start: dict, max_len: int = 5) -> list:
+    """Walk the main (most-played) line from a user node into a
+    check_attempt line_uci: [user, opp, user, opp, ...] ending on a user
+    move. Opponent replies are the highest-frequency child each step."""
+    by_epd = {chess.Board(n["fen_before"]).epd(): n for n in tree["nodes"]}
+    line: list = []
+    node = start
+    while len(line) < max_len:
+        um = node.get("user_move")
+        if not um:
+            break
+        line.append(um["uci"])
+        board = chess.Board(node["fen_before"])
+        try:
+            board.push_uci(um["uci"])
+        except ValueError:
+            line.pop()
+            break
+        replies = node.get("opponent_replies") or []
+        if not replies:
+            break
+        top = replies[0]  # opponent_replies is sorted by count desc
+        board.push_uci(top["uci"])
+        child = by_epd.get(board.epd())
+        if not child:
+            break
+        line.append(top["uci"])
+        node = child
+    # end on a user move (odd length) so check_attempt completes cleanly
+    if len(line) % 2 == 0 and line:
+        line = line[:-1]
+    return line
+
+
+def build_repertoire_drills(tree: dict, max_line_len: int = 5) -> list:
+    """One drill per CRITICAL node of a repertoire tree. Each is a
+    check_attempt-compatible line drill with a stable, position-derived id,
+    source 'repertoire', and the node's coach reveal (incl. any explanation)."""
+    eco = tree.get("eco", "???")
+    color = tree.get("color", "white")
+    drills: list = []
+    seen: set = set()
+    for node in tree.get("nodes", []):
+        if not node.get("critical") or not node.get("user_move"):
+            continue
+        try:
+            board = chess.Board(node["fen_before"])
+        except ValueError:
+            continue
+        epd = board.epd()
+        drill_id = _rep_drill_id(color, epd)
+        if drill_id in seen:
+            continue
+        seen.add(drill_id)
+
+        line = _walk_line(tree, node, max_line_len) or [node["user_move"]["uci"]]
+        drills.append({
+            "id": drill_id,
+            "source": "repertoire",
+            "fen": node["fen_before"],
+            "setup_move_uci": None,
+            "solution_uci": node["user_move"]["uci"],
+            "line_uci": line,
+            "alt_solution_ucis": metrics.accepted_ucis(board, node["user_move"]["uci"]),
+            "solution_san": node["user_move"].get("san"),
+            "tags": [eco, node.get("critical_reason", "critical")],
+            "difficulty": 1650,
+            "origin": {
+                "eco": eco, "color": color, "node_id": node.get("id"),
+                "critical_reason": node.get("critical_reason"),
+            },
+            "reveal": {
+                "best_uci": node["user_move"]["uci"],
+                "best_eval_cp": node.get("eval_cp"),
+                "complexity": node.get("complexity"),
+                "user_blind_rate": node.get("user_blind_rate"),
+                "critical_reason": node.get("critical_reason"),
+                "explanation": node.get("explanation"),
+                "minefield": node.get("opponent_replies", []),
+                "motifs": [], "concepts": [], "pv_san": [], "swing_cp": 0,
+            },
+        })
+    return drills
+
+
+def build_repertoire_drill_set(tree: dict, max_line_len: int = 5) -> dict:
+    """Wrap build_repertoire_drills in a drill-set envelope (same shape as
+    generate_drill_set) so it can be saved and flow through DrillMode + SRS."""
+    eco = tree.get("eco", "???")
+    color = tree.get("color", "white")
+    return {
+        "id": f"rep-{eco}-{color}-{datetime.datetime.utcnow().strftime('%Y-%m-%d-%H%M%S')}",
+        "created": datetime.datetime.utcnow().isoformat(),
+        "source": "repertoire",
+        "eco": eco,
+        "color": color,
+        "drills": build_repertoire_drills(tree, max_line_len),
+    }
