@@ -129,3 +129,109 @@ Generate the HTML conversation interpreting this position now.
         return response.text
     except Exception as e:
         return f"<p><em>Error generating conversation: {str(e)}</em></p>"
+
+
+# ------------------------------------------------------------------
+# R3: Coach Explanations for Repertoire Nodes
+# ------------------------------------------------------------------
+
+COACH_SYSTEM_PROMPT = (
+    "You are a concise chess coach. In 2 to 3 sentences of plain prose, explain "
+    "why the given move is the correct repertoire choice in this position and the "
+    "single most important thing the student must watch for. No move lists, no engine "
+    "jargon, no markdown, no HTML, no headers — just the prose."
+)
+
+def _build_fallback_explanation(context: dict) -> str:
+    move_san = context.get("move_san", "This move")
+    reason = context.get("critical_reason", "")
+    if reason == "blind_rate":
+        rate = round(context.get("user_blind_rate", 0) * 100)
+        gloss = f"you have historically been blind here {rate}% of the time"
+    elif reason == "eval_swing":
+        gloss = "an alternative move leads to a significant evaluation drop"
+    elif reason == "complexity":
+        gloss = "the position is sharp and easy to go wrong in"
+    else:
+        gloss = "it is the key theoretical continuation"
+    return f"{move_san} is the critical repertoire move here because {gloss}. Focus on maintaining sound piece activity and watch out for opponent counter-play."
+
+def _clean_plain_text(text: str) -> str:
+    import re
+    text = re.sub(r'<[^>]*>', '', text)
+    text = re.sub(r'[*_`#]', '', text)
+    return text.strip()
+
+def _build_move_explanation_prompt(context: dict) -> str:
+    fen = context.get("fen", "")
+    move_san = context.get("move_san", "")
+    color = context.get("color", "white")
+    opening_name = context.get("opening_name", "Unknown Opening")
+
+    eval_cp = context.get("eval_cp", 0)
+    try:
+        eval_pawns = float(eval_cp) / 100.0
+    except (ValueError, TypeError):
+        eval_pawns = 0.0
+
+    reason = context.get("critical_reason", "")
+    blind_rate = context.get("user_blind_rate", 0.0)
+    if reason == "blind_rate":
+        rate_pct = round(blind_rate * 100) if isinstance(blind_rate, (int, float)) else 0
+        reason_gloss = f"the student has historically been blind here {rate_pct}% of the time"
+    elif reason == "eval_swing":
+        reason_gloss = "a wrong reply drops roughly evaluation significantly"
+    elif reason == "complexity":
+        reason_gloss = "the position is sharp and easy to go wrong in"
+    else:
+        reason_gloss = "this position is a critical repertoire decision"
+
+    replies = context.get("opponent_replies", [])[:3]
+    replies_formatted = []
+    for r in replies:
+        if isinstance(r, dict):
+            san = r.get("san", "")
+            pct = r.get("pct", 0)
+            replies_formatted.append(f"{san} ({pct}%)")
+    replies_str = ", ".join(replies_formatted) if replies_formatted else "None"
+
+    return (
+        f"Position FEN: {fen}\n"
+        f"Recommended move: {move_san}\n"
+        f"Side to move: {color}\n"
+        f"Opening: {opening_name}\n"
+        f"Evaluation (pawns): {eval_pawns:+.2f}\n"
+        f"Criticality reason: {reason_gloss}\n"
+        f"Top opponent replies: {replies_str}\n\n"
+        "Explain why this move is recommended and what to watch out for."
+    )
+
+async def generate_move_explanation(context: dict, llm_model: str = "gemini-3.5-flash") -> str:
+    """
+    Calls Gemini API to generate a single concise coach note for a repertoire node.
+    Returns plain text. Never raises exceptions (returns fallback on error/no-key).
+    """
+    api_key_env = os.getenv("GEMINI_API_KEY")
+    if not api_key_env:
+        return _build_fallback_explanation(context)
+
+    try:
+        genai.configure(api_key=api_key_env)
+        coach_model = genai.GenerativeModel(
+            llm_model,
+            system_instruction=COACH_SYSTEM_PROMPT
+        )
+        prompt = _build_move_explanation_prompt(context)
+        response = await coach_model.generate_content_async(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.5,
+                max_output_tokens=180,
+            )
+        )
+        if hasattr(response, "text") and response.text:
+            return _clean_plain_text(response.text)
+        return _build_fallback_explanation(context)
+    except Exception:
+        return _build_fallback_explanation(context)
+

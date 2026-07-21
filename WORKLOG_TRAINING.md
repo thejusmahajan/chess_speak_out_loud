@@ -4,6 +4,112 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-21 — Gemini — Epoch III · Track R · R3: LLM coach explanations for critical repertoire nodes
+
+- Added `generate_move_explanation(context: dict, llm_model: str)` to `backend/llm_client.py`:
+  - Enforces a dedicated coach system instruction (2-3 sentences plain prose, no move lists, engine jargon, HTML, or markdown).
+  - Formats context including FEN, move SAN, color, opening name, pawn evaluation, glossed `critical_reason`, and top opponent replies.
+  - Implements no-key and API exception fallback to a deterministic, plain-text fallback string mentioning the move SAN.
+- Created `backend/training/explanations.py` (`enrich_tree_explanations`):
+  - Enriches critical user decision nodes in variation trees using `store.EpdCache("explanations")`.
+  - Caps per-request new generations to `max_new=8` to preserve UI responsiveness.
+  - Handles malformed nodes gracefully without raising.
+- Wired endpoint hook in `backend/app.py`:
+  - `POST /api/training/repertoire/tree` enriches trees with explanations via `explanations.enrich_tree_explanations` at serve time before returning the tree to the frontend.
+- Created 11 unit tests in `backend/tests/test_explanations.py`.
+
+Gate check output:
+```
+C:\Users\Admin\miniconda3\envs\cszero\python.exe -m pytest backend/tests/test_explanations.py -q
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Admin\Documents\chess_speak_out_loud
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collected 11 items
+
+backend\tests\test_explanations.py ...........                           [100%]
+
+============================== warnings summary ===============================
+backend\llm_client.py:2
+  C:\Users\Admin\Documents\chess_speak_out_loud\backend\llm_client.py:2: FutureWarning: 
+  
+  All support for the `google.generativeai` package has ended. It will no longer be receiving 
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+  
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  
+    import google.generativeai as genai
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 11 passed, 1 warning in 6.22s ========================
+```
+
+Full suite output:
+```
+C:\Users\Admin\miniconda3\envs\cszero\python.exe -m pytest backend/tests/ -q
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Admin\Documents\chess_speak_out_loud
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collected 102 items
+
+backend\tests\test_explanations.py ...........                           [ 10%]
+backend\tests\test_health.py .                                           [ 11%]
+backend\tests\test_repertoire_tree.py ....                               [ 15%]
+backend\tests\test_training_attempts.py ......                           [ 21%]
+backend\tests\test_training_clk.py ....                                  [ 25%]
+backend\tests\test_training_drills.py ..............                     [ 39%]
+backend\tests\test_training_gems.py .......                              [ 46%]
+backend\tests\test_training_metrics.py .......                           [ 52%]
+backend\tests\test_training_pipeline_color.py .                          [ 53%]
+backend\tests\test_training_pipeline_steer.py ....                       [ 57%]
+backend\tests\test_training_select.py ............                       [ 69%]
+backend\tests\test_training_steer.py ..........                          [ 79%]
+backend\tests\test_training_store.py ........                            [ 87%]
+backend\tests\test_tutor_compare.py .............                        [100%]
+
+============================== warnings summary ===============================
+backend\llm_client.py:2
+  C:\Users\Admin\Documents\chess_speak_out_loud\backend\llm_client.py:2: FutureWarning: 
+  
+  All support for the `google.generativeai` package has ended. It will no longer be receiving 
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+  
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  
+    import google.generativeai as genai
+
+..\..\miniconda3\envs\cszero\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\Admin\miniconda3\envs\cszero\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================= 102 passed, 2 warnings in 68.49s (0:01:08) ==================
+```
+
+Endpoint hook confirmation: `POST /api/training/repertoire/tree` in `backend/app.py` is wired to call `await explanations.enrich_tree_explanations(tree)` prior to returning the repertoire variation tree.
+
+R3 explanations ready for review
+
+> Leader (Opus) sign-off: APPROVED after one fix. Structure/caching/boundaries
+> all correct; the 11 tests are REAL guards (call_count proves generate-once
+> caching, cross-instance persistence, max_new=2→fill-to-5, critical-only,
+> malformed-skip). Endpoint hook correctly refactored to enrich BOTH the
+> cached-file and freshly-built paths before return.
+> **Caught a runtime bug the mocks hid:** `enrich` called
+> `generate_move_explanation(context, model=...)` but the real param is
+> `llm_model` → `TypeError` on every cache-miss (500s the endpoint). The mocked
+> tests passed because their lambda used `model=`. Proven by running the real
+> no-key path (TypeError), fixed to a positional call, and added
+> `test_enrich_calls_real_generate_with_correct_signature` (unmocked, no-key) as
+> a regression guard — mutation-verified it fails with the bug, passes fixed.
+> test_explanations 12 passed; full suite 110.
+
+
 ## 2026-07-21 — Leader (Opus) — Epoch III Track T · T2: self-relative (DimAvg) ranking
 Built the Tutor-style ranking on T1's primitives (lila TutorCompare), pure/leader-
 owned in `metrics.py`:

@@ -518,18 +518,22 @@ async def get_repertoire_tree(req: RepertoireTreeRequest):
     filepath = os.path.join(store.TRAINING_DIR, f"repertoire_tree_{req.eco}_{req.color}.json")
     if os.path.exists(filepath):
         with open(filepath, "r", encoding="utf-8") as f:
-            return json.load(f)
+            tree = json.load(f)
+    else:
+        from backend.training.select_repertoire import build_repertoire_tree
+        profile = store.load_profile()
+        pgn_path = PROJECT_DIR / "games_of_derdiedasdie" / "lichess_derdiedasdie_2026-07-19.pgn"
+        player_name = "derdiedasdie"
+        if not pgn_path.exists():
+            raise HTTPException(status_code=404, detail="Repertoire tree PGN file not found")
+        tree = await build_repertoire_tree(
+            req.eco, req.color, str(pgn_path), player_name, lc0_engine, profile=profile
+        )
 
-    from backend.training.select_repertoire import build_repertoire_tree
-    profile = store.load_profile()
-    pgn_path = PROJECT_DIR / "games_of_derdiedasdie" / "lichess_derdiedasdie_2026-07-19.pgn"
-    player_name = "derdiedasdie"
-    if not pgn_path.exists():
-        raise HTTPException(status_code=404, detail="Repertoire tree PGN file not found")
-    tree = await build_repertoire_tree(
-        req.eco, req.color, str(pgn_path), player_name, lc0_engine, profile=profile
-    )
+    from backend.training import explanations
+    tree = await explanations.enrich_tree_explanations(tree)
     return tree
+
 
 @app.get("/api/training/repertoire/top-openings")
 async def repertoire_top_openings(limit: int = 12):
