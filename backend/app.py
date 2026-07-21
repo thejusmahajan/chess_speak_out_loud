@@ -472,10 +472,15 @@ async def start_diagnose(req: DiagnoseRequest):
     jobs_dir = Path(store.TRAINING_DIR) / "jobs"
     if jobs_dir.exists():
         for job_file in jobs_dir.glob("*.json"):
-            with open(job_file, "r") as f:
-                j = json.load(f)
-                if j.get("status") == "running":
-                    raise HTTPException(status_code=409, detail="A diagnosis job is already running")
+            # A corrupt/locked job file must not 500 a new diagnosis (audit F3;
+            # matches _sweep_orphaned_training_jobs' guarding).
+            try:
+                with open(job_file, "r") as f:
+                    j = json.load(f)
+            except (json.JSONDecodeError, OSError):
+                continue
+            if j.get("status") == "running":
+                raise HTTPException(status_code=409, detail="A diagnosis job is already running")
                     
     job_id = store.create_job()
     task = asyncio.create_task(

@@ -120,3 +120,23 @@ def test_opening_mistake_needs_confirmed_swing():
 def test_middlegame_mistake_uses_policy_severity():
     assert metrics.is_opening_mistake(40, "missed", swing_cp=None, cfg=CFG) is True
     assert metrics.is_opening_mistake(40, None, swing_cp=None, cfg=CFG) is False
+
+
+def test_complexity_narrowness_holds_for_black_to_move():
+    # Audit F1 guard: best_moves scores are WHITE-POV. For a black-to-move
+    # position, black's best reply has a LOWER white-POV score than the 2nd, so
+    # the mover-POV gap is the magnitude. The old max(0, s0 - s1) wrongly zeroed
+    # narrowness/policy_trap for every black-to-move analysis (i.e. every
+    # position after a White user's candidate move).
+    import pytest
+    analysis = {
+        "wdl": [350, 50, 600],  # decisive
+        "best_moves": [
+            {"move": "e7e5", "score": -200},   # black's best  (white-POV -200)
+            {"move": "d7d5", "score": -50},    # black's 2nd   (white-POV  -50)
+        ],
+    }
+    policy = [{"uci": "b8c6", "p": 0.7}, {"uci": "e7e5", "p": 0.03}]
+    c = metrics.tactical_complexity(analysis, policy, saliency=None, cfg=CFG)
+    assert c["narrowness"] == pytest.approx(0.75)   # |−200 − (−50)| = 150 / 200
+    assert c["policy_trap"] > 0.6                    # (1 − 0.03) * 0.75

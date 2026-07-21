@@ -396,8 +396,10 @@ def tactical_complexity(
 
     Inputs (all from the analyzed position):
       analysis — engine.analyze(...): needs "wdl":[w,d,l] and
-                 "best_moves":[{"move","score",...}, ...] (score = side-to-move
-                 POV cp, best first).
+                 "best_moves":[{"move","score",...}, ...]. Scores are WHITE-POV cp
+                 (as engine_manager emits them via PovScore.white()), ordered
+                 best-first for the side to move. narrowness therefore uses the
+                 magnitude |s0 - s1| — the mover-POV gap regardless of color.
       policy   — get_policy_distribution(...): [{"uci","p"}, ...].
       saliency — saliency_absolute(...), or None to skip the attention term
                  (e.g. BT3 budget exhausted) — weights renormalize.
@@ -418,7 +420,10 @@ def tactical_complexity(
         s0 = eval_cp_number(best_moves[0].get("score"))
         s1 = eval_cp_number(best_moves[1].get("score"))
         if s0 is not None and s1 is not None:
-            gap_cp = max(0.0, s0 - s1)
+            # scores are white-POV, best-first for the mover; the mover-POV gap
+            # is the magnitude (for black-to-move, s0 < s1, so max(0,s0-s1)=0
+            # would wrongly zero narrowness/policy_trap — audit F1).
+            gap_cp = abs(s0 - s1)
     narrowness = min(gap_cp / cfg.steer_narrow_full_cp, 1.0) if cfg.steer_narrow_full_cp else 0.0
 
     # Policy trap: the sole saving reply carries a LOW prior — a human is

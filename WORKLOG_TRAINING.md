@@ -4,6 +4,49 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-22 — Leader (Opus) — Code audit reviewed; F1+F3 fixed, rest triaged
+Independently verified every finding by reading the code. Strong audit — the
+critical one is real and important.
+- **F1 [CRITICAL] CONFIRMED & FIXED.** `tactical_complexity` assumed side-to-move
+  scores but engine_manager emits WHITE-POV (`PovScore.white()`), so `gap_cp =
+  max(0, s0-s1)` zeroed narrowness+policy_trap for EVERY black-to-move analysis
+  (i.e. every position after a White user's candidate move). Fix: `gap_cp =
+  abs(s0-s1)` (mover-POV magnitude; best_moves is best-first). Guard test added +
+  mutation-verified (fails with old code). Suite 130.
+- **F3 [HIGH] CONFIRMED & FIXED.** `start_diagnose` read job files unguarded (a
+  corrupt/locked file 500'd new diagnoses); wrapped in try/except like _sweep.
+- **F2 [HIGH→MED] CONFIRMED, deferred.** by_opening blind is weighted (×2 for
+  confirmed → rate can exceed 100%), by_phase/by_clock unweighted. Real
+  inconsistency, but rank_dimension is WITHIN-dimension so no cross-dim ranking
+  distortion (Gemini's stated impact overstated). Fix = a behavior choice (unweight
+  by_opening) — hold for a decision.
+- **F4 [HIGH→LOW] PARTLY STALE.** Hardcoded PGN *path* already fixed earlier
+  (`_corpus_pgn`); hardcoded *username* stands but is fine for a single-user app.
+- **F5 [MED] CONFIRMED, deferred.** build_repertoire_tree's blind_by_epd counts
+  findings from ALL ECOs at a transposition EPD / divides by the ECO's games
+  (capped at 1.0) — can inflate a node's blind_rate. Worth scoping to the ECO's
+  games later.
+- **F6 [MED] plausible perf** (steer saliency recomputed on cache hits) — not
+  correctness; note. **F7 [LOW]** LLM_ENABLED-vs-R3 doc nit — real. **F8
+  [SUSPECTED]** _walk_line truncation — left as suspected.
+Report: `CODE_AUDIT_REPORT.md`. Read-only respected (no source changed by Gemini).
+
+## 2026-07-22 — Gemini — Deep code audit for bugs and aim-alignment (READ-ONLY)
+
+- Conducted a deep read-only code audit of the training codebase across all priority modules (`pipeline.py`, `metrics.py`, `select_repertoire.py`, `drills.py`, `attempts.py`, `explanations.py`, `app.py`, `store.py`, `openings.py`, `gems.py`, `trends.py`, `llm_client.py`, `engine_manager.py`).
+- Produced `CODE_AUDIT_REPORT.md` with 8 ranked findings (7 CONFIRMED, 1 SUSPECTED) detailing exact file/line evidence, concrete failure scenarios, aim-impact citations, and suggested fixes:
+  1. **[SEV: critical] `tactical_complexity` computes response narrowness with inverted White-POV evals when Black is to move (CONFIRMED).** (Location: `metrics.py:418-423`).
+  2. **[SEV: high] `by_opening` aggregate computes weighted blind rate whereas `by_phase` and `by_clock` compute unweighted blind rate (CONFIRMED).** (Location: `pipeline.py:493-516` vs `101-115`).
+  3. **[SEV: high] Unhandled `JSONDecodeError` / `OSError` in `start_diagnose` can crash diagnosis endpoint with HTTP 500 (CONFIRMED).** (Location: `app.py:465-468`).
+  4. **[SEV: high] Hardcoded corpus PGN path and username in `repertoire_top_openings` and `get_repertoire_tree` endpoints (CONFIRMED).** (Location: `app.py:526, 575`).
+  5. **[SEV: medium] `build_repertoire_tree` `user_blind_rate` counts profile-wide findings against ECO-specific game count (CONFIRMED).** (Location: `select_repertoire.py:435, 541`).
+  6. **[SEV: medium] Steer cache misses re-calculate saliency without persisting saliency to disk (CONFIRMED).** (Location: `pipeline.py:375-398`).
+  7. **[SEV: low] `TRAINING_SYSTEM_PLAN.md` § 8 Rule 3 vs R3 `enrich_tree_explanations` LLM generation (CONFIRMED).** (Location: `app.py:535` & `explanations.py:63`).
+  8. **[SEV: low] `_walk_line` in `drills.py` line truncation logic when reaching leaf node (SUSPECTED).** (Location: `drills.py:276-300`).
+- Evaluated overall aim-alignment verdict: core diagnostician, repertoire architect, and drill sergeant engines are highly aligned with the master plan.
+
+code audit ready for review
+
 ## 2026-07-21 — Leader (Opus) — Multi-dim ranking UI APPROVED (no fixes)
 Independently verified: backend endpoint 5 passed, full suite 129, frontend build
 clean / lint 0 errors 4 pre-existing / 22 vitest. Boundaries clean (metrics
