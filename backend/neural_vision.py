@@ -12,14 +12,15 @@ logger = logging.getLogger(__name__)
 
 class NeuralVision:
     def __init__(self, onnx_path: str):
+        import torch
         self.mode = "policy_fallback"
         self.model = None
+        self.device = torch.device("cpu")
         self._attn_module_names = [
             f"module.encoder{i}/mha/QK/softmax" for i in range(15)
         ]
         
         try:
-            import torch
             import lczerolens
             from lczerolens import LczeroModel
 
@@ -41,9 +42,11 @@ class NeuralVision:
             lczerolens.model.safe_shape_inference = patched_safe_shape_inference
 
             self.model = LczeroModel.from_onnx_path(onnx_path)
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.model.to(self.device)
             self.model.eval()
             self.mode = "attention"
-            logger.info("NeuralVision loaded BT3 ONNX in attention mode.")
+            logger.info("NeuralVision loaded BT3 ONNX in attention mode on device: %s", self.device)
         except Exception as exc:
             logger.warning("NeuralVision attention unavailable (%s) — policy_fallback", exc)
 
@@ -74,8 +77,9 @@ class NeuralVision:
                 hooks.append(mod.register_forward_hook(hook_fn))
                 
         board = LczeroBoard(fen)
+        input_tensor = board.to_input_tensor().unsqueeze(0).to(self.device)
         with torch.no_grad():
-            self.model(board)
+            self.model(input_tensor)
             
         for h in hooks:
             h.remove()
@@ -168,7 +172,7 @@ class NeuralVision:
             eval_fen = b.mirror().fen() if is_black else b.fen()
             input_tensors.append(LczeroBoard(eval_fen).to_input_tensor())
 
-        batch_tensor = torch.stack(input_tensors)
+        batch_tensor = torch.stack(input_tensors).to(self.device)
 
         attention_tensors = []
         def hook_fn(module, inp, out):
@@ -220,6 +224,98 @@ class NeuralVision:
             results.append(saliency_map)
 
         return results
+
+    def evaluate_batch(self, fens: list[str]) -> list[dict]:
+        """
+        Public API: Batched BT3 position evaluation (value + WDL + legal policy) for a
+        list of FENs in ONE forward pass.
+
+        Returns per-FEN dict:
+        {
+            "value": float,       # side-to-move win-ish score in [-1, 1] (w - l)
+            "wdl": [w, d, l],     # probabilities from net's WDL head
+            "policy": [{"uci": str, "p": float}, ...] # legal moves, p in [0,1], sorted desc
+        }
+        """
+        if not fens:
+            return []
+        if self.mode != "attention" or self.model is None:
+            return [self._eval_fallback(f) for f in fens]
+        try:
+            return self._evaluate_batch(fens)
+        except Exception as exc:
+            logger.error("evaluate_batch failed (%s) — fallback to serial", exc)
+            return [self._evaluate_one(f) for f in fens]
+
+    def _evaluate_batch(self, fens: list[str]) -> list[dict]:
+        import torch
+        from lczerolens import LczeroBoard
+
+        boards = [chess.Board(f) for f in fens]
+        input_tensors = []
+
+        for b in boards:
+            eval_fen = b.mirror().fen() if b.turn == chess.BLACK else b.fen()
+            input_tensors.append(LczeroBoard(eval_fen).to_input_tensor())
+
+        batch_tensor = torch.stack(input_tensors).to(self.device)
+
+        with torch.no_grad():
+            outputs = self.model(batch_tensor)
+
+        wdl_tensor = outputs["wdl"]       # [N, 3]
+        policy_tensor = outputs["policy"] # [N, 1858]
+        policy_probs = torch.softmax(policy_tensor, dim=-1)
+
+        results = []
+        for i, b in enumerate(boards):
+            wdl_row = wdl_tensor[i].tolist()
+            w, d, l = float(wdl_row[0]), float(wdl_row[1]), float(wdl_row[2])
+            val = w - l
+
+            p_row = policy_probs[i]
+            legal_moves = []
+            for m in b.legal_moves:
+                idx = LczeroBoard.encode_move(m, b.turn)
+                legal_moves.append({
+                    "uci": m.uci(),
+                    "p": float(p_row[idx].item())
+                })
+            # Renormalize over LEGAL moves (mask illegal), matching lc0's policy
+            # semantics. Softmax over all 1858 outputs leaves ~97% of the mass on
+            # illegal indices, so the raw legal probs are near-uniform (~0.001)
+            # and useless as priors. Dividing by the legal mass is equivalent to
+            # a softmax over just the legal-move logits and yields usable priors.
+            total_p = sum(x["p"] for x in legal_moves)
+            if total_p > 0:
+                for x in legal_moves:
+                    x["p"] /= total_p
+            legal_moves.sort(key=lambda x: x["p"], reverse=True)
+
+            results.append({
+                "value": val,
+                "wdl": [w, d, l],
+                "policy": legal_moves,
+            })
+
+        return results
+
+    def _evaluate_one(self, fen: str) -> dict:
+        try:
+            return self._evaluate_batch([fen])[0]
+        except Exception as exc:
+            logger.error("_evaluate_one failed for FEN %s (%s)", fen, exc)
+            return self._eval_fallback(fen)
+
+    def _eval_fallback(self, fen: str) -> dict:
+        board = chess.Board(fen)
+        legal = list(board.legal_moves)
+        p_uniform = 1.0 / len(legal) if legal else 0.0
+        return {
+            "value": 0.0,
+            "wdl": [0.3333, 0.3334, 0.3333],
+            "policy": [{"uci": m.uci(), "p": p_uniform} for m in legal],
+        }
 
     def _saliency_absolute(self, board: "chess.Board") -> dict[str, float]:
         """

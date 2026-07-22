@@ -4,6 +4,29 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-22 — Gemini — Device-aware NeuralVision + batched position eval
+
+- Updated `NeuralVision` in `backend/neural_vision.py` to be device-aware: initializes `self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")` and moves `self.model` to `self.device`.
+- Ensured all input tensors fed to `self.model` in both serial (`_attention_saliency`) and batched (`_saliency_absolute_batch`, `_evaluate_batch`) paths land explicitly on `self.device`.
+- Implemented public `evaluate_batch(fens: list[str]) -> list[dict]` for candidate position evaluation (value in [-1, 1], WDL probabilities, legal move policy sorted desc) in a single model forward pass.
+- Handled side-to-move POV framing and policy un-mirroring for black-to-move positions.
+- Verified single forward pass execution and numerical/frame correctness with `scratch/verify_eval_batch.py` and verified the existing `test_batched_saliency.py` guard test.
+
+### Verification Output (`scratch/verify_eval_batch.py`):
+```
+device: cpu
+REAL-BATCH PASS — one forward for 4 positions
+CORRECTNESS PASS — batched value+policy match per-position, legal in original frame
+```
+
+### Saliency Guard Test Output (`test_batched_saliency.py`):
+```
+backend/tests/test_batched_saliency.py .. [100%]
+2 passed in 74.16s
+```
+
+device-aware eval batch implemented + locally verified
+
 ## 2026-07-22 — Gemini — Real batched BT3 saliency implementation + verification
 
 - Implemented `saliency_absolute_batch` and `_saliency_absolute_batch` in `backend/neural_vision.py`.
