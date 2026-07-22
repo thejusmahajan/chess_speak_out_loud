@@ -9,6 +9,7 @@ import chess.pgn
 from backend.training import store, openings, metrics
 from backend.tactics import MotifDetector
 from backend.concept_mapper import analyze_position
+from tqdm.auto import tqdm
 
 _CLK_RE = re.compile(r"\[%clk\s+(\d+):(\d+):(\d+(?:\.\d+)?)\]")
 
@@ -188,6 +189,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         user_decision_nodes = []
         
         # STAGE A
+        pbar_a = tqdm(total=user_moves_count, desc="Stage A: Policy Screen", unit="move")
         for game_idx, (game, user_color) in enumerate(games_to_process):
             board = game.board()
             ply = 0
@@ -245,16 +247,30 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                     })
                         
                     moves_processed += 1
+                    pbar_a.update(1)
                     if moves_processed % 20 == 0:
                         _progress(job_id, stage_a_done=moves_processed, flagged=flagged_count)
                         
                 board.push(move)
                 
+        pbar_a.close()
         _progress(job_id, stage_a_done=moves_processed, flagged=flagged_count)
 
         # STAGE B
         stage_b_done = 0
         opening_sidelines_excluded = 0
+        pbar_b = tqdm(total=len(flagged_moves), desc="Stage B: Deep Confirmation", unit="candidate")
+        # Pre-batch saliency calculations for uncached Stage B positions
+        uncached_stage_b = [f for f in flagged_moves if stage_b_cache.get(f["epd"]) is None]
+        if uncached_stage_b:
+            uncached_fens = [f["fen_before"] for f in uncached_stage_b]
+            if hasattr(vision, "saliency_absolute_batch"):
+                saliency_batch = vision.saliency_absolute_batch(uncached_fens)
+            else:
+                saliency_batch = [vision.saliency_absolute(fen) for fen in uncached_fens]
+            for f_item, sal in zip(uncached_stage_b, saliency_batch):
+                f_item["_precomputed_saliency"] = sal
+
         for flagged in flagged_moves:
             epd = flagged["epd"]
             board_before = chess.Board(flagged["fen_before"])
@@ -276,7 +292,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                     time_limit=metrics.DEFAULT_CONFIG.confirm_played_seconds)
                 b_data["eval_played_cp"] = analysis_after["evaluation"]
                 
-                saliency = vision.saliency_absolute(flagged["fen_before"])
+                saliency = flagged.get("_precomputed_saliency") or vision.saliency_absolute(flagged["fen_before"])
                 b_data["saliency"] = saliency
                 
                 pv_san_list = analysis_before["pv_lines"][0].split() if analysis_before["pv_lines"] else []
@@ -343,6 +359,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         search_used = 0
         steer_budget_exhausted = False
 
+        pbar_ts2 = tqdm(total=len(user_decision_nodes), desc="Stage TS2: Tactical Steering", unit="node")
         for node in user_decision_nodes:
             epd = node["epd"]
             fen_before = node["fen_before"]
@@ -351,6 +368,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             
             policy_data = policy_cache.get(epd)
             if not policy_data or not policy_data.get("policy"):
+                pbar_ts2.update(1)
                 continue
             
             policy = policy_data["policy"]
@@ -383,18 +401,16 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                     if not analysis:
                         raise Exception("engine in mock mode")
                     pol_after = await engine.get_policy_distribution(fen_after_m, nodes=1)
-                    s_data = {"analysis": analysis, "policy": pol_after}
+                    saliency = vision.saliency_absolute(fen_after_m) if bt3_budget_remaining > 0 else None
+                    if saliency is not None:
+                        bt3_budget_remaining -= 1
+                    s_data = {"analysis": analysis, "policy": pol_after, "saliency": saliency}
                     steer_cache.put(epd_after_m, s_data)
                     search_used += 1
                     
                 analysis_after = s_data["analysis"]
                 policy_after = s_data["policy"]
-                
-                if bt3_budget_remaining > 0:
-                    saliency = vision.saliency_absolute(fen_after_m)
-                    bt3_budget_remaining -= 1
-                else:
-                    saliency = None
+                saliency = s_data.get("saliency")
                     
                 complexity = metrics.tactical_complexity(analysis_after, policy_after, saliency)
                 
@@ -414,9 +430,11 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                 })
                 
             if steer_budget_exhausted:
+                pbar_ts2.update(1)
                 break
                 
             if not candidates:
+                pbar_ts2.update(1)
                 continue
                 
             best_eval_cp = max(c["eval_cp"] for c in candidates)
@@ -456,9 +474,11 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                 by_opening_steer[eco_all]["complexity_sum"] += steer_res["objective_best"]["complexity"]
 
             steer_processed += 1
+            pbar_ts2.update(1)
             if steer_processed % 10 == 0:
                 _progress(job_id, stage_steer_done=steer_processed)
 
+        pbar_ts2.close()
         _progress(job_id, stage_steer_done=steer_processed, steer_search_used=search_used)
 
         steer_summary = {}

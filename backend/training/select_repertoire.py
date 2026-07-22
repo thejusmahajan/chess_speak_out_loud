@@ -461,12 +461,17 @@ async def build_repertoire_tree(
         node_by_id = {}
         visited = set()
         root_board = chess.Board()
+        epd_to_node_id = {}
         queue = [(root_board.epd(), root_board.fen(), 0, None)]
         counter = 1
 
         while queue:
             epd, fen, ply, parent_id = queue.pop(0)
             if epd in visited:
+                existing_id = epd_to_node_id.get(epd)
+                if existing_id and parent_id and parent_id in node_by_id:
+                    if existing_id not in node_by_id[parent_id]["children"]:
+                        node_by_id[parent_id]["children"].append(existing_id)
                 continue
             visited.add(epd)
             if ply > max_ply:
@@ -476,6 +481,7 @@ async def build_repertoire_tree(
             is_user_node = (board.turn == user_color_enum)
             node_id = f"{eco}-{color[0]}-{counter:04d}"
             counter += 1
+            epd_to_node_id[epd] = node_id
 
             node = {
                 "id": node_id,
