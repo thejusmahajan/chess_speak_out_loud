@@ -260,53 +260,86 @@ from google.colab import files
 files.download("/content/cszero_training_data.zip")
 # (or copy to Drive: shutil.copy("/content/cszero_training_data.zip", f"{DRIVE}/"))
 
+
 # %% [markdown]
-# ## 5b. GPU / backend diagnosis — run AFTER Cell 5 to confirm lc0 + BT3 use the GPU
-# lc0 keeps the net resident in GPU memory once loaded, so a post-start nvidia-smi
-# is a definitive check (non-zero MiB = on the GPU). benchmark shows the chosen
-# backend + nps. If AUTO ([A]) lands on blas/eigen, force the backend in Cell 5 via
-# LC0Engine(..., custom_uci_options={"Backend": "cuda-fp16", "BackendOptions": ""}).
+# ## DIAGNOSIS — run AFTER Cell 5: GPU/CPU per component, per-stage timing, Stage B findings.
+# Paste the full output back to plan the edits. Step 4 overwrites profile.json with a 3-game profile.
 # %%
 import subprocess, time
+from collections import Counter
+from backend.training import store, pipeline
+
 WEIGHTS = "/content/repo/engine/791556.pb.gz"
+START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
 
 def _gpu():
-    return subprocess.run(["nvidia-smi", "--query-gpu=utilization.gpu,memory.used,memory.total",
+    return subprocess.run(["nvidia-smi", "--query-gpu=utilization.gpu,memory.used",
                            "--format=csv,noheader"], capture_output=True, text=True).stdout.strip()
-def _show(raw, keys):
-    for ln in raw.splitlines():
-        if any(k in ln.lower() for k in keys):
-            print("   ", ln.strip())
 
-print("GPU idle baseline:", _gpu())
 
-print("\n[A] lc0 benchmark — AUTO backend (what the app uses):")
-r = subprocess.run([LC0_BIN, "benchmark", f"--weights={WEIGHTS}", "--num-positions=2"],
+print("=== 1) lc0 backend + speed (what the app engine gets) ===")
+print("GPU idle:", _gpu())
+b = subprocess.run([LC0_BIN, "benchmark", f"--weights={WEIGHTS}", "--num-positions=2"],
                    capture_output=True, text=True)
-_show(r.stderr + r.stdout, ("creating backend", "backend:", "nps", "nodes/s", "cuda", "blas", "eigen", "error"))
+for ln in (b.stderr + b.stdout).splitlines():
+    if any(k in ln.lower() for k in ("creating backend", "backend:", "nps", "nodes/s",
+                                     "blas", "eigen", "error")):
+        print("  ", ln.strip())
 
-print("\n[B] lc0 benchmark — FORCED --backend=cuda-fp16 (try 'cuda' if this errors):")
-r2 = subprocess.run([LC0_BIN, "benchmark", f"--weights={WEIGHTS}", "--backend=cuda-fp16", "--num-positions=2"],
-                    capture_output=True, text=True)
-_show(r2.stderr + r2.stdout, ("creating backend", "backend:", "nps", "nodes/s", "cuda", "error"))
-
-print("\n[C] App engine (from Cell 5):")
+print("\n=== 2) app engine: is the net on the GPU? (non-zero MiB while alive) ===")
 if "engine" in globals() and engine.is_available():
-    print("   GPU with engine loaded:", _gpu(), " <- non-zero MiB = net is ON the GPU")
+    print("GPU w/ engine loaded:", _gpu())
     t = time.time()
-    res = await engine.analyze("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-                               depth=None, multipv=2, time_limit=2.0)
-    print(f"   analyze(2.0s) -> {time.time()-t:.2f}s wall, eval={res.get('evaluation')}")
-    print("   GPU right after analyze:", _gpu())
+    await engine.analyze(START, multipv=2, time_limit=2.0)
+    print(f"analyze(2.0s) wall: {time.time()-t:.2f}s")
 else:
-    print("   engine not built — run Cell 5 first, then re-run this cell.")
+    print("engine not built — run Cell 5 first")
 
-print("\n[D] BT3 saliency (NeuralVision):")
+print("\n=== 3) BT3 saliency device/speed ===")
 if "vision" in globals():
-    print("   vision.mode:", vision.mode, "(want 'attention')")
+    print("vision.mode:", vision.mode, "(want 'attention')")
     t = time.time()
-    s = vision.saliency_absolute("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-    print(f"   saliency -> {time.time()-t:.2f}s / {len(s)} squares  (GPU: <0.1s, CPU: ~1-1.5s)")
+    n = len(vision.saliency_absolute(START))
+    print(f"one saliency: {time.time()-t:.2f}s over {n} squares  (GPU <0.1s / CPU ~1.5s)")
 else:
-    print("   vision not built — run Cell 5 first.")
+    print("vision not built — run Cell 5 first")
+
+print("\n=== 4) instrumented 3-game run: where does the wall-clock go? ===")
+raw = open(PGN_SRC, encoding="utf-8").read()
+blocks = raw.split("\n[Event ")
+allg = [(g if i == 0 else "[Event " + g) for i, g in enumerate(blocks)]
+mine = [g for g in allg if PLAYER_NAME.lower() in g.lower()][:3]
+subset = "\n\n".join(mine)
+print(f"running {len(mine)} games...")
+
+t0 = time.time()
+ev = []
+_orig = pipeline._progress
+def _tap(job_id, **kw):
+    _orig(job_id, **kw)
+    ev.append((time.time() - t0, kw))
+pipeline._progress = _tap
+await pipeline.run_diagnosis("diag3", subset, PLAYER_NAME, engine, vision)
+pipeline._progress = _orig
+tot = time.time() - t0
+
+def _win(key):
+    ts = [t for t, kw in ev if kw.get(key) is not None]
+    return (min(ts), max(ts)) if ts else None
+for lbl, key in [("Stage A (policy)", "stage_a_done"),
+                 ("Stage B (confirm)", "stage_b_done"),
+                 ("TS2 (steering)", "stage_steer_done")]:
+    w = _win(key)
+    print(f"  {lbl:18s}: " + (f"{w[0]:.1f}s -> {w[1]:.1f}s  ({w[1]-w[0]:.1f}s active)"
+                              if w else "-- (never reported / 0 items)"))
+print(f"  TOTAL 3 games: {tot:.1f}s")
+
+print("\n=== 5) what the 3-game run PRODUCED (Stage B ground truth) ===")
+prof = store.load_profile()
+fs = prof.get("findings", [])
+print("findings:", len(fs),
+      "| severity:", dict(Counter(f.get("severity") for f in fs)),
+      "| confirmed:", dict(Counter(bool(f.get("confirmation", {}).get("confirmed")) for f in fs)))
+print("by_phase:", prof.get("aggregates", {}).get("by_phase"))
 print("\nGPU final:", _gpu())
