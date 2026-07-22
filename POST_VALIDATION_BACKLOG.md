@@ -59,6 +59,15 @@ work order.
   motif-level blind-rate breakdown. Mostly a join of two things we already have.
 - **Effort: M · Value: high diagnostic specificity.**
 
+## Research inputs (logged, not scheduled)
+- **Learned look-ahead in BT3** — `docs/research_learned_lookahead.md`. The net
+  simulates 3–7 plies ahead *inside its hidden layers*, and its output priors can
+  **override a winning line its middle layers already found** ("forgotten
+  puzzles"). Mechanistic grounding for **B1** (hidden gems / optical traps), **B2**
+  (attention rays → "time-traveling heads"), and the **Tal/TS2** theme (a
+  "suppressed-win" probe = exactly the sacrifices the net's own instinct flinches
+  at). BT3 is the net studied, and we already do `lczerolens` layer extraction.
+
 ## Recommended order (for after the nod)
 1. **B4** (Tal persona, text) — cheap, reinforces TS2, high flavor.
 2. **B3** (Refutation Sparring) — high training value, extends drills + TS2.
