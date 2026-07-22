@@ -136,6 +136,22 @@ vision = NeuralVision(onnx_path="/content/repo/engine/bt3.onnx")
 print("vision mode:", vision.mode)   # want "attention"; "policy_fallback" = BT3 didn't load
 
 # %% [markdown]
+# ## 5b. GPU search tuning — node-limited depth (converts GPU speed into time savings)
+# The default 6.0s/3.0s limits were cranked up on CPU to get enough search depth;
+# on a 133k-nps A100 they explore ~800k/400k nodes and waste wall-clock. Node budgets
+# make depth hardware-INDEPENDENT: the same node count = the same analysis quality on
+# CPU or GPU, only faster here. 120k/60k ~matches the depth 6.0s/3.0s bought on a
+# ~20k-nps CPU. Raise for more depth; lower for more speed. Applies to Stage B + TS2.
+# %%
+from dataclasses import replace
+from backend.training import metrics
+metrics.DEFAULT_CONFIG = replace(metrics.DEFAULT_CONFIG,
+                                 confirm_best_nodes=120_000,
+                                 confirm_played_nodes=60_000)
+print("Stage B / TS2 node budgets -> best:", metrics.DEFAULT_CONFIG.confirm_best_nodes,
+      "| played:", metrics.DEFAULT_CONFIG.confirm_played_nodes)
+
+# %% [markdown]
 # ## DIAGNOSIS — runs AFTER Cell 5. GPU/CPU per component, per-stage timing, Stage B findings.
 # Writes a clean `diagnosis_report.txt`, copies it to Drive, and auto-downloads it to your
 # machine (no terminal copy-paste). Step 4 overwrites profile.json with a 3-game profile.
@@ -248,8 +264,8 @@ import re, time, chess.pgn
 from tqdm.notebook import tqdm
 from backend.training import store, pipeline, metrics
 
-# Optimize engine search time limits for GPU acceleration (A100 runs 10,000+ nodes in <0.1s!)
-metrics.DEFAULT_CONFIG = metrics.TrainingConfig(confirm_best_seconds=1.0, confirm_played_seconds=0.5)
+# Search depth is configured once in Cell 5b (node-limited, quality-preserving).
+# Do NOT reset DEFAULT_CONFIG here — that would wipe the node budgets.
 
 def select_recent_games(pgn_text, player, n):
     player_lower = player.lower()

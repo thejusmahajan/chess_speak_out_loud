@@ -14,7 +14,7 @@ class MockEngine:
             {"uci": "d2d4", "san": "d4", "p": 0.3},
         ]
 
-    async def analyze(self, fen, depth=None, multipv=1, time_limit=None):
+    async def analyze(self, fen, depth=None, multipv=1, time_limit=None, nodes=None):
         self.analyze_calls += 1
         return {
             "evaluation": self.evaluate_val,

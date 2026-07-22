@@ -16,7 +16,7 @@ class MockEngine:
             {"uci": "d2d4", "san": "d4", "p": 0.3},
         ]
 
-    async def analyze(self, fen, depth=None, multipv=1, time_limit=None):
+    async def analyze(self, fen, depth=None, multipv=1, time_limit=None, nodes=None):
         self.analyze_calls += 1
         return {
             "evaluation": {"type": "cp", "value": self.evaluate_val},
@@ -109,7 +109,7 @@ class IntEvalEngine(MockEngine):
             {"uci": "d2d4", "san": "d4", "p": 0.4},
         ]
 
-    async def analyze(self, fen, depth=None, multipv=1, time_limit=None):
+    async def analyze(self, fen, depth=None, multipv=1, time_limit=None, nodes=None):
         self.analyze_calls += 1
         return {
             "evaluation": self.evaluate_val,  # plain int == real LC0 shape
@@ -163,4 +163,36 @@ async def test_sound_node_emits_steer_finding(monkeypatch, tmp_path):
     # with a sound eval (>= floor) is playable and DOES emit under highlight=0.
     findings = await _run_steer_pass(monkeypatch, tmp_path, evaluate_val=50)
     assert len(findings) >= 1
+
+
+@pytest.mark.anyio
+async def test_node_budget_is_forwarded_to_engine(monkeypatch, tmp_path):
+    # Guard for the GPU node-limit path: when confirm_played_nodes is configured,
+    # the TS2 steering search must pass nodes=<budget> to engine.analyze (so a
+    # fast backend does a fixed-depth search instead of a fixed-time one). Deleting
+    # `nodes=...` from the pipeline call makes the recorded value None -> fails.
+    monkeypatch.setattr(store, "TRAINING_DIR", str(tmp_path))
+    monkeypatch.setattr(store, "DATA_DIR", str(tmp_path))
+
+    seen_nodes = []
+
+    class RecordingEngine(IntEvalEngine):
+        async def analyze(self, fen, depth=None, multipv=1, time_limit=None, nodes=None):
+            seen_nodes.append(nodes)
+            return await super().analyze(fen, depth, multipv, time_limit, nodes)
+
+    cfg = metrics.DEFAULT_CONFIG
+    saved = (cfg.steer_highlight_complexity, cfg.steer_search_budget, cfg.confirm_played_nodes)
+    object.__setattr__(cfg, "steer_highlight_complexity", 0.0)
+    object.__setattr__(cfg, "steer_search_budget", 100)
+    object.__setattr__(cfg, "confirm_played_nodes", 55000)
+    try:
+        await run_diagnosis("job_nodes", _STEER_PGN, "TestPlayer",
+                            RecordingEngine(evaluate_val=50), MockVision())
+        # at least one TS2 search ran, and it carried the configured node budget
+        assert 55000 in seen_nodes, f"node budget not forwarded; saw {seen_nodes}"
+    finally:
+        (object.__setattr__(cfg, "steer_highlight_complexity", saved[0]),
+         object.__setattr__(cfg, "steer_search_budget", saved[1]),
+         object.__setattr__(cfg, "confirm_played_nodes", saved[2]))
 

@@ -281,15 +281,17 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                 b_data = {}
                 analysis_before = await engine.analyze(
                     flagged["fen_before"], depth=None, multipv=2,
-                    time_limit=metrics.DEFAULT_CONFIG.confirm_best_seconds)
+                    time_limit=metrics.DEFAULT_CONFIG.confirm_best_seconds,
+                    nodes=metrics.DEFAULT_CONFIG.confirm_best_nodes)
                 b_data["eval_best_cp"] = analysis_before["evaluation"]
                 b_data["pv_lines"] = analysis_before["pv_lines"]
-                
+
                 board_after = board_before.copy()
                 board_after.push(played_move)
                 analysis_after = await engine.analyze(
                     board_after.fen(), depth=None, multipv=1,
-                    time_limit=metrics.DEFAULT_CONFIG.confirm_played_seconds)
+                    time_limit=metrics.DEFAULT_CONFIG.confirm_played_seconds,
+                    nodes=metrics.DEFAULT_CONFIG.confirm_played_nodes)
                 b_data["eval_played_cp"] = analysis_after["evaluation"]
                 
                 saliency = flagged.get("_precomputed_saliency") or vision.saliency_absolute(flagged["fen_before"])
@@ -397,7 +399,8 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                     
                     analysis = await engine.analyze(
                         fen_after_m, depth=None, multipv=2,
-                        time_limit=metrics.DEFAULT_CONFIG.confirm_played_seconds)
+                        time_limit=metrics.DEFAULT_CONFIG.confirm_played_seconds,
+                        nodes=metrics.DEFAULT_CONFIG.confirm_played_nodes)
                     if not analysis:
                         raise Exception("engine in mock mode")
                     pol_after = await engine.get_policy_distribution(fen_after_m, nodes=1)

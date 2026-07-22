@@ -22,7 +22,7 @@ class MockEngine:
         self.best_gap = best_gap
         self.policy_by_fen = policy_by_fen or {}
 
-    async def analyze(self, fen, depth=None, multipv=1, time_limit=None):
+    async def analyze(self, fen, depth=None, multipv=1, time_limit=None, nodes=None):
         ev = self.eval_by_fen.get(fen, 15)
         return {
             "evaluation": ev,

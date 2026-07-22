@@ -293,20 +293,25 @@ class LC0Engine:
         depth: int = 20,
         multipv: int = 3,
         time_limit: float = 2.0,
+        nodes: Optional[int] = None,
     ) -> dict:
         """
         Analyze a chess position. Acquires the engine lock and waits
         if another analysis is in progress.
+
+        If ``nodes`` is given, the search is node-limited (deterministic depth,
+        wall time scales with backend speed) and both ``time_limit`` and
+        ``depth`` are ignored. Otherwise it is time-limited as before.
         """
         if self.mock_mode or self.engine is None:
             return get_mock_analysis(fen)
 
-        return await self._submit(self._analyze_impl(fen, depth, multipv, time_limit))
+        return await self._submit(self._analyze_impl(fen, depth, multipv, time_limit, nodes))
 
-    async def _analyze_impl(self, fen, depth, multipv, time_limit) -> dict:
+    async def _analyze_impl(self, fen, depth, multipv, time_limit, nodes=None) -> dict:
         """Body of analyze. Runs on the engine loop."""
         async with self._lock:
-            return await self._do_analyze(fen, depth, multipv, time_limit)
+            return await self._do_analyze(fen, depth, multipv, time_limit, nodes)
 
     async def fast_analyze(
         self,
@@ -339,13 +344,19 @@ class LC0Engine:
         depth,
         multipv: int,
         time_limit: float,
+        nodes: Optional[int] = None,
     ) -> dict:
         """Internal: run the actual engine analysis. Caller must hold _lock."""
         try:
             board = chess.Board(fen)
-            limit_kwargs = {"time": time_limit}
-            if depth is not None:
-                limit_kwargs["depth"] = depth
+            if nodes is not None:
+                # Node-limited: deterministic search depth regardless of backend
+                # speed. Ignores time/depth so quality is hardware-independent.
+                limit_kwargs = {"nodes": nodes}
+            else:
+                limit_kwargs = {"time": time_limit}
+                if depth is not None:
+                    limit_kwargs["depth"] = depth
             infos = await self.engine.analyse(
                 board,
                 chess.engine.Limit(**limit_kwargs),

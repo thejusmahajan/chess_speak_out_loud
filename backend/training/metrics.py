@@ -76,6 +76,16 @@ class TrainingConfig:
     gem_confirm_seconds: float = 6.0       # gems confirmation eval
     repertoire_eval_seconds: float = 4.0   # repertoire soundness gate
 
+    # --- Engine NODE budgets (optional, override the *_seconds above) ---
+    # On a fast GPU backend the *_seconds limits explore absurdly deep (6s at
+    # 133k nps = 800k nodes) and waste wall-clock. Setting a node budget makes
+    # search depth hardware-INDEPENDENT: the same node count = the same analysis
+    # quality on CPU or GPU, only the wall time differs. None = use *_seconds
+    # (unchanged default; local CPU behavior is untouched). The GPU notebook
+    # sets these to ~match the node depth the *_seconds limits bought on CPU.
+    confirm_best_nodes: Optional[int] = None    # overrides confirm_best_seconds when set
+    confirm_played_nodes: Optional[int] = None  # overrides confirm_played_seconds when set
+
     # --- Time-scramble filter (diagnosis) ---
     # Moves played with less than this many seconds on the mover's clock
     # are excluded from diagnosis: they measure flag-fall panic, not chess

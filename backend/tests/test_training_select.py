@@ -50,7 +50,7 @@ class MockEngine:
         self.best_moves_by_fen = best_moves_by_fen or {}
         self.analyze_calls = []
 
-    async def analyze(self, fen, depth=None, multipv=1, time_limit=None):
+    async def analyze(self, fen, depth=None, multipv=1, time_limit=None, nodes=None):
         self.analyze_calls.append(fen)
         ev = self.eval_by_fen.get(fen, 0)
         bm = self.best_moves_by_fen.get(fen, [])

@@ -37,7 +37,7 @@ class FakeEngine:
         self.policy_calls.append(fen)
         return self.policies[fen]
 
-    async def analyze(self, fen, depth=None, multipv=1, time_limit=None):
+    async def analyze(self, fen, depth=None, multipv=1, time_limit=None, nodes=None):
         self.analyze_calls.append((fen, multipv, time_limit))
         return {"evaluation": self.evals[fen], "pv_lines": [self.pv], "wdl": None}
 
