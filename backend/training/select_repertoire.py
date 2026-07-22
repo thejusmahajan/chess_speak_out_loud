@@ -431,9 +431,21 @@ async def build_repertoire_tree(
         # user_blind_rate = (blind/missed findings at this position) / (games
         # the user reached it) -- the actual intuitive-blindness signal, not
         # the move-inconsistency proxy.
+        # Scope blind findings to games actually IN this tree (audit F5): a
+        # transposition EPD reached by an unrelated opening's games must not
+        # inflate a node's blind_rate. Match findings to valid_games by identity.
+        valid_game_keys = set()
+        for g in valid_games:
+            h = g.headers
+            valid_game_keys.add((h.get("White", ""), h.get("Black", ""),
+                                 h.get("Date", ""), h.get("Result", "")))
         blind_by_epd = defaultdict(int)
         if profile:
             for f in profile.get("findings", []):
+                fg = f.get("game", {})
+                if (fg.get("white", ""), fg.get("black", ""),
+                        fg.get("date", ""), fg.get("result", "")) not in valid_game_keys:
+                    continue
                 fb = f.get("fen_before")
                 if not fb:
                     continue

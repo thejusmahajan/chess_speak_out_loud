@@ -4,6 +4,17 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-22 — Leader (Opus) — Audit F2 + F5 fixed
+- **F2 FIXED.** `by_opening[eco][sev] += 1` (was `+= weight`) so blind_rate is a
+  true move fraction (<=1.0), consistent with by_phase/by_clock. by_motif keeps
+  its intentional weighted display ranking. Full suite unaffected.
+- **F5 FIXED.** `build_repertoire_tree` now scopes blind findings to games that
+  are actually IN the tree (match findings to valid_games by White/Black/Date/
+  Result), so a transposition EPD reached by an unrelated opening's games can't
+  inflate a node's blind_rate. Updated the blind test to carry game identity +
+  added `test_blind_findings_from_other_games_ignored` (mutation-verified: fails
+  without the scoping). Suite 131.
+
 ## 2026-07-22 — Leader (Opus) — Code audit reviewed; F1+F3 fixed, rest triaged
 Independently verified every finding by reading the code. Strong audit — the
 critical one is real and important.

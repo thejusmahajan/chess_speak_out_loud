@@ -505,7 +505,11 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                     by_motif[m]["confirmed"] += 1
                     
             eco = f["opening"]["eco"]
-            by_opening[eco][sev] += weight
+            by_opening[eco][sev] += 1   # unweighted: blind_rate must be a true
+            #                             move fraction (<=1.0), consistent with
+            #                             by_phase/by_clock (audit F2). by_motif's
+            #                             weighted counts (below) are a separate,
+            #                             intentional display ranking.
             
             for c in f["concepts"]:
                 by_concept[c]["missed"] += weight

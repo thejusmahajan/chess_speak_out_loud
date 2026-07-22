@@ -114,10 +114,13 @@ async def test_blind_findings_mark_node_critical(monkeypatch, tmp_path):
     pgn = "\n\n".join([_game("1. e4 e5 2. Nf3 Nc6")] * 4)
     # the user is blind at the position after 1.e4 e5 2.Nf3 (their Nc6 node)
     nc6_fen = _epd_after(["e2e4", "e7e5", "g1f3"]).fen()
+    # findings carry the game identity (as real findings do) so they scope to
+    # this tree's games; the synthetic games are White "Opp" / Black "Me".
+    G = {"white": "Opp", "black": "Me", "date": "????.??.??", "result": "*"}
     profile = {"findings": [
-        {"fen_before": nc6_fen, "severity": "blind"},
-        {"fen_before": nc6_fen, "severity": "blind"},
-        {"fen_before": nc6_fen, "severity": "blind"},
+        {"fen_before": nc6_fen, "severity": "blind", "game": G},
+        {"fen_before": nc6_fen, "severity": "blind", "game": G},
+        {"fen_before": nc6_fen, "severity": "blind", "game": G},
     ]}
 
     tree = await sr.build_repertoire_tree(
@@ -129,6 +132,31 @@ async def test_blind_findings_mark_node_critical(monkeypatch, tmp_path):
     assert nc6_node["user_blind_rate"] == pytest.approx(0.75)  # 3 blind / 4 games
     assert nc6_node["critical"] is True
     assert nc6_node["critical_reason"] == "blind_rate"
+
+
+@pytest.mark.anyio
+async def test_blind_findings_from_other_games_ignored(monkeypatch, tmp_path):
+    """Audit F5: blind findings at the same EPD but from a DIFFERENT game (a
+    transposition from another opening, not in this tree) must NOT inflate the
+    node's blind_rate. Without scoping these 3 would give 0.75 -> critical."""
+    monkeypatch.setattr(store, "TRAINING_DIR", str(tmp_path))
+    monkeypatch.setattr(store, "DATA_DIR", str(tmp_path))
+    _stub_eco(monkeypatch, "B00", ["e2e4"])
+    pgn = "\n\n".join([_game("1. e4 e5 2. Nf3 Nc6")] * 4)
+    nc6_fen = _epd_after(["e2e4", "e7e5", "g1f3"]).fen()
+    other = {"white": "SomeoneElse", "black": "Me", "date": "2020.01.01", "result": "1-0"}
+    profile = {"findings": [
+        {"fen_before": nc6_fen, "severity": "blind", "game": other},
+        {"fen_before": nc6_fen, "severity": "blind", "game": other},
+        {"fen_before": nc6_fen, "severity": "blind", "game": other},
+    ]}
+    tree = await sr.build_repertoire_tree(
+        eco="B00", color="black", pgn_path_or_text=pgn, player_name="Me",
+        engine=MockEngine(), profile=profile, min_games=1, max_depth=8)
+    nc6_node = next(n for n in tree["nodes"]
+                    if n.get("user_move", {}).get("uci") == "b8c6")
+    assert nc6_node["user_blind_rate"] == 0.0     # other-game findings ignored
+    assert nc6_node["critical"] is False
 
 
 @pytest.mark.anyio
