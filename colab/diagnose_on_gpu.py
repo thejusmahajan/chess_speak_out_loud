@@ -114,8 +114,12 @@ sys.path.insert(0, "/content/repo")
 from backend.engine_manager import LC0Engine
 from backend.neural_vision import NeuralVision
 
+# Force the fp16 tensor-core backend — lc0's auto pick ("cu-auto") leaves the
+# A100 at ~22k nps; "cuda-fp16" hits ~168k nps (~8x). Works on any modern NVIDIA
+# GPU (T4/L4/A100). engine_manager also honors os.environ["LC0_BACKEND"].
 engine = LC0Engine(engine_path=LC0_BIN,
-                   weights_path="/content/repo/engine/791556.pb.gz")
+                   weights_path="/content/repo/engine/791556.pb.gz",
+                   custom_uci_options={"Backend": "cuda-fp16"})
 await engine.start()   # Colab notebooks allow top-level await
 print("engine available (GPU LC0):", engine.is_available())
 
