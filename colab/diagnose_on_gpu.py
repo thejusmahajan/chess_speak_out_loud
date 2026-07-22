@@ -136,15 +136,19 @@ vision = NeuralVision(onnx_path="/content/repo/engine/bt3.onnx")
 print("vision mode:", vision.mode)   # want "attention"; "policy_fallback" = BT3 didn't load
 
 # %% [markdown]
-# ## DIAGNOSIS — run AFTER Cell 5: GPU/CPU per component, per-stage timing, Stage B findings.
-# Paste the full output back to plan the edits. Step 4 overwrites profile.json with a 3-game profile.
+# ## DIAGNOSIS — runs AFTER Cell 5. GPU/CPU per component, per-stage timing, Stage B findings.
+# Writes a clean `diagnosis_report.txt`, copies it to Drive, and auto-downloads it to your
+# machine (no terminal copy-paste). Step 4 overwrites profile.json with a 3-game profile.
 # %%
-import subprocess, time
+import subprocess, time, shutil
 from collections import Counter
 from backend.training import store, pipeline
 
 WEIGHTS = "/content/repo/engine/791556.pb.gz"
 START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+R = []
+def out(*a):
+    s = " ".join(str(x) for x in a); print(s); R.append(s)
 
 
 def _gpu():
@@ -152,40 +156,43 @@ def _gpu():
                            "--format=csv,noheader"], capture_output=True, text=True).stdout.strip()
 
 
-print("=== 1) lc0 backend + speed (what the app engine gets) ===")
-print("GPU idle:", _gpu())
-b = subprocess.run([LC0_BIN, "benchmark", f"--weights={WEIGHTS}", "--num-positions=2"],
+out("=== 1) lc0 backend + speed (forced cuda-fp16 = what the app engine uses) ===")
+out("GPU idle:", _gpu())
+b = subprocess.run([LC0_BIN, "benchmark", f"--weights={WEIGHTS}",
+                    "--backend=cuda-fp16", "--num-positions=2"],
                    capture_output=True, text=True)
 for ln in (b.stderr + b.stdout).splitlines():
-    if any(k in ln.lower() for k in ("creating backend", "backend:", "nps", "nodes/s",
-                                     "blas", "eigen", "error")):
-        print("  ", ln.strip())
+    if any(k in ln.lower() for k in ("creating backend", "nodes/second", "error")):
+        out("  ", ln.strip())
 
-print("\n=== 2) app engine: is the net on the GPU? (non-zero MiB while alive) ===")
+out("")
+out("=== 2) app engine: is the net on the GPU? (non-zero MiB while alive) ===")
 if "engine" in globals() and engine.is_available():
-    print("GPU w/ engine loaded:", _gpu())
+    out("GPU w/ engine loaded:", _gpu())
     t = time.time()
     await engine.analyze(START, multipv=2, time_limit=2.0)
-    print(f"analyze(2.0s) wall: {time.time()-t:.2f}s")
+    out(f"analyze(2.0s) wall: {time.time()-t:.2f}s")
 else:
-    print("engine not built — run Cell 5 first")
+    out("engine not built — run Cell 5 first")
 
-print("\n=== 3) BT3 saliency device/speed ===")
+out("")
+out("=== 3) BT3 saliency device/speed ===")
 if "vision" in globals():
-    print("vision.mode:", vision.mode, "(want 'attention')")
+    out("vision.mode:", vision.mode, "(want 'attention')")
     t = time.time()
     n = len(vision.saliency_absolute(START))
-    print(f"one saliency: {time.time()-t:.2f}s over {n} squares  (GPU <0.1s / CPU ~1.5s)")
+    out(f"one saliency: {time.time()-t:.2f}s over {n} squares  (GPU <0.1s / CPU ~1.5s)")
 else:
-    print("vision not built — run Cell 5 first")
+    out("vision not built — run Cell 5 first")
 
-print("\n=== 4) instrumented 3-game run: where does the wall-clock go? ===")
+out("")
+out("=== 4) instrumented 3-game run: where does the wall-clock go? ===")
 raw = open(PGN_SRC, encoding="utf-8").read()
 blocks = raw.split("\n[Event ")
 allg = [(g if i == 0 else "[Event " + g) for i, g in enumerate(blocks)]
 mine = [g for g in allg if PLAYER_NAME.lower() in g.lower()][:3]
 subset = "\n\n".join(mine)
-print(f"running {len(mine)} games...")
+out(f"running {len(mine)} games...")
 
 t0 = time.time()
 ev = []
@@ -205,18 +212,32 @@ for lbl, key in [("Stage A (policy)", "stage_a_done"),
                  ("Stage B (confirm)", "stage_b_done"),
                  ("TS2 (steering)", "stage_steer_done")]:
     w = _win(key)
-    print(f"  {lbl:18s}: " + (f"{w[0]:.1f}s -> {w[1]:.1f}s  ({w[1]-w[0]:.1f}s active)"
-                              if w else "-- (never reported / 0 items)"))
-print(f"  TOTAL 3 games: {tot:.1f}s")
+    out(f"  {lbl:18s}: " + (f"{w[0]:.1f}s -> {w[1]:.1f}s  ({w[1]-w[0]:.1f}s active)"
+                            if w else "-- (never reported / 0 items)"))
+out(f"  TOTAL 3 games: {tot:.1f}s")
 
-print("\n=== 5) what the 3-game run PRODUCED (Stage B ground truth) ===")
+out("")
+out("=== 5) what the 3-game run PRODUCED (Stage B ground truth) ===")
 prof = store.load_profile()
 fs = prof.get("findings", [])
-print("findings:", len(fs),
-      "| severity:", dict(Counter(f.get("severity") for f in fs)),
-      "| confirmed:", dict(Counter(bool(f.get("confirmation", {}).get("confirmed")) for f in fs)))
-print("by_phase:", prof.get("aggregates", {}).get("by_phase"))
-print("\nGPU final:", _gpu())
+out("findings:", len(fs),
+    "| severity:", dict(Counter(f.get("severity") for f in fs)),
+    "| confirmed:", dict(Counter(bool(f.get("confirmation", {}).get("confirmed")) for f in fs)))
+out("by_phase:", prof.get("aggregates", {}).get("by_phase"))
+out("")
+out("GPU final:", _gpu())
+
+# --- write a clean report file, copy to Drive, and download it (no copy-paste) ---
+report = "\n".join(R)
+open("/content/diagnosis_report.txt", "w", encoding="utf-8").write(report)
+try:
+    shutil.copy("/content/diagnosis_report.txt", f"{DRIVE}/diagnosis_report.txt")
+    print("copied report to Drive:", f"{DRIVE}/diagnosis_report.txt")
+except Exception as e:
+    print("(could not copy to Drive:", e, ")")
+from google.colab import files
+files.download("/content/diagnosis_report.txt")
+print("\n>>> diagnosis_report.txt written + downloading to your machine (check Downloads).")
 
 # %% [markdown]
 # ## 6. VALIDATE on a small subset first (do NOT run the full PGN blindly)
