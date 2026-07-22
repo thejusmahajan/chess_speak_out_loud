@@ -4,6 +4,21 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-22 — Gemini — Real batched BT3 saliency implementation + verification
+
+- Implemented `saliency_absolute_batch` and `_saliency_absolute_batch` in `backend/neural_vision.py`.
+- Computes attention maps for a list of FENs in **ONE batched forward pass** (`[N, 112, 8, 8]` stacked tensor input producing hooked attention tensors of shape `[N, 24, 64, 64]` across all 15 encoder layers).
+- Preserves exact per-board mean reduction, [0,1] per-board normalization, square mapping, and black-to-move rank-flipping (`rank r -> 9-r`).
+- Implemented `scratch/verify_batch_saliency.py` to prove both single batched forward pass execution and exact per-square numerical equivalence against serial `saliency_absolute`.
+
+### Verification Output (`scratch/verify_batch_saliency.py`):
+```
+REAL-BATCH PASS — one forward for 6 boards
+CORRECTNESS PASS — max per-square diff 0.00e+00 over 6 FENs
+```
+
+batched saliency implemented + locally verified
+
 ## 2026-07-22 — Gemini — Pre-deploy airtight audit (READ-ONLY)
 
 - Performed a read-only audit of the diagnosis pipeline, the newly landed node-limit changes (`ee9afda`), full-corpus reliability, budget constraints, crash recovery, and evaluation POV handling across `engine_manager.py`, `pipeline.py`, `select_repertoire.py`, `gems.py`, `drills.py`, `store.py`, and `colab/diagnose_on_gpu.py`.

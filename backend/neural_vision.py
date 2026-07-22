@@ -135,6 +135,92 @@ class NeuralVision:
             logger.error("saliency_absolute failed (%s) — fallback", exc)
             return self._policy_fallback(fen, None)
 
+    def saliency_absolute_batch(self, fens: list[str]) -> list[dict[str, float]]:
+        """
+        Public API: Batched BT3 attention saliency for a list of FENs, keyed by
+        TRUE absolute squares, correct for BOTH white- and black-to-move positions.
+        Runs ONE forward pass for the whole list.
+
+        Falls back to policy_fallback per FEN if attention mode is unavailable, or
+        to serial _saliency_absolute on any error in the batched path.
+        """
+        if not fens:
+            return []
+        if self.mode != "attention" or self.model is None:
+            return [self._policy_fallback(f, None) for f in fens]
+        try:
+            return self._saliency_absolute_batch(fens)
+        except Exception as exc:
+            logger.error("saliency_absolute_batch failed (%s) — fallback to serial", exc)
+            return [self._saliency_absolute(chess.Board(f)) for f in fens]
+
+    def _saliency_absolute_batch(self, fens: list[str]) -> list[dict[str, float]]:
+        import torch
+        from lczerolens import LczeroBoard
+
+        boards = [chess.Board(f) for f in fens]
+        input_tensors = []
+        is_black_list = []
+
+        for b in boards:
+            is_black = (b.turn == chess.BLACK)
+            is_black_list.append(is_black)
+            eval_fen = b.mirror().fen() if is_black else b.fen()
+            input_tensors.append(LczeroBoard(eval_fen).to_input_tensor())
+
+        batch_tensor = torch.stack(input_tensors)
+
+        attention_tensors = []
+        def hook_fn(module, inp, out):
+            t = out[0] if isinstance(out, (tuple, list)) else out
+            attention_tensors.append(t.detach())
+
+        hooks = [
+            mod.register_forward_hook(hook_fn)
+            for name, mod in self.model.named_modules()
+            if name in self._attn_module_names
+        ]
+
+        try:
+            with torch.no_grad():
+                self.model(batch_tensor)
+        finally:
+            for h in hooks:
+                h.remove()
+
+        if not attention_tensors:
+            raise RuntimeError("No attention tensors captured")
+
+        stacked = torch.stack(attention_tensors)  # [15, N, 24, 64, 64]
+        avg_attn = stacked.mean(dim=(0, 2))      # [N, 64, 64]
+
+        files = "abcdefgh"
+        ranks = "12345678"
+        results = []
+
+        for b_idx in range(len(fens)):
+            vec = avg_attn[b_idx].mean(dim=0)     # mean over queries -> [64]
+            max_val = vec.max()
+            min_val = vec.min()
+            if max_val > min_val:
+                vec = (vec - min_val) / (max_val - min_val)
+            else:
+                vec = torch.zeros_like(vec)
+
+            vec_list = vec.tolist()
+            saliency_map = {
+                f"{files[i % 8]}{ranks[i // 8]}": vec_list[i] for i in range(64)
+            }
+
+            if is_black_list[b_idx]:
+                saliency_map = {
+                    sq[0] + str(9 - int(sq[1])): v for sq, v in saliency_map.items()
+                }
+
+            results.append(saliency_map)
+
+        return results
+
     def _saliency_absolute(self, board: "chess.Board") -> dict[str, float]:
         """
         BT3 attention for `board`, always keyed by TRUE absolute squares.
