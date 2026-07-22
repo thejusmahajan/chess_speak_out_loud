@@ -135,7 +135,11 @@ class LC0Engine:
             "PerPVCounters": True,
             "RamLimitMb": 8192,
             "NNCacheSize": 500000,
-            "MinibatchSize": 2048,
+            # lc0's cuda/cuda-fp16 backend caps MinibatchSize at 1024; asking for
+            # more is rejected and silently falls back to a small default (~256).
+            # 1024 is the max these backends accept and gives the best batching
+            # for our node-limited searches (fewer, larger GPU forwards).
+            "MinibatchSize": 1024,
             "Threads": 4,
         }
         # Explicitly select the lc0 backend when requested. On a CUDA GPU,
