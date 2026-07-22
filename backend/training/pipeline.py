@@ -382,25 +382,49 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             top_moves = policy[:top_k]
             
             candidates = []
-            
+
+            # Build candidate positions, then PRE-BATCH BT3 saliency for the
+            # uncached ones in a single forward (Optimization #2: feed the A100
+            # wide instead of top_k serial saliency calls). Falls back to
+            # per-candidate saliency when the vision backend has no batch method
+            # (e.g. the mock in tests) — behavior- and value-identical.
+            cand_infos = []
             for p_entry in top_moves:
                 uci = p_entry.get("uci")
                 try:
                     move = board_before.parse_uci(uci)
                 except ValueError:
                     continue
-                    
                 board_after = board_before.copy(stack=False)
                 board_after.push(move)
-                fen_after_m = board_after.fen()
-                epd_after_m = board_after.epd()
-                
+                cand_infos.append({
+                    "p_entry": p_entry, "uci": uci,
+                    "fen_after": board_after.fen(), "epd_after": board_after.epd(),
+                })
+
+            has_batch = hasattr(vision, "saliency_absolute_batch")
+            sal_map = {}
+            if has_batch and bt3_budget_remaining > 0:
+                uncached = [c for c in cand_infos if steer_cache.get(c["epd_after"]) is None]
+                take = uncached[:bt3_budget_remaining]
+                if take:
+                    sals = vision.saliency_absolute_batch([c["fen_after"] for c in take])
+                    for c, s in zip(take, sals):
+                        sal_map[c["epd_after"]] = s
+                    bt3_budget_remaining -= len(take)
+
+            for c in cand_infos:
+                p_entry = c["p_entry"]
+                uci = c["uci"]
+                fen_after_m = c["fen_after"]
+                epd_after_m = c["epd_after"]
+
                 s_data = steer_cache.get(epd_after_m)
                 if not s_data:
                     if search_used >= metrics.DEFAULT_CONFIG.steer_search_budget:
                         steer_budget_exhausted = True
                         break
-                    
+
                     analysis = await engine.analyze(
                         fen_after_m, depth=None, multipv=2,
                         time_limit=metrics.DEFAULT_CONFIG.confirm_played_seconds,
@@ -408,13 +432,16 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                     if not analysis:
                         raise Exception("engine in mock mode")
                     pol_after = await engine.get_policy_distribution(fen_after_m, nodes=1)
-                    saliency = vision.saliency_absolute(fen_after_m) if bt3_budget_remaining > 0 else None
-                    if saliency is not None:
-                        bt3_budget_remaining -= 1
+                    if has_batch:
+                        saliency = sal_map.get(epd_after_m)   # pre-batched (None if budget hit)
+                    else:
+                        saliency = vision.saliency_absolute(fen_after_m) if bt3_budget_remaining > 0 else None
+                        if saliency is not None:
+                            bt3_budget_remaining -= 1
                     s_data = {"analysis": analysis, "policy": pol_after, "saliency": saliency}
                     steer_cache.put(epd_after_m, s_data)
                     search_used += 1
-                    
+
                 analysis_after = s_data["analysis"]
                 policy_after = s_data["policy"]
                 saliency = s_data.get("saliency")
