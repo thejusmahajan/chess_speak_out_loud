@@ -5,20 +5,19 @@
 # finishes in ~minutes instead of ~hours, then builds repertoire trees + drills.
 # Outputs land in `data/training/` and are zipped for download.
 #
-# **This notebook is an untested best-effort draft** (I have no GPU/Colab to run
-# it). The cells marked `⚠️ ITERATE` are the env-specific parts you (with the
-# Antigravity/Gemini agent) will likely need to tweak — CUDA LC0 setup and BT3
-# device placement. Everything else (the pipeline invocation) is exactly how the
-# app runs it.
+# Validated on an A100 (cuda-fp16 ~167k nps). The `⚠️ ITERATE` cells are the
+# env-specific parts (CUDA LC0 build, BT3 device); everything else invokes the
+# pipeline exactly as the app does.
 #
-# ## Before you start — get these into the runtime (they are NOT on GitHub; the
-#    nets and PGN are gitignored):
-#   - `791556.pb.gz`  (LC0 policy weights, ~18 MB)
-#   - `bt3.onnx`      (BT3 attention net, ~410 MB — big; use Google Drive)
-#   - your games PGN  (e.g. `lichess_derdiedasdie_2026-07-21.pgn`, ~19 MB)
-# Easiest: upload all three to a Google Drive folder once, then mount Drive below.
+# ## Before you start — upload these to one Google Drive folder (NOT on GitHub;
+#    nets + PGN are gitignored), then mount Drive below:
+#   - `791556.pb.gz`  (small SE-ResNet, ~18 MB — fast policy net)
+#   - `BT3-768x15x24h-swa-2790000.pb.gz`  (BT3 in lc0 format, ~183 MB — the STRONG
+#       search net; recommended for the diagnosis, coherent with the saliency net)
+#   - `bt3.onnx`      (BT3 for attention saliency, ~392 MB)
+#   - your games PGN  (full export, or the curated `test_subset.pgn`)
 #
-# **Runtime → Change runtime type → GPU (T4)** before running.
+# **Runtime → Change runtime type → A100 GPU** before running.
 
 # %% [markdown]
 # ## 1. GPU check
@@ -40,12 +39,15 @@ from google.colab import drive
 drive.mount("/content/drive")
 # ⚠️ EDIT these to where you put the files on your Drive:
 DRIVE = "/content/drive/MyDrive/colab_chess_speak_out_loud"          # folder holding the 3 files
-WEIGHTS_SRC = f"{DRIVE}/791556.pb.gz"
-BT3_SRC     = f"{DRIVE}/bt3.onnx"
-PGN_SRC     = f"{DRIVE}/lichess_derdiedasdie_2026-07-21.pgn"
+WEIGHTS_SRC     = f"{DRIVE}/791556.pb.gz"                        # small fast net
+BT3_WEIGHTS_SRC = f"{DRIVE}/BT3-768x15x24h-swa-2790000.pb.gz"    # strong search net (lc0 fmt)
+BT3_SRC         = f"{DRIVE}/bt3.onnx"                            # BT3 for saliency
+# For the curated 30-game test case, point this at test_subset.pgn instead
+# (build it with colab/build_test_subset.py, then upload it to Drive):
+PGN_SRC         = f"{DRIVE}/lichess_derdiedasdie_2026-07-21.pgn"
 PLAYER_NAME = "derdiedasdie"
 import os
-for p in (WEIGHTS_SRC, BT3_SRC, PGN_SRC):
+for p in (WEIGHTS_SRC, BT3_WEIGHTS_SRC, BT3_SRC, PGN_SRC):
     print(("OK  " if os.path.exists(p) else "MISSING "), p)
 
 # %% [markdown]
@@ -72,8 +74,9 @@ if not os.path.exists("/content/repo"):
 # %%
 os.makedirs("/content/repo/engine", exist_ok=True)
 import shutil
-shutil.copy(WEIGHTS_SRC, "/content/repo/engine/791556.pb.gz")
-shutil.copy(BT3_SRC,     "/content/repo/engine/bt3.onnx")
+shutil.copy(WEIGHTS_SRC,     "/content/repo/engine/791556.pb.gz")
+shutil.copy(BT3_WEIGHTS_SRC, "/content/repo/engine/BT3-768x15x24h-swa-2790000.pb.gz")
+shutil.copy(BT3_SRC,         "/content/repo/engine/bt3.onnx")
 
 # LC0 compilation & binary resolution:
 # Official LC0 GitHub releases do not provide pre-compiled Linux CUDA archives.
@@ -114,14 +117,22 @@ sys.path.insert(0, "/content/repo")
 from backend.engine_manager import LC0Engine
 from backend.neural_vision import NeuralVision
 
+# SEARCH net for the diagnosis. BT3 (strong transformer) gives a far more
+# reliable profile than the small 791556 AND is coherent with the BT3 saliency
+# below — the same net does the "looking" (attention) and the "calculating"
+# (search). The A100 makes its lower nps affordable. Swap to 791556 for a
+# fast/rough pass. Cell 5b sizes the node budgets to match whichever net this is.
+SEARCH_WEIGHTS = "/content/repo/engine/BT3-768x15x24h-swa-2790000.pb.gz"
+# SEARCH_WEIGHTS = "/content/repo/engine/791556.pb.gz"   # fast/small alternative
+
 # Force the fp16 tensor-core backend — lc0's auto pick ("cu-auto") leaves the
 # A100 at ~22k nps; "cuda-fp16" hits ~168k nps (~8x). Works on any modern NVIDIA
 # GPU (T4/L4/A100). engine_manager also honors os.environ["LC0_BACKEND"].
 engine = LC0Engine(engine_path=LC0_BIN,
-                   weights_path="/content/repo/engine/791556.pb.gz",
+                   weights_path=SEARCH_WEIGHTS,
                    custom_uci_options={"Backend": "cuda-fp16"})
 await engine.start()   # Colab notebooks allow top-level await
-print("engine available (GPU LC0):", engine.is_available())
+print("engine available (GPU LC0):", engine.is_available(), "| net:", SEARCH_WEIGHTS.split("/")[-1])
 
 # ⚠️ ITERATE — BT3 on GPU. NeuralVision loads bt3.onnx via lczerolens; whether it
 # lands on the GPU depends on lczerolens' device handling. Try enabling a default
@@ -137,27 +148,41 @@ print("vision mode:", vision.mode)   # want "attention"; "policy_fallback" = BT3
 
 # %% [markdown]
 # ## 5b. GPU search tuning — node-limited depth (converts GPU speed into time savings)
-# The default 6.0s/3.0s limits were cranked up on CPU to get enough search depth;
-# on a 133k-nps A100 they explore ~800k/400k nodes and waste wall-clock. Node budgets
-# make depth hardware-INDEPENDENT: the same node count = the same analysis quality on
-# CPU or GPU, only faster here. 120k/60k ~matches the depth 6.0s/3.0s bought on a
-# ~20k-nps CPU. Raise for more depth; lower for more speed. Applies to Stage B + TS2.
+# The default 6.0s/3.0s limits were cranked up on CPU for search depth; on a fast
+# GPU they explore absurdly deep and waste wall-clock. Node budgets make depth
+# hardware-INDEPENDENT (same nodes = same quality, only faster here) and are sized
+# below to match the SEARCH net chosen in Cell 5 — smaller for the strong BT3,
+# larger for the small 791556. Applies to Stage B, TS2, repertoire, and gems.
 # %%
 from backend.training import metrics
 # Mutate DEFAULT_CONFIG IN PLACE (not replace) so every holder sees it: the
 # pipeline reads metrics.DEFAULT_CONFIG at runtime, but select_repertoire/gems
 # capture it as a default arg by identity — a replace() would leave those blind.
-# Node counts ~match the depth the CPU-era *_seconds bought at ~20k nps.
-_NODE_BUDGETS = {
-    "confirm_best_nodes": 120_000,     # Stage B best-move eval (was 6.0s)
-    "confirm_played_nodes": 60_000,    # Stage B played + TS2 candidate (was 3.0s)
-    "repertoire_eval_nodes": 80_000,   # repertoire soundness + variation trees (was 4.0s)
-    "gem_screen_nodes": 30_000,        # hidden-gem quietness screen (was 1.6s)
-    "gem_confirm_nodes": 120_000,      # hidden-gem confirmation (was 6.0s)
-}
+#
+# Node budgets SCALE WITH THE SEARCH NET (SEARCH_WEIGHTS, set in Cell 5):
+#  - BT3 is strong per node and runs at lower nps -> fewer nodes give a reliable
+#    eval, and smaller budgets keep wall-time sane.
+#  - 791556 is small/fast -> larger budgets ~match its CPU-era depth (6s/3s@20k nps).
+# These are starting points — check the net probe's nps and the 3-game timing,
+# then raise for more depth / lower for more speed.
+if "BT3" in SEARCH_WEIGHTS:
+    _NODE_BUDGETS = {                  # strong transformer
+        "confirm_best_nodes": 40_000,     # Stage B best-move eval
+        "confirm_played_nodes": 20_000,   # Stage B played + TS2 candidate
+        "repertoire_eval_nodes": 30_000,  # repertoire soundness + variation trees
+        "gem_screen_nodes": 10_000,       # hidden-gem quietness screen
+        "gem_confirm_nodes": 40_000,      # hidden-gem confirmation
+    }
+else:                                  # small 791556
+    _NODE_BUDGETS = {
+        "confirm_best_nodes": 120_000, "confirm_played_nodes": 60_000,
+        "repertoire_eval_nodes": 80_000, "gem_screen_nodes": 30_000,
+        "gem_confirm_nodes": 120_000,
+    }
 for _f, _v in _NODE_BUDGETS.items():
     object.__setattr__(metrics.DEFAULT_CONFIG, _f, _v)   # frozen dataclass -> bypass
-print("node budgets set:", {f: getattr(metrics.DEFAULT_CONFIG, f) for f in _NODE_BUDGETS})
+print("search net:", SEARCH_WEIGHTS.split("/")[-1])
+print("node budgets:", _NODE_BUDGETS)
 
 # %% [markdown]
 # ## DIAGNOSIS — runs AFTER Cell 5. GPU/CPU per component, per-stage timing, Stage B findings.
@@ -168,7 +193,7 @@ import subprocess, time, shutil
 from collections import Counter
 from backend.training import store, pipeline
 
-WEIGHTS = "/content/repo/engine/791556.pb.gz"
+WEIGHTS = SEARCH_WEIGHTS   # benchmark the SAME net the engine actually searches with
 START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 R = []
 def out(*a):
