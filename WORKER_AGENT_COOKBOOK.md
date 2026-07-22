@@ -96,6 +96,34 @@ instead of stating it.
 
 ---
 
+## 2b. How much context to give — calibrate to the task TYPE
+
+More context is not always better. Give the worker what changes **how it does the
+task**; withhold what only changes **what it might be tempted to do next**.
+
+- **Implementation task with a correctness gate** ("add this method; prove
+  batch == serial"): keep the prompt TIGHT and self-contained. The gate is the
+  discipline — the worker doesn't need the roadmap to succeed, and handing it the
+  grand vision invites scope creep. *Real incident:* a worker given a **read-only**
+  audit but full project context "helpfully" edited two extra files it wasn't asked
+  to. A capable model + broad context + a fiddly task = over-reach.
+- **Design / architecture task** ("propose how to do X"): the opposite — load it
+  with the vision docs, constraints, and prior decisions. Here context *is* the work.
+
+Two corollaries:
+- **Include the one "why" that prevents a shortcut.** For batched saliency, "the
+  A100 is a batch machine" + a speed gate is what stops the worker from satisfying
+  the correctness gate with a fake-batch *loop*. That "why" changes HOW; the rest of
+  the roadmap doesn't.
+- **Make the prompt self-contained for the worker's ACTUAL environment.** A worker
+  in a sandbox/Colab often can't open your repo docs — so a spec that points at
+  `discussion_5.md` or this cookbook is a dead link *to it*. Inline the reference
+  code and the exact contract; assume it can read only this prompt and run code.
+  (This is the flip side of §2's "put it in a file": the file is durable for *you*,
+  but the worker may only get the pasted text.)
+
+---
+
 ## 3. The failure-mode catalog (with the real incident, the tell, and the guard)
 
 Keep this list next to you during review. Each is something that shipped or was

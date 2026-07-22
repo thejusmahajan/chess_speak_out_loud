@@ -3,8 +3,10 @@
 You are running **inside the Colab session** that has the **A100 GPU** and the repo
 cloned at **`/content/repo`**, with **`/content/repo/engine/bt3.onnx`** already
 present and `NeuralVision` loading it in **attention** mode. You can run cells and
-see output — **so you must actually TEST this, not just write it.** This is
-Optimization #1 of `docs/discussion_5_saturating_the_a100.md`.
+see output — **so you must actually TEST this, not just write it.** Why it matters:
+the A100 is a batch machine, so evaluating one position per forward pass wastes it;
+this turns saliency into a single wide batch. (You need no repo docs for this task —
+everything required is in this prompt.)
 
 ## The goal (one sentence)
 Add `NeuralVision.saliency_absolute_batch(fens: list[str]) -> list[dict[str,float]]`
@@ -90,10 +92,17 @@ Mirror handling: build the batch from **mirrored FENs for black-to-move boards**
 track a per-board `is_black` list, and flip those boards' final keys — exactly as
 `_saliency_absolute` does.
 
-## Step 2 — write the two methods into `/content/repo/backend/neural_vision.py`
-Add `saliency_absolute_batch` (public) and `_saliency_absolute_batch` (does the
-batched forward + per-board slicing/normalize/map/mirror). **Leave
-`saliency_absolute`, `_saliency_absolute`, `_attention_saliency` untouched.**
+## Step 2 — develop the two methods (prototype in a CELL — no repo file edit needed)
+You do NOT need to edit any file or have write access to do or prove this. Develop
+the logic live and attach it to the loaded `v`, e.g.:
+```python
+import types
+v.saliency_absolute_batch  = types.MethodType(saliency_absolute_batch, v)
+v._saliency_absolute_batch = types.MethodType(_saliency_absolute_batch, v)
+```
+Design them to become `NeuralVision.saliency_absolute_batch` /
+`_saliency_absolute_batch`, leaving the serial `saliency_absolute` /
+`_saliency_absolute` / `_attention_saliency` **untouched** (they are the reference).
 Contract:
 - `[]` in → `[]` out. Not attention mode / `model is None` → `[self._policy_fallback(f,None) for f in fens]`.
 - **On any exception in the batched path, fall back** to
@@ -102,8 +111,8 @@ Contract:
 
 ## Step 3 — PROVE it (paste this output back)
 ```python
-import importlib, backend.neural_vision as nv; importlib.reload(nv)
-v = nv.NeuralVision(onnx_path="/content/repo/engine/bt3.onnx"); assert v.mode=="attention"
+# use the `v` from Step 1 with your batch methods attached:
+assert hasattr(v, "saliency_absolute_batch") and v.mode == "attention"
 fens = [
  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
  "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",          # black to move
@@ -129,14 +138,18 @@ print(f"SPEED — serial {ts:.1f}s vs batched {tb:.1f}s ({ts/max(tb,1e-9):.1f}x)
 ```
 Both lines must print, with `maxdiff < 1e-3` and the batched time clearly lower.
 
-## Step 4 — deliver
-- If the Colab clone has a write token: commit `backend/neural_vision.py` and push to
-  branch `windows-dev`, and paste the commit hash + the Step-3 output.
-- If it can't push: **paste the full final `saliency_absolute_batch` +
-  `_saliency_absolute_batch` code block** and the Step-3 output; the leader lands it.
-- Add a `WORKLOG_TRAINING.md` line ending `batched saliency verified in Colab`.
+## Step 4 — deliver (primary = paste; needs no file/repo access)
+**Paste back two things:**
+1. The full final `saliency_absolute_batch` + `_saliency_absolute_batch` code,
+   ready to drop into the class (plain `def`s, `self` as first arg).
+2. The Step-3 output — the `CORRECTNESS PASS` line **and** the `SPEED` line.
+
+The leader takes it from there — lands it in the repo and re-verifies. (Optional: if
+this session happens to have a git write token, you may also commit the two methods
+into `backend/neural_vision.py` and push to `windows-dev`, but the paste is what
+matters — do not block on it.)
 
 Then STOP. The leader (Claude) re-runs the correctness gate and mutation-checks it
 (e.g. deletes the black-to-move rank-flip → the test MUST fail) before it merges.
-Do not touch the pipeline, TS2, or any other file — TS2's per-candidate saliency is
-a separate task (Optimization #2).
+Scope: **only these two methods.** Do not modify the serial methods, the pipeline,
+TS2, or anything else — TS2's per-candidate saliency is a separate later task.
