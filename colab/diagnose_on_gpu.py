@@ -67,10 +67,12 @@ if not os.path.exists("/content/repo"):
 # torch is preinstalled on Colab with CUDA — do NOT reinstall it.
 
 # %% [markdown]
-# ## 4. ⚠️ ITERATE — install a CUDA LC0 and place the weights
-# LC0 uses the GPU via its own CUDA backend (not torch). Grab a Linux GPU build
-# from the lczero releases. The exact asset name/version changes — check
-# https://github.com/LeelaChessZero/lc0/releases and adjust the URL.
+# ## 4. Place weights + get a working CUDA LC0 (validate cache, else compile)
+# lc0 uses the GPU via its own CUDA backend (not torch). There's no prebuilt
+# Linux-CUDA release, so we compile from source ONCE and cache the binary to
+# Drive per GPU type. On every run we VALIDATE the cached binary by actually
+# running a cuda-fp16 benchmark here (proves the binary works + the CUDA runtime
+# libs are present this session); only if that fails do we recompile. Foolproof.
 # %%
 os.makedirs("/content/repo/engine", exist_ok=True)
 import shutil
@@ -85,30 +87,57 @@ shutil.copy(BT3_SRC,         "/content/repo/engine/bt3.onnx")
 import torch
 gpu_name = torch.cuda.get_device_name(0).replace(" ", "_") if torch.cuda.is_available() else "cpu"
 LC0_DRIVE_BIN = f"{DRIVE}/lc0_{gpu_name}"
-LC0_BIN = "/content/lc0/build/release/lc0"
+_WEIGHTS_CHECK = "/content/repo/engine/791556.pb.gz"   # small net for a quick validate
 
-if os.path.exists(LC0_DRIVE_BIN):
-    print("Using cached LC0 binary from Drive for", gpu_name, ":", LC0_DRIVE_BIN)
+
+def lc0_works(binpath):
+    """A cached/compiled binary counts as 'correct' only if it runs a cuda-fp16
+    benchmark HERE — proving the binary is intact AND the CUDA runtime libs are
+    present in this session (a cached binary from another session can be stale)."""
+    if not binpath or not os.path.exists(binpath):
+        return False
+    try:
+        os.chmod(binpath, 0o755)
+        r = subprocess.run([binpath, "benchmark", f"--weights={_WEIGHTS_CHECK}",
+                            "--backend=cuda-fp16", "--num-positions=1", "--movetime=1000"],
+                           capture_output=True, text=True, timeout=180)
+        blob = (r.stdout + r.stderr).lower()
+        ok = ("nodes/second" in blob) and ("error" not in blob)
+        if not ok:
+            print("  cached binary failed validation (will recompile)")
+        return ok
+    except Exception as e:
+        print("  validation error (will recompile):", e)
+        return False
+
+
+LC0_BIN = None
+print(f"Checking for a cached, WORKING lc0 for {gpu_name} ...")
+if lc0_works(LC0_DRIVE_BIN):
     LC0_BIN = LC0_DRIVE_BIN
+    print("OK — using cached validated lc0:", LC0_DRIVE_BIN)
 else:
-    print(f"Compiling LC0 from source for {gpu_name} (~1 min)...")
+    print("No valid cached binary — compiling from source (~a few min)...")
+
+# Compile only if we still lack a working binary. Magics run at cell top-level.
+if LC0_BIN is None:
     !apt-get update -qq && apt-get install -y -qq git ninja-build libprotobuf-dev protobuf-compiler libopenblas-dev
     !pip -q install meson
     !cd /content && if [ ! -d "lc0" ]; then git clone -b release/0.31 --recurse-submodules https://github.com/LeelaChessZero/lc0.git; fi
     !rm -rf /content/lc0/build
     !cd /content/lc0 && ./build.sh
-    if os.path.exists(LC0_BIN) and os.path.exists(DRIVE):
+    _fresh = "/content/lc0/build/release/lc0"
+    if lc0_works(_fresh):
+        LC0_BIN = _fresh
         try:
-            shutil.copy(LC0_BIN, LC0_DRIVE_BIN)
-            print("Cached LC0 binary to Drive:", LC0_DRIVE_BIN)
+            shutil.copy(_fresh, LC0_DRIVE_BIN)
+            print("Cached freshly built lc0 to Drive:", LC0_DRIVE_BIN)
         except Exception as e:
-            print("Could not cache binary to Drive:", e)
+            print("Could not cache to Drive:", e)
+    else:
+        raise RuntimeError("freshly built lc0 failed the cuda-fp16 benchmark — see the build log above")
 
-!chmod +x "$LC0_BIN"
-print("lc0 binary:", LC0_BIN)
-# sanity: should print a version banner and list a 'cuda' backend
-res = subprocess.run([LC0_BIN, "--help"], capture_output=True, text=True)
-print(res.stderr[:400] or res.stdout[:400])
+print("lc0 binary READY:", LC0_BIN)
 
 # %% [markdown]
 # ## 5. Build the engine + vision objects (same classes the app uses)
@@ -147,7 +176,45 @@ vision = NeuralVision(onnx_path="/content/repo/engine/bt3.onnx")
 print("vision mode:", vision.mode)   # want "attention"; "policy_fallback" = BT3 didn't load
 
 # %% [markdown]
-# ## 5b. GPU search tuning — node-limited depth (converts GPU speed into time savings)
+# ## 5b. GPU smoke test — confirm BT3 is on the A100 + measure the batched wins
+# Uses the `vision` built above (device-aware). Prints the model device (want
+# cuda:0) and times serial-vs-batched saliency + evaluate_batch. Writes and
+# auto-downloads gpu_smoke.txt. Cheap (~15s) — run before any full diagnosis.
+# %%
+import time as _t
+_R = []
+def _o(*a):
+    _s = " ".join(str(x) for x in a); print(_s); _R.append(_s)
+
+_o("=== BT3 device ===")
+_dev = next(vision.model.parameters()).device
+_o("BT3 model device:", _dev, "->", "ON GPU" if "cuda" in str(_dev) else "STILL ON CPU (!)")
+_FENS = [
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+    "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4",
+    "6k1/5ppp/8/8/8/8/5PPP/6K1 b - - 0 1",
+] * 16
+_o("")
+_o("=== saliency: serial vs batched ===")
+_a = _t.time(); [vision.saliency_absolute(f) for f in _FENS[:16]]; _ts = _t.time() - _a
+_o(f"  serial  x16: {_ts:.2f}s ({_ts/16*1000:.0f} ms/pos)")
+_a = _t.time(); vision.saliency_absolute_batch(_FENS[:64]); _tb = _t.time() - _a
+_o(f"  batched x64: {_tb:.2f}s ({_tb/64*1000:.0f} ms/pos) -> {(_ts/16)/max(_tb/64,1e-9):.1f}x faster/pos")
+_o("")
+_o("=== evaluate_batch (TS2 candidate-screen primitive) ===")
+_a = _t.time(); _res = vision.evaluate_batch(_FENS[:64]); _te = _t.time() - _a
+_r0 = _res[0]
+_o(f"  evaluate_batch x64: {_te:.2f}s ({_te/64*1000:.0f} ms/pos)")
+_o(f"  sample value={_r0['value']:+.3f} top={_r0['policy'][0]['uci']}@{_r0['policy'][0]['p']:.3f} "
+   f"legal_mass={sum(m['p'] for m in _r0['policy']):.3f}")
+open("/content/gpu_smoke.txt", "w", encoding="utf-8").write("\n".join(_R))
+from google.colab import files as _files
+_files.download("/content/gpu_smoke.txt")
+print("\n>>> gpu_smoke.txt downloaded — tell me 'downloaded'.")
+
+# %% [markdown]
+# ## 5c. GPU search tuning — node-limited depth (converts GPU speed into time savings)
 # The default 6.0s/3.0s limits were cranked up on CPU for search depth; on a fast
 # GPU they explore absurdly deep and waste wall-clock. Node budgets make depth
 # hardware-INDEPENDENT (same nodes = same quality, only faster here) and are sized
