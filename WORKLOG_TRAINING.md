@@ -4,6 +4,22 @@
 > (Leader / Gemini / Claude), phase, what was done, pasted verification output,
 > open questions. Workers: paste REAL command output, never summaries of it.
 
+## 2026-07-22 — Gemini — Pre-deploy airtight audit (READ-ONLY)
+
+- Performed a read-only audit of the diagnosis pipeline, the newly landed node-limit changes (`ee9afda`), full-corpus reliability, budget constraints, crash recovery, and evaluation POV handling across `engine_manager.py`, `pipeline.py`, `select_repertoire.py`, `gems.py`, `drills.py`, `store.py`, and `colab/diagnose_on_gpu.py`.
+- Produced `PREDEPLOY_AUDIT_REPORT.md` containing 8 CONFIRMED findings (4 HIGH, 3 MEDIUM, 1 LOW) with exact `file:line` evidence, failure scenarios, and blast-radius analyses:
+  1. **[SEV: high] Node-limited engine searches drop `time` limit completely without a wall-clock safety net (CONFIRMED).** (Location: `engine_manager.py:352-357`).
+  2. **[SEV: high] Downstream searches (`select_repertoire.py`, `gems.py`) remain time-based, wasting GPU hours (CONFIRMED).** (Location: `select_repertoire.py:183, 226, 522`, `gems.py:75, 89`, `metrics.py:86-87`).
+  3. **[SEV: high] Stage TS2 budget exhaustion (`steer_search_budget=4000`) silently truncates 95% of full corpus (CONFIRMED).** (Location: `pipeline.py:396-398, 435-437, 473-493`).
+  4. **[SEV: high] Lack of incremental pipeline checkpointing loses all multi-hour GPU progress on mid-run failure (CONFIRMED).** (Location: `pipeline.py:130, 556-568`, `store.py:121-134`).
+  5. **[SEV: medium] Progress bar `total` mismatch in `pipeline.py` & `diagnose_on_gpu.py` makes Stage B appear frozen (CONFIRMED).** (Location: `pipeline.py:180`, `diagnose_on_gpu.py:296-305, 328-337`).
+  6. **[SEV: medium] `EpdCache.put` uses raw non-atomic append without Windows permission retry backoff (CONFIRMED).** (Location: `store.py:45-50`).
+  7. **[SEV: medium] Unbounded memory accumulation in `user_decision_nodes` and `uci_moves_so_far` over thousands of games (CONFIRMED).** (Location: `pipeline.py:239-247`).
+  8. **[SEV: low] `_walk_line` in `drills.py` truncates variation line when reaching opponent leaf node (CONFIRMED).** (Location: `drills.py:298-299`).
+- Rendered **NO-GO recommendation** for the full paid GPU run until the top 3 must-fix blockers are resolved.
+
+pre-deploy audit ready for review
+
 ## 2026-07-22 — Leader (Opus) — Audit F2 + F5 fixed
 - **F2 FIXED.** `by_opening[eco][sev] += 1` (was `+= weight`) so blind_rate is a
   true move fraction (<=1.0), consistent with by_phase/by_clock. by_motif keeps
