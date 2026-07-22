@@ -233,13 +233,20 @@ from backend.training import metrics
 # These are starting points — check the net probe's nps and the 3-game timing,
 # then raise for more depth / lower for more speed.
 if "BT3" in SEARCH_WEIGHTS:
-    _NODE_BUDGETS = {                  # strong transformer
-        "confirm_best_nodes": 40_000,     # Stage B best-move eval
-        "confirm_played_nodes": 20_000,   # Stage B played + TS2 candidate
-        "repertoire_eval_nodes": 30_000,  # repertoire soundness + variation trees
-        "gem_screen_nodes": 10_000,       # hidden-gem quietness screen
-        "gem_confirm_nodes": 40_000,      # hidden-gem confirmation
+    # NODE-KNEE TEST: the diagnosis is bound by deep lc0 searches, and BT3 is
+    # strong per node, so fewer nodes may preserve findings at ~2.5x less search.
+    # These are the LOW values — run the DIAGNOSIS cell and compare its §5
+    # findings to the 40k/20k baseline (20 findings: 14 missed / 6 blind /
+    # 4 confirmed). If findings hold, keep them; if they degrade, use _HIGH.
+    _NODE_BUDGETS = {                  # strong transformer — LOW (knee test)
+        "confirm_best_nodes": 15_000,     # Stage B best-move eval
+        "confirm_played_nodes": 8_000,    # Stage B played + TS2 candidate
+        "repertoire_eval_nodes": 12_000,  # repertoire soundness + variation trees
+        "gem_screen_nodes": 5_000,        # hidden-gem quietness screen
+        "gem_confirm_nodes": 15_000,      # hidden-gem confirmation
     }
+    # _HIGH baseline (quality reference): confirm_best=40k, confirm_played=20k,
+    # repertoire_eval=30k, gem_screen=10k, gem_confirm=40k.
 else:                                  # small 791556
     _NODE_BUDGETS = {
         "confirm_best_nodes": 120_000, "confirm_played_nodes": 60_000,

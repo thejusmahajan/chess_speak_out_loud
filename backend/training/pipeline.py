@@ -275,6 +275,11 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                 f_item["_precomputed_saliency"] = sal
 
         for flagged in flagged_moves:
+            # Advance per CANDIDATE (not per finding) so the bar reaches 100% —
+            # the opening-sidelines `continue` below skips the finding path.
+            stage_b_done += 1
+            pbar_b.update(1)
+            _progress(job_id, stage_b_done=stage_b_done)
             epd = flagged["epd"]
             board_before = chess.Board(flagged["fen_before"])
             played_move = flagged["played_move"]
@@ -352,10 +357,9 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                 "pv_san": b_data["pv_san_list"]
             }
             findings.append(finding)
-            
-            stage_b_done += 1
-            _progress(job_id, stage_b_done=stage_b_done)
-            
+
+        pbar_b.close()
+
         # STAGE TS2: Steering Pass
         steer_findings = []
         by_opening_steer = defaultdict(lambda: {"moves": 0, "complexity_sum": 0.0, "tal_moves": 0})
