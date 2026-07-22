@@ -39,7 +39,7 @@ except Exception as e:
 from google.colab import drive
 drive.mount("/content/drive")
 # ⚠️ EDIT these to where you put the files on your Drive:
-DRIVE = "/content/drive/MyDrive/cszero"          # folder holding the 3 files
+DRIVE = "/content/drive/MyDrive/colab_chess_speak_out_loud"          # folder holding the 3 files
 WEIGHTS_SRC = f"{DRIVE}/791556.pb.gz"
 BT3_SRC     = f"{DRIVE}/bt3.onnx"
 PGN_SRC     = f"{DRIVE}/lichess_derdiedasdie_2026-07-21.pgn"
@@ -75,15 +75,37 @@ import shutil
 shutil.copy(WEIGHTS_SRC, "/content/repo/engine/791556.pb.gz")
 shutil.copy(BT3_SRC,     "/content/repo/engine/bt3.onnx")
 
-# ⚠️ Example — verify the asset URL for a current release with a CUDA build:
-LC0_URL = "https://github.com/LeelaChessZero/lc0/releases/download/v0.31.2/lc0-v0.31.2-linux-gpu-nvidia-cuda.tar.gz"
-!cd /content && wget -q "$LC0_URL" -O lc0.tar.gz && mkdir -p lc0bin && tar xzf lc0.tar.gz -C lc0bin
-LC0_BIN = subprocess.run("find /content/lc0bin -name lc0 -type f | head -1",
-                         shell=True, capture_output=True, text=True).stdout.strip()
+# LC0 compilation & binary resolution:
+# Official LC0 GitHub releases do not provide pre-compiled Linux CUDA archives.
+# We compile LC0 from source (takes ~1 min with ninja) and cache per GPU type (T4 vs A100).
+
+import torch
+gpu_name = torch.cuda.get_device_name(0).replace(" ", "_") if torch.cuda.is_available() else "cpu"
+LC0_DRIVE_BIN = f"{DRIVE}/lc0_{gpu_name}"
+LC0_BIN = "/content/lc0/build/release/lc0"
+
+if os.path.exists(LC0_DRIVE_BIN):
+    print("Using cached LC0 binary from Drive for", gpu_name, ":", LC0_DRIVE_BIN)
+    LC0_BIN = LC0_DRIVE_BIN
+else:
+    print(f"Compiling LC0 from source for {gpu_name} (~1 min)...")
+    !apt-get update -qq && apt-get install -y -qq git ninja-build libprotobuf-dev protobuf-compiler libopenblas-dev
+    !pip -q install meson
+    !cd /content && if [ ! -d "lc0" ]; then git clone -b release/0.31 --recurse-submodules https://github.com/LeelaChessZero/lc0.git; fi
+    !rm -rf /content/lc0/build
+    !cd /content/lc0 && ./build.sh
+    if os.path.exists(LC0_BIN) and os.path.exists(DRIVE):
+        try:
+            shutil.copy(LC0_BIN, LC0_DRIVE_BIN)
+            print("Cached LC0 binary to Drive:", LC0_DRIVE_BIN)
+        except Exception as e:
+            print("Could not cache binary to Drive:", e)
+
 !chmod +x "$LC0_BIN"
 print("lc0 binary:", LC0_BIN)
 # sanity: should print a version banner and list a 'cuda' backend
-print(subprocess.run([LC0_BIN, "--help"], capture_output=True, text=True).stderr[:400])
+res = subprocess.run([LC0_BIN, "--help"], capture_output=True, text=True)
+print(res.stderr[:400] or res.stdout[:400])
 
 # %% [markdown]
 # ## 5. Build the engine + vision objects (same classes the app uses)
@@ -115,45 +137,89 @@ print("vision mode:", vision.mode)   # want "attention"; "policy_fallback" = BT3
 # non-degenerate profile, and time it — then scale up.
 # %%
 import re, time, chess.pgn
-from backend.training import store, pipeline
+from tqdm.notebook import tqdm
+from backend.training import store, pipeline, metrics
+
+# Optimize engine search time limits for GPU acceleration (A100 runs 10,000+ nodes in <0.1s!)
+metrics.DEFAULT_CONFIG = metrics.TrainingConfig(confirm_best_seconds=1.0, confirm_played_seconds=0.5)
 
 def select_recent_games(pgn_text, player, n):
-    blocks = re.split(r"\n\s*\n", pgn_text.strip()); games=[]; cur=[]
-    for b in blocks:
-        if b.lstrip().startswith("[Event"):
-            if cur: games.append("\n\n".join(cur))
-            cur=[b]
-        elif cur: cur.append(b)
-    if cur: games.append("\n\n".join(cur))
+    player_lower = player.lower()
+    raw_blocks = pgn_text.split("\n[Event ")
+    games = []
+    for i, b in enumerate(raw_blocks):
+        full_game = b if i == 0 else "[Event " + b
+        if player_lower in full_game.lower():
+            games.append(full_game)
+    
     def key(g):
-        d=re.search(r'\[UTCDate "([^"]+)"\]',g); t=re.search(r'\[UTCTime "([^"]+)"\]',g)
-        return ((d.group(1) if d else ""),(t.group(1) if t else ""))
-    mine=[g for g in games if any(player.lower() in nm.lower()
-          for _,nm in re.findall(r'\[(White|Black) "([^"]+)"\]',g))]
-    mine.sort(key=key)
-    return mine[-n:]
+        d = re.search(r'\[UTCDate "([^"]+)"\]', g)
+        t = re.search(r'\[UTCTime "([^"]+)"\]', g)
+        return ((d.group(1) if d else ""), (t.group(1) if t else ""))
+        
+    games.sort(key=key)
+    return games[-n:]
 
+print("Reading PGN file...")
 pgn_text = open(PGN_SRC, encoding="utf-8").read()
 N_TEST = 40
-subset = "\n\n".join(select_recent_games(pgn_text, PLAYER_NAME, N_TEST))
+subset_games = select_recent_games(pgn_text, PLAYER_NAME, N_TEST)
+print(f"Selected {len(subset_games)} games for player '{PLAYER_NAME}'. Starting diagnosis...")
+
+# Wrap pipeline progress with tqdm.notebook progress bar
+pbar = None
+orig_progress = pipeline._progress
+def custom_progress(job_id, total=None, stage_a_done=None, stage_b_done=None, stage_steer_done=None, **kwargs):
+    global pbar
+    orig_progress(job_id, total=total, stage_a_done=stage_a_done, stage_b_done=stage_b_done, stage_steer_done=stage_steer_done, **kwargs)
+    if total is not None and pbar is None:
+        pbar = tqdm(total=total, desc="Diagnosing Games", unit="move")
+    if pbar is not None:
+        current = stage_steer_done or stage_b_done or stage_a_done or 0
+        pbar.n = min(current, pbar.total or current)
+        pbar.refresh()
+
+pipeline._progress = custom_progress
+subset = "\n\n".join(subset_games)
 t0 = time.time()
 await pipeline.run_diagnosis("colab-test", subset, PLAYER_NAME, engine, vision)
+if pbar is not None:
+    pbar.close()
+    pipeline._progress = orig_progress
+
 prof = store.load_profile()
 dt = time.time() - t0
-print(f"{N_TEST} games in {dt:.0f}s ({dt/N_TEST:.1f}s/game) -> "
+print(f"✅ {N_TEST} test games completed in {dt:.0f}s ({dt/N_TEST:.1f}s/game) -> "
       f"findings={len(prof.get('findings',[]))} "
       f"by_phase={'yes' if 'by_phase' in prof.get('aggregates',{}) else 'NO'}")
-# Extrapolate: full run ~ (dt/N_TEST) * total_games seconds. Decide before scaling.
 
 # %% [markdown]
 # ## 7. Full run (set N to how many games you want; None = all)
 # %%
-N_FULL = 693     # or a bigger number, or None for every game
+N_FULL = None     # None = analyze ALL games in the PGN (e.g. all 4000+ games)
 games = select_recent_games(pgn_text, PLAYER_NAME, N_FULL or 10**9)
-print("running", len(games), "games...")
+print(f"Starting FULL diagnosis over all {len(games)} games for player '{PLAYER_NAME}'...")
+
+pbar_full = None
+def custom_progress_full(job_id, total=None, stage_a_done=None, stage_b_done=None, stage_steer_done=None, **kwargs):
+    global pbar_full
+    orig_progress(job_id, total=total, stage_a_done=stage_a_done, stage_b_done=stage_b_done, stage_steer_done=stage_steer_done, **kwargs)
+    if total is not None and pbar_full is None:
+        pbar_full = tqdm(total=total, desc="Full Corpus Diagnosis", unit="move")
+    if pbar_full is not None:
+        current = stage_steer_done or stage_b_done or stage_a_done or 0
+        pbar_full.n = min(current, pbar_full.total or current)
+        pbar_full.refresh()
+
+pipeline._progress = custom_progress_full
 await pipeline.run_diagnosis("colab-full", "\n\n".join(games), PLAYER_NAME, engine, vision)
+if pbar_full is not None:
+    pbar_full.close()
+    pipeline._progress = orig_progress
+
 prof = store.load_profile()
 agg = prof.get("aggregates", {})
+print("✅ FULL DIAGNOSIS COMPLETED!")
 print("games", prof.get("games_analyzed"), "moves", prof.get("moves_analyzed"),
       "findings", len(prof.get("findings", [])),
       "| by_phase:", agg.get("by_phase"), "| by_clock:", agg.get("by_clock"))
@@ -193,3 +259,54 @@ await engine.stop()
 from google.colab import files
 files.download("/content/cszero_training_data.zip")
 # (or copy to Drive: shutil.copy("/content/cszero_training_data.zip", f"{DRIVE}/"))
+
+# %% [markdown]
+# ## 5b. GPU / backend diagnosis — run AFTER Cell 5 to confirm lc0 + BT3 use the GPU
+# lc0 keeps the net resident in GPU memory once loaded, so a post-start nvidia-smi
+# is a definitive check (non-zero MiB = on the GPU). benchmark shows the chosen
+# backend + nps. If AUTO ([A]) lands on blas/eigen, force the backend in Cell 5 via
+# LC0Engine(..., custom_uci_options={"Backend": "cuda-fp16", "BackendOptions": ""}).
+# %%
+import subprocess, time
+WEIGHTS = "/content/repo/engine/791556.pb.gz"
+
+def _gpu():
+    return subprocess.run(["nvidia-smi", "--query-gpu=utilization.gpu,memory.used,memory.total",
+                           "--format=csv,noheader"], capture_output=True, text=True).stdout.strip()
+def _show(raw, keys):
+    for ln in raw.splitlines():
+        if any(k in ln.lower() for k in keys):
+            print("   ", ln.strip())
+
+print("GPU idle baseline:", _gpu())
+
+print("\n[A] lc0 benchmark — AUTO backend (what the app uses):")
+r = subprocess.run([LC0_BIN, "benchmark", f"--weights={WEIGHTS}", "--num-positions=2"],
+                   capture_output=True, text=True)
+_show(r.stderr + r.stdout, ("creating backend", "backend:", "nps", "nodes/s", "cuda", "blas", "eigen", "error"))
+
+print("\n[B] lc0 benchmark — FORCED --backend=cuda-fp16 (try 'cuda' if this errors):")
+r2 = subprocess.run([LC0_BIN, "benchmark", f"--weights={WEIGHTS}", "--backend=cuda-fp16", "--num-positions=2"],
+                    capture_output=True, text=True)
+_show(r2.stderr + r2.stdout, ("creating backend", "backend:", "nps", "nodes/s", "cuda", "error"))
+
+print("\n[C] App engine (from Cell 5):")
+if "engine" in globals() and engine.is_available():
+    print("   GPU with engine loaded:", _gpu(), " <- non-zero MiB = net is ON the GPU")
+    t = time.time()
+    res = await engine.analyze("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+                               depth=None, multipv=2, time_limit=2.0)
+    print(f"   analyze(2.0s) -> {time.time()-t:.2f}s wall, eval={res.get('evaluation')}")
+    print("   GPU right after analyze:", _gpu())
+else:
+    print("   engine not built — run Cell 5 first, then re-run this cell.")
+
+print("\n[D] BT3 saliency (NeuralVision):")
+if "vision" in globals():
+    print("   vision.mode:", vision.mode, "(want 'attention')")
+    t = time.time()
+    s = vision.saliency_absolute("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+    print(f"   saliency -> {time.time()-t:.2f}s / {len(s)} squares  (GPU: <0.1s, CPU: ~1-1.5s)")
+else:
+    print("   vision not built — run Cell 5 first.")
+print("\nGPU final:", _gpu())
