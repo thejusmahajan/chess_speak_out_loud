@@ -143,13 +143,21 @@ print("vision mode:", vision.mode)   # want "attention"; "policy_fallback" = BT3
 # CPU or GPU, only faster here. 120k/60k ~matches the depth 6.0s/3.0s bought on a
 # ~20k-nps CPU. Raise for more depth; lower for more speed. Applies to Stage B + TS2.
 # %%
-from dataclasses import replace
 from backend.training import metrics
-metrics.DEFAULT_CONFIG = replace(metrics.DEFAULT_CONFIG,
-                                 confirm_best_nodes=120_000,
-                                 confirm_played_nodes=60_000)
-print("Stage B / TS2 node budgets -> best:", metrics.DEFAULT_CONFIG.confirm_best_nodes,
-      "| played:", metrics.DEFAULT_CONFIG.confirm_played_nodes)
+# Mutate DEFAULT_CONFIG IN PLACE (not replace) so every holder sees it: the
+# pipeline reads metrics.DEFAULT_CONFIG at runtime, but select_repertoire/gems
+# capture it as a default arg by identity — a replace() would leave those blind.
+# Node counts ~match the depth the CPU-era *_seconds bought at ~20k nps.
+_NODE_BUDGETS = {
+    "confirm_best_nodes": 120_000,     # Stage B best-move eval (was 6.0s)
+    "confirm_played_nodes": 60_000,    # Stage B played + TS2 candidate (was 3.0s)
+    "repertoire_eval_nodes": 80_000,   # repertoire soundness + variation trees (was 4.0s)
+    "gem_screen_nodes": 30_000,        # hidden-gem quietness screen (was 1.6s)
+    "gem_confirm_nodes": 120_000,      # hidden-gem confirmation (was 6.0s)
+}
+for _f, _v in _NODE_BUDGETS.items():
+    object.__setattr__(metrics.DEFAULT_CONFIG, _f, _v)   # frozen dataclass -> bypass
+print("node budgets set:", {f: getattr(metrics.DEFAULT_CONFIG, f) for f in _NODE_BUDGETS})
 
 # %% [markdown]
 # ## DIAGNOSIS — runs AFTER Cell 5. GPU/CPU per component, per-stage timing, Stage B findings.
@@ -290,26 +298,13 @@ N_TEST = 40
 subset_games = select_recent_games(pgn_text, PLAYER_NAME, N_TEST)
 print(f"Selected {len(subset_games)} games for player '{PLAYER_NAME}'. Starting diagnosis...")
 
-# Wrap pipeline progress with tqdm.notebook progress bar
-pbar = None
-orig_progress = pipeline._progress
-def custom_progress(job_id, total=None, stage_a_done=None, stage_b_done=None, stage_steer_done=None, **kwargs):
-    global pbar
-    orig_progress(job_id, total=total, stage_a_done=stage_a_done, stage_b_done=stage_b_done, stage_steer_done=stage_steer_done, **kwargs)
-    if total is not None and pbar is None:
-        pbar = tqdm(total=total, desc="Diagnosing Games", unit="move")
-    if pbar is not None:
-        current = stage_steer_done or stage_b_done or stage_a_done or 0
-        pbar.n = min(current, pbar.total or current)
-        pbar.refresh()
-
-pipeline._progress = custom_progress
+# The pipeline prints its OWN correct per-stage bars (Stage A / Stage B / TS2).
+# We don't wrap it — the old wrapper bar used one total for all stages, which
+# made Stage B look frozen near 0%. To run the CURATED subset instead of "recent
+# N", set PGN_SRC = ".../test_subset.pgn" in Cell 2 and N_TEST large enough.
 subset = "\n\n".join(subset_games)
 t0 = time.time()
 await pipeline.run_diagnosis("colab-test", subset, PLAYER_NAME, engine, vision)
-if pbar is not None:
-    pbar.close()
-    pipeline._progress = orig_progress
 
 prof = store.load_profile()
 dt = time.time() - t0
@@ -324,18 +319,6 @@ N_FULL = None     # None = analyze ALL games in the PGN (e.g. all 4000+ games)
 games = select_recent_games(pgn_text, PLAYER_NAME, N_FULL or 10**9)
 print(f"Starting FULL diagnosis over all {len(games)} games for player '{PLAYER_NAME}'...")
 
-pbar_full = None
-def custom_progress_full(job_id, total=None, stage_a_done=None, stage_b_done=None, stage_steer_done=None, **kwargs):
-    global pbar_full
-    orig_progress(job_id, total=total, stage_a_done=stage_a_done, stage_b_done=stage_b_done, stage_steer_done=stage_steer_done, **kwargs)
-    if total is not None and pbar_full is None:
-        pbar_full = tqdm(total=total, desc="Full Corpus Diagnosis", unit="move")
-    if pbar_full is not None:
-        current = stage_steer_done or stage_b_done or stage_a_done or 0
-        pbar_full.n = min(current, pbar_full.total or current)
-        pbar_full.refresh()
-
-pipeline._progress = custom_progress_full
 await pipeline.run_diagnosis("colab-full", "\n\n".join(games), PLAYER_NAME, engine, vision)
 if pbar_full is not None:
     pbar_full.close()

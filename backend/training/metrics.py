@@ -85,6 +85,9 @@ class TrainingConfig:
     # sets these to ~match the node depth the *_seconds limits bought on CPU.
     confirm_best_nodes: Optional[int] = None    # overrides confirm_best_seconds when set
     confirm_played_nodes: Optional[int] = None  # overrides confirm_played_seconds when set
+    repertoire_eval_nodes: Optional[int] = None  # overrides repertoire_eval_seconds when set
+    gem_screen_nodes: Optional[int] = None       # overrides gem_screen_seconds when set
+    gem_confirm_nodes: Optional[int] = None       # overrides gem_confirm_seconds when set
 
     # --- Time-scramble filter (diagnosis) ---
     # Moves played with less than this many seconds on the mover's clock

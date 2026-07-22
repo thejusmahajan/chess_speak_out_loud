@@ -180,7 +180,8 @@ async def build_repertoire(
         # Soundness + sharpness gate on tabiya
         analysis = await engine.analyze(
             tabiya_fen, depth=None, multipv=2,
-            time_limit=cfg.repertoire_eval_seconds)
+            time_limit=cfg.repertoire_eval_seconds,
+            nodes=cfg.repertoire_eval_nodes)
         engine_calls += 1
 
         cp = metrics.eval_cp_number(analysis["evaluation"])
@@ -223,7 +224,8 @@ async def build_repertoire(
                     break
                 cand_analysis = await engine.analyze(
                     board_after.fen(), depth=None, multipv=2,
-                    time_limit=cfg.repertoire_eval_seconds)
+                    time_limit=cfg.repertoire_eval_seconds,
+                    nodes=cfg.repertoire_eval_nodes)
                 engine_calls += 1
 
                 cand_policy = await engine.get_policy_distribution(
@@ -519,7 +521,8 @@ async def build_repertoire_tree(
                     after.push(mv)
                     analysis = await engine.analyze(
                         after.fen(), depth=None, multipv=2,
-                        time_limit=cfg.repertoire_eval_seconds)
+                        time_limit=cfg.repertoire_eval_seconds,
+                        nodes=cfg.repertoire_eval_nodes)
                     cand_pol = await engine.get_policy_distribution(after.fen(), nodes=1)
                     cp = metrics.eval_cp_number(analysis.get("evaluation"))
                     if cp is None:

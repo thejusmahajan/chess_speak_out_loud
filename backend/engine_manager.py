@@ -25,6 +25,11 @@ logger = logging.getLogger(__name__)
 # Default engine directory
 ENGINE_DIR = Path(r"C:\Users\Admin\Documents\chess_speak_out_loud\engine")
 
+# Wall-clock safety net for node-limited searches: high enough that a normal
+# node-limited search (sub-second on GPU, a few seconds on CPU) never hits it,
+# but bounded so a stalled/deadlocked engine can't hang a multi-hour paid run.
+NODE_LIMIT_SAFETY_SECONDS = 30.0
+
 
 class LC0Engine:
     """
@@ -351,8 +356,14 @@ class LC0Engine:
             board = chess.Board(fen)
             if nodes is not None:
                 # Node-limited: deterministic search depth regardless of backend
-                # speed. Ignores time/depth so quality is hardware-independent.
-                limit_kwargs = {"nodes": nodes}
+                # speed. Ignores depth so quality is hardware-independent, but
+                # keeps a generous wall-clock cap so a stalled engine can't hang
+                # a paid run (the engine stops at whichever limit is hit first;
+                # a normal node search finishes far under the cap).
+                limit_kwargs = {
+                    "nodes": nodes,
+                    "time": max(time_limit or 0.0, NODE_LIMIT_SAFETY_SECONDS),
+                }
             else:
                 limit_kwargs = {"time": time_limit}
                 if depth is not None:

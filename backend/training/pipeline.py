@@ -260,6 +260,9 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         stage_b_done = 0
         opening_sidelines_excluded = 0
         pbar_b = tqdm(total=len(flagged_moves), desc="Stage B: Deep Confirmation", unit="candidate")
+        # Stage B counts against flagged moves, not all user moves — emit its own
+        # denominator so progress consumers don't show it stuck near 0%.
+        _progress(job_id, stage_b_total=len(flagged_moves))
         # Pre-batch saliency calculations for uncached Stage B positions
         uncached_stage_b = [f for f in flagged_moves if stage_b_cache.get(f["epd"]) is None]
         if uncached_stage_b:
@@ -362,6 +365,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         steer_budget_exhausted = False
 
         pbar_ts2 = tqdm(total=len(user_decision_nodes), desc="Stage TS2: Tactical Steering", unit="node")
+        _progress(job_id, stage_steer_total=len(user_decision_nodes))
         for node in user_decision_nodes:
             epd = node["epd"]
             fen_before = node["fen_before"]
