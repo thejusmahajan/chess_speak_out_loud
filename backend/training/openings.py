@@ -1,4 +1,5 @@
 import os
+import re
 import csv
 import chess
 from typing import List, Dict, Optional
@@ -46,22 +47,18 @@ def _load_openings():
                 uci_moves = []
                 try:
                     for san_move in pgn.split():
-                        if "." in san_move:
-                            parts = san_move.split(".")
-                            if len(parts) > 1 and parts[1]:
-                                san_move = parts[1]
-                            else:
-                                continue
+                        san_move = re.sub(r'^\d+\.*', '', san_move)
+                        if not san_move:
+                            continue
                                 
                         move = board.parse_san(san_move)
                         uci_moves.append(move.uci())
                         board.push(move)
                         
-                    seq = tuple(uci_moves)
-                    # For longest-prefix matching, we just store exact sequence mappings.
-                    # Since multiple ECOs might map to the same sequence (rare but possible), we keep the latest or whatever is in the DB.
-                    _openings_trie[seq] = {"eco": eco, "name": name}
-                    _tabiya_fens[(eco, name)] = board.fen()
+                    if uci_moves:
+                        seq = tuple(uci_moves)
+                        _openings_trie[seq] = {"eco": eco, "name": name}
+                        _tabiya_fens[(eco, name)] = board.fen()
                 except Exception:
                     pass
                     
