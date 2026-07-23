@@ -173,3 +173,25 @@ async def test_engine_pool_queue_exhaustion_timeout():
 
     await pool.stop()
 
+
+
+@pytest.mark.anyio
+async def test_engine_pool_forwards_none_depth_verbatim():
+    # Guard for signature-drift: depth=None means "no depth cap" and must reach
+    # the worker as None, NOT be dropped so the engine's default (20) kicks in.
+    seen = {}
+
+    class RecordingEngine:
+        async def start(self): pass
+        async def stop(self): pass
+        def is_available(self): return True
+        async def analyze(self, fen, depth=20, multipv=3, time_limit=2.0, nodes=None):
+            seen.update(depth=depth, multipv=multipv, time_limit=time_limit, nodes=nodes)
+            return {"evaluation": 0}
+
+    from backend.engine_pool import EnginePool
+    pool = EnginePool(1, RecordingEngine)
+    await pool.analyze("8/8/8/8/8/8/8/K6k w - - 0 1", depth=None, multipv=2,
+                       time_limit=3.0, nodes=None)
+    assert seen["depth"] is None, f"depth=None was mangled to {seen['depth']!r}"
+    assert seen["multipv"] == 2 and seen["time_limit"] == 3.0 and seen["nodes"] is None

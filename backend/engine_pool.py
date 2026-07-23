@@ -41,22 +41,22 @@ class EnginePool:
     async def analyze(
         self,
         fen: str,
-        depth: Optional[int] = None,
-        multipv: int = 1,
-        time_limit: Optional[float] = None,
+        depth: Optional[int] = 20,
+        multipv: int = 3,
+        time_limit: float = 2.0,
         nodes: Optional[int] = None,
     ) -> dict:
-        """Analyze a position using an available worker engine from the pool."""
+        """Analyze a position using an available worker engine from the pool.
+
+        Signature and defaults mirror LC0Engine.analyze EXACTLY, and every
+        argument is forwarded verbatim — including depth=None, which means
+        "no depth cap" in the time-based path. (An earlier draft dropped None
+        args, silently turning depth=None into the engine's default depth=20:
+        classic signature-drift.)"""
         eng = await self._queue.get()
         try:
-            kwargs: dict[str, Any] = {"multipv": multipv}
-            if depth is not None:
-                kwargs["depth"] = depth
-            if time_limit is not None:
-                kwargs["time_limit"] = time_limit
-            if nodes is not None:
-                kwargs["nodes"] = nodes
-            return await eng.analyze(fen, **kwargs)
+            return await eng.analyze(fen, depth=depth, multipv=multipv,
+                                     time_limit=time_limit, nodes=nodes)
         finally:
             self._queue.put_nowait(eng)
 
