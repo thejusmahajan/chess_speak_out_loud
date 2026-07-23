@@ -31,6 +31,24 @@ ENGINE_DIR = Path(r"C:\Users\Admin\Documents\chess_speak_out_loud\engine")
 NODE_LIMIT_SAFETY_SECONDS = 30.0
 
 
+def terminal_analysis(board: "chess.Board") -> dict:
+    """Synthetic analyze() result for a no-legal-moves position (checkmate or
+    stalemate). lc0 emits 'bestmove a1a1' for these, which crashes the UCI
+    parser, so we never send them to the engine. Evaluation is white-POV, with
+    ±10000 matching eval_cp_number's mate magnitude (sign preserved, unlike an
+    'M0' string). Shape matches the normal analyze() dict."""
+    if board.is_checkmate():
+        white_mated = board.turn == chess.WHITE   # side to move is the mated side
+        return {
+            "evaluation": -10000 if white_mated else 10000,
+            "best_moves": [], "pv_lines": [], "nodes": 0,
+            "wdl": [0, 0, 1000] if white_mated else [1000, 0, 0],
+        }
+    # stalemate = draw
+    return {"evaluation": 0, "best_moves": [], "pv_lines": [], "nodes": 0,
+            "wdl": [0, 1000, 0]}
+
+
 class LC0Engine:
     """
     Wrapper around the LC0 UCI chess engine.
@@ -358,6 +376,13 @@ class LC0Engine:
         """Internal: run the actual engine analysis. Caller must hold _lock."""
         try:
             board = chess.Board(fen)
+            # Terminal positions (no legal moves) make lc0 emit "bestmove a1a1",
+            # which python-chess rejects -> EngineError that can corrupt the
+            # protocol and crash the whole diagnosis. A candidate move that mates
+            # or stalemates lands here. Return a synthetic eval instead of asking
+            # the engine to "search" a position with nothing to search.
+            if board.is_checkmate() or board.is_stalemate():
+                return terminal_analysis(board)
             if nodes is not None:
                 # Node-limited: deterministic search depth regardless of backend
                 # speed. Ignores depth so quality is hardware-independent, but

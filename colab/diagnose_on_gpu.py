@@ -210,10 +210,12 @@ _r0 = _res[0]
 _o(f"  evaluate_batch x64: {_te:.2f}s ({_te/64*1000:.0f} ms/pos)")
 _o(f"  sample value={_r0['value']:+.3f} top={_r0['policy'][0]['uci']}@{_r0['policy'][0]['p']:.3f} "
    f"legal_mass={sum(m['p'] for m in _r0['policy']):.3f}")
+import shutil as _sh
 open("/content/gpu_smoke.txt", "w", encoding="utf-8").write("\n".join(_R))
-from google.colab import files as _files
-_files.download("/content/gpu_smoke.txt")
-print("\n>>> gpu_smoke.txt downloaded — tell me 'downloaded'.")
+try: _sh.copy("/content/gpu_smoke.txt", f"{DRIVE}/gpu_smoke.txt")
+except Exception as _e: print("(Drive copy failed:", _e, ")")
+print("\n>>> gpu_smoke.txt saved to Drive (files.download hangs in some browsers;"
+      " grab it from your Drive folder or the left-sidebar file browser).")
 
 # %% [markdown]
 # ## 5c. GPU search tuning — node-limited depth (converts GPU speed into time savings)
@@ -360,9 +362,8 @@ try:
     print("copied report to Drive:", f"{DRIVE}/diagnosis_report.txt")
 except Exception as e:
     print("(could not copy to Drive:", e, ")")
-from google.colab import files
-files.download("/content/diagnosis_report.txt")
-print("\n>>> diagnosis_report.txt written + downloading to your machine (check Downloads).")
+print("\n>>> diagnosis_report.txt saved to Drive + /content — grab it from your Drive"
+      " folder or the left-sidebar file browser (files.download hangs in some browsers).")
 
 # %% [markdown]
 # ## 6. VALIDATE on a small subset first (do NOT run the full PGN blindly)
@@ -464,6 +465,8 @@ await engine.stop()
 # machine and drop it into the repo's `data/training/`.
 # %%
 !cd /content/repo && zip -q -r /content/cszero_training_data.zip data/training && ls -lh /content/cszero_training_data.zip
-from google.colab import files
-files.download("/content/cszero_training_data.zip")
-# (or copy to Drive: shutil.copy("/content/cszero_training_data.zip", f"{DRIVE}/"))
+# Save to Drive (reliable) — files.download hangs in some browsers. Retrieve the
+# zip from your Drive folder or the left-sidebar file browser, then unzip into
+# the local repo's data/training/.
+shutil.copy("/content/cszero_training_data.zip", f"{DRIVE}/cszero_training_data.zip")
+print(">>> training.zip saved to Drive:", f"{DRIVE}/cszero_training_data.zip")
