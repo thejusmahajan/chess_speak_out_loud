@@ -151,8 +151,8 @@ class LC0Engine:
         uci_options: dict = {
             "UCI_ShowWDL": True,
             "PerPVCounters": True,
-            "RamLimitMb": 8192,
-            "NNCacheSize": 500000,
+            "RamLimitMb": int(os.environ.get("LC0_RAM_LIMIT_MB", "32768")),
+            "NNCacheSize": int(os.environ.get("LC0_NN_CACHE_SIZE", "20000000")),
             # lc0's cuda/cuda-fp16 backend caps MinibatchSize at 1024; asking for
             # more is rejected and silently falls back to a small default (~256).
             # 1024 is the max these backends accept and gives the best batching
