@@ -42,9 +42,11 @@ DRIVE = "/content/drive/MyDrive/colab_chess_speak_out_loud"          # folder ho
 WEIGHTS_SRC     = f"{DRIVE}/791556.pb.gz"                        # small fast net
 BT3_WEIGHTS_SRC = f"{DRIVE}/BT3-768x15x24h-swa-2790000.pb.gz"    # strong search net (lc0 fmt)
 BT3_SRC         = f"{DRIVE}/bt3.onnx"                            # BT3 for saliency
-# For the curated 30-game test case, point this at test_subset.pgn instead
-# (build it with colab/build_test_subset.py, then upload it to Drive):
-PGN_SRC         = f"{DRIVE}/lichess_derdiedasdie_2026-07-21.pgn"
+# === WHICH GAMES ===  default = the curated 30-game validation subset.
+# Upload test_subset.pgn to Drive first (built by colab/build_test_subset.py).
+# Swap to the full corpus only for a real full run (9000 games — hours!).
+PGN_SRC         = f"{DRIVE}/test_subset.pgn"                       # <- 30-game subset
+# PGN_SRC       = f"{DRIVE}/lichess_derdiedasdie_2026-07-21.pgn"   # <- FULL corpus (slow!)
 PLAYER_NAME = "derdiedasdie"
 import os
 for p in (WEIGHTS_SRC, BT3_WEIGHTS_SRC, BT3_SRC, PGN_SRC):
@@ -233,20 +235,20 @@ from backend.training import metrics
 # These are starting points — check the net probe's nps and the 3-game timing,
 # then raise for more depth / lower for more speed.
 if "BT3" in SEARCH_WEIGHTS:
-    # NODE-KNEE TEST: the diagnosis is bound by deep lc0 searches, and BT3 is
-    # strong per node, so fewer nodes may preserve findings at ~2.5x less search.
-    # These are the LOW values — run the DIAGNOSIS cell and compare its §5
-    # findings to the 40k/20k baseline (20 findings: 14 missed / 6 blind /
-    # 4 confirmed). If findings hold, keep them; if they degrade, use _HIGH.
-    _NODE_BUDGETS = {                  # strong transformer — LOW (knee test)
-        "confirm_best_nodes": 15_000,     # Stage B best-move eval
-        "confirm_played_nodes": 8_000,    # Stage B played + TS2 candidate
-        "repertoire_eval_nodes": 12_000,  # repertoire soundness + variation trees
-        "gem_screen_nodes": 5_000,        # hidden-gem quietness screen
-        "gem_confirm_nodes": 15_000,      # hidden-gem confirmation
+    # The diagnosis is bound by deep lc0 searches, so this is the main
+    # speed/quality dial. "high" = validated quality baseline (the 20-finding
+    # reference); "low" = ~2.5x faster (node-knee test — verify §5 findings hold).
+    BT3_BUDGET = "high"    # "high" (quality) or "low" (fast)
+    _BUDGETS = {
+        "high": {"confirm_best_nodes": 40_000, "confirm_played_nodes": 20_000,
+                 "repertoire_eval_nodes": 30_000, "gem_screen_nodes": 10_000,
+                 "gem_confirm_nodes": 40_000},
+        "low":  {"confirm_best_nodes": 15_000, "confirm_played_nodes": 8_000,
+                 "repertoire_eval_nodes": 12_000, "gem_screen_nodes": 5_000,
+                 "gem_confirm_nodes": 15_000},
     }
-    # _HIGH baseline (quality reference): confirm_best=40k, confirm_played=20k,
-    # repertoire_eval=30k, gem_screen=10k, gem_confirm=40k.
+    _NODE_BUDGETS = _BUDGETS[BT3_BUDGET]
+    print("BT3 budget level:", BT3_BUDGET)
 else:                                  # small 791556
     _NODE_BUDGETS = {
         "confirm_best_nodes": 120_000, "confirm_played_nodes": 60_000,
