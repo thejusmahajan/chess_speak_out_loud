@@ -227,6 +227,7 @@ class LC0Engine:
     async def _get_policy_distribution_impl(self, fen: str, nodes: int = 1) -> list[dict]:
         """Body of get_policy_distribution. Runs on the engine loop."""
         async with self._lock:
+            verbose_set = False
             try:
                 board = chess.Board(fen)
                 if board.is_checkmate() or board.is_stalemate():
@@ -234,12 +235,14 @@ class LC0Engine:
                     # which crashes the analysis stream (same a1a1 bug as analyze).
                     return []
                 await self.engine.configure({'VerboseMoveStats': True})
+                verbose_set = True
                 policies = []
                 
                 # regex to match: e2e4  (322 ) N:       0 (+ 0) (P: 22.22%) ...
                 pattern = re.compile(r'^([a-h][1-8][a-h][1-8][qrbn]?)\s+.*?N:\s*(\d+).*?\(P:\s*([\d.]+)%\)')
                 
-                with await self.engine.analysis(board, chess.engine.Limit(nodes=nodes)) as analysis:
+                with await self.engine.analysis(board, chess.engine.Limit(
+                        nodes=nodes, time=NODE_LIMIT_SAFETY_SECONDS)) as analysis:
                     async for info in analysis:
                         if 'string' in info:
                             line = info['string']
@@ -269,9 +272,6 @@ class LC0Engine:
                                     "wdl": None
                                 })
                 
-                # Restore setting
-                await self.engine.configure({'VerboseMoveStats': False})
-                
                 # Sort descending by p
                 policies.sort(key=lambda x: x['p'], reverse=True)
                 return policies
@@ -279,6 +279,15 @@ class LC0Engine:
             except Exception as exc:
                 logger.error("Failed to get policy distribution: %s", exc)
                 return []
+            finally:
+                # Always restore VerboseMoveStats. The old reset lived inside the
+                # try AFTER the loop, so a mid-stream error skipped it and left the
+                # flag ON for every later search (state leak per the a1a1 review).
+                if verbose_set:
+                    try:
+                        await self.engine.configure({'VerboseMoveStats': False})
+                    except Exception:
+                        pass
 
     def is_available(self) -> bool:
         """Return True if a real engine connection is active."""
