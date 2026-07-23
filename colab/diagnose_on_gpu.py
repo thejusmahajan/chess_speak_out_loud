@@ -55,10 +55,20 @@ for p in (WEIGHTS_SRC, BT3_WEIGHTS_SRC, BT3_SRC, PGN_SRC):
 # %% [markdown]
 # ## 3. Clone the repo (private → needs a GitHub token) + install deps
 # %%
-# ⚠️ paste a GitHub PAT with read access, or upload the repo zip instead.
-GH_TOKEN = ""  # e.g. "github_pat_..."
 GH_REPO = "thejusmahajan/chess_speak_out_loud"
 BRANCH = "windows-dev"
+# Private repo -> Colab needs READ access. Best: store a FINE-GRAINED, READ-ONLY
+# PAT (scoped to just this repo) in Colab Secrets — left sidebar 🔑 icon -> add a
+# secret named GH_TOKEN, toggle "Notebook access" on. NEVER hardcode the token
+# here: the notebook auto-saves to Drive and would leak it.
+try:
+    from google.colab import userdata
+    GH_TOKEN = userdata.get("GH_TOKEN") or ""
+except Exception:
+    GH_TOKEN = ""   # (if you must, paste a token here temporarily — less safe)
+if not GH_TOKEN:
+    print("WARNING: no GH_TOKEN — a private-repo clone/fetch will fail. Add it to "
+          "Colab Secrets, or make the repo public (code only; nets/PGN are gitignored).")
 %cd /content
 url = f"https://{GH_TOKEN}@github.com/{GH_REPO}.git" if GH_TOKEN else f"https://github.com/{GH_REPO}.git"
 if not os.path.exists("/content/repo"):
