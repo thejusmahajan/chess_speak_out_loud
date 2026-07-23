@@ -424,6 +424,7 @@ print(f"Selected {len(subset_games)} games for player '{PLAYER_NAME}'. Starting 
 # N", set PGN_SRC = ".../test_subset.pgn" in Cell 2 and N_TEST large enough.
 subset = "\n\n".join(subset_games)
 t0 = time.time()
+os.environ["STEER_SEARCH_BUDGET"] = "50000"
 await pipeline.run_diagnosis("colab-test", subset, PLAYER_NAME, engine, vision)
 
 prof = store.load_profile()
