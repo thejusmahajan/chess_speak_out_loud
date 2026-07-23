@@ -60,10 +60,18 @@ GH_TOKEN = ""  # e.g. "github_pat_..."
 GH_REPO = "thejusmahajan/chess_speak_out_loud"
 BRANCH = "windows-dev"
 %cd /content
+url = f"https://{GH_TOKEN}@github.com/{GH_REPO}.git" if GH_TOKEN else f"https://github.com/{GH_REPO}.git"
 if not os.path.exists("/content/repo"):
-    url = f"https://{GH_TOKEN}@github.com/{GH_REPO}.git" if GH_TOKEN else f"https://github.com/{GH_REPO}.git"
     subprocess.run(["git", "clone", "--branch", BRANCH, "--depth", "1", url, "repo"], check=True)
+else:
+    # ALWAYS pull latest — a runtime restart keeps /content/repo, so a plain
+    # clone-if-absent would silently run STALE code (this exact trap caused a
+    # fixed crash to recur). Force the working tree to origin/<branch>.
+    subprocess.run(["git", "-C", "repo", "fetch", "-q", "origin", BRANCH], check=True)
+    subprocess.run(["git", "-C", "repo", "reset", "--hard", f"origin/{BRANCH}"], check=True)
 %cd /content/repo
+print("repo at:", subprocess.run(["git", "-C", "/content/repo", "rev-parse", "--short", "HEAD"],
+                                  capture_output=True, text=True).stdout.strip())
 # The conda env holds the deps locally; on Colab pip-install the real ones:
 !pip -q install python-chess onnx onnx2torch lczerolens python-dotenv numpy fastapi uvicorn google-generativeai
 # torch is preinstalled on Colab with CUDA — do NOT reinstall it.
