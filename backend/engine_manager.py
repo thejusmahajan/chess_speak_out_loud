@@ -228,8 +228,12 @@ class LC0Engine:
         """Body of get_policy_distribution. Runs on the engine loop."""
         async with self._lock:
             try:
-                await self.engine.configure({'VerboseMoveStats': True})
                 board = chess.Board(fen)
+                if board.is_checkmate() or board.is_stalemate():
+                    # No legal moves -> no policy. lc0 emits 'bestmove a1a1' here,
+                    # which crashes the analysis stream (same a1a1 bug as analyze).
+                    return []
+                await self.engine.configure({'VerboseMoveStats': True})
                 policies = []
                 
                 # regex to match: e2e4  (322 ) N:       0 (+ 0) (P: 22.22%) ...
@@ -296,6 +300,8 @@ class LC0Engine:
         async with self._lock:
             try:
                 board = chess.Board(fen)
+                if board.is_checkmate() or board.is_stalemate():
+                    return []   # no legal moves -> lc0 'a1a1' would crash the search
                 infos = await self.engine.analyse(
                     board,
                     chess.engine.Limit(time=time_limit),
