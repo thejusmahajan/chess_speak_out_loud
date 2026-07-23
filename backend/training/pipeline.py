@@ -1,11 +1,15 @@
 import io
+import os
 import re
 import asyncio
 import datetime
+import logging
 from collections import defaultdict
 from typing import Optional
 import chess
 import chess.pgn
+
+logger = logging.getLogger(__name__)
 from backend.training import store, openings, metrics
 from backend.tactics import MotifDetector
 from backend.concept_mapper import analyze_position
@@ -188,124 +192,70 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         flagged_moves = []
         user_decision_nodes = []
         
-        # STAGE A (Lever 1: Harvest decision nodes, batch-screen uncached policies in bulk)
+        # STAGE A (Policy Source: LC0Engine.get_policy_distribution — defines the blindness metric)
+        pbar_a = tqdm(total=user_moves_count, desc="Stage A: Policy Screen", unit="move")
         for game_idx, (game, user_color) in enumerate(games_to_process):
             board = game.board()
             ply = 0
             uci_moves = []
+
             for node in game.mainline():
                 move = node.move
                 ply += 1
                 uci_moves.append(move.uci())
+
                 if board.turn == user_color and not is_time_scramble(node.comment):
+                    epd = board.epd()
+
+                    policy_data = policy_cache.get(epd)
+                    if policy_data is None:
+                        dist = await engine.get_policy_distribution(board.fen(), nodes=1)
+                        if not dist:
+                            raise Exception("engine in mock mode")
+                        policy_data = {"policy": dist}
+                        policy_cache.put(epd, policy_data)
+
+                    policy = policy_data["policy"]
+                    div = metrics.policy_divergence(policy, metrics.policy_uci(board, move))
+
+                    if div and div["severity"] is not None:
+                        flagged_moves.append({
+                            "game_idx": game_idx,
+                            "game": game,
+                            "user_color": "white" if user_color == chess.WHITE else "black",
+                            "ply": ply,
+                            "move_number": (ply + 1) // 2,
+                            "fen_before": board.fen(),
+                            "epd": epd,
+                            "played_move": move,
+                            "played_uci": move.uci(),
+                            "played_san": board.san(move),
+                            "best_uci": div["best_uci"],
+                            "best_san": div["best_san"],
+                            "p_played": div["p_played"],
+                            "p_best": div["p_best"],
+                            "divergence": div["divergence"],
+                            "severity": div["severity"],
+                            "uci_moves_so_far": list(uci_moves)
+                        })
+                        flagged_count += 1
+
                     user_decision_nodes.append({
                         "game_idx": game_idx,
                         "game": game,
-                        "user_color": user_color,
                         "ply": ply,
-                        "move_number": (ply + 1) // 2,
-                        "board_before": board.copy(stack=False),
+                        "user_color": user_color,
                         "fen_before": board.fen(),
-                        "epd": board.epd(),
-                        "played_move": move,
-                        "played_uci": move.uci(),
-                        "played_san": board.san(move),
-                        "uci_moves_so_far": list(uci_moves),
+                        "epd": epd,
+                        "uci_moves_so_far": list(uci_moves)
                     })
+
+                    moves_processed += 1
+                    pbar_a.update(1)
+                    if moves_processed % 20 == 0:
+                        _progress(job_id, stage_a_done=moves_processed, flagged=flagged_count)
+
                 board.push(move)
-
-        uncached_epds = []
-        seen_epds = set()
-        for node in user_decision_nodes:
-            epd = node["epd"]
-            if policy_cache.get(epd) is None and epd not in seen_epds:
-                seen_epds.add(epd)
-                uncached_epds.append((epd, node["fen_before"], node["board_before"]))
-
-        if uncached_epds and hasattr(vision, "evaluate_batch"):
-            try:
-                fens_to_eval = [item[1] for item in uncached_epds]
-                batch_size = 4096
-                for i in range(0, len(fens_to_eval), batch_size):
-                    chunk_items = uncached_epds[i:i + batch_size]
-                    chunk_fens = fens_to_eval[i:i + batch_size]
-                    batch_evals = vision.evaluate_batch(chunk_fens)
-                    for (epd, fen, b_obj), eval_res in zip(chunk_items, batch_evals):
-                        if eval_res and isinstance(eval_res, dict) and "policy" in eval_res:
-                            policy_dist = eval_res["policy"]
-                            enriched_policy = []
-                            for p_entry in policy_dist:
-                                uci_str = p_entry.get("uci")
-                                try:
-                                    m_obj = b_obj.parse_uci(uci_str)
-                                    san_str = b_obj.san(m_obj)
-                                except Exception:
-                                    san_str = uci_str
-                                enriched_policy.append({
-                                    "uci": uci_str,
-                                    "san": san_str,
-                                    "from": uci_str[:2] if uci_str and len(uci_str) >= 4 else "",
-                                    "to": uci_str[2:4] if uci_str and len(uci_str) >= 4 else "",
-                                    "p": p_entry.get("p", 0.0),
-                                })
-                            policy_cache.put(epd, {
-                                "policy": enriched_policy,
-                                "value": eval_res.get("value"),
-                                "wdl": eval_res.get("wdl")
-                            })
-            except Exception:
-                pass
-
-        pbar_a = tqdm(total=len(user_decision_nodes), desc="Stage A: Policy Screen", unit="move")
-        for node in user_decision_nodes:
-            epd = node["epd"]
-            board = node["board_before"]
-            move = node["played_move"]
-
-            policy_data = policy_cache.get(epd)
-            if policy_data is None:
-                dist = await engine.get_policy_distribution(node["fen_before"], nodes=1)
-                if not dist:
-                    raise Exception("engine in mock mode")
-                policy_data = {"policy": dist}
-                policy_cache.put(epd, policy_data)
-
-            policy = policy_data["policy"]
-            div = metrics.policy_divergence(policy, metrics.policy_uci(board, move))
-
-            if div and div["severity"] is not None:
-                best_san = div.get("best_san")
-                if not best_san and div.get("best_uci"):
-                    try:
-                        best_san = board.san(board.parse_uci(div["best_uci"]))
-                    except Exception:
-                        best_san = div.get("best_uci")
-
-                flagged_moves.append({
-                    "game_idx": node["game_idx"],
-                    "game": node["game"],
-                    "user_color": "white" if node["user_color"] == chess.WHITE else "black",
-                    "ply": node["ply"],
-                    "move_number": node["move_number"],
-                    "fen_before": node["fen_before"],
-                    "epd": epd,
-                    "played_move": move,
-                    "played_uci": node["played_uci"],
-                    "played_san": node["played_san"],
-                    "best_uci": div["best_uci"],
-                    "best_san": best_san,
-                    "p_played": div["p_played"],
-                    "p_best": div["p_best"],
-                    "divergence": div["divergence"],
-                    "severity": div["severity"],
-                    "uci_moves_so_far": node["uci_moves_so_far"]
-                })
-                flagged_count += 1
-
-            moves_processed += 1
-            pbar_a.update(1)
-            if moves_processed % 20 == 0:
-                _progress(job_id, stage_a_done=moves_processed, flagged=flagged_count)
 
         pbar_a.close()
         _progress(job_id, stage_a_done=moves_processed, flagged=flagged_count)
@@ -421,6 +371,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         steer_processed = 0
         search_used = 0
         steer_budget_exhausted = False
+        steer_search_budget = int(os.environ.get("STEER_SEARCH_BUDGET", str(metrics.DEFAULT_CONFIG.steer_search_budget)))
 
         pbar_ts2 = tqdm(total=len(user_decision_nodes), desc="Stage TS2: Tactical Steering", unit="node")
         _progress(job_id, stage_steer_total=len(user_decision_nodes))
@@ -479,8 +430,12 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
 
                 s_data = steer_cache.get(epd_after_m)
                 if not s_data:
-                    if search_used >= metrics.DEFAULT_CONFIG.steer_search_budget:
+                    if search_used >= steer_search_budget:
                         steer_budget_exhausted = True
+                        logger.warning(
+                            "STAGE TS2 SEARCH BUDGET EXHAUSTED: used %d searches (budget %d). Steering analysis was truncated!",
+                            search_used, steer_search_budget
+                        )
                         break
 
                     analysis = await engine.analyze(
