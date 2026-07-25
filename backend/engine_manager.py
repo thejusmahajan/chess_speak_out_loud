@@ -63,6 +63,7 @@ class LC0Engine:
         engine_path: Optional[str | Path] = None,
         weights_path: Optional[str | Path] = None,
         custom_uci_options: Optional[dict] = None,
+        gpu_id: Optional[int] = None,
     ) -> None:
         """
         Initialize the LC0 engine wrapper.
@@ -77,6 +78,7 @@ class LC0Engine:
         self.engine_path: Path = Path(engine_path) if engine_path else ENGINE_DIR / "lc0.exe"
         self.weights_path: Optional[Path] = Path(weights_path) if weights_path else None
         self.custom_uci_options: dict = custom_uci_options or {}
+        self.gpu_id: Optional[int] = gpu_id
         self.engine: Optional[chess.engine.SimpleEngine] = None
         self.mock_mode: bool = False
         self._lock: asyncio.Lock = asyncio.Lock()
@@ -188,8 +190,15 @@ class LC0Engine:
         if self.weights_path and self.weights_path.exists():
             cmd.append(f"--weights={str(self.weights_path)}")
 
-        # Start engine natively
-        transport, engine = await chess.engine.popen_uci(cmd)
+        # Start engine natively. When gpu_id is set, isolate THIS engine's subprocess
+        # to that physical GPU via CUDA_VISIBLE_DEVICES — OS-level and unignorable,
+        # unlike lc0's BackendOptions="gpu=N" (which lc0 ignored, so a pool piled every
+        # worker onto GPU0). Child-only env; the parent process's torch model is
+        # unaffected. Each engine then sees a single GPU and uses it as device 0.
+        popen_kwargs: dict = {}
+        if self.gpu_id is not None:
+            popen_kwargs["env"] = {**os.environ, "CUDA_VISIBLE_DEVICES": str(self.gpu_id)}
+        transport, engine = await chess.engine.popen_uci(cmd, **popen_kwargs)
 
         # Ensure WeightsFile option is placed first if present in uci_options
         ordered_options = {}

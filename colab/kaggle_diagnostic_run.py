@@ -84,7 +84,9 @@ if not _found_any:
 # ---- 1. periodic ALL-THREAD stack dumps: if it freezes, these show EXACTLY
 #         what every engine loop-thread + the main task is stuck on ----
 faulthandler.enable()
-faulthandler.dump_traceback_later(60, repeat=True)
+# NOTE: no periodic dump_traceback_later — it printed an ALL-THREAD stack dump every
+# 60s (thousands of lines, looks like a crash but is benign). The heartbeat's
+# hang-watchdog below dumps stacks only on a REAL stall (idle > HANG_SECONDS).
 
 # ---- 2. shared progress state + heartbeat/GPU logger + hang watchdog ----
 _last = {"t": time.time(), "stage": "init", "n": 0}
@@ -332,10 +334,11 @@ _wk = {"i": 0}
 def _factory():
     idx = _wk["i"]; _wk["i"] += 1
     gpu = idx % max(gpu_count, 1)
-    opts = {"Backend": os.environ.get("LC0_BACKEND", "cuda-fp16"),
-            "BackendOptions": f"gpu={gpu}"}
-    print(f"[pool] worker {idx} -> GPU {gpu} (BackendOptions=gpu={gpu})", flush=True)
-    return LC0Engine(LC0_BIN, SEARCH_WEIGHTS, custom_uci_options=opts)
+    print(f"[pool] worker {idx} -> GPU {gpu} (CUDA_VISIBLE_DEVICES={gpu})", flush=True)
+    # Backend (cuda-fp16) comes from the LC0_BACKEND env; gpu_id pins this worker's
+    # SUBPROCESS to its own physical GPU via CUDA_VISIBLE_DEVICES. lc0 IGNORED the
+    # UCI BackendOptions="gpu=N" route (both workers landed on GPU0, OOM'd its VRAM).
+    return LC0Engine(LC0_BIN, SEARCH_WEIGHTS, gpu_id=gpu)
 
 engine = EnginePool(LC0_WORKERS, _factory) if LC0_WORKERS > 1 else _factory()
 if gpu_count:
