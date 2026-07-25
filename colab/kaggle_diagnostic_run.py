@@ -27,6 +27,14 @@ os.environ.setdefault("LC0_BACKEND", "cuda-fp16")
 os.environ.setdefault("STEER_SEARCH_BUDGET", "50000")
 print(f"[cfg] MAX_GAMES={MAX_GAMES} LC0_WORKERS={LC0_WORKERS} HANG_SECONDS={HANG_SECONDS}", flush=True)
 
+# ---- install python deps (Kaggle has torch preinstalled; the rest are not) ----
+print("[deps] installing python-chess + lczerolens + friends...", flush=True)
+subprocess.run([sys.executable, "-m", "pip", "-q", "install",
+                "python-chess", "onnx", "onnx2torch", "lczerolens",
+                "python-dotenv", "numpy", "fastapi", "uvicorn",
+                "google-generativeai", "tqdm", "nest_asyncio"], check=True)
+print("[deps] done", flush=True)
+
 # ---- 0. hardware facts (is it really 2 GPUs? how many CPUs?) ----
 try:
     import torch
