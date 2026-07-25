@@ -328,6 +328,8 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                         fut.set_exception(exc)
                         raise
                     finally:
+                        if not fut.done():
+                            fut.cancel()
                         in_flight_b.pop(epd, None)
 
             mover_is_white = (flagged["user_color"] == "white")
@@ -434,69 +436,69 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         _progress(job_id, stage_steer_total=len(user_decision_nodes))
 
         async def _process_steer_node(node_idx: int, node: dict):
-            nonlocal steer_processed, steer_budget_exhausted
-            epd = node["epd"]
-            fen_before = node["fen_before"]
-            user_color = node["user_color"]
-            board_before = chess.Board(fen_before)
+            async with ts2_sem:
+                nonlocal steer_processed, steer_budget_exhausted
+                epd = node["epd"]
+                fen_before = node["fen_before"]
+                user_color = node["user_color"]
+                board_before = chess.Board(fen_before)
 
-            policy_data = policy_cache.get(epd)
-            if not policy_data or not policy_data.get("policy"):
-                steer_processed += 1
-                pbar_ts2.update(1)
-                if steer_processed % 10 == 0:
-                    _progress(job_id, stage_steer_done=steer_processed)
-                return node_idx, None, None, False, 0.0, False
+                policy_data = policy_cache.get(epd)
+                if not policy_data or not policy_data.get("policy"):
+                    steer_processed += 1
+                    pbar_ts2.update(1)
+                    if steer_processed % 10 == 0:
+                        _progress(job_id, stage_steer_done=steer_processed)
+                    return node_idx, None, None, False, 0.0, False
 
-            policy = policy_data["policy"]
-            top_k = metrics.DEFAULT_CONFIG.steer_top_k
-            top_moves = policy[:top_k]
+                policy = policy_data["policy"]
+                top_k = metrics.DEFAULT_CONFIG.steer_top_k
+                top_moves = policy[:top_k]
 
-            cand_infos = []
-            for p_entry in top_moves:
-                uci = p_entry.get("uci")
-                try:
-                    move = board_before.parse_uci(uci)
-                except ValueError:
-                    continue
-                board_after = board_before.copy(stack=False)
-                board_after.push(move)
-                cand_infos.append({
-                    "p_entry": p_entry, "uci": uci,
-                    "fen_after": board_after.fen(), "epd_after": board_after.epd(),
-                })
+                cand_infos = []
+                for p_entry in top_moves:
+                    uci = p_entry.get("uci")
+                    try:
+                        move = board_before.parse_uci(uci)
+                    except ValueError:
+                        continue
+                    board_after = board_before.copy(stack=False)
+                    board_after.push(move)
+                    cand_infos.append({
+                        "p_entry": p_entry, "uci": uci,
+                        "fen_after": board_after.fen(), "epd_after": board_after.epd(),
+                    })
 
-            has_batch = hasattr(vision, "saliency_absolute_batch")
-            sal_map = {}
-            if has_batch and bt3_budget_remaining > 0:
-                uncached = [c for c in cand_infos if steer_cache.get(c["epd_after"]) is None]
-                n_take = try_reserve_bt3_saliency_batch(len(uncached))
-                take = uncached[:n_take]
-                if take:
-                    sals = vision.saliency_absolute_batch([c["fen_after"] for c in take])
-                    for c, s in zip(take, sals):
-                        sal_map[c["epd_after"]] = s
+                has_batch = hasattr(vision, "saliency_absolute_batch")
+                sal_map = {}
+                if has_batch and bt3_budget_remaining > 0:
+                    uncached = [c for c in cand_infos if steer_cache.get(c["epd_after"]) is None]
+                    n_take = try_reserve_bt3_saliency_batch(len(uncached))
+                    take = uncached[:n_take]
+                    if take:
+                        sals = vision.saliency_absolute_batch([c["fen_after"] for c in take])
+                        for c, s in zip(take, sals):
+                            sal_map[c["epd_after"]] = s
 
-            candidates = []
+                candidates = []
 
-            for c in cand_infos:
-                p_entry = c["p_entry"]
-                uci = c["uci"]
-                fen_after_m = c["fen_after"]
-                epd_after_m = c["epd_after"]
+                for c in cand_infos:
+                    p_entry = c["p_entry"]
+                    uci = c["uci"]
+                    fen_after_m = c["fen_after"]
+                    epd_after_m = c["epd_after"]
 
-                s_data = steer_cache.get(epd_after_m)
-                if not s_data:
-                    if epd_after_m in in_flight_steer:
-                        s_data = await in_flight_steer[epd_after_m]
-                    else:
-                        if not try_reserve_search():
-                            break
+                    s_data = steer_cache.get(epd_after_m)
+                    if not s_data:
+                        if epd_after_m in in_flight_steer:
+                            s_data = await in_flight_steer[epd_after_m]
+                        else:
+                            if not try_reserve_search():
+                                break
 
-                        fut = asyncio.get_running_loop().create_future()
-                        in_flight_steer[epd_after_m] = fut
-                        try:
-                            async with ts2_sem:
+                            fut = asyncio.get_running_loop().create_future()
+                            in_flight_steer[epd_after_m] = fut
+                            try:
                                 try:
                                     analysis = await engine.analyze(
                                         fen_after_m, depth=None, multipv=2,
@@ -509,113 +511,93 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                                     refund_search()
                                     raise exc
 
-                            if has_batch:
-                                saliency = sal_map.get(epd_after_m)
-                            else:
-                                if try_reserve_bt3_saliency():
-                                    saliency = vision.saliency_absolute(fen_after_m)
+                                if has_batch:
+                                    saliency = sal_map.get(epd_after_m)
                                 else:
-                                    saliency = None
+                                    if try_reserve_bt3_saliency():
+                                        saliency = vision.saliency_absolute(fen_after_m)
+                                    else:
+                                        saliency = None
 
-                            s_data = {"analysis": analysis, "policy": pol_after, "saliency": saliency}
-                            steer_cache.put(epd_after_m, s_data)
-                            fut.set_result(s_data)
-                        except Exception as exc:
-                            fut.set_exception(exc)
-                            raise
-                        finally:
-                            in_flight_steer.pop(epd_after_m, None)
+                                s_data = {"analysis": analysis, "policy": pol_after, "saliency": saliency}
+                                steer_cache.put(epd_after_m, s_data)
+                                fut.set_result(s_data)
+                            except Exception as exc:
+                                fut.set_exception(exc)
+                                raise
+                            finally:
+                                if not fut.done():
+                                    fut.cancel()
+                                in_flight_steer.pop(epd_after_m, None)
 
-                if not s_data:
-                    break
+                    if not s_data:
+                        break
 
-                analysis_after = s_data["analysis"]
-                policy_after = s_data["policy"]
-                saliency = s_data.get("saliency")
+                    analysis_after = s_data["analysis"]
+                    policy_after = s_data["policy"]
+                    saliency = s_data.get("saliency")
 
-                complexity = metrics.tactical_complexity(analysis_after, policy_after, saliency)
+                    complexity = metrics.tactical_complexity(analysis_after, policy_after, saliency)
 
-                cp_eval = metrics.eval_cp_number(analysis_after.get("evaluation"))
-                if cp_eval is None:
-                    continue
+                    cp_eval = metrics.eval_cp_number(analysis_after.get("evaluation"))
+                    if cp_eval is None:
+                        continue
 
-                eval_cp_mover = cp_eval if user_color == chess.WHITE else -cp_eval
+                    eval_cp_mover = cp_eval if user_color == chess.WHITE else -cp_eval
 
-                candidates.append({
-                    "uci": uci,
-                    "san": p_entry.get("san"),
-                    "eval_cp": eval_cp_mover,
-                    "complexity": complexity["score"],
-                    "components": complexity
-                })
+                    candidates.append({
+                        "uci": uci,
+                        "san": p_entry.get("san"),
+                        "eval_cp": eval_cp_mover,
+                        "complexity": complexity["score"],
+                        "components": complexity
+                    })
 
-            opening_match_all = openings.classify(node["uci_moves_so_far"])
-            eco_all = opening_match_all["eco"] if opening_match_all else "???"
+                opening_match_all = openings.classify(node["uci_moves_so_far"])
+                eco_all = opening_match_all["eco"] if opening_match_all else "???"
 
-            steer_finding = None
-            had_tal_move = False
-            obj_best_complexity = 0.0
+                steer_finding = None
+                had_tal_move = False
+                obj_best_complexity = 0.0
 
-            if candidates:
-                best_eval_cp = max(c["eval_cp"] for c in candidates)
-                steer_res = metrics.steer_candidates(candidates, best_eval_cp)
+                if candidates:
+                    best_eval_cp = max(c["eval_cp"] for c in candidates)
+                    steer_res = metrics.steer_candidates(candidates, best_eval_cp)
 
-                if steer_res["had_tal_move"] or (steer_res["objective_best"] and steer_res["objective_best"]["complexity"] >= metrics.DEFAULT_CONFIG.steer_highlight_complexity):
-                    best_c = steer_res["objective_best"]
-                    tal_c = steer_res["tal_move"]
+                    if steer_res["had_tal_move"] or (steer_res["objective_best"] and steer_res["objective_best"]["complexity"] >= metrics.DEFAULT_CONFIG.steer_highlight_complexity):
+                        best_c = steer_res["objective_best"]
+                        tal_c = steer_res["tal_move"]
 
-                    steer_finding = {
-                        "id": f"s-{node['game_idx']:03d}-p{node['ply']:03d}",
-                        "game": {
-                            "white": node["game"].headers.get("White", "?"),
-                            "black": node["game"].headers.get("Black", "?"),
-                            "date": node["game"].headers.get("Date", "?")
-                        },
-                        "ply": node["ply"],
-                        "fen_before": fen_before,
-                        "best": {"uci": best_c["uci"], "san": best_c["san"], "eval_cp": best_c["eval_cp"], "complexity": best_c["complexity"], "components": best_c["components"]},
-                        "steer": {"uci": tal_c["uci"], "san": tal_c["san"], "eval_cp": tal_c["eval_cp"], "complexity": tal_c["complexity"], "components": tal_c["components"]} if tal_c else {"uci": best_c["uci"], "san": best_c["san"], "eval_cp": best_c["eval_cp"], "complexity": best_c["complexity"], "components": best_c["components"]},
-                        "playable_candidates": [{"uci": c["uci"], "complexity": c["complexity"], "eval_cp": c["eval_cp"]} for c in steer_res["playable"]],
-                        "eval_loss_cp": best_eval_cp - (tal_c["eval_cp"] if tal_c else best_eval_cp),
-                        "had_tal_move": steer_res["had_tal_move"],
-                        "opening": {"eco": eco_all}
-                    }
-                    had_tal_move = steer_res["had_tal_move"]
+                        steer_finding = {
+                            "id": f"s-{node['game_idx']:03d}-p{node['ply']:03d}",
+                            "game": {
+                                "white": node["game"].headers.get("White", "?"),
+                                "black": node["game"].headers.get("Black", "?"),
+                                "date": node["game"].headers.get("Date", "?")
+                            },
+                            "ply": node["ply"],
+                            "fen_before": fen_before,
+                            "best": {"uci": best_c["uci"], "san": best_c["san"], "eval_cp": best_c["eval_cp"], "complexity": best_c["complexity"], "components": best_c["components"]},
+                            "steer": {"uci": tal_c["uci"], "san": tal_c["san"], "eval_cp": tal_c["eval_cp"], "complexity": tal_c["complexity"], "components": tal_c["components"]} if tal_c else {"uci": best_c["uci"], "san": best_c["san"], "eval_cp": best_c["eval_cp"], "complexity": best_c["complexity"], "components": best_c["components"]},
+                            "playable_candidates": [{"uci": c["uci"], "complexity": c["complexity"], "eval_cp": c["eval_cp"]} for c in steer_res["playable"]],
+                            "eval_loss_cp": best_eval_cp - (tal_c["eval_cp"] if tal_c else best_eval_cp),
+                            "had_tal_move": steer_res["had_tal_move"],
+                            "opening": {"eco": eco_all}
+                        }
+                        had_tal_move = steer_res["had_tal_move"]
 
-                if steer_res["objective_best"]:
-                    obj_best_complexity = steer_res["objective_best"]["complexity"]
+                    if steer_res["objective_best"]:
+                        obj_best_complexity = steer_res["objective_best"]["complexity"]
 
-            steer_processed += 1
-            pbar_ts2.update(1)
-            if steer_processed % 10 == 0:
-                _progress(job_id, stage_steer_done=steer_processed)
+                steer_processed += 1
+                pbar_ts2.update(1)
+                if steer_processed % 10 == 0:
+                    _progress(job_id, stage_steer_done=steer_processed)
 
-            return node_idx, steer_finding, eco_all, had_tal_move, obj_best_complexity, bool(candidates)
+                return node_idx, steer_finding, eco_all, had_tal_move, obj_best_complexity, bool(candidates)
 
         if user_decision_nodes:
-            node_queue = asyncio.Queue()
-            for i, node in enumerate(user_decision_nodes):
-                node_queue.put_nowait((i, node))
-
-            ts2_results = []
-            ts2_lock = asyncio.Lock()
-
-            async def _ts2_worker():
-                while not node_queue.empty():
-                    if steer_budget_exhausted:
-                        break
-                    try:
-                        node_idx, node = node_queue.get_nowait()
-                    except asyncio.QueueEmpty:
-                        break
-
-                    res = await _process_steer_node(node_idx, node)
-                    async with ts2_lock:
-                        ts2_results.append(res)
-
-            workers = [_ts2_worker() for _ in range(concurrency_limit)]
-            await asyncio.gather(*workers)
-
+            ts2_results = await asyncio.gather(*[_process_steer_node(i, n) for i, n in enumerate(user_decision_nodes)])
             ts2_results.sort(key=lambda x: x[0])
 
             for _, s_finding, eco_all, had_tal, obj_comp, had_cands in ts2_results:
