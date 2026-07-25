@@ -47,6 +47,22 @@ except Exception as e:
     print("[env] torch/cuda unavailable:", e, flush=True)
 print(f"[env] CPU count (vCPUs): {os.cpu_count()}", flush=True)
 
+# ---- 0b. SHOW what is actually in /kaggle/input (weights? zip? nets? pgn?) ----
+print("[input] relevant files under /kaggle/input:", flush=True)
+_found_any = False
+for _root, _dirs, _files in os.walk("/kaggle/input"):
+    for _fn in _files:
+        if _fn.endswith((".pb.gz", ".onnx", ".pgn", ".zip")) or _fn == "lc0":
+            _p = os.path.join(_root, _fn)
+            try:
+                _sz = os.path.getsize(_p) / 1e6
+            except OSError:
+                _sz = -1
+            print(f"[input]  {_sz:9.1f} MB  {_p}", flush=True)
+            _found_any = True
+if not _found_any:
+    print("[input]  (NONE found — is the dataset attached?)", flush=True)
+
 # ---- 1. periodic ALL-THREAD stack dumps: if it freezes, these show EXACTLY
 #         what every engine loop-thread + the main task is stuck on ----
 faulthandler.enable()
@@ -141,20 +157,24 @@ SEARCH_WEIGHTS = _find("BT3-768x15x24h-swa-2790000.pb.gz") or _find("791556.pb.g
 if not SEARCH_WEIGHTS:
     import zipfile
     _wanted = ("BT3-768x15x24h-swa-2790000.pb.gz", "791556.pb.gz", "bt3.onnx")
-    for zpath in glob.glob("/kaggle/input/**/*.zip", recursive=True):
+    _zips = glob.glob("/kaggle/input/**/*.zip", recursive=True) + \
+            glob.glob(f"{WORKING}/**/*.zip", recursive=True)
+    print(f"[weights] no loose weights; zips found: {_zips or 'NONE'}", flush=True)
+    for zpath in _zips:
         try:
             with zipfile.ZipFile(zpath) as zf:
                 members = [n for n in zf.namelist()
                            if any(n.endswith(w) for w in _wanted)]
+                print(f"[weights]   {zpath}: net members = {members or 'none'}", flush=True)
                 if any(n.endswith((_wanted[0], _wanted[1])) for n in members):
-                    print(f"[weights] extracting nets from zip: {zpath}", flush=True)
+                    print(f"[weights]   extracting nets from {zpath} ...", flush=True)
                     for n in members:
                         target = WORKING / "engine" / Path(n).name
                         with zf.open(n) as src, open(target, "wb") as dst:
                             shutil.copyfileobj(src, dst)
                     break
         except Exception as e:
-            print("[weights] zip probe failed:", zpath, e, flush=True)
+            print("[weights]   zip probe failed:", zpath, e, flush=True)
     SEARCH_WEIGHTS = _find("BT3-768x15x24h-swa-2790000.pb.gz") or _find("791556.pb.gz")
 
 assert SEARCH_WEIGHTS, (
