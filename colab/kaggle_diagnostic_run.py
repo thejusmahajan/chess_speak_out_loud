@@ -90,7 +90,7 @@ def _heartbeat():
         idle = time.time() - _last["t"]
         print(f"[hb {int(time.time()-t0):5d}s] stage={_last['stage']} n={_last['n']} "
               f"idle={idle:.0f}s | {_gpu_line()}", flush=True)
-        if idle > HANG_SECONDS and not hung:
+        if idle > HANG_SECONDS and not hung and _last["stage"] != "init":
             hung = True
             print(f"\n[HANG] no progress {idle:.0f}s (> {HANG_SECONDS}). ALL-THREAD STACKS:\n", flush=True)
             faulthandler.dump_traceback()
@@ -146,9 +146,8 @@ def get_linux_lc0():
     print("[lc0] compiled ->", lc0_bin, flush=True)
     return str(lc0_bin)
 
-LC0_BIN = get_linux_lc0()
-assert LC0_BIN, "lc0 binary could not be found or built"
-
+# Resolve weights/nets/pgn FIRST (fail fast) — lc0 compile below is ~6 min, so
+# check the cheap prerequisites before paying for it.
 SEARCH_WEIGHTS = _find("BT3-768x15x24h-swa-2790000.pb.gz") or _find("791556.pb.gz")
 
 # Kaggle does not always extract an uploaded .zip — the weights may be trapped
@@ -187,6 +186,10 @@ ONNX = _find("bt3.onnx")
 pgn_hits = glob.glob("/kaggle/input/**/lichess_derdiedasdie_2026-07-21.pgn", recursive=True) or \
            glob.glob(f"{WORKING}/**/lichess_derdiedasdie_2026-07-21.pgn", recursive=True)
 assert pgn_hits, "PGN not found"
+
+# Only now (weights + pgn confirmed) do the expensive lc0 build/find (~6 min).
+LC0_BIN = get_linux_lc0()
+assert LC0_BIN, "lc0 binary could not be found or built"
 PGN = pgn_hits[0]
 print(f"[setup] lc0={LC0_BIN}", flush=True)
 print(f"[setup] weights={SEARCH_WEIGHTS}", flush=True)
