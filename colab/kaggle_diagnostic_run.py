@@ -134,6 +134,29 @@ LC0_BIN = get_linux_lc0()
 assert LC0_BIN, "lc0 binary could not be found or built"
 
 SEARCH_WEIGHTS = _find("BT3-768x15x24h-swa-2790000.pb.gz") or _find("791556.pb.gz")
+
+# Kaggle does not always extract an uploaded .zip — the weights may be trapped
+# inside it. If not found loose, locate a zip containing them and extract the
+# engine nets to the working dir.
+if not SEARCH_WEIGHTS:
+    import zipfile
+    _wanted = ("BT3-768x15x24h-swa-2790000.pb.gz", "791556.pb.gz", "bt3.onnx")
+    for zpath in glob.glob("/kaggle/input/**/*.zip", recursive=True):
+        try:
+            with zipfile.ZipFile(zpath) as zf:
+                members = [n for n in zf.namelist()
+                           if any(n.endswith(w) for w in _wanted)]
+                if any(n.endswith((_wanted[0], _wanted[1])) for n in members):
+                    print(f"[weights] extracting nets from zip: {zpath}", flush=True)
+                    for n in members:
+                        target = WORKING / "engine" / Path(n).name
+                        with zf.open(n) as src, open(target, "wb") as dst:
+                            shutil.copyfileobj(src, dst)
+                    break
+        except Exception as e:
+            print("[weights] zip probe failed:", zpath, e, flush=True)
+    SEARCH_WEIGHTS = _find("BT3-768x15x24h-swa-2790000.pb.gz") or _find("791556.pb.gz")
+
 assert SEARCH_WEIGHTS, (
     "LC0 WEIGHTS NOT FOUND. lc0's cuda-fp16 backend needs a .pb.gz network file; "
     "without it lc0 errors 'requires a network file' and every search HANGS. "
