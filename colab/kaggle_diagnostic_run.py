@@ -134,6 +134,12 @@ LC0_BIN = get_linux_lc0()
 assert LC0_BIN, "lc0 binary could not be found or built"
 
 SEARCH_WEIGHTS = _find("BT3-768x15x24h-swa-2790000.pb.gz") or _find("791556.pb.gz")
+assert SEARCH_WEIGHTS, (
+    "LC0 WEIGHTS NOT FOUND. lc0's cuda-fp16 backend needs a .pb.gz network file; "
+    "without it lc0 errors 'requires a network file' and every search HANGS. "
+    "The .pb.gz weights are gitignored, so they are NOT in kaggle_files/. "
+    "Add BT3-768x15x24h-swa-2790000.pb.gz (or 791556.pb.gz) to your Kaggle dataset "
+    "under an engine/ folder, then re-run.")
 ONNX = _find("bt3.onnx")
 pgn_hits = glob.glob("/kaggle/input/**/lichess_derdiedasdie_2026-07-21.pgn", recursive=True) or \
            glob.glob(f"{WORKING}/**/lichess_derdiedasdie_2026-07-21.pgn", recursive=True)
