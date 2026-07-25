@@ -1,0 +1,97 @@
+===============================================================================
+GEMINI WORKER SESSION REPORT FOR LEADER REVIEW
+Date: 2026-07-25
+Session Focus: Kaggle GPU Pipeline Deployment & Scaling Test
+Git Branch: windows-dev
+Origin HEAD Hash: 469152778ff954ee872719602e1c9533f0241cfd
+===============================================================================
+
+1. EXECUTIVE SUMMARY
+-------------------------------------------------------------------------------
+Following Phase B completion (committed at dd8d893 with 147 test suite passing),
+the user requested a standalone Kaggle package to run LC0 EnginePool + BT3
+NeuralVision on Kaggle dual-Tesla T4 GPUs (T4x2).
+
+We packaged the backend code, neural weights (BT3-768x15x24h-swa-2790000.pb.gz,
+bt3.onnx), and games PGNs into `kaggle_files/` and `kaggle_files.zip` (486.1 MB).
+
+[CRITICAL NOTE ON PIPELINE PROGRESSION]:
+Our very first Kaggle run on the 30-game validation subset (`test_subset.pgn`)
+executed to 100% completion with ZERO errors on Kaggle T4x2 GPU. All stages completed
+cleanly and produced full output files. However, we DID NOT stop to inspect or analyze
+the detailed diagnosis results of that 30-game output — instead, we immediately
+transitioned to scaling up and running the full 1,000-game dataset.
+
+
+2. VERIFIED TELEMETRY EVIDENCE (First Run: 30-Game Validation Run)
+-------------------------------------------------------------------------------
+Log snippet from the successful initial 30-game GPU run (`C:\Users\Admin\Downloads\download.txt`):
+  - LC0 Compilation: `[330/330] Linking target lc0` (PASSED cleanly)
+  - Engine Pool: `Configuring EnginePool with 4 workers using net: 791556.pb.gz`
+  - Neural Vision: `Neural Vision mode: attention`
+  - Stage A (Policy Screen): `100%|██████████| 1492/1492 [00:00<00:00, 8328.80move/s]`
+  - Stage B (Deep Confirmation): `100%|██████████| 404/404 [00:00<00:00, 5437.41candidate/s]`
+  - Stage TS2 (Tactical Steering): `100%|██████████| 1492/1492 [00:00<00:00, 1850.80node/s]`
+  - Status: `Pipeline finished successfully!` Output HTML & binary zip created.
+
+
+3. KAGGLE ENVIRONMENT OBSERVATIONS & FIXES (During 1,000-Game Scaling)
+-------------------------------------------------------------------------------
+When attempting the 1,000-game dataset (`lichess_derdiedasdie_2026-07-21.pgn`), 
+several environment-specific quirks and UCI initialization behaviors were encountered:
+
+A. Kaggle Dataset Path Nesting:
+   - Kaggle mounts uploaded datasets under `/kaggle/input/<dataset-slug>/`.
+   - Fix: Added recursive glob searching (`glob.glob("/kaggle/input/**/...")`) to
+     locate PGNs, scripts, and binaries regardless of dataset slug nesting.
+
+B. Ninja Build Memory Spikes in Background Mode (Exit Code 137 / SIGKILL):
+   - Kaggle background commit containers enforce a strict ~13GB RAM ceiling.
+     Compiling LC0 C++/CUDA files with default multi-threaded `ninja` caused a peak
+     memory spike during LTO/NVCC linking.
+   - Fix: Capped build parallelism to `ninja -j2`, keeping RAM usage at ~3.5GB.
+
+C. Jupyter / Papermill Event Loop Constraint:
+   - Papermill notebook execution already runs an active asyncio event loop.
+     Calling `asyncio.run()` in cell code raised `RuntimeError`.
+   - Fix: Applied `nest_asyncio.apply()` and `await main()`.
+
+D. LC0 UCI Initialization Order (`cuda-fp16` Network File Warning):
+   - In `backend/engine_manager.py`, passing `custom_uci_options={"Backend": "cuda-fp16"}`
+     caused python-chess to send `setoption name Backend value cuda-fp16` over UCI
+     before the weights file path parsed in memory.
+   - LC0 emitted `error The cuda-fp16 backend requires a network file.` and stalled
+     waiting for `readyok`.
+   - Fix: Updated `backend/engine_manager.py` to pass `--weights` directly in the
+     process command line (`popen_uci([cmd, "--weights=..."])`) and ordered `WeightsFile`
+     before `Backend`. Committed and pushed to `windows-dev` at `4691527`.
+
+
+4. CURRENT STANDING REPO STATUS
+-------------------------------------------------------------------------------
+- Full Pytest Suite: 147 passed, 5 skipped (0 failures).
+- Phase A & B: Complete and verified with 100% cache-replay identity gate matching.
+- Commits on `windows-dev`:
+  - `98f2ea5`: Leader fix for analyze depth parameter.
+  - `dd8d893`: Phase B parallelization (Stage B & TS2 position-level concurrency).
+  - `4691527`: Fix LC0 engine manager weights ordering for `cuda-fp16` backend init.
+- Origin HEAD: `469152778ff954ee872719602e1c9533f0241cfd`
+
+
+5. OPEN QUESTIONS FOR LEADER REVIEW
+-------------------------------------------------------------------------------
+1. Inspection of Initial 30-Game Output vs 1,000-Game Execution:
+   - Should we first inspect/render the completed 30-game profile output from the
+     initial successful run, or proceed directly with background execution of the
+     1,000-game dataset?
+2. 1,000-Game Dataset Scale & Memory:
+   - For 1,000 games (~50,000 moves, ~13,400 candidate deep searches), uncached
+     execution on T4x2 GPU takes ~25-30 minutes. Recommending background commit
+     execution ("Save & Run All").
+3. LC0 Binary Pre-packaging:
+   - Should a pre-compiled Linux x86_64 LC0 binary be stored directly in `engine/lc0`
+     (or fetched via release asset) in the Kaggle dataset to bypass compilation on fresh VMs?
+
+===============================================================================
+Report compiled by Gemini Worker Agent. Ready for Leader review.
+===============================================================================
