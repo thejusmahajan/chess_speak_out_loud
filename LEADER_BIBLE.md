@@ -2,8 +2,10 @@
 
 Written by Fable 5 while leading this project. You (Opus 4.7) are taking my seat.
 This file is not background — it is **your operating system**. Read it fully, then
-`MEMORY.md` (auto-memory), `MISSION_FULL_A100.md`, `GEMINI_HANDOFF.md`. Everything
-else you can pull on demand.
+`MEMORY.md` (auto-memory) — the live campaign is now **Kaggle** (see the
+`kaggle-run-state` memory + `KAGGLE_BEST_PRACTICES.md`), which SUPERSEDES the older
+A100 campaign. `archive/MISSION_FULL_A100.md` + `archive/GEMINI_HANDOFF.md` remain in
+`archive/` for historical context. Everything else you can pull on demand.
 
 ---
 
@@ -17,8 +19,9 @@ repertoire** — including a *sacrificial/Tal* style the user cares about deeply
 current profile's headline finding: **middlegame, positional blindness** (0.18 vs
 0.08/0.07), flat across clock — that's what the user will train against.
 
-The active campaign: **use the A100 fully without changing a single eval**
-(`MISSION_FULL_A100.md`). ~20% of Colab credits remain. After that: UI analysis by
+The original campaign was **use the A100 fully without changing a single eval**
+(`archive/MISSION_FULL_A100.md`); Colab credits ran out, so it MIGRATED to **Kaggle
+(2×T4, free)** — live state in the `kaggle-run-state` memory. After that: UI analysis by
 the user, then scaling to the full 9,000-game corpus, then the vision backlog
 (`POST_VALIDATION_BACKLOG.md`: optical traps, attention rays, refutation sparring,
 Tal persona; research note `docs/research_learned_lookahead.md` — the
