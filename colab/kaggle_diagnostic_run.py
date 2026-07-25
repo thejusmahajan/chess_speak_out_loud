@@ -330,15 +330,13 @@ from backend.training import pipeline
 # assigns each worker its own GPU round-robin via lc0's BackendOptions="gpu=N", so a
 # 2-worker pool lights up BOTH T4s instead of piling onto GPU0. n=1 -> worker 0 ->
 # gpu 0, byte-identical to before.
-_wk = {"i": 0}
 def _factory():
-    idx = _wk["i"]; _wk["i"] += 1
-    gpu = idx % max(gpu_count, 1)
-    print(f"[pool] worker {idx} -> GPU {gpu} (CUDA_VISIBLE_DEVICES={gpu})", flush=True)
-    # Backend (cuda-fp16) comes from the LC0_BACKEND env; gpu_id pins this worker's
-    # SUBPROCESS to its own physical GPU via CUDA_VISIBLE_DEVICES. lc0 IGNORED the
-    # UCI BackendOptions="gpu=N" route (both workers landed on GPU0, OOM'd its VRAM).
-    return LC0Engine(LC0_BIN, SEARCH_WEIGHTS, gpu_id=gpu)
+    # GPU pinning happens at START time via CUDA_VISIBLE_DEVICES (see _start_engines),
+    # NOT here: the backend is imported from the (possibly STALE) dataset, whose
+    # LC0Engine may not accept a gpu_id kwarg — passing one raised
+    # "TypeError: unexpected keyword argument 'gpu_id'". The env approach works with
+    # ANY backend version. Backend (cuda-fp16) comes from the LC0_BACKEND env.
+    return LC0Engine(LC0_BIN, SEARCH_WEIGHTS)
 
 engine = EnginePool(LC0_WORKERS, _factory) if LC0_WORKERS > 1 else _factory()
 if gpu_count:
@@ -371,9 +369,28 @@ pipeline._progress = _tap
 
 # ---- 6. run under asyncio with clean start/stop ----
 import asyncio
-async def _main():
-    if hasattr(engine, "start"):
+async def _start_engines():
+    # Pin each pool worker to its own physical GPU via CUDA_VISIBLE_DEVICES, set in the
+    # parent env right before THAT worker's subprocess spawns. SERIAL (not gather) so the
+    # per-worker env can't race. Backend-version-agnostic: does NOT rely on the dataset's
+    # LC0Engine supporting gpu_id. Child procs inherit the env at spawn; restoring it
+    # afterward doesn't affect them or the parent's already-initialized torch vision (GPU0).
+    if isinstance(engine, EnginePool):
+        _saved = os.environ.get("CUDA_VISIBLE_DEVICES")
+        for i, w in enumerate(engine._workers):
+            g = i % max(gpu_count, 1)
+            os.environ["CUDA_VISIBLE_DEVICES"] = str(g)
+            print(f"[pool] starting worker {i} -> GPU {g} (CUDA_VISIBLE_DEVICES={g})", flush=True)
+            await w.start()
+        if _saved is None:
+            os.environ.pop("CUDA_VISIBLE_DEVICES", None)
+        else:
+            os.environ["CUDA_VISIBLE_DEVICES"] = _saved
+    elif hasattr(engine, "start"):
         await engine.start()
+
+async def _main():
+    await _start_engines()
     t0 = time.time()
     try:
         await pipeline.run_diagnosis("kaggle_diag", pgn_text, "derdiedasdie", engine, vision)
