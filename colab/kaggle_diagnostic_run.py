@@ -88,13 +88,42 @@ def _find(name):
           glob.glob(f"{WORKING}/**/{name}", recursive=True)
     return hit[0] if hit else None
 
-LC0_BIN = None
-cands = [WORKING / "engine" / "lc0", WORKING / "lc0"] + \
-        [Path(x) for x in glob.glob("/kaggle/input/**/lc0", recursive=True)]
-for c in cands:
-    if c.exists() and c.is_file() and not str(c).endswith((".py", ".pb", ".gz", ".onnx", ".txt")):
-        os.chmod(c, 0o755); LC0_BIN = str(c); break
-assert LC0_BIN, "lc0 binary not found — run your normal build cell first"
+import shutil
+(WORKING / "engine").mkdir(exist_ok=True)
+
+def get_linux_lc0():
+    """Find lc0 (working dir -> dataset -> PATH), else compile (same as the
+    working diagnose_on_kaggle.py). Compile takes a few min with ninja -j2."""
+    lc0_bin = WORKING / "engine" / "lc0"
+    if lc0_bin.exists():
+        os.chmod(lc0_bin, 0o755); print("[lc0] found in working dir", flush=True); return str(lc0_bin)
+    for cand in glob.glob("/kaggle/input/**/lc0", recursive=True):
+        if os.path.isfile(cand) and not cand.endswith((".py", ".pb", ".gz", ".onnx")):
+            try:
+                os.chmod(cand, 0o755); shutil.copy(cand, lc0_bin); os.chmod(lc0_bin, 0o755)
+                print("[lc0] found in dataset:", cand, flush=True); return str(lc0_bin)
+            except Exception:
+                pass
+    sys_lc0 = shutil.which("lc0")
+    if sys_lc0:
+        print("[lc0] found on PATH:", sys_lc0, flush=True); return sys_lc0
+    print("[lc0] compiling from source (ninja -j2, a few min)...", flush=True)
+    subprocess.run(["apt-get", "update", "-qq"], check=False)
+    subprocess.run(["apt-get", "install", "-qq", "-y", "meson", "ninja-build",
+                    "libz-dev", "libopenblas-dev"], check=False)
+    clone_dir = WORKING / "lc0_src"
+    if not clone_dir.exists():
+        subprocess.run(["git", "clone", "--recursive",
+                        "https://github.com/LeelaChessZero/lc0.git", str(clone_dir)], check=True)
+    build_dir = clone_dir / "build" / "release"
+    subprocess.run(["meson", "setup", str(build_dir), str(clone_dir)], check=True)
+    subprocess.run(["ninja", "-j2", "-C", str(build_dir)], check=True)
+    shutil.copy(build_dir / "lc0", lc0_bin); os.chmod(lc0_bin, 0o755)
+    print("[lc0] compiled ->", lc0_bin, flush=True)
+    return str(lc0_bin)
+
+LC0_BIN = get_linux_lc0()
+assert LC0_BIN, "lc0 binary could not be found or built"
 
 SEARCH_WEIGHTS = _find("BT3-768x15x24h-swa-2790000.pb.gz") or _find("791556.pb.gz")
 ONNX = _find("bt3.onnx")
