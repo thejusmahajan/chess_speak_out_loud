@@ -91,29 +91,58 @@ Tal persona; research note `docs/research_learned_lookahead.md` — the
 - **Colab quirks**: `files.download` hangs (outputs go to Drive); `GH_TOKEN` in
   Colab Secrets; validated-lc0 binary cached on Drive per GPU type.
 
-## 6. State at handover (verify, then proceed)
+## 6. State at handover (2026-07-25, verify then proceed)
 
-- Branch `windows-dev`. Full suite ~141 passed. Baselines: last A100 subset run =
-  30 games, findings 339 (subset-run scale) / earlier canonical quick-baseline
-  28/22; **openings fix (`f845a26`) and complete-steering budget are in origin but
-  NOT yet validated by a fresh Colab run** — the next A100 run produces the first
-  fully-correct profile.
-- **Mission phase**: Phase A (EnginePool) done+audited at `98f2ea5`.
-  Phase B (parallel Stage B/TS2) implemented by Gemini, audited + committed by
-  Opus 4.8: all 3 traps verified (sync budget helpers, in-flight-future dedup,
-  TS2 `.sort` mutation-verified load-bearing; Stage B uses order-preserving
-  `gather`). Gemini's identity gate was BROKEN (cache-dependent on our truncated
-  cache, not store-isolated, load-after-error) — I replaced it with a
-  cache-independent, store-isolated, deterministic-engine gate proving n=1≡n=4
-  (findings+steer), mutation-verified. Suite green. **Caveat:** identity holds in
-  the non-binding-budget mode (the A100 run's mode, STEER_SEARCH_BUDGET=50000); if
-  the budget BINDS under concurrency, which nodes win the last slots is
-  timing-dependent — acceptable degraded mode, not operated in.
-  NEXT: Phase C (optional short Opus-4.6 pass) then Phase D (T4 rehearsal → one
-  A100 shot). Notebook wiring of `EnginePool(LC0_WORKERS)` into Cell 5 is still
-  TODO (spec in `MISSION_FULL_A100.md` Phase D).
-- Pending after mission: Opt #2 implementation (spec approved w/ POV fix),
-  `by_opening` validation in the fresh run, then the user's UI analysis.
+- Branch `windows-dev`, HEAD ~`934a0df`. **Full suite 149 passed, 5 skipped.**
+- **Code is in good shape.** Done + verified: EnginePool (Phase A), TS2 parallel
+  simplified to Stage B's `gather`+semaphore+in-flight pattern with orphan-free
+  `fut.cancel()` (Phase B), the leader's cache-independent n=1≡n4 identity gate
+  (`test_cache_replay_identity.py`, mutation-verified), terminal-position guards,
+  openings fix, node limits. Migrated compute from **Colab (credits ran out) to
+  Kaggle (free, 2×T4)**.
+- **THE ACTIVE FIGHT: getting ONE clean end-to-end diagnosis run on Kaggle.** This
+  has been a multi-day slog through LAYERED infra failures, each fixed in turn:
+  TS2 async hang → oversubscription (8 workers/1 GPU) → missing python deps →
+  **the real root cause: the lc0 `.pb.gz` weights were absent from the Kaggle
+  dataset**, so lc0 ran with no network ("cuda-fp16 requires a network file") and
+  every search hung (GPU 0%, froze ~390s — this was very likely the ORIGINAL
+  "393s freeze" all along; TS2 deadlock + oversubscription were largely red
+  herrings, though their fixes were still worth keeping).
+- **The instrument:** `colab/kaggle_diagnostic_run.py` — self-contained, fail-fast
+  (checks weights BEFORE the ~6min lc0 compile), lists `/kaggle/input`, heartbeat
+  with per-GPU util, faulthandler stack dumps, hang-watchdog. This is what finally
+  isolated the missing weights. Use it, not Gemini's bulkier launchers.
+- **IMMEDIATE NEXT STEP:** the user is creating a NEW, clean, self-contained Kaggle
+  dataset from **`cszero_kaggle_data.zip`** (492MB, built 2026-07-25 — nets +
+  weights + PGNs + current backend code + the diagnostic; gitignored, at repo
+  root). Once uploaded + attached: run the diagnostic with **`LC0_WORKERS=1`,
+  `MAX_GAMES=30`** (the single-engine config that historically worked; multi-worker
+  pool OOMs the ~13GB box — see §5 Kaggle family). Expect: `[input]` shows the
+  weights → GPU lights up → `[DONE]`. THAT clean run is the milestone.
+- **After the clean run:** scale workers 1→2→4 watching memory (fix the GPU-split
+  bug — `EnginePool` calls `engine_factory()` with no index, so all workers pin to
+  GPU0 and GPU1 idles; the Kaggle factory's `worker_idx % gpu_count` never fires).
+  Then produce the first fully-correct profile (openings + complete steering),
+  download it, user does UI analysis. THEN Opt #2 (approved w/ POV fix), then the
+  full 9000-game corpus, then `POST_VALIDATION_BACKLOG.md`.
+- Baselines for gates: quick canonical 28/22; a truncated A100 subset run gave
+  339 findings/267 steer (steering was budget-truncated). The first clean Kaggle
+  run establishes the real baseline.
+
+### 5b. The Kaggle failure family (learned the hard way, 2026-07-24/25)
+- **Missing big files:** nets (`.pb.gz`, `.onnx`) are gitignored → NEVER in a
+  repo-derived `kaggle_files/`. They must be in the DATASET. lc0 with no weights
+  HANGS (doesn't crash) — always verify `[input]` shows a `.pb.gz` first.
+- **Dataset versioning trap:** adding a version to an existing dataset leaves the
+  notebook pinned to the OLD version (file invisible). A fresh separate dataset,
+  or explicitly bumping the input version, avoids it.
+- **Kaggle quirks:** `/kaggle/working` resets each session → lc0 recompiles ~6min
+  (cache the binary to the dataset to skip it); `files.download` hangs; **exit 137
+  = OOM** (RAM ~13GB, only 4 vCPUs on T4×2 — so 8 engines × 4 threads = 32 threads
+  is catastrophic; single engine ≈ the known-good memory profile).
+- **Instrument before guessing:** each freeze was diagnosed by adding
+  observability (heartbeat, faulthandler, input listing, fail-fast asserts), not by
+  Gemini's "jubilant" guesses. Make failures loud and fast.
 
 ## 7. How to spend YOUR tokens (Opus-specific guidance)
 
