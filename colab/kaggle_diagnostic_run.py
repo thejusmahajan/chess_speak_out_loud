@@ -183,6 +183,8 @@ def get_linux_lc0():
         sys_lc0 = shutil.which("lc0")
         if sys_lc0 and _lc0_runs(sys_lc0):
             print("[lc0] found on PATH:", sys_lc0, flush=True); return sys_lc0
+    _lc0_seen = [c for c in glob.glob("/kaggle/input/**/lc0", recursive=True) if os.path.isfile(c)]
+    print(f"[lc0] no usable cached binary — lc0 files in /kaggle/input: {_lc0_seen or 'NONE (versioning trap? wrong dataset version attached)'}", flush=True)
     print("[lc0] compiling from source (ninja -j2, a few min)...", flush=True)
     subprocess.run(["apt-get", "update", "-qq"], check=False)
     subprocess.run(["apt-get", "install", "-qq", "-y", "meson", "ninja-build",
