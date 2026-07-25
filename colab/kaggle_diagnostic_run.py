@@ -142,22 +142,45 @@ def _find(name):
 import shutil
 (WORKING / "engine").mkdir(exist_ok=True)
 
+def _lc0_runs(path):
+    """True iff this lc0 binary actually executes. Guards against a cached binary
+    built for a different Kaggle image (missing/changed CUDA/glibc libs) silently
+    failing to start -> engine would drop to mock mode. stdin=DEVNULL so it can't
+    accidentally enter (and hang in) UCI mode."""
+    try:
+        r = subprocess.run([str(path), "--help"], capture_output=True,
+                           stdin=subprocess.DEVNULL, timeout=30)
+        return r.returncode == 0 or b"lc0" in (r.stdout + r.stderr).lower()
+    except Exception:
+        return False
+
 def get_linux_lc0():
-    """Find lc0 (working dir -> dataset -> PATH), else compile (same as the
-    working diagnose_on_kaggle.py). Compile takes a few min with ninja -j2."""
+    """Find a WORKING lc0 (working dir -> dataset -> PATH), else compile it.
+    Cache the compiled binary in the DATASET under engine/lc0 to skip the ~6-min
+    build across sessions (/kaggle/working is wiped on Stop/Start). A cached binary
+    is trusted ONLY if it actually runs; otherwise we recompile. Set
+    LC0_FORCE_COMPILE=1 to always rebuild (e.g. to pick up a new lc0 version)."""
+    force = os.environ.get("LC0_FORCE_COMPILE") == "1"
     lc0_bin = WORKING / "engine" / "lc0"
-    if lc0_bin.exists():
-        os.chmod(lc0_bin, 0o755); print("[lc0] found in working dir", flush=True); return str(lc0_bin)
-    for cand in glob.glob("/kaggle/input/**/lc0", recursive=True):
-        if os.path.isfile(cand) and not cand.endswith((".py", ".pb", ".gz", ".onnx")):
-            try:
-                os.chmod(cand, 0o755); shutil.copy(cand, lc0_bin); os.chmod(lc0_bin, 0o755)
-                print("[lc0] found in dataset:", cand, flush=True); return str(lc0_bin)
-            except Exception:
-                pass
-    sys_lc0 = shutil.which("lc0")
-    if sys_lc0:
-        print("[lc0] found on PATH:", sys_lc0, flush=True); return sys_lc0
+    if not force and lc0_bin.exists():
+        os.chmod(lc0_bin, 0o755)
+        if _lc0_runs(lc0_bin):
+            print("[lc0] found in working dir (validated)", flush=True); return str(lc0_bin)
+        print("[lc0] working-dir binary does not run — ignoring", flush=True)
+    if not force:
+        for cand in glob.glob("/kaggle/input/**/lc0", recursive=True):
+            if os.path.isfile(cand) and not cand.endswith((".py", ".pb", ".gz", ".onnx")):
+                try:
+                    os.chmod(cand, 0o755)
+                    if not _lc0_runs(cand):
+                        print("[lc0] dataset binary does not run — skipping:", cand, flush=True); continue
+                    shutil.copy(cand, lc0_bin); os.chmod(lc0_bin, 0o755)
+                    print("[lc0] found in dataset (validated):", cand, flush=True); return str(lc0_bin)
+                except Exception:
+                    pass
+        sys_lc0 = shutil.which("lc0")
+        if sys_lc0 and _lc0_runs(sys_lc0):
+            print("[lc0] found on PATH:", sys_lc0, flush=True); return sys_lc0
     print("[lc0] compiling from source (ninja -j2, a few min)...", flush=True)
     subprocess.run(["apt-get", "update", "-qq"], check=False)
     subprocess.run(["apt-get", "install", "-qq", "-y", "meson", "ninja-build",
