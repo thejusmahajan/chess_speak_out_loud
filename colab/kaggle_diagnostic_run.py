@@ -300,8 +300,19 @@ from backend.engine_pool import EnginePool
 from backend.neural_vision import NeuralVision
 from backend.training import pipeline
 
+# F-06 GPU-split fix: EnginePool calls _factory() once per worker (zero-arg
+# contract, unchanged — so no signature drift / test breakage). A stateful counter
+# assigns each worker its own GPU round-robin via lc0's BackendOptions="gpu=N", so a
+# 2-worker pool lights up BOTH T4s instead of piling onto GPU0. n=1 -> worker 0 ->
+# gpu 0, byte-identical to before.
+_wk = {"i": 0}
 def _factory():
-    return LC0Engine(LC0_BIN, SEARCH_WEIGHTS, custom_uci_options={"Backend": "cuda-fp16"})
+    idx = _wk["i"]; _wk["i"] += 1
+    gpu = idx % max(gpu_count, 1)
+    opts = {"Backend": os.environ.get("LC0_BACKEND", "cuda-fp16"),
+            "BackendOptions": f"gpu={gpu}"}
+    print(f"[pool] worker {idx} -> GPU {gpu} (BackendOptions=gpu={gpu})", flush=True)
+    return LC0Engine(LC0_BIN, SEARCH_WEIGHTS, custom_uci_options=opts)
 
 engine = EnginePool(LC0_WORKERS, _factory) if LC0_WORKERS > 1 else _factory()
 if gpu_count:

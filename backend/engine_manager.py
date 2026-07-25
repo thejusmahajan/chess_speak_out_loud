@@ -178,6 +178,11 @@ class LC0Engine:
                 uci_options["WeightsFile"] = str(weights_candidates[0])
                 logger.info("Auto-detected weights: %s", weights_candidates[0])
 
+        # Apply caller-supplied UCI options LAST so a pool can override defaults
+        # per worker — e.g. BackendOptions="gpu=N" to pin each engine to its own
+        # GPU. (Previously self.custom_uci_options was stored but never applied.)
+        uci_options.update(self.custom_uci_options)
+
         # Build engine start command line passing weights file if available
         cmd = [str(self.engine_path)]
         if self.weights_path and self.weights_path.exists():
