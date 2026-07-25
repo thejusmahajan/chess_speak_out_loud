@@ -98,11 +98,16 @@ def _heartbeat():
 
 threading.Thread(target=_heartbeat, daemon=True).start()
 
-# ---- 3. locate lc0 / weights / nets / pgn (reuse the working layout) ----
+# ---- 3. make the dataset's `backend` package importable (no copy needed) ----
 if not (WORKING / "backend").exists():
-    m = glob.glob("/kaggle/input/**/diagnose_on_kaggle.py", recursive=True)
-    if m:
-        os.system(f"cp -r {Path(m[0]).parent}/* {WORKING}/")
+    _bk = glob.glob("/kaggle/input/**/backend/engine_manager.py", recursive=True) or \
+          glob.glob("/kaggle/input/**/diagnose_on_kaggle.py", recursive=True)
+    if _bk:
+        _root = Path(_bk[0]).parent
+        if _root.name == "backend":
+            _root = _root.parent           # .../backend/engine_manager.py -> dataset root
+        sys.path.insert(0, str(_root))
+        print(f"[setup] backend from dataset: {_root}", flush=True)
 
 def _find(name):
     p = WORKING / "engine" / name
