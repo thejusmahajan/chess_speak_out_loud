@@ -173,19 +173,22 @@ def get_linux_lc0():
         for cand in glob.glob("/kaggle/input/**/lc0", recursive=True):
             if os.path.isfile(cand) and not cand.endswith((".py", ".pb", ".gz", ".onnx")):
                 try:
-                    os.chmod(cand, 0o755)
-                    if not _lc0_runs(cand):
-                        print("[lc0] dataset binary does not run — skipping:", cand, flush=True); continue
+                    # Copy to the WRITABLE working dir FIRST, then chmod/validate the COPY.
+                    # NEVER chmod `cand` under /kaggle/input — it is READ-ONLY, so chmod
+                    # raises [Errno 30] and (previously swallowed) skipped a good binary,
+                    # forcing a needless recompile. [found by Gemini log triage]
                     shutil.copy(cand, lc0_bin); os.chmod(lc0_bin, 0o755)
+                    if not _lc0_runs(lc0_bin):
+                        print("[lc0] dataset binary does not run — skipping:", cand, flush=True); continue
                     print("[lc0] found in dataset (validated):", cand, flush=True); return str(lc0_bin)
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f"[lc0] dataset candidate {cand} unusable: {e}", flush=True)
         sys_lc0 = shutil.which("lc0")
         if sys_lc0 and _lc0_runs(sys_lc0):
             print("[lc0] found on PATH:", sys_lc0, flush=True); return sys_lc0
     _lc0_seen = [c for c in glob.glob("/kaggle/input/**/lc0", recursive=True) if os.path.isfile(c)]
     print(f"[lc0] no usable cached binary — lc0 files in /kaggle/input: {_lc0_seen or 'NONE (versioning trap? wrong dataset version attached)'}", flush=True)
-    print("[lc0] compiling from source (ninja -j2, a few min)...", flush=True)
+    print("[lc0] compiling from source (ninja -j1 lc0, a few min)...", flush=True)
     subprocess.run(["apt-get", "update", "-qq"], check=False)
     subprocess.run(["apt-get", "install", "-qq", "-y", "meson", "ninja-build",
                     "libz-dev", "libopenblas-dev"], check=False)
