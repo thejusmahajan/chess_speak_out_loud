@@ -93,6 +93,9 @@ export default function DiagnosePanel({ onProfileReady }: DiagnosePanelProps) {
             <span>Stage A: {progress.stage_a_done}/{progress.total}</span>
             <span>Flagged: {progress.flagged}</span>
             <span>Stage B: {progress.stage_b_done}/{progress.flagged}</span>
+            {progress.stage_steer_done != null && (
+              <span>TS2 Steer: {progress.stage_steer_done}</span>
+            )}
           </div>
           <div className="progress-bar-bg">
             <div 

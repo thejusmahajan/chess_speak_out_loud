@@ -16,7 +16,47 @@ export async function getJobStatus(jobId: string) {
   return res.json();
 }
 
-export async function getProfile() {
+export interface SteerCandidate {
+  uci: string;
+  san?: string;
+  eval_cp?: number;
+  complexity?: number;
+}
+
+export interface SteerFinding {
+  id: string;
+  ply: number;
+  move_number?: number;
+  fen_before: string;
+  user_color?: 'white' | 'black';
+  opening?: { eco: string; name?: string };
+  played?: SteerCandidate;
+  best?: SteerCandidate;
+  steer?: SteerCandidate;
+  playable_candidates?: SteerCandidate[];
+  eval_loss_cp?: number;
+  had_tal_move?: boolean;
+}
+
+export interface SteerSummaryItem {
+  moves: number;
+  tal_moves: number;
+  mean_complexity: number;
+}
+
+export interface ProfileData {
+  player_name?: string;
+  games_analyzed: number;
+  moves_analyzed?: number;
+  findings: any[];
+  steer_findings?: SteerFinding[];
+  steer_summary?: Record<string, SteerSummaryItem>;
+  steer_budget_exhausted?: boolean;
+  aggregates?: any;
+  regressions?: any;
+}
+
+export async function getProfile(): Promise<ProfileData | null> {
   const res = await fetch(`${BASE_URL}/profile`);
   if (!res.ok) {
     if (res.status === 404) return null;

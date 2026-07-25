@@ -16,6 +16,12 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
   const openings = Object.entries(agg.by_opening || {}).sort((a: any, b: any) => b[1].blind_rate - a[1].blind_rate);
   const concepts = Object.entries(agg.by_concept || {}).sort((a: any, b: any) => b[1].missed - a[1].missed);
 
+  const steerFindings: any[] = profile.steer_findings || [];
+  const steerSummaryEntries = Object.entries(profile.steer_summary || {}).sort(
+    (a: any, b: any) => (b[1].tal_moves || 0) - (a[1].tal_moves || 0)
+  );
+  const talCandidates = steerFindings.filter((sf: any) => sf.had_tal_move);
+
   return (
     <div className="profile-report">
       <div className="profile-header glass-panel">
@@ -33,6 +39,12 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
             <span className="stat-label">Attention Blindness Rate</span>
             <span className="stat-value">{((agg.attention_blindness_rate || 0) * 100).toFixed(1)}%</span>
           </div>
+          {steerFindings.length > 0 && (
+            <div className="stat-box">
+              <span className="stat-label">Tactical Steering</span>
+              <span className="stat-value">{steerFindings.length} <small className="dim">({talCandidates.length} sharp)</small></span>
+            </div>
+          )}
         </div>
         <button className="glass-btn primary" onClick={onGenerateDrills}>Generate Drills</button>
       </div>
@@ -92,6 +104,105 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
           </table>
         </div>
       </div>
+
+      {(steerFindings.length > 0 || steerSummaryEntries.length > 0) && (
+        <div className="glass-panel steer-section" data-testid="steer-section" style={{ marginTop: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 className="gradient-text" style={{ margin: 0 }}>Tactical Steering (TS2)</h3>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              <span className="stat-pill" style={{ background: 'rgba(255, 150, 0, 0.15)', border: '1px solid orange', color: 'orange' }}>
+                <strong>{steerFindings.length}</strong> Steer Positions
+              </span>
+              <span className="stat-pill" style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--color-danger)', color: '#f87171' }}>
+                <strong>{talCandidates.length}</strong> Sacrificial/Tal Motifs
+              </span>
+              {profile.steer_budget_exhausted && (
+                <span className="tag" style={{ backgroundColor: 'var(--color-warning)', color: '#000', fontWeight: 600 }}>
+                  Budget Exhausted
+                </span>
+              )}
+            </div>
+          </div>
+
+          {steerSummaryEntries.length > 0 && (
+            <div style={{ marginBottom: '1.25rem' }}>
+              <h4 style={{ color: '#94a3b8', margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>Steering Summary by Opening</h4>
+              <table className="glass-table" data-testid="steer-summary-table">
+                <thead>
+                  <tr><th>ECO</th><th>Moves</th><th>Sacrificial / Tal</th><th>Mean Sharpness</th></tr>
+                </thead>
+                <tbody>
+                  {steerSummaryEntries.slice(0, 6).map(([eco, st]: any) => (
+                    <tr key={eco}>
+                      <td><strong>{eco}</strong></td>
+                      <td>{st.moves || 0}</td>
+                      <td>{st.tal_moves || 0}</td>
+                      <td>{(st.mean_complexity || 0).toFixed(3)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {steerFindings.length > 0 && (
+            <div>
+              <h4 style={{ color: '#94a3b8', margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>
+                Top Sacrificial &amp; Sharp Steer Candidates
+              </h4>
+              <div className="findings-grid" data-testid="steer-findings-grid">
+                {(talCandidates.length > 0 ? talCandidates : steerFindings).slice(0, 8).map((sf: any) => {
+                  const moveNum = sf.move_number || Math.ceil((sf.ply || 1) / 2);
+                  const playedText = sf.played?.san || sf.played?.uci || 'N/A';
+                  const steerText = sf.steer?.san || sf.steer?.uci || sf.best?.san || sf.best?.uci || 'N/A';
+                  const compVal = sf.steer?.complexity ?? sf.best?.complexity ?? 0;
+                  return (
+                    <div
+                      key={sf.id}
+                      className="finding-card glass-card steer-card"
+                      data-testid={`steer-card-${sf.id}`}
+                      style={{ borderLeft: sf.had_tal_move ? '3px solid #f87171' : '3px solid orange' }}
+                      onClick={() => onFindingClick({
+                        ...sf,
+                        move_number: moveNum,
+                        severity: sf.had_tal_move ? 'sacrificial' : 'steering',
+                        played: sf.played,
+                        best: sf.steer || sf.best,
+                        user_color: sf.user_color || (sf.ply % 2 === 1 ? 'white' : 'black'),
+                      })}
+                    >
+                      <div className="finding-header">
+                        <span className="move-number">Move {moveNum} ({sf.opening?.eco || '???'})</span>
+                        {sf.had_tal_move ? (
+                          <span className="severity blunder" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171' }}>
+                            🔥 Tal Sac
+                          </span>
+                        ) : (
+                          <span className="severity warning" style={{ background: 'rgba(255, 165, 0, 0.2)', color: 'orange' }}>
+                            Steer
+                          </span>
+                        )}
+                      </div>
+                      <div className="finding-details">
+                        <p><strong>Played:</strong> {playedText}</p>
+                        <p><strong>Steer Line:</strong> {steerText}</p>
+                        {sf.eval_loss_cp != null && (
+                          <p className="swing-cp">Eval Loss: {(sf.eval_loss_cp / 100).toFixed(2)}</p>
+                        )}
+                        <div className="tags" style={{ marginTop: '4px' }}>
+                          <span className="tag" style={{ background: 'rgba(255, 255, 255, 0.08)' }}>
+                            Sharpness: {compVal.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="glass-panel findings-list">
         <h3>Notable Findings</h3>
