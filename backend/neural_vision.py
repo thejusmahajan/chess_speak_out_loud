@@ -30,7 +30,13 @@ class NeuralVision:
             def patched_safe_shape_inference(onnx_model_or_path, **kwargs):
                 if not isinstance(onnx_model_or_path, (str, os.PathLike)):
                     return original_safe(onnx_model_or_path, **kwargs)
-                fd, path = tempfile.mkstemp(dir=Path(onnx_model_or_path).parent)
+                # Write the temp shape-inference model next to the onnx when that
+                # dir is writable (local/Windows), else fall back to the system
+                # temp dir. On Kaggle the onnx lives under read-only /kaggle/input,
+                # where mkstemp(dir=parent) throws Errno 30 and kills attention mode.
+                _parent = Path(onnx_model_or_path).parent
+                _tmpdir = str(_parent) if os.access(_parent, os.W_OK) else tempfile.gettempdir()
+                fd, path = tempfile.mkstemp(dir=_tmpdir)
                 os.close(fd)
                 try:
                     import onnx2torch.utils.safe_shape_inference as ssi

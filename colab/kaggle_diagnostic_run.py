@@ -21,11 +21,23 @@ if str(WORKING) not in sys.path:
 
 # ---- knobs (override via env; defaults are small + safe for diagnosis) ----
 MAX_GAMES    = int(os.environ.get("MAX_GAMES", "150"))
-LC0_WORKERS  = int(os.environ.get("LC0_WORKERS", "2"))
+LC0_WORKERS  = int(os.environ.get("LC0_WORKERS", "1"))   # safe-by-default: 1 engine.
+                                                          # multi-worker pins all to GPU0
+                                                          # (F-06) + raises OOM risk (F-04).
 HANG_SECONDS = int(os.environ.get("HANG_SECONDS", "150"))   # no progress this long => HANG
 os.environ.setdefault("LC0_BACKEND", "cuda-fp16")
 os.environ.setdefault("STEER_SEARCH_BUDGET", "50000")
-print(f"[cfg] MAX_GAMES={MAX_GAMES} LC0_WORKERS={LC0_WORKERS} HANG_SECONDS={HANG_SECONDS}", flush=True)
+# lc0 RamLimitMb is a cache CAP (not an allocation) and search is node-limited, so
+# the diagnosis is cache-size-independent (the n=1≡n4 identity gate). A modest cap
+# keeps us safe if workers are scaled later. [Gemini F-04, defused: box has ~30 GiB]
+os.environ.setdefault("LC0_RAM_LIMIT_MB", "4096")
+# The backend is imported FROM the dataset (/kaggle/input, read-only). store.py
+# resolves its data/cache dir relative to its own __file__ and reads CSZERO_DATA_DIR
+# at IMPORT time — so we MUST redirect it to a writable path BEFORE backend import,
+# else EpdCache init dies with "[Errno 30] Read-only file system".
+os.environ.setdefault("CSZERO_DATA_DIR", str(WORKING / "data"))
+print(f"[cfg] MAX_GAMES={MAX_GAMES} LC0_WORKERS={LC0_WORKERS} HANG_SECONDS={HANG_SECONDS} "
+      f"CSZERO_DATA_DIR={os.environ['CSZERO_DATA_DIR']}", flush=True)
 
 # ---- install python deps (Kaggle has torch preinstalled; the rest are not) ----
 print("[deps] installing python-chess + lczerolens + friends...", flush=True)
@@ -51,8 +63,14 @@ print(f"[env] CPU count (vCPUs): {os.cpu_count()}", flush=True)
 print("[input] relevant files under /kaggle/input:", flush=True)
 _found_any = False
 for _root, _dirs, _files in os.walk("/kaggle/input"):
+    # Kaggle extracts a loose .gz upload into a DIRECTORY named `X.pb` — flag those
+    # too, else the weights look "missing" (their inner file has an arbitrary name).
+    for _dn in _dirs:
+        if _dn.endswith((".pb.gz", ".pb")):
+            print(f"[input]  <DIR>      {os.path.join(_root, _dn)}  (Kaggle-extracted net?)", flush=True)
+            _found_any = True
     for _fn in _files:
-        if _fn.endswith((".pb.gz", ".onnx", ".pgn", ".zip")) or _fn == "lc0":
+        if _fn.endswith((".pb.gz", ".pb", ".onnx", ".pgn", ".zip")) or _fn == "lc0":
             _p = os.path.join(_root, _fn)
             try:
                 _sz = os.path.getsize(_p) / 1e6
@@ -110,12 +128,16 @@ if not (WORKING / "backend").exists():
         print(f"[setup] backend from dataset: {_root}", flush=True)
 
 def _find(name):
+    # Return a real FILE only. Kaggle can extract a loose .gz into a DIRECTORY of
+    # the same name; handing lc0 a directory path makes it spin on "Is a directory".
     p = WORKING / "engine" / name
-    if p.exists():
+    if p.is_file():
         return str(p)
-    hit = glob.glob(f"/kaggle/input/**/{name}", recursive=True) or \
-          glob.glob(f"{WORKING}/**/{name}", recursive=True)
-    return hit[0] if hit else None
+    for h in (glob.glob(f"/kaggle/input/**/{name}", recursive=True) +
+              glob.glob(f"{WORKING}/**/{name}", recursive=True)):
+        if os.path.isfile(h):
+            return h
+    return None
 
 import shutil
 (WORKING / "engine").mkdir(exist_ok=True)
@@ -153,14 +175,52 @@ def get_linux_lc0():
 
 # Resolve weights/nets/pgn FIRST (fail fast) — lc0 compile below is ~6 min, so
 # check the cheap prerequisites before paying for it.
-SEARCH_WEIGHTS = _find("BT3-768x15x24h-swa-2790000.pb.gz") or _find("791556.pb.gz")
+# NOTE: Kaggle mangles a loose `.pb.gz` upload TWO ways: (1) it DECOMPRESSES it, so
+# the file arrives as raw `.pb`; (2) worse, it can extract it into a DIRECTORY named
+# `X.pb` whose real network file sits inside under an arbitrary name (this is what
+# made lc0 spin on "error: Is a directory"). lc0 loads a network by magic bytes, not
+# extension, but it needs a FILE. Resolve to a real file, digging into a directory.
+def _resolve_weight_file(name):
+    cands = []
+    p = WORKING / "engine" / name
+    if p.exists():
+        cands.append(str(p))
+    cands += glob.glob(f"/kaggle/input/**/{name}", recursive=True)
+    cands += glob.glob(f"{WORKING}/**/{name}", recursive=True)
+    for c in cands:
+        if os.path.isfile(c):
+            return c
+        if os.path.isdir(c):
+            inner = [f for f in glob.glob(os.path.join(c, "**", "*"), recursive=True)
+                     if os.path.isfile(f)]
+            if inner:
+                big = max(inner, key=os.path.getsize)
+                print(f"[weights] '{name}' is a DIR (Kaggle-extracted) -> largest inner "
+                      f"file: {big} ({os.path.getsize(big)/1e6:.1f} MB)", flush=True)
+                return big
+    return None
+
+def _find_weights():
+    # Order matters: net PREFERENCE dominates extension. Try BOTH forms of the
+    # diagnosis net (BT3) before falling back to the live-app net (791556) — else
+    # a mixed decompression state (BT3 as .pb, 791556 still .pb.gz) would silently
+    # run the diagnosis on the WRONG net (LEADER_BIBLE §4). [Gemini F-03]
+    for name in ("BT3-768x15x24h-swa-2790000.pb.gz", "BT3-768x15x24h-swa-2790000.pb",
+                 "791556.pb.gz", "791556.pb"):
+        hit = _resolve_weight_file(name)
+        if hit:
+            return hit
+    return None
+
+SEARCH_WEIGHTS = _find_weights()
 
 # Kaggle does not always extract an uploaded .zip — the weights may be trapped
 # inside it. If not found loose, locate a zip containing them and extract the
 # engine nets to the working dir.
 if not SEARCH_WEIGHTS:
     import zipfile
-    _wanted = ("BT3-768x15x24h-swa-2790000.pb.gz", "791556.pb.gz", "bt3.onnx")
+    _wanted = ("BT3-768x15x24h-swa-2790000.pb.gz", "BT3-768x15x24h-swa-2790000.pb",
+               "791556.pb.gz", "791556.pb", "bt3.onnx")
     _zips = glob.glob("/kaggle/input/**/*.zip", recursive=True) + \
             glob.glob(f"{WORKING}/**/*.zip", recursive=True)
     print(f"[weights] no loose weights; zips found: {_zips or 'NONE'}", flush=True)
@@ -179,15 +239,48 @@ if not SEARCH_WEIGHTS:
                     break
         except Exception as e:
             print("[weights]   zip probe failed:", zpath, e, flush=True)
-    SEARCH_WEIGHTS = _find("BT3-768x15x24h-swa-2790000.pb.gz") or _find("791556.pb.gz")
+    SEARCH_WEIGHTS = _find_weights()
 
 assert SEARCH_WEIGHTS, (
-    "LC0 WEIGHTS NOT FOUND. lc0's cuda-fp16 backend needs a .pb.gz network file; "
-    "without it lc0 errors 'requires a network file' and every search HANGS. "
-    "The .pb.gz weights are gitignored, so they are NOT in kaggle_files/. "
-    "Add BT3-768x15x24h-swa-2790000.pb.gz (or 791556.pb.gz) to your Kaggle dataset "
-    "under an engine/ folder, then re-run.")
+    "LC0 WEIGHTS NOT FOUND. lc0's cuda-fp16 backend needs a network file (.pb.gz "
+    "OR a decompressed .pb); without it lc0 errors 'requires a network file' and "
+    "every search HANGS. NOTE: Kaggle auto-extracts loose .gz uploads, so your "
+    "BT3-768x15x24h-swa-2790000.pb.gz may have landed as BT3-768x15x24h-swa-2790000.pb "
+    "(this script now accepts that). If NEITHER form is present, the file didn't "
+    "upload at all — add it to the dataset under engine/, bump the notebook to the "
+    "new dataset version, and re-run.")
+# Normalize into a clean gzipped file in the WRITABLE working dir. The resolved path
+# may be under read-only /kaggle/input, or be a raw decompressed protobuf, or a file
+# with an arbitrary name inside a Kaggle-extracted dir. Re-gzipping raw protobuf (or
+# copying an already-gzipped net) yields an unambiguous .pb.gz lc0 loads cleanly.
+# gzip-magic aware => never double-gzip a file that is already compressed.
+import gzip as _gzip
+def _is_gzip(path):
+    with open(path, "rb") as _f:
+        return _f.read(2) == b"\x1f\x8b"
+_clean_w = str(WORKING / "engine" / "search_weights.pb.gz")
+_src_is_gz = _is_gzip(SEARCH_WEIGHTS)
+if _src_is_gz:
+    shutil.copy(SEARCH_WEIGHTS, _clean_w)
+else:
+    with open(SEARCH_WEIGHTS, "rb") as _s, _gzip.open(_clean_w, "wb") as _d:
+        shutil.copyfileobj(_s, _d)
+print(f"[weights] resolved {SEARCH_WEIGHTS} (gzip={_src_is_gz}) -> normalized "
+      f"{_clean_w} ({os.path.getsize(_clean_w)/1e6:.1f} MB)", flush=True)
+SEARCH_WEIGHTS = _clean_w
+print(f"[weights] using: {SEARCH_WEIGHTS}", flush=True)
 ONNX = _find("bt3.onnx")
+# F-01: the backend is imported FROM the dataset, and its neural_vision.py writes a
+# temp shape-inference file NEXT TO the onnx. On the read-only /kaggle/input mount
+# that throws Errno 30 and silently drops us to policy_fallback (zeroing attention
+# findings). Copy the onnx to the WRITABLE working dir so its parent is writable —
+# this restores attention mode even against the OLD dataset code (no rebuild needed).
+if ONNX and ONNX.startswith("/kaggle/input"):
+    _onnx_local = str(WORKING / "engine" / "bt3.onnx")
+    if not os.path.exists(_onnx_local):
+        print(f"[setup] copying onnx to writable dir -> {_onnx_local}", flush=True)
+        shutil.copy(ONNX, _onnx_local)
+    ONNX = _onnx_local
 pgn_hits = glob.glob("/kaggle/input/**/lichess_derdiedasdie_2026-07-21.pgn", recursive=True) or \
            glob.glob(f"{WORKING}/**/lichess_derdiedasdie_2026-07-21.pgn", recursive=True)
 assert pgn_hits, "PGN not found"
@@ -247,7 +340,23 @@ async def _main():
     t0 = time.time()
     try:
         await pipeline.run_diagnosis("kaggle_diag", pgn_text, "derdiedasdie", engine, vision)
-        print(f"\n[DONE] completed {len(mine)} games in {time.time()-t0:.0f}s", flush=True)
+        # run_diagnosis SWALLOWS exceptions internally (pipeline.py:705) and the
+        # "kaggle_diag" job is never create_job()'d, so update_job no-ops — a crash
+        # would otherwise be disguised as a clean [DONE] in 0s. Prove a real profile
+        # with findings was actually written before claiming success. [Gemini F-02]
+        import json as _json
+        from backend.training import store as _store
+        _pp = os.path.join(_store.TRAINING_DIR, "profile.json")
+        assert os.path.exists(_pp), (
+            "NO profile.json written — run_diagnosis crashed internally and swallowed "
+            "the exception (see traceback above). This is NOT a successful run.")
+        _prof = _json.load(open(_pp, encoding="utf-8"))
+        _nf = len(_prof.get("findings", []))
+        _ns = len(_prof.get("steer_findings", []))
+        assert _nf > 0, "profile has ZERO findings — diagnosis did not truly analyze."
+        print(f"\n[DONE] REAL run: {_nf} findings, {_ns} steer_findings | vision={vision.mode} "
+              f"| games={_prof.get('games_analyzed')} moves={_prof.get('moves_analyzed')} "
+              f"| {time.time()-t0:.0f}s", flush=True)
     finally:
         if hasattr(engine, "stop"):
             await engine.stop()
