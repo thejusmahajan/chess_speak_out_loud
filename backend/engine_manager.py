@@ -178,14 +178,22 @@ class LC0Engine:
                 uci_options["WeightsFile"] = str(weights_candidates[0])
                 logger.info("Auto-detected weights: %s", weights_candidates[0])
 
-        if self.custom_uci_options:
-            uci_options.update(self.custom_uci_options)
+        # Build engine start command line passing weights file if available
+        cmd = [str(self.engine_path)]
+        if self.weights_path and self.weights_path.exists():
+            cmd.append(f"--weights={str(self.weights_path)}")
 
         # Start engine natively
-        transport, engine = await chess.engine.popen_uci(str(self.engine_path))
+        transport, engine = await chess.engine.popen_uci(cmd)
+
+        # Ensure WeightsFile option is placed first if present in uci_options
+        ordered_options = {}
+        if "WeightsFile" in uci_options:
+            ordered_options["WeightsFile"] = uci_options.pop("WeightsFile")
+        ordered_options.update(uci_options)
 
         # Apply UCI options (with fallback for unsupported flags)
-        for key, value in uci_options.items():
+        for key, value in ordered_options.items():
             try:
                 await engine.configure({key: value})
             except Exception as opt_err:
