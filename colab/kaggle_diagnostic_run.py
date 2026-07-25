@@ -195,7 +195,13 @@ def get_linux_lc0():
                         "https://github.com/LeelaChessZero/lc0.git", str(clone_dir)], check=True)
     build_dir = clone_dir / "build" / "release"
     subprocess.run(["meson", "setup", str(build_dir), str(clone_dir)], check=True)
-    subprocess.run(["ninja", "-j2", "-C", str(build_dir)], check=True)
+    # Build ONLY the lc0 target, SERIALLY (-j1). The prior `ninja -j2` (all targets)
+    # OOM-killed the host (exit 137) — it was compiling gtest/gmock/encoder_test/
+    # engine_test we never use, and running 2 heavy nvcc/LTO units at once. `lc0`
+    # target skips the tests; -j1 halves peak compiler RAM. (Slower, but this is only
+    # the fallback — the real fix is shipping a prebuilt lc0 in the dataset so we never
+    # compile. See KAGGLE_BEST_PRACTICES.md §3.)
+    subprocess.run(["ninja", "-C", str(build_dir), "-j1", "lc0"], check=True)
     shutil.copy(build_dir / "lc0", lc0_bin); os.chmod(lc0_bin, 0o755)
     print("[lc0] compiled ->", lc0_bin, flush=True)
     return str(lc0_bin)
