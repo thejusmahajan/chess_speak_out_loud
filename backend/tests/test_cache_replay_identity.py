@@ -18,6 +18,7 @@ satisfy and which would clobber the real profile):
 Mutation-checked by the leader: removing the result `.sort(...)` in pipeline.py
 (Stage B or TS2) makes this fail with an ID-order mismatch.
 """
+import asyncio
 import hashlib
 from pathlib import Path
 
@@ -25,9 +26,17 @@ import chess
 import pytest
 
 from backend.engine_pool import EnginePool
-from backend.training import store, pipeline
+from backend.training import store, pipeline, metrics
 
 _PGN = Path("games_of_derdiedasdie/test_subset.pgn")
+
+
+def _first_n_games(pgn_text: str, n: int) -> str:
+    """First n games of a multi-game PGN (keeps the gate fast but multi-game,
+    so cross-game ordering is still exercised)."""
+    parts = pgn_text.split("\n[Event ")
+    games = [parts[0]] + ["[Event " + p for p in parts[1:]]
+    return "\n".join(games[:n])
 
 
 def _det_int(fen: str, lo: int, hi: int) -> int:
@@ -68,6 +77,11 @@ class DetEngine:
         return out
 
     async def analyze(self, fen, depth=20, multipv=3, time_limit=2.0, nodes=None):
+        # Deterministic, FEN-dependent delay so concurrent tasks COMPLETE out of
+        # submission order — this is what makes the result `.sort()` load-bearing
+        # and the gate actually sensitive to an ordering bug (verified: without
+        # this, disabling the TS2 sort does not fail the gate).
+        await asyncio.sleep((_det_int(fen, 0, 9) + 1) * 0.001)
         board = chess.Board(fen)
         if board.is_checkmate() or board.is_stalemate():
             return {"evaluation": 0, "best_moves": [], "pv_lines": [], "nodes": 0,
@@ -95,7 +109,7 @@ class DetVision:
 async def _run(job_id, engine, tmp_dir, monkeypatch):
     monkeypatch.setattr(store, "TRAINING_DIR", str(tmp_dir))
     monkeypatch.setattr(store, "DATA_DIR", str(tmp_dir))
-    pgn_text = _PGN.read_text(encoding="utf-8")
+    pgn_text = _first_n_games(_PGN.read_text(encoding="utf-8"), 6)
     await pipeline.run_diagnosis(job_id, pgn_text, "derdiedasdie", engine, DetVision())
     prof = store.load_profile()
     assert prof is not None
@@ -107,16 +121,27 @@ async def _run(job_id, engine, tmp_dir, monkeypatch):
 async def test_parallel_identity_workers_1_vs_4(tmp_path, monkeypatch):
     assert _PGN.exists(), "test_subset.pgn required"
 
-    w1 = tmp_path / "w1"
-    w1.mkdir()
-    f1, s1 = await _run("gate_w1", DetEngine(), w1, monkeypatch)
+    # Force steer emission for ANY playable candidate so the TS2 concurrency path
+    # is actually exercised (mirrors the steer unit tests; test-scoped, not an
+    # edit to leader-owned metrics.py). Restored by the finally.
+    cfg = metrics.DEFAULT_CONFIG
+    saved = (cfg.steer_highlight_complexity, cfg.steer_search_budget)
+    object.__setattr__(cfg, "steer_highlight_complexity", 0.0)
+    object.__setattr__(cfg, "steer_search_budget", 100000)
+    try:
+        w1 = tmp_path / "w1"
+        w1.mkdir()
+        f1, s1 = await _run("gate_w1", DetEngine(), w1, monkeypatch)
 
-    pool = EnginePool(4, DetEngine)
-    await pool.start()
-    w4 = tmp_path / "w4"
-    w4.mkdir()
-    f4, s4 = await _run("gate_w4", pool, w4, monkeypatch)
-    await pool.stop()
+        pool = EnginePool(4, DetEngine)
+        await pool.start()
+        w4 = tmp_path / "w4"
+        w4.mkdir()
+        f4, s4 = await _run("gate_w4", pool, w4, monkeypatch)
+        await pool.stop()
+    finally:
+        object.__setattr__(cfg, "steer_highlight_complexity", saved[0])
+        object.__setattr__(cfg, "steer_search_budget", saved[1])
 
     # The gate must exercise real work, or it proves nothing.
     assert len(f1) > 0, "no findings produced — gate is vacuous"

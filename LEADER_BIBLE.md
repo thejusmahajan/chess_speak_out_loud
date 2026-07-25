@@ -98,12 +98,20 @@ Tal persona; research note `docs/research_learned_lookahead.md` — the
   28/22; **openings fix (`f845a26`) and complete-steering budget are in origin but
   NOT yet validated by a fresh Colab run** — the next A100 run produces the first
   fully-correct profile.
-- **Mission phase**: Phase A (EnginePool) implemented by Gemini at `55c1214`;
-  I audited it, **found+fixed a depth=None signature-drift bug and added the guard
-  test** (uncommitted at the moment of writing — commit/push it if I didn't).
-  Phase B (parallel Stage B/TS2 + cache-replay identity gate) is NOT started —
-  its full spec with the three traps is in `MISSION_FULL_A100.md`. Then Phase C
-  (short verification pass), Phase D (T4 rehearsal → one A100 shot, stop runtime).
+- **Mission phase**: Phase A (EnginePool) done+audited at `98f2ea5`.
+  Phase B (parallel Stage B/TS2) implemented by Gemini, audited + committed by
+  Opus 4.8: all 3 traps verified (sync budget helpers, in-flight-future dedup,
+  TS2 `.sort` mutation-verified load-bearing; Stage B uses order-preserving
+  `gather`). Gemini's identity gate was BROKEN (cache-dependent on our truncated
+  cache, not store-isolated, load-after-error) — I replaced it with a
+  cache-independent, store-isolated, deterministic-engine gate proving n=1≡n=4
+  (findings+steer), mutation-verified. Suite green. **Caveat:** identity holds in
+  the non-binding-budget mode (the A100 run's mode, STEER_SEARCH_BUDGET=50000); if
+  the budget BINDS under concurrency, which nodes win the last slots is
+  timing-dependent — acceptable degraded mode, not operated in.
+  NEXT: Phase C (optional short Opus-4.6 pass) then Phase D (T4 rehearsal → one
+  A100 shot). Notebook wiring of `EnginePool(LC0_WORKERS)` into Cell 5 is still
+  TODO (spec in `MISSION_FULL_A100.md` Phase D).
 - Pending after mission: Opt #2 implementation (spec approved w/ POV fix),
   `by_opening` validation in the fresh run, then the user's UI analysis.
 
