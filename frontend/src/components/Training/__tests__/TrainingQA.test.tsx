@@ -17,6 +17,10 @@ vi.mock('../../../api/training', () => ({
   getRepertoireTree: vi.fn(),
   getTopOpenings: vi.fn(() => Promise.resolve([])),
   getWeaknessRanking: vi.fn(() => Promise.resolve({ ranking: [] })),
+  getUsualSuspects: vi.fn(() => Promise.resolve(null)),
+  getApprovedSuspects: vi.fn(() => Promise.resolve({ themes: [] })),
+  approveSuspects: vi.fn(() => Promise.resolve({ themes: [] })),
+  buildSuspectsDeck: vi.fn(() => Promise.resolve({ id: 'suspects-123' })),
 }));
 
 vi.mock('../TrainingBoard', () => ({

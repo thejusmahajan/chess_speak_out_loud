@@ -5,11 +5,12 @@ import DrillMode from './DrillMode';
 import TrainingBoard from './TrainingBoard';
 import ProgressPanel from './ProgressPanel';
 import RepertoirePanel from './RepertoirePanel';
+import UsualSuspects from './UsualSuspects';
 import { getProfile, generateDrills, getDueDrills, getDrillsList, getTrends } from '../../api/training';
 import './Training.css';
 
 export default function TrainingTab() {
-  const [view, setView] = useState<'diagnose' | 'profile' | 'drills' | 'progress' | 'saved_sets' | 'repertoire'>('diagnose');
+  const [view, setView] = useState<'diagnose' | 'profile' | 'usual_suspects' | 'drills' | 'progress' | 'saved_sets' | 'repertoire'>('diagnose');
   const [profile, setProfile] = useState<any>(null);
   const [drillSetId, setDrillSetId] = useState<string | null>(null);
   const [reviewItems, setReviewItems] = useState<any[] | null>(null);
@@ -121,6 +122,12 @@ export default function TrainingTab() {
           Weakness Profile
         </button>
         <button
+          className={`glass-btn ${view === 'usual_suspects' ? 'active' : ''}`}
+          onClick={() => setView('usual_suspects')}
+        >
+          Usual Suspects
+        </button>
+        <button
           className={`glass-btn ${view === 'saved_sets' ? 'active' : ''}`}
           onClick={() => setView('saved_sets')}
         >
@@ -224,6 +231,17 @@ export default function TrainingTab() {
         )}
 
         {view === 'repertoire' && <RepertoirePanel />}
+
+        {view === 'usual_suspects' && (
+          <UsualSuspects
+            onDeckBuilt={(id) => {
+              setDrillSetId(id);
+              setReviewItems(null);
+              setView('drills');
+              fetchSavedSets();
+            }}
+          />
+        )}
 
         {view === 'drills' && (drillSetId || reviewItems) && (
           <DrillMode setId={drillSetId || undefined} dueItems={reviewItems || undefined} onExit={() => { setView('profile'); fetchSRS(); fetchTrendsData(); }} />

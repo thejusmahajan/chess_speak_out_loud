@@ -162,3 +162,59 @@ export async function getWeaknessRanking(n = 6): Promise<{
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
+export interface UsualSuspect {
+  theme: string;
+  games: number;
+  occurrences: number;
+  mean_severity: number;
+  rank_score: number;
+  severity_label: 'high' | 'medium' | 'low';
+  finding_ids: string[];
+}
+
+export interface UsualSuspectsResponse {
+  suspects: UsualSuspect[];
+  by_phase: any[];
+  by_concept: any[];
+}
+
+export interface ApprovedSuspectsResponse {
+  themes: string[];
+  updated?: string;
+}
+
+export async function getUsualSuspects(): Promise<UsualSuspectsResponse | null> {
+  const res = await fetch(`${BASE_URL}/usual-suspects`);
+  if (!res.ok) {
+    if (res.status === 404) return null;
+    throw new Error(await res.text());
+  }
+  return res.json();
+}
+
+export async function approveSuspects(themes: string[]): Promise<ApprovedSuspectsResponse> {
+  const res = await fetch(`${BASE_URL}/usual-suspects/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ themes }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getApprovedSuspects(): Promise<ApprovedSuspectsResponse> {
+  const res = await fetch(`${BASE_URL}/usual-suspects/approved`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function buildSuspectsDeck(count: number = 20): Promise<{ id: string; drills: any[]; [key: string]: any }> {
+  const res = await fetch(`${BASE_URL}/usual-suspects/deck`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ count }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
