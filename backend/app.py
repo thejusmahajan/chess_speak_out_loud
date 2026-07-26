@@ -143,6 +143,15 @@ class IntuitionGuessRequest(BaseModel):
     uci: str
 
 
+class SacSessionRequest(BaseModel):
+    count: int = Field(default=10, ge=1, le=50)
+
+
+class SacGuessRequest(BaseModel):
+    finding_id: str
+    uci: str
+
+
 # ------------------------------------------------------------------
 # Routes
 # ------------------------------------------------------------------
@@ -789,6 +798,30 @@ async def intuition_guess(req: IntuitionGuessRequest):
 @app.get("/api/training/intuition/stats")
 async def intuition_stats():
     return intuition.get_stats()
+
+
+# ------------------------------------------------------------------
+# Sacrifice / Tactical-Landmine Drill Endpoints
+# ------------------------------------------------------------------
+
+from backend.training import sac_drill
+
+@app.post("/api/training/sac/session")
+async def sac_session(req: SacSessionRequest):
+    return sac_drill.build_sac_session(req.count)
+
+
+@app.post("/api/training/sac/guess")
+async def sac_guess(req: SacGuessRequest):
+    res = sac_drill.score_sac_guess(req.finding_id, req.uci)
+    if not res:
+        raise HTTPException(status_code=404, detail="Finding not found")
+    return res
+
+
+@app.get("/api/training/sac/stats")
+async def sac_stats():
+    return sac_drill.get_stats()
 
 
 
