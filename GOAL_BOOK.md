@@ -1,108 +1,122 @@
 # GOAL BOOK — the product vision, as the user means it
 
 > The product-vision counterpart to `LEADER_BIBLE.md`. Every worker anchors here so no one
-> drifts from the aim. Sourced from the user's answers in `GOAL_ELICITATION_QUESTIONS.md`
-> (2026-07-26). **[E]** = the user stated it explicitly; **[I]** = leader inference (flagged
-> for the user to confirm/correct). Leader-owned; update as the vision sharpens.
+> drifts from the aim. Sourced from `GOAL_ELICITATION_QUESTIONS.md` (2026-07-26) + the user's
+> follow-up answers + Gemini's `GOALBOOK_REVIEW.md` (leader-audited). **[E]** = user stated it
+> explicitly; **[I]** = leader inference (flagged for the user to confirm). Leader-owned.
+> **v2 (2026-07-26):** decoupled the theme-KB from the drill features, fixed J2 scope
+> (current repertoire AND new sharp openings), added master-DB example games, defined the
+> similarity-scoring rule, un-parked attention heatmaps.
 
 ## North star (the soul of the tool)
 A ~2100–2200 Lichess player, **bored by dry/equal positions** (his London System drifts to
 "dry draw or not advantageous"), who **wants sharp, dynamic, sacrificial, Tal-like chess** —
 but who says openly that **tactics are one of the weakest parts of his game** [E, Q1/Q2/Q2.1].
-So the tool's job is not "surface sharp moves." It is: **turn his own games into a personal
-path from dry-and-equal toward sharp-and-tactical, while teaching him the tactical vision to
-survive there.** He is a serious student; depth over polish; **UI speed matters, analysis
-latency is fine** [E, Q6].
-
-## The recurring backbone he keeps returning to: THEME / PIECE-CONFIGURATION as the atomic unit
-Across Jobs 1, 2, 3, 7 he asks for the same thing in different clothes: a **knowledge base
-mapping piece-configurations → tactical themes** (built from Lichess themes / articles) [E,
-Q2.1]. He wants it to (a) **explain WHY LC0 favors a move** — "because it leads to a tactical
-configuration, not just a slight advantage" [E, Q2.1]; (b) organize thematic drills [E, Q3];
-(c) enable **similar-position testing** with similarity scaled to the stakes [E, Q7.3]; (d)
-link a position to **example games** (masters / recent / his own) where the theme appears [E,
-Q1.1]. **This KB is the enabling infrastructure under half the vision.** He admits low tactical
-knowledge, so the KB is both a teaching tool and a search index.
+So the tool's job is not "surface sharp moves." It is: **turn his games into a personal path
+from dry-and-equal toward sharp-and-tactical, while teaching him the tactical vision to
+survive there — and actively steering him toward openings that produce that chess.** Serious
+student; depth over polish; **UI speed matters, analysis latency is fine** [E, Q6].
 
 ## Two loops the whole system runs on
 1. **Correction loop** (fix what recurs): diagnose his games → detect **recurring** mistakes →
-   he **reviews/approves** [E, Q4] → **blended spaced-repetition queue weighted by severity**
-   [E, Q8.2] on his **exact game positions** [E, Q6.2] → re-test → "corrected" = **90% on
-   spaced-rep re-tests over 30 days** [E, Q6.3] → **re-diagnose newly played games to prove
-   the mistake rate drops** [E, Q5] (the ultimate proof).
+   he **reviews/approves** [E, Q4] → **blended spaced-rep queue weighted by severity** [E, Q8.2]
+   on his **exact game positions** [E, Q6.2] → re-test → "corrected" = **90% on re-tests over
+   30 days** [E, Q6.3] → **re-diagnose newly played games to prove the mistake rate drops** [E,
+   Q5] (the ultimate proof).
 2. **Vision/intuition loop** (see & think like LC0): predictive drills — **guess LC0's top
    policy move in ~10s** [E, Q5.2] → wrong = a gap → study the principle/theme → retry [E,
-   Q5.1]. Primary signals he wants: **raw policy probabilities + search eval + policy ranking**
-   (NOT attention heatmaps yet — he's unsure how to read them; parked for later w/ a guidebook)
-   [E, Q4.1/Q5.2].
+   Q5.1]. Primary signals: **raw policy probabilities + search eval + policy ranking** [E, Q4.1].
+   **Attention heatmaps [I — leader discretion, user is curious but unsure how to use, Q4.1]:**
+   fold them into this drill — the user predicts not just LC0's move but **which squares LC0
+   attends to** (training the eye for where the tactic lives), and use the heatmap as a
+   "why is this position tactically charged" explainer. Refine once he's studied more themes.
 
-## Cross-cutting principles (non-negotiables — treat as constraints on every feature)
+## The theme / piece-configuration layer (enrichment + explanation — NOT a gate)
+A recurring, genuine ask [E, Q2.1]: a **knowledge base mapping piece-configurations → tactical
+themes** ("typical piece formations for tactics must *first* be laid down from lichess themes
+or articles, then asked LC0 if it can be arrived at from my opening"). Its value: (a) **explain
+WHY LC0 favors a move** — "because it leads to a tactical configuration, not just a slight
+advantage" (he called this "immensely helpful"); (b) train him to *imagine* tactical
+formations; (c) enrich drill themes; (d) power similarity testing; (e) link to example games.
+**Decoupling decision [leader, per Gemini review]:** the **drills (J1/J3/J7) ship first on
+existing `TS2` outputs (`had_tal_move`, `policy_trap`, complexity) + `lichess_tagger` motif
+tags** — they do NOT wait on this KB. The KB is a **parallel enrichment track**, and it is
+genuinely more foundational for **J2** (reaching a named tactical configuration *from an
+opening*), where the user himself said the formations must be laid down "first".
+
+## Cross-cutting principles (constraints on every feature)
 - **His exact game positions, not synthetic** for correction drills [E, Q6.2].
-- **Automated identification, but a human review/approve gate** before a position enters the
-  deck [E, Q4].
+- **Automated identification + a human review/approve gate** before a position enters the deck
+  [E, Q4].
 - **Blended spaced-rep queue weighted by severity**, NOT one-topic-per-week [E, Q8.2].
-- **Mastery = pattern recognition in real games**, not rote reps (~3 reps, then spaced over
-  time; the point is recognizing it OTB) [E, Q3.3].
-- **Fast, lean UI**; no gamified animation bloat; analysis can be slow [E, Q6].
-- **Sessions 30–60 min, 3–4×/week, desktop-first** (plays on lichess desktop/mobile) [E, Q7].
-- **Both broad AND specific weakness taxonomies** (overview + precise technical diagnosis)
-  [E, Q8.1].
+- **Mastery = OTB pattern recognition**, not rote reps (~3 reps then spaced; recognizing it in
+  real games is the point) [E, Q3.3]; the *correction-tracking* metric is 90% over 30 days
+  [E, Q6.3]; the *ultimate* proof is fewer mistakes in newly played games [E, Q5].
+- **Fast, lean UI**; analysis can be slow [E, Q6]. Sessions **30–60 min, 3–4×/week,
+  desktop-first** [E, Q7]. **Both broad AND specific weakness taxonomies** [E, Q8.1].
+- **His repertoire is derived from his ~9000-game PGN corpus** (or via Lichess) [E, follow-up].
 
-## The 8 jobs, distilled (his words → what it means → session → success → engine mapping)
-- **J6+J8 — Recurring weaknesses ("usual suspects"), categorized & drilled** *(his #1 pick)*.
-  "Identify the common mistakes I make often" — tactical oversights, missed simplifications
-  into winning endgames, missed winning sacs, **repeated opening mistakes** [E, Q3/Q6.1].
-  Needs NEW capability: **recurrence detection** (same theme/opening-line across many games),
-  broad+specific categories, exact-position mini-sets, severity-weighted spaced-rep queue, a
-  dashboard of *weakness / opening / tactical-theme-needing-attention* [E, Q8.3]. Maps to: the
-  existing diagnosis profile (findings by phase/clock/motif/concept) + a new clustering layer.
-- **J4+J5 — See & develop intuition like LC0.** Predictive **10-min daily speed-guess of LC0's
-  top policy** [E, Q5.2/Q5.3]; a cycle of guess→gap→study→retry. Maps to: BT3 policy + search
-  eval (already have). Small, clean, largely independent — a good early win.
-- **J3 — Thematic tactical drilling.** Motifs he wants [E, Q3.1]: kingside sacs (B/N/Q), pawn
-  sacs for dynamics, exchange sacs, knight forks, double attacks in London structures, KGA
-  kingside attacks as Black, "sac to land a knight near the king." Drill = **solve the principle
-  THEN play the full continuation vs LC0** to feel the flow [E, Q3.2]. Depends on the theme KB.
+## The 8 jobs, distilled
+- **J6+J8 — Recurring weaknesses ("usual suspects"), categorized & drilled** *(his #1)*. "Identify
+  the common mistakes I make often" — tactical oversights, missed simplifications into winning
+  endgames, missed winning sacs, **repeated opening mistakes** [E, Q3/Q6.1]. NEW capability:
+  **recurrence detection** (same theme/opening-line across many games), broad+specific
+  categories, **his exact-position mini-sets**, severity-weighted spaced-rep queue, dashboard of
+  *weakness / opening / tactical-theme-needing-attention* [E, Q8.3]. Maps to: existing diagnosis
+  profile (findings by phase/clock/motif/concept) + a new clustering layer.
+- **J4+J5 — See & develop intuition like LC0.** Predictive **10-min daily 10s speed-guess of
+  LC0's top policy** [E, Q5.2/Q5.3], guess→gap→study→retry [E, Q5.1]; optionally predict the
+  attention hotspots too (see Vision loop). Maps to: BT3 policy + search eval (already have).
+  Small, independent — an early win.
 - **J1 — Steer to a "tactical landmine."** Good landmine = sharp line (Fried Liver / Evans /
-  sharp Giuoco Nc3) with an early sac where only 1–few moves survive [E, Q1.1]. Must
-  **auto-complement** each landmine with its tactical theme + drills + example games [E, Q1.1].
-  Session: **play out 3–5 moves vs LC0** to prove survival; ask questions; show the continuation
-  if wrong [E, Q1.2]. Losing moves flagged; landmines where the opponent is likely to walk into
-  disaster [E, Q1.3]. Maps to: TS2 steer complexity components; depends on theme KB.
+  sharp Giuoco Nc3) with an early sac where only 1–few moves survive [E, Q1.1]. **Auto-complement
+  each landmine with: its tactical theme + drills + EXAMPLE GAMES from a master database / recent
+  games / his own games** [E, Q1.1]. Session: **play out 3–5 moves vs LC0** to prove survival;
+  ask questions; show the continuation if wrong [E, Q1.2]. Flag losing moves; favor landmines
+  where the opponent is likely to walk into disaster [E, Q1.3]. Maps to: TS2 complexity
+  components + `lichess_tagger` + a master-PGN lookup. (No KB gate.)
 - **J7 — Face feared Tal-style sacrifices.** Root of the fear: **he can't foresee the winning
-  final position / the piece-configuration the sac produces** [E, Q7.1]. Session: is there a
-  sac? → identify it + why you'd hesitate → evaluate the post-sac position → **pick its tactical
-  theme from a list** → play the attack vs LC0 [E, Q7.2]. Verify by testing **similar
-  configurations, similarity scaled to the loss if missed** [E, Q7.3]. Maps to: `had_tal_move`
-  steer_findings + theme KB.
-- **J2 — Sharp/"tightrope" positions from his own openings** *(his emotional driver)*. Wants
-  LC0 to find moves that reach **typical tactical piece-configurations** in his repertoire, so
-  he can escape the dry London — even willing to switch to 1.e4 or new openings [E, Q2/Q2.1].
-  MVP: a few positions from his openings that lead to known tactical themes / sacs with
-  compensation, where one wrong move = disaster; plus a **repertoire tree/graph highlighting
-  high-complexity nodes** [E, Q2.2/Q2.3]. Hardest / most research — needs the theme KB +
-  reachability search + the (currently broken) ECO/opening layer.
+  final position / the piece-configuration the sac produces** [E, Q7.1]. Session: is there a sac?
+  → identify it + why you'd hesitate → evaluate the post-sac position → **pick its tactical theme
+  from a list** → play the attack vs LC0 [E, Q7.2]. Verify via **similar-configuration tests**,
+  where **the penalty for a miss scales UP with the position's similarity to the trained one**
+  (miss a near-identical pattern → lose more; a distant one → more forgivable) [E, Q7.3-followup].
+  Maps to: `had_tal_move` steer_findings + motif tags. (No KB gate; KB enriches the theme list.)
+- **J3 — Thematic tactical drilling.** Motifs [E, Q3.1]: kingside sacs (B/N/Q), pawn sacs for
+  dynamics, exchange sacs, knight forks, double attacks in London structures, KGA kingside
+  attacks as Black, "sac to land a knight near the king." Drill = **solve the principle THEN play
+  the full continuation vs LC0** [E, Q3.2]. Maps to: `lichess_tagger` motifs now; KB later enriches.
+- **J2 — Sharp openings: his own AND new ones** *(emotional driver)*. TWO sides [E, Q2 + follow-up]:
+  (a) **derive his actual repertoire from the 9000-game corpus** and surface where it can be
+  steered to tactical configurations / sacs with compensation; (b) **actively DIRECT him to NEW
+  sharp openings** — he wants this — specifically 1.e4 gambit/sharp lines (Fried Liver, Evans,
+  Giuoco Nc3), since he's ready to abandon the dry London. Wants LC0 to find moves reaching
+  **typical tactical piece-configurations** [E, Q2.1], plus a **repertoire tree/graph highlighting
+  high-complexity nodes** [E, Q2.2/Q2.3]. Hardest; needs the theme layer (config-reachability) +
+  the (currently broken) ECO/opening layer.
 
-## Sequenced roadmap (one by one — respecting his #1 pick and dependencies) [I — for confirmation]
-1. **Sprint 1 — "Usual Suspects": recurring-weakness detection + review/approve + severity-
-   weighted spaced-rep deck on his exact positions + a minimal dashboard** (J6+J8). His stated
-   #1; builds directly on the existing profile; delivers the correction loop end-to-end.
-2. **Sprint 2 — LC0 intuition speed-drill** (J4+J5). Small, independent, early win; 10s policy
-   guessing on his positions.
-3. **Sprint 3 — Tactical-theme knowledge base + thematic drilling** (J3). Build the config→theme
-   backbone (Lichess themes/articles), tag findings/steer with themes, solve-then-play-out drills.
-4. **Sprint 4 — Landmine + sac-hesitation training** (J1+J7). Depends on the theme KB; the
-   play-out-vs-LC0 + theme-pick + similarity-test flows.
-5. **Sprint 5 — Sharp-opening steering & config-reachability** (J2). The "escape dry openings"
-   dream; hardest; needs KB + reachability + fixed ECO layer.
+## Sequenced roadmap (one by one) [I — for user confirmation; adopts Gemini's resequencing]
+1. **Sprint 1 — "Usual Suspects"** (J6+J8): recurring-mistake detection across his PGNs →
+   review/approve gate → severity-weighted spaced-rep deck on his exact positions → minimal
+   dashboard. His #1; builds on the existing profile; delivers the correction loop end-to-end.
+2. **Sprint 2 — LC0 intuition speed-drill** (J4+J5): 10-min daily 10s policy-guessing; lean,
+   standalone, zero new engine deps. Early win.
+3. **Sprint 3 — Landmine + Tal-sac hesitation drills** (J1+J7): powered by TS2 (`had_tal_move`,
+   complexity) + `lichess_tagger` + **master-DB example lookup** + play-out-vs-LC0. **No KB
+   blocker** — delivers the sharp/sacrificial experience he craves early.
+4. **Sprint 4 — Sharp openings** (J2): derive current repertoire from the corpus + **recommend
+   new 1.e4 sharp lines**; repertoire tree with high-complexity nodes. Needs the ECO fix.
+5. **Sprint 5 — Deep theme/config knowledge base** (enrichment): config→theme from articles/
+   Lichess themes; the "explain WHY LC0 chose this via the tactical configuration" layer; richer
+   similarity + imagination training. Upgrades J1/J2/J3/J7 — an enhancement, not a gate.
 
-## Open questions / to re-elicit (do not guess — confirm with the user)
-- Full opening repertoire (both colors) + time controls + weekly game volume were not fully
-  given (Q1). Needed before J2/J3.
-- The **1.e4 / new-opening switch** — a real decision he's weighing (Q2); does the tool advise
-  on it, or work with whatever he plays?
-- **Attention heatmaps** parked — revisit once he's studied more themes (Q4.1).
-- "Similarity proportional to the loss factor" (Q7.3) needs a concrete definition before build.
-- What we already have that maps in: diagnosis profile, steer_findings + complexity/`had_tal_move`,
-  BT3 policy + search, `lichess_tagger` motifs, DrillMode + attempts + SRS scaffolding,
-  repertoire builder (once ECO is fixed).
+## Open questions to re-elicit (do not guess) — 3 block Sprint 1 detail
+1. **Game ingestion:** auto-pull recent games via **Lichess API by username** (`derdiedasdie`),
+   or a **manual PGN upload** dropzone? (Or both — corpus once, live sync ongoing?)
+2. **Recurrence threshold:** how many occurrences make a mistake a "usual suspect" (same
+   theme/opening-line in 2+ games? 3+?) — sets the clustering threshold.
+3. **Master-DB source (Sprint 3):** query the **Lichess Masters DB API** online, or index a
+   **local master PGN** on desktop?
+- Later: full time-control mix; how far the tool should go in *recommending* a new repertoire
+  (a few candidate openings? a full switch plan?); and how "attention-hotspot prediction" should
+  score once he's studied more themes.
