@@ -7,6 +7,7 @@ Serves the frontend static files and provides REST API endpoints for:
   - Health check
 """
 
+import os
 import asyncio
 import dataclasses
 import io
@@ -860,6 +861,24 @@ async def sac_playout_move(req: SacPlayoutMoveRequest):
     if not res:
         raise HTTPException(status_code=404, detail="Finding not found")
     return res
+
+
+from backend.training import eco_backfill
+
+@app.post("/api/training/openings/backfill-ecos")
+async def backfill_ecos_route():
+    profile = store.load_profile()
+    if not profile:
+        raise HTTPException(status_code=404, detail="No profile found")
+
+    pgn_path = str(_corpus_pgn())
+    if not os.path.exists(pgn_path):
+        raise HTTPException(status_code=404, detail=f"Corpus PGN not found at {pgn_path}")
+
+    enriched, summary = eco_backfill.backfill_ecos(profile, pgn_path)
+    store.save_profile(enriched)
+    return summary
+
 
 
 
