@@ -152,6 +152,18 @@ class SacGuessRequest(BaseModel):
     uci: str
 
 
+class SacPlayoutStartRequest(BaseModel):
+    finding_id: str
+
+
+class SacPlayoutMoveRequest(BaseModel):
+    finding_id: str
+    line: List[str]
+    user_uci: str
+    history: Optional[List[str]] = None
+
+
+
 # ------------------------------------------------------------------
 # Routes
 # ------------------------------------------------------------------
@@ -822,6 +834,33 @@ async def sac_guess(req: SacGuessRequest):
 @app.get("/api/training/sac/stats")
 async def sac_stats():
     return sac_drill.get_stats()
+
+
+@app.post("/api/training/sac/playout/start")
+async def sac_playout_start(req: SacPlayoutStartRequest):
+    res = await sac_drill.start_sac_playout(req.finding_id, lc0_engine)
+    if isinstance(res, dict) and res.get("error"):
+        return res
+    if not res:
+        raise HTTPException(status_code=404, detail="Finding not found")
+    return res
+
+
+@app.post("/api/training/sac/playout/move")
+async def sac_playout_move(req: SacPlayoutMoveRequest):
+    try:
+        res = await sac_drill.play_sac_move(
+            req.finding_id, req.line, req.user_uci, lc0_engine, req.history
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if isinstance(res, dict) and res.get("error"):
+        return res
+    if not res:
+        raise HTTPException(status_code=404, detail="Finding not found")
+    return res
+
 
 
 

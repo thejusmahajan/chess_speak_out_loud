@@ -4,7 +4,7 @@ import time
 import random
 import chess
 from typing import List, Dict, Any, Optional
-from backend.training import store
+from backend.training import store, metrics
 
 
 def _get_tal_findings() -> List[Dict[str, Any]]:
@@ -161,3 +161,250 @@ def get_stats() -> Dict[str, Any]:
         "accuracy": accuracy,
         "recent_accuracy": recent_accuracy,
     }
+
+
+# ------------------------------------------------------------------
+# Phase C1 — Sacrifice Playout vs LC0
+# ------------------------------------------------------------------
+
+PLAYOUT_NODES = 4000
+PLAYOUT_PLIES = 8
+
+
+async def start_sac_playout(finding_id: str, lc0_engine) -> Dict[str, Any]:
+    """Start engine playout session for a sacrifice finding.
+    
+    Plays sac_uci, gets LC0's best defense, and returns state ready for user attack.
+    Does NOT leak LC0's preferred attack move.
+    """
+    if not lc0_engine or not lc0_engine.is_available():
+        return {"error": "engine_unavailable"}
+
+    profile = store.load_profile()
+    if not profile or "steer_findings" not in profile:
+        return {}
+
+    sf = next((f for f in profile["steer_findings"] if f.get("id") == finding_id), None)
+    if not sf or "fen_before" not in sf or "steer" not in sf:
+        return {}
+
+    fen_before = sf["fen_before"]
+    board = chess.Board(fen_before)
+    attacker_is_white = (board.turn == chess.WHITE)
+
+    sac_uci = sf["steer"].get("uci")
+    if not sac_uci:
+        return {}
+
+    try:
+        sac_move = chess.Move.from_uci(sac_uci)
+        if sac_move not in board.legal_moves:
+            return {}
+        board.push(sac_move)
+    except Exception:
+        return {}
+
+    if board.is_game_over():
+        analysis = await lc0_engine.analyze(board.fen(), nodes=PLAYOUT_NODES)
+        white_cp = metrics.eval_cp_number(analysis.get("evaluation")) or 0
+        attacker_eval_cp = white_cp if attacker_is_white else -white_cp
+        return {
+            "finding_id": finding_id,
+            "fen": board.fen(),
+            "line": [sac_uci],
+            "attacker_is_white": attacker_is_white,
+            "attacker_eval_cp": attacker_eval_cp,
+            "ply": 1,
+            "target_plies": PLAYOUT_PLIES,
+            "user_to_move": False,
+        }
+
+    # LC0 plays best defense
+    def_analysis = await lc0_engine.analyze(board.fen(), nodes=PLAYOUT_NODES)
+    best_moves = def_analysis.get("best_moves", [])
+    if not best_moves:
+        return {"error": "engine_unavailable"}
+
+    defense_uci = best_moves[0]
+    def_move = chess.Move.from_uci(defense_uci)
+    board.push(def_move)
+
+    # Analyze position after LC0 defense (attacker is now to move)
+    post_def_analysis = await lc0_engine.analyze(board.fen(), nodes=PLAYOUT_NODES)
+    white_cp = metrics.eval_cp_number(post_def_analysis.get("evaluation"))
+    if white_cp is None:
+        white_cp = 0
+    attacker_eval_cp = white_cp if attacker_is_white else -white_cp
+
+    return {
+        "finding_id": finding_id,
+        "fen": board.fen(),
+        "line": [sac_uci, defense_uci],
+        "attacker_is_white": attacker_is_white,
+        "attacker_eval_cp": attacker_eval_cp,
+        "ply": 2,
+        "target_plies": PLAYOUT_PLIES,
+        "user_to_move": True,
+    }
+
+
+async def play_sac_move(
+    finding_id: str,
+    line: List[str],
+    user_uci: str,
+    lc0_engine,
+    history: Optional[List[str]] = None,
+) -> Optional[Dict[str, Any]]:
+    """Execute user attack move against defender LC0, judge move quality, and get LC0 defense reply."""
+    if not lc0_engine or not lc0_engine.is_available():
+        return {"error": "engine_unavailable"}
+
+    profile = store.load_profile()
+    if not profile or "steer_findings" not in profile:
+        return None
+
+    sf = next((f for f in profile["steer_findings"] if f.get("id") == finding_id), None)
+    if not sf or "fen_before" not in sf:
+        return None
+
+    fen_before = sf["fen_before"]
+    board = chess.Board(fen_before)
+    attacker_is_white = (board.turn == chess.WHITE)
+
+    # Replay existing line from fen_before
+    for move_uci in line:
+        try:
+            m = chess.Move.from_uci(move_uci)
+            if m not in board.legal_moves:
+                raise ValueError(f"Invalid line move: {move_uci}")
+            board.push(m)
+        except Exception as e:
+            raise ValueError(f"Invalid line move: {move_uci}") from e
+
+    if (board.turn == chess.WHITE) != attacker_is_white:
+        raise ValueError("Not attacker's turn to move")
+
+    try:
+        user_move = chess.Move.from_uci(user_uci)
+    except Exception as e:
+        raise ValueError(f"Invalid UCI move format: {user_uci}") from e
+
+    if user_move not in board.legal_moves:
+        raise ValueError(f"Illegal move: {user_uci}")
+
+    # 1. Pre-move analysis
+    pre_analysis = await lc0_engine.analyze(board.fen(), nodes=PLAYOUT_NODES)
+    best_moves_pre = pre_analysis.get("best_moves", [])
+    if not best_moves_pre:
+        return {"error": "engine_unavailable"}
+
+    lc0_best_uci = best_moves_pre[0]
+    try:
+        m_best = chess.Move.from_uci(lc0_best_uci)
+        lc0_best_san = board.san(m_best) if m_best in board.legal_moves else lc0_best_uci
+    except Exception:
+        lc0_best_san = lc0_best_uci
+
+    white_cp_pre = metrics.eval_cp_number(pre_analysis.get("evaluation"))
+    if white_cp_pre is None:
+        white_cp_pre = 0
+    eval_best_att = white_cp_pre if attacker_is_white else -white_cp_pre
+
+    # 2. Apply user move
+    board.push(user_move)
+    ply = len(line) + 1
+
+    # 3. Post-user analysis
+    post_user_analysis = await lc0_engine.analyze(board.fen(), nodes=PLAYOUT_NODES)
+    white_cp_user = metrics.eval_cp_number(post_user_analysis.get("evaluation"))
+    if white_cp_user is None:
+        white_cp_user = 0
+    eval_after_att = white_cp_user if attacker_is_white else -white_cp_user
+
+    drop = eval_best_att - eval_after_att
+
+    if user_uci == lc0_best_uci or drop <= 30:
+        quality = "great"
+    elif drop <= 100:
+        quality = "ok"
+    else:
+        quality = "drift"
+
+    current_history = (history or []) + [quality]
+
+    # 4. Check completion or play LC0 reply
+    game_over_after_user = board.is_game_over()
+    if game_over_after_user or ply >= PLAYOUT_PLIES:
+        is_complete = True
+        lc0_reply = None
+        final_line = line + [user_uci]
+        final_eval_att = eval_after_att
+    else:
+        best_moves_post = post_user_analysis.get("best_moves", [])
+        if not best_moves_post:
+            return {"error": "engine_unavailable"}
+        lc0_reply_uci = best_moves_post[0]
+        try:
+            m_rep = chess.Move.from_uci(lc0_reply_uci)
+            lc0_reply_san = board.san(m_rep) if m_rep in board.legal_moves else lc0_reply_uci
+        except Exception:
+            lc0_reply_san = lc0_reply_uci
+
+        lc0_reply = {"uci": lc0_reply_uci, "san": lc0_reply_san}
+
+        try:
+            board.push(chess.Move.from_uci(lc0_reply_uci))
+        except Exception:
+            pass
+        ply += 1
+        final_line = line + [user_uci, lc0_reply_uci]
+
+        post_reply_analysis = await lc0_engine.analyze(board.fen(), nodes=PLAYOUT_NODES)
+        white_cp_reply = metrics.eval_cp_number(post_reply_analysis.get("evaluation"))
+        if white_cp_reply is None:
+            white_cp_reply = 0
+        final_eval_att = white_cp_reply if attacker_is_white else -white_cp_reply
+
+        is_complete = board.is_game_over() or (ply >= PLAYOUT_PLIES)
+
+
+    res = {
+        "quality": quality,
+        "lc0_best_attack": {
+            "uci": lc0_best_uci,
+            "san": lc0_best_san,
+        },
+        "eval_after_cp": eval_after_att,
+        "lc0_reply": lc0_reply,
+        "fen": board.fen(),
+        "line": final_line,
+        "ply": ply,
+        "attacker_eval_cp": final_eval_att,
+        "is_complete": is_complete,
+    }
+
+    if is_complete:
+        great_cnt = current_history.count("great")
+        ok_cnt = current_history.count("ok")
+        drift_cnt = current_history.count("drift")
+        total_moves = len(current_history)
+
+        defender_is_white = not attacker_is_white
+        attacker_won_by_mate = board.is_checkmate() and (board.turn == (chess.WHITE if defender_is_white else chess.BLACK))
+
+        if final_eval_att >= 50 or attacker_won_by_mate:
+            verdict = "You kept the attack"
+        else:
+            verdict = "the attack fizzled — LC0 held"
+
+        res["summary"] = {
+            "moves": total_moves,
+            "great": great_cnt,
+            "ok": ok_cnt,
+            "drift": drift_cnt,
+            "final_eval_cp": final_eval_att,
+            "verdict": verdict,
+        }
+
+    return res
+
