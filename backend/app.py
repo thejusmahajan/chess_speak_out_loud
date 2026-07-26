@@ -863,7 +863,7 @@ async def sac_playout_move(req: SacPlayoutMoveRequest):
     return res
 
 
-from backend.training import eco_backfill
+from backend.training import eco_backfill, openings_sharpness
 
 @app.post("/api/training/openings/backfill-ecos")
 async def backfill_ecos_route():
@@ -878,6 +878,20 @@ async def backfill_ecos_route():
     enriched, summary = eco_backfill.backfill_ecos(profile, pgn_path)
     store.save_profile(enriched)
     return summary
+
+
+@app.get("/api/training/openings/sharpness")
+async def openings_sharpness_route():
+    profile = store.load_profile()
+    if not profile:
+        raise HTTPException(status_code=404, detail="No profile found")
+    return {"openings": openings_sharpness.sharpness_by_opening(profile)}
+
+
+@app.get("/api/training/openings/recommendations")
+async def openings_recommendations_route(color: Optional[str] = None):
+    recs = openings_sharpness.load_recommendations(color)
+    return {"recommendations": recs}
 
 
 
