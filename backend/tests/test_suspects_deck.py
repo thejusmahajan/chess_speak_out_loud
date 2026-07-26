@@ -3,13 +3,15 @@ Unit tests for usual suspects approval gate and severity-blended deck generation
 """
 
 import os
+import datetime
+import hashlib
 import pytest
 from unittest.mock import patch
 from fastapi.testclient import TestClient
 import chess
 
 from backend.app import app
-from backend.training import store, usual_suspects
+from backend.training import store, usual_suspects, drills, attempts
 
 client = TestClient(app)
 
@@ -192,3 +194,66 @@ def test_empty_approval_returns_empty_drills_no_error():
     assert resp.status_code == 200
     data = resp.json()
     assert data["drills"] == []
+
+
+def test_deterministic_drill_ids():
+    """Verify that build_drill_from_finding generates a stable, deterministic drill ID."""
+    finding = _make_finding("p01", "g001", ["fork"])
+    d1 = drills.build_drill_from_finding(finding, source="usual_suspects", suspect_theme="fork")
+    d2 = drills.build_drill_from_finding(finding, source="usual_suspects", suspect_theme="fork")
+
+    assert d1["id"] == d2["id"]
+    assert d1["id"].startswith("d-")
+    expected_hash = hashlib.sha1(finding["id"].encode("utf-8")).hexdigest()[:12]
+    assert d1["id"] == f"d-{expected_hash}"
+
+    # Fallback path for finding without 'id'
+    finding_no_id = {k: v for k, v in finding.items() if k != "id"}
+    d3 = drills.build_drill_from_finding(finding_no_id, source="usual_suspects")
+    d4 = drills.build_drill_from_finding(finding_no_id, source="usual_suspects")
+    assert d3["id"] == d4["id"]
+    assert d3["id"].startswith("d-")
+
+
+def test_srs_aware_deck_ordering():
+    """Verify SRS buckets: UNSEEN -> DUE -> NOT-DUE, retaining NOT-DUE drills."""
+    f1 = _make_finding("p01", "g001", ["fork"], swing_cp=500, fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+    f2 = _make_finding("p02", "g002", ["fork"], swing_cp=400, fen="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1")
+    f3 = _make_finding("p03", "g003", ["fork"], swing_cp=300, fen="rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2")
+
+    profile = {"findings": [f1, f2, f3]}
+
+    d1_id = f"d-{hashlib.sha1(f1['id'].encode('utf-8')).hexdigest()[:12]}"
+    d2_id = f"d-{hashlib.sha1(f2['id'].encode('utf-8')).hexdigest()[:12]}"
+    d3_id = f"d-{hashlib.sha1(f3['id'].encode('utf-8')).hexdigest()[:12]}"
+
+    now = datetime.datetime.utcnow()
+    past_due_iso = (now - datetime.timedelta(hours=2)).isoformat()
+    future_due_iso = (now + datetime.timedelta(days=7)).isoformat()
+
+    # Seed SRS state:
+    # d1 (f1): UNSEEN (not in SRS)
+    # d2 (f2): DUE (due in the past)
+    # d3 (f3): NOT-DUE (due in the future)
+    mock_srs = {
+        d2_id: {"due": past_due_iso, "step": 1, "lapses": 0, "reps": 1},
+        d3_id: {"due": future_due_iso, "step": 3, "lapses": 0, "reps": 3},
+    }
+    attempts._save_srs(mock_srs)
+
+    deck = usual_suspects.build_suspects_deck(profile, ["fork"], count=10)
+    drills_list = deck["drills"]
+
+    assert len(drills_list) == 3
+    drill_ids = [d["id"] for d in drills_list]
+
+    # 1. UNSEEN (d1) is before NOT-DUE (d3)
+    assert drill_ids.index(d1_id) < drill_ids.index(d3_id)
+
+    # 2. DUE (d2) is before NOT-DUE (d3)
+    assert drill_ids.index(d2_id) < drill_ids.index(d3_id)
+
+    # 3. NOT-DUE (d3) is still present in the deck (deprioritized to the end)
+    assert d3_id in drill_ids
+    assert drill_ids[-1] == d3_id
+

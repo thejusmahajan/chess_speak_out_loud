@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import uuid
 import chess
 from backend.training import store, puzzle_db, metrics
@@ -66,8 +67,14 @@ def build_drill_from_finding(f: dict, source: str = "own_game", suspect_theme: s
     if suspect_theme and suspect_theme not in tags:
         tags.append(suspect_theme)
 
+    finding_id = f.get("id")
+    if finding_id:
+        drill_id = f"d-{hashlib.sha1(str(finding_id).encode('utf-8')).hexdigest()[:12]}"
+    else:
+        drill_id = f"d-{hashlib.sha1(epd.encode('utf-8')).hexdigest()[:12]}"
+
     drill = {
-        "id": f"d-{uuid.uuid4().hex[:8]}",
+        "id": drill_id,
         "source": source,
         "fen": f["fen_before"],
         "setup_move_uci": None,
@@ -78,7 +85,7 @@ def build_drill_from_finding(f: dict, source: str = "own_game", suspect_theme: s
         "tags": tags,
         "difficulty": 1500,
         "origin": {
-            "finding_id": f["id"],
+            "finding_id": f.get("id"),
             "puzzle_id": None,
             "eco": f.get("opening", {}).get("eco")
         },

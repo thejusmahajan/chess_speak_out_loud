@@ -10,7 +10,7 @@ import uuid
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 import chess
-from backend.training import store, drills
+from backend.training import store, drills, attempts
 
 # Leader-tunable module constants
 GENERIC_MOTIFS: Set[str] = {"advantage", "veryLong", "quietMove"}
@@ -268,11 +268,32 @@ def build_suspects_deck(
                 drill = drills.build_drill_from_finding(f, source="usual_suspects", suspect_theme=theme)
                 deck_drills.append(drill)
 
+    # SRS-aware reordering: group into UNSEEN -> DUE -> NOT-DUE
+    srs = attempts.load_srs()
+    now_iso = datetime.datetime.utcnow().isoformat()
+
+    unseen: List[Dict[str, Any]] = []
+    due: List[Dict[str, Any]] = []
+    not_due: List[Dict[str, Any]] = []
+
+    for d in deck_drills:
+        did = d.get("id")
+        if not did or did not in srs:
+            unseen.append(d)
+        else:
+            due_ts = srs[did].get("due")
+            if due_ts and due_ts <= now_iso:
+                due.append(d)
+            else:
+                not_due.append(d)
+
+    final_drills = unseen + due + not_due
+
     return {
         "id": set_id,
         "label": "Usual Suspects",
         "source": "usual_suspects",
         "created": created_iso,
         "themes": [s["theme"] for s in kept_suspects],
-        "drills": deck_drills
+        "drills": final_drills
     }
