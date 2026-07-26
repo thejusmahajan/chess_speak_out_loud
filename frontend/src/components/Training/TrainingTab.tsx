@@ -6,11 +6,12 @@ import TrainingBoard from './TrainingBoard';
 import ProgressPanel from './ProgressPanel';
 import RepertoirePanel from './RepertoirePanel';
 import UsualSuspects from './UsualSuspects';
+import IntuitionDrill from './IntuitionDrill';
 import { getProfile, generateDrills, getDueDrills, getDrillsList, getTrends } from '../../api/training';
 import './Training.css';
 
 export default function TrainingTab() {
-  const [view, setView] = useState<'diagnose' | 'profile' | 'usual_suspects' | 'drills' | 'progress' | 'saved_sets' | 'repertoire'>('diagnose');
+  const [view, setView] = useState<'diagnose' | 'profile' | 'usual_suspects' | 'drills' | 'progress' | 'saved_sets' | 'repertoire' | 'intuition'>('diagnose');
   const [profile, setProfile] = useState<any>(null);
   const [drillSetId, setDrillSetId] = useState<string | null>(null);
   const [reviewItems, setReviewItems] = useState<any[] | null>(null);
@@ -139,6 +140,12 @@ export default function TrainingTab() {
         >
           Repertoire
         </button>
+        <button
+          className={`glass-btn ${view === 'intuition' ? 'active' : ''}`}
+          onClick={() => setView('intuition')}
+        >
+          Train Intuition
+        </button>
         <button 
           className={`glass-btn ${view === 'drills' && reviewItems ? 'active' : ''}`}
           onClick={handleReview}
@@ -242,6 +249,8 @@ export default function TrainingTab() {
             }}
           />
         )}
+
+        {view === 'intuition' && <IntuitionDrill />}
 
         {view === 'drills' && (drillSetId || reviewItems) && (
           <DrillMode setId={drillSetId || undefined} dueItems={reviewItems || undefined} onExit={() => { setView('profile'); fetchSRS(); fetchTrendsData(); }} />

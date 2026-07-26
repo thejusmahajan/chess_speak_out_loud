@@ -21,6 +21,9 @@ vi.mock('../../../api/training', () => ({
   getApprovedSuspects: vi.fn(() => Promise.resolve({ themes: [] })),
   approveSuspects: vi.fn(() => Promise.resolve({ themes: [] })),
   buildSuspectsDeck: vi.fn(() => Promise.resolve({ id: 'suspects-123' })),
+  startIntuitionSession: vi.fn(() => Promise.resolve([])),
+  submitIntuitionGuess: vi.fn(() => Promise.resolve({ correct: false, rank: null, your_move: null, top_move: { uci: 'e2e4', san: 'e4', p: 0.5 }, top_policy: [] })),
+  getIntuitionStats: vi.fn(() => Promise.resolve({ total: 0, correct: 0, accuracy: 0, recent_accuracy: 0 })),
 }));
 
 vi.mock('../TrainingBoard', () => ({

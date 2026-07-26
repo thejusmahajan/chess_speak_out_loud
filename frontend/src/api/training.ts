@@ -218,3 +218,59 @@ export async function buildSuspectsDeck(count: number = 20): Promise<{ id: strin
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
+// ------------------------------------------------------------------
+// Intuition Speed-Drill API
+// ------------------------------------------------------------------
+
+export interface IntuitionPosition {
+  epd: string;
+  fen: string;
+}
+
+export interface IntuitionMove {
+  uci: string;
+  san: string;
+  p: number;
+}
+
+export interface IntuitionGuessResult {
+  correct: boolean;
+  rank: number | null;
+  your_move: IntuitionMove | null;
+  top_move: IntuitionMove;
+  top_policy: IntuitionMove[];
+}
+
+export interface IntuitionStats {
+  total: number;
+  correct: number;
+  accuracy: number;
+  recent_accuracy: number;
+}
+
+export async function startIntuitionSession(count: number = 12): Promise<IntuitionPosition[]> {
+  const res = await fetch(`${BASE_URL}/intuition/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ count }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function submitIntuitionGuess(epd: string, uci: string): Promise<IntuitionGuessResult> {
+  const res = await fetch(`${BASE_URL}/intuition/guess`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ epd, uci }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getIntuitionStats(): Promise<IntuitionStats> {
+  const res = await fetch(`${BASE_URL}/intuition/stats`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
