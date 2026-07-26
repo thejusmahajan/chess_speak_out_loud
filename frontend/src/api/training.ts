@@ -344,3 +344,64 @@ export async function getSacStats(): Promise<SacStats> {
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
+export interface SacPlayoutResult {
+  finding_id?: string;
+  fen?: string;
+  line?: string[];
+  attacker_is_white?: boolean;
+  attacker_eval_cp?: number;
+  ply?: number;
+  target_plies?: number;
+  user_to_move?: boolean;
+  quality?: 'great' | 'ok' | 'drift';
+  lc0_best_attack?: {
+    uci: string;
+    san: string;
+  };
+  eval_after_cp?: number;
+  lc0_reply?: {
+    uci: string;
+    san: string;
+  } | null;
+  is_complete?: boolean;
+  summary?: {
+    moves: number;
+    great: number;
+    ok: number;
+    drift: number;
+    final_eval_cp: number;
+    verdict: string;
+  };
+  error?: string;
+}
+
+export type SacPlayoutStartResult = SacPlayoutResult;
+export type SacPlayoutMoveResult = SacPlayoutResult;
+
+export async function startSacPlayout(finding_id: string): Promise<SacPlayoutStartResult> {
+  const res = await fetch(`${BASE_URL}/sac/playout/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ finding_id }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function submitPlayoutMove(
+  finding_id: string,
+  line: string[],
+  user_uci: string,
+  history: string[] = []
+): Promise<SacPlayoutMoveResult> {
+  const res = await fetch(`${BASE_URL}/sac/playout/move`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ finding_id, line, user_uci, history }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+

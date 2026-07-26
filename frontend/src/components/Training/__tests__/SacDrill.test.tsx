@@ -7,6 +7,8 @@ vi.mock('../../../api/training', () => ({
   startSacSession: vi.fn(),
   submitSacGuess: vi.fn(),
   getSacStats: vi.fn(),
+  startSacPlayout: vi.fn(),
+  submitPlayoutMove: vi.fn(),
 }));
 
 // Mock TrainingBoard to simulate user moves
@@ -96,6 +98,7 @@ describe('SacDrill UI Tests', () => {
     expect(screen.getByText(/concedes only/i)).toBeInTheDocument();
     expect(screen.getByText(/complexity 4.50/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Next Position/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /▶ Play it out vs LC0/i })).toBeInTheDocument();
   });
 
   it('3. Completing session displays session summary accuracy and lifetime stats', async () => {
@@ -143,5 +146,210 @@ describe('SacDrill UI Tests', () => {
     expect(screen.getByText(/100.0%/i)).toBeInTheDocument();
     expect(screen.getByText(/Lifetime Sacrifice Stats/i)).toBeInTheDocument();
     expect(screen.getByText(/50.0%/i)).toBeInTheDocument();
+  });
+
+  it('4. Clicking Play it out vs LC0 starts playout mode', async () => {
+    const mockGuessResult: trainingApi.SacGuessResult = {
+      correct: true,
+      acceptable: false,
+      sac_move: { uci: 'd2d4', san: 'd4', eval_cp: 15, complexity: 4.5 },
+      safe_move: { san: 'Bb5', eval_cp: 30 },
+      eval_loss_cp: 15,
+      playable_candidates: [],
+    };
+
+    const mockStartResult: trainingApi.SacPlayoutStartResult = {
+      finding_id: 's-001-p020',
+      fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/3P4/5N2/PPP1PPPP/RNBQKB1R b KQkq - 0 3',
+      line: ['d2d4', 'e5d4'],
+      attacker_is_white: true,
+      attacker_eval_cp: 120,
+      ply: 2,
+      target_plies: 8,
+      user_to_move: true,
+    };
+
+    (trainingApi.submitSacGuess as any).mockImplementation(() => Promise.resolve(mockGuessResult));
+    (trainingApi.startSacPlayout as any).mockImplementation(() => Promise.resolve(mockStartResult));
+
+    render(<SacDrill />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('move-btn-d4'));
+    });
+
+    const playoutBtn = screen.getByRole('button', { name: /▶ Play it out vs LC0/i });
+    await act(async () => {
+      fireEvent.click(playoutBtn);
+    });
+
+    expect(trainingApi.startSacPlayout).toHaveBeenCalledWith('s-001-p020');
+    expect(screen.getByText(/Sacrifice Playout vs LC0/i)).toBeInTheDocument();
+    expect(screen.getByText(/\+120cp/i)).toBeInTheDocument();
+  });
+
+  it('5. Attacking move in playout calls submitPlayoutMove and shows quality badge', async () => {
+    const mockGuessResult: trainingApi.SacGuessResult = {
+      correct: true,
+      acceptable: false,
+      sac_move: { uci: 'd2d4', san: 'd4', eval_cp: 15, complexity: 4.5 },
+      safe_move: { san: 'Bb5', eval_cp: 30 },
+      eval_loss_cp: 15,
+      playable_candidates: [],
+    };
+
+    const mockStartResult: trainingApi.SacPlayoutStartResult = {
+      finding_id: 's-001-p020',
+      fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/3P4/5N2/PPP1PPPP/RNBQKB1R b KQkq - 0 3',
+      line: ['d2d4', 'e5d4'],
+      attacker_is_white: true,
+      attacker_eval_cp: 120,
+      ply: 2,
+      target_plies: 8,
+      user_to_move: true,
+    };
+
+    const mockMoveResult: trainingApi.SacPlayoutMoveResult = {
+      quality: 'ok',
+      lc0_best_attack: { uci: 'f3d4', san: 'Nxd4' },
+      eval_after_cp: 90,
+      lc0_reply: { uci: 'c6d4', san: 'Nxd4' },
+      fen: 'r1bqkbnr/pppp1ppp/8/8/3nP3/8/PPP2PPP/RNBQKB1R w KQkq - 0 5',
+      line: ['d2d4', 'e5d4', 'c2c3', 'c6d4'],
+      ply: 4,
+      attacker_eval_cp: 90,
+      is_complete: false,
+    };
+
+    (trainingApi.submitSacGuess as any).mockImplementation(() => Promise.resolve(mockGuessResult));
+    (trainingApi.startSacPlayout as any).mockImplementation(() => Promise.resolve(mockStartResult));
+    (trainingApi.submitPlayoutMove as any).mockImplementation(() => Promise.resolve(mockMoveResult));
+
+    render(<SacDrill />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('move-btn-d4'));
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /▶ Play it out vs LC0/i }));
+    });
+
+    // Make attacking move c3
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('move-btn-c3'));
+    });
+
+    expect(trainingApi.submitPlayoutMove).toHaveBeenCalledWith('s-001-p020', ['d2d4', 'e5d4'], 'c2c3', []);
+    expect(screen.getByText(/🟡 OK Move/i)).toBeInTheDocument();
+    expect(screen.getByText(/LC0 preferred Nxd4/i)).toBeInTheDocument();
+    expect(screen.getByText(/\+90cp/i)).toBeInTheDocument();
+  });
+
+  it('6. Complete playout displays summary verdict card', async () => {
+    const mockGuessResult: trainingApi.SacGuessResult = {
+      correct: true,
+      acceptable: false,
+      sac_move: { uci: 'd2d4', san: 'd4', eval_cp: 15, complexity: 4.5 },
+      safe_move: { san: 'Bb5', eval_cp: 30 },
+      eval_loss_cp: 15,
+      playable_candidates: [],
+    };
+
+    const mockStartResult: trainingApi.SacPlayoutStartResult = {
+      finding_id: 's-001-p020',
+      fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/3P4/5N2/PPP1PPPP/RNBQKB1R b KQkq - 0 3',
+      line: ['d2d4', 'e5d4'],
+      attacker_is_white: true,
+      attacker_eval_cp: 120,
+      ply: 2,
+      target_plies: 8,
+      user_to_move: true,
+    };
+
+    const mockCompleteResult: trainingApi.SacPlayoutMoveResult = {
+      quality: 'great',
+      lc0_best_attack: { uci: 'd2d4', san: 'd4' },
+      eval_after_cp: 180,
+      lc0_reply: null,
+      fen: 'r1bqkbnr/pppp1ppp/8/8/3nP3/8/PPP2PPP/RNBQKB1R w KQkq - 0 5',
+      line: ['d2d4', 'e5d4', 'd2d4'],
+      ply: 8,
+      attacker_eval_cp: 180,
+      is_complete: true,
+      summary: {
+        moves: 3,
+        great: 2,
+        ok: 1,
+        drift: 0,
+        final_eval_cp: 180,
+        verdict: 'You kept the attack',
+      },
+    };
+
+    (trainingApi.submitSacGuess as any).mockImplementation(() => Promise.resolve(mockGuessResult));
+    (trainingApi.startSacPlayout as any).mockImplementation(() => Promise.resolve(mockStartResult));
+    (trainingApi.submitPlayoutMove as any).mockImplementation(() => Promise.resolve(mockCompleteResult));
+
+    render(<SacDrill />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('move-btn-d4'));
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /▶ Play it out vs LC0/i }));
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('move-btn-d4'));
+    });
+
+    expect(screen.getByText(/Playout Complete/i)).toBeInTheDocument();
+    expect(screen.getByText(/You kept the attack/i)).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /Back to sacrifices/i }).length).toBeGreaterThan(0);
+  });
+
+  it('7. Handles engine_unavailable error gracefully', async () => {
+    const mockGuessResult: trainingApi.SacGuessResult = {
+      correct: true,
+      acceptable: false,
+      sac_move: { uci: 'd2d4', san: 'd4', eval_cp: 15, complexity: 4.5 },
+      safe_move: { san: 'Bb5', eval_cp: 30 },
+      eval_loss_cp: 15,
+      playable_candidates: [],
+    };
+
+    (trainingApi.submitSacGuess as any).mockImplementation(() => Promise.resolve(mockGuessResult));
+    (trainingApi.startSacPlayout as any).mockImplementation(() => Promise.resolve({ error: 'engine_unavailable' }));
+
+    render(<SacDrill />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('move-btn-d4'));
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /▶ Play it out vs LC0/i }));
+    });
+
+    expect(screen.getByText(/Engine offline — play-out unavailable/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Sacrifice Playout vs LC0/i)).not.toBeInTheDocument();
   });
 });
