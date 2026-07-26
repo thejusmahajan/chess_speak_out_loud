@@ -110,13 +110,15 @@ opening*), where the user himself said the formations must be laid down "first".
    Lichess themes; the "explain WHY LC0 chose this via the tactical configuration" layer; richer
    similarity + imagination training. Upgrades J1/J2/J3/J7 — an enhancement, not a gate.
 
-## Open questions to re-elicit (do not guess) — 3 block Sprint 1 detail
-1. **Game ingestion:** auto-pull recent games via **Lichess API by username** (`derdiedasdie`),
-   or a **manual PGN upload** dropzone? (Or both — corpus once, live sync ongoing?)
-2. **Recurrence threshold:** how many occurrences make a mistake a "usual suspect" (same
-   theme/opening-line in 2+ games? 3+?) — sets the clustering threshold.
-3. **Master-DB source (Sprint 3):** query the **Lichess Masters DB API** online, or index a
-   **local master PGN** on desktop?
+## Open questions — provisional leader defaults set (CONFIRM with user before Sprint 1 build)
+1. **Game ingestion** — *leader default:* **Manual PGN for Sprint 1** (we already have the
+   9000-game corpus as PGN, and the diagnosis pipeline already consumes PGN), with **Lichess
+   API auto-sync as a fast-follow** (needed for the Q5 "re-diagnose newly played games" proof
+   loop). Asked but not yet confirmed (user away). Revisit.
+2. **Recurrence threshold** — *leader default:* **rank by frequency × severity with a 2+ game
+   floor** (most faithful to Q8.2 "blended, severity-weighted queue"). Asked but not confirmed.
+3. **Master-DB source (Sprint 3, not urgent):** Lichess Masters DB API online vs local master
+   PGN on desktop.
 - Later: full time-control mix; how far the tool should go in *recommending* a new repertoire
   (a few candidate openings? a full switch plan?); and how "attention-hotspot prediction" should
   score once he's studied more themes.
