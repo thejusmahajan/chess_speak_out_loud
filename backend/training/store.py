@@ -42,6 +42,9 @@ class EpdCache:
     def get(self, epd: str) -> Optional[Dict[str, Any]]:
         return self._data.get(epd)
 
+    def keys(self) -> List[str]:
+        return list(self._data.keys())
+
     def put(self, epd: str, payload: dict):
         record = payload.copy()
         record["epd"] = epd

@@ -134,6 +134,15 @@ class PGNRequest(BaseModel):
     pgn: str
 
 
+class IntuitionSessionRequest(BaseModel):
+    count: int = Field(default=10, ge=1, le=50)
+
+
+class IntuitionGuessRequest(BaseModel):
+    epd: str
+    uci: str
+
+
 # ------------------------------------------------------------------
 # Routes
 # ------------------------------------------------------------------
@@ -756,6 +765,30 @@ async def weakness_ranking_ep(n: int = 6):
         return {"ranking": [], "phase": [], "clock": []}
     allr = metrics.weakness_ranking_all(profile, n)
     return {"ranking": _ser(allr["openings"]), "phase": _ser(allr["phase"]), "clock": _ser(allr["clock"])}
+
+
+# ------------------------------------------------------------------
+# Intuition Speed-Drill Endpoints
+# ------------------------------------------------------------------
+
+from backend.training import intuition
+
+@app.post("/api/training/intuition/session")
+async def intuition_session(req: IntuitionSessionRequest):
+    return intuition.build_session(req.count)
+
+
+@app.post("/api/training/intuition/guess")
+async def intuition_guess(req: IntuitionGuessRequest):
+    res = intuition.score_guess(req.epd, req.uci)
+    if not res:
+        raise HTTPException(status_code=404, detail="Position or policy not found in cache")
+    return res
+
+
+@app.get("/api/training/intuition/stats")
+async def intuition_stats():
+    return intuition.get_stats()
 
 
 
