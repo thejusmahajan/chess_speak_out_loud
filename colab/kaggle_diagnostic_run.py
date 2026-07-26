@@ -366,7 +366,10 @@ mine = [g for g in allg if "derdiedasdie" in g.lower()][:MAX_GAMES]
 pgn_text = "\n\n".join(mine)
 print(f"[setup] running {len(mine)} games", flush=True)
 
-_orig_progress = pipeline._progress
+# IDEMPOTENT patch: re-running this cell WITHOUT a kernel restart must not double-wrap
+# _progress. Previously `_orig_progress = pipeline._progress` captured the ALREADY-patched
+# _tap on a second run, so _tap called itself -> RecursionError. Unwrap to the real original.
+_orig_progress = getattr(pipeline._progress, "_kaggle_orig", pipeline._progress)
 def _tap(job_id, **kw):
     _last["t"] = time.time()
     if kw.get("stage_steer_done") is not None:
@@ -376,6 +379,7 @@ def _tap(job_id, **kw):
     elif kw.get("stage_a_done") is not None:
         _last["stage"], _last["n"] = "A", kw["stage_a_done"]
     return _orig_progress(job_id, **kw)
+_tap._kaggle_orig = _orig_progress
 pipeline._progress = _tap
 
 # ---- 6. run under asyncio with clean start/stop ----
@@ -403,6 +407,17 @@ async def _start_engines():
 async def _main():
     await _start_engines()
     t0 = time.time()
+    # Remove any STALE profile.json before the run. run_diagnosis swallows exceptions, so
+    # if it crashes, the honest-done check would otherwise read a PREVIOUS run's profile and
+    # falsely report success (e.g. a 2-game smoke's numbers on a 100-game run). Deleting it
+    # first means a crash => no profile => the assert below fires loudly.
+    from backend.training import store as _store0
+    _pp0 = os.path.join(_store0.TRAINING_DIR, "profile.json")
+    try:
+        if os.path.exists(_pp0):
+            os.remove(_pp0)
+    except OSError:
+        pass
     try:
         await pipeline.run_diagnosis("kaggle_diag", pgn_text, "derdiedasdie", engine, vision)
         # run_diagnosis SWALLOWS exceptions internally (pipeline.py:705) and the
@@ -419,6 +434,10 @@ async def _main():
         _nf = len(_prof.get("findings", []))
         _ns = len(_prof.get("steer_findings", []))
         assert _nf > 0, "profile has ZERO findings — diagnosis did not truly analyze."
+        _ga = _prof.get("games_analyzed")
+        assert _ga == len(mine), (
+            f"profile games_analyzed={_ga} != requested {len(mine)} — this profile is STALE "
+            "or the run was truncated; not a clean full run.")
         print(f"\n[DONE] REAL run: {_nf} findings, {_ns} steer_findings | vision={vision.mode} "
               f"| games={_prof.get('games_analyzed')} moves={_prof.get('moves_analyzed')} "
               f"| {time.time()-t0:.0f}s", flush=True)
