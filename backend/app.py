@@ -119,7 +119,7 @@ else:
 # Request / Response schemas
 # ------------------------------------------------------------------
 
-from typing import Optional
+from typing import Optional, List
 class AnalyzeRequest(BaseModel):
     """Request body for single-position analysis."""
     fen: str
@@ -431,6 +431,34 @@ async def get_usual_suspects():
     suspects = usual_suspects.usual_suspects(profile)
     by_phase, by_concept = usual_suspects.get_broad_aggregates(profile)
     return {"suspects": suspects, "by_phase": by_phase, "by_concept": by_concept}
+
+class ApproveSuspectsRequest(BaseModel):
+    themes: List[str]
+
+class SuspectsDeckRequest(BaseModel):
+    count: int = 20
+
+@app.post("/api/training/usual-suspects/approve")
+async def approve_usual_suspects(req: ApproveSuspectsRequest):
+    profile = store.load_profile()
+    suspects = usual_suspects.usual_suspects(profile) if profile else []
+    valid_themes = {s["theme"] for s in suspects}
+    for t in req.themes:
+        if t not in valid_themes:
+            raise HTTPException(status_code=400, detail=f"Unknown theme: {t}")
+    return store.save_approved_suspects(req.themes)
+
+@app.get("/api/training/usual-suspects/approved")
+async def get_approved_usual_suspects():
+    return store.load_approved_suspects()
+
+@app.post("/api/training/usual-suspects/deck")
+async def build_suspects_deck_endpoint(req: SuspectsDeckRequest):
+    profile = store.load_profile()
+    approved = store.load_approved_suspects().get("themes", [])
+    deck = usual_suspects.build_suspects_deck(profile, approved, count=req.count)
+    store.save_drill_set(deck)
+    return deck
 import asyncio
 import json
 

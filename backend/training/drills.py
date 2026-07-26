@@ -47,6 +47,55 @@ def check_attempt(drill: dict, ply: int, move_uci: str) -> dict:
     reply = line[ply + 1] if ply + 1 < len(line) else None
     return {"correct": True, "complete": complete, "reply_uci": reply}
 
+def build_drill_from_finding(f: dict, source: str = "own_game", suspect_theme: str = None) -> dict:
+    """Construct a drill dict from a profile finding object using EpdCache policy and stage_b data."""
+    board_before = chess.Board(f["fen_before"])
+    epd = board_before.epd()
+    policy_data = store.EpdCache("policy").get(epd)
+    if policy_data and "policy" in policy_data:
+        alt_ucis = metrics.alt_solutions(policy_data["policy"])
+    else:
+        alt_ucis = [f["best"]["uci"]]
+    alt_ucis = sorted({u for a in alt_ucis
+                       for u in metrics.accepted_ucis(board_before, a)})
+
+    b_data = store.EpdCache("stage_b").get(epd)
+    saliency = b_data["saliency"] if (b_data and "saliency" in b_data) else {}
+
+    tags = list(f.get("motifs", []))
+    if suspect_theme and suspect_theme not in tags:
+        tags.append(suspect_theme)
+
+    drill = {
+        "id": f"d-{uuid.uuid4().hex[:8]}",
+        "source": source,
+        "fen": f["fen_before"],
+        "setup_move_uci": None,
+        "solution_uci": f["best"]["uci"],
+        "line_uci": [f["best"]["uci"]],
+        "alt_solution_ucis": alt_ucis,
+        "solution_san": f["best"]["san"],
+        "tags": tags,
+        "difficulty": 1500,
+        "origin": {
+            "finding_id": f["id"],
+            "puzzle_id": None,
+            "eco": f.get("opening", {}).get("eco")
+        },
+        "reveal": {
+            "policy": policy_data["policy"] if policy_data else [],
+            "saliency": saliency,
+            "motifs": f.get("motifs", []),
+            "concepts": f.get("concepts", []),
+            "pv_san": f.get("pv_san", []),
+            "swing_cp": f.get("confirmation", {}).get("swing_cp", 0)
+        }
+    }
+    if suspect_theme:
+        drill["suspect_theme"] = suspect_theme
+    return drill
+
+
 async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine, vision, steer_weight: float = 0.0) -> dict:
     steer_count = int(count * steer_weight)
     rem_count = count - steer_count
@@ -129,38 +178,7 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
             seen_epds.add(epd)
             seen_solutions.add(f["best"]["uci"])
             own_game_added += 1
-            policy_data = store.EpdCache("policy").get(epd)
-            if policy_data and "policy" in policy_data:
-                alt_ucis = metrics.alt_solutions(policy_data["policy"])
-            else:
-                alt_ucis = [f["best"]["uci"]]
-            alt_ucis = sorted({u for a in alt_ucis
-                               for u in metrics.accepted_ucis(board_before, a)})
-                
-            b_data = store.EpdCache("stage_b").get(epd)
-            saliency = b_data["saliency"] if (b_data and "saliency" in b_data) else {}
-                
-            drills.append({
-                "id": f"d-{uuid.uuid4().hex[:8]}",
-                "source": "own_game",
-                "fen": f["fen_before"],
-                "setup_move_uci": None,
-                "solution_uci": f["best"]["uci"],
-                "line_uci": [f["best"]["uci"]],
-                "alt_solution_ucis": alt_ucis,
-                "solution_san": f["best"]["san"],
-                "tags": f.get("motifs", []),
-                "difficulty": 1500,
-                "origin": {"finding_id": f["id"], "puzzle_id": None, "eco": f.get("opening", {}).get("eco")},
-                "reveal": {
-                    "policy": policy_data["policy"] if policy_data else [],
-                    "saliency": saliency,
-                    "motifs": f.get("motifs", []),
-                    "concepts": f.get("concepts", []),
-                    "pv_san": f.get("pv_san", []),
-                    "swing_cp": f.get("confirmation", {}).get("swing_cp", 0)
-                }
-            })
+            drills.append(build_drill_from_finding(f, source="own_game"))
             
     top_motifs = []
     if profile and "aggregates" in profile and "by_motif" in profile["aggregates"]:

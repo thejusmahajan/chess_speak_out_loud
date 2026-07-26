@@ -1,10 +1,16 @@
 """
-Usual Suspects — Recurring Weakness Detection.
+Usual Suspects — Recurring Weakness Detection & Deck Builder.
 
-Clusters findings by tactical motif across distinct games, evaluating frequency x severity.
+Clusters findings by tactical motif across distinct games, evaluating frequency x severity,
+and builds severity-weighted blended drill decks from user-approved suspect themes.
 """
 
-from typing import Any, Dict, List, Set, Tuple
+import datetime
+import uuid
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+import chess
+from backend.training import store, drills
 
 # Leader-tunable module constants
 GENERIC_MOTIFS: Set[str] = {"advantage", "veryLong", "quietMove"}
@@ -121,3 +127,152 @@ def get_broad_aggregates(profile: Dict[str, Any]) -> Tuple[List[Dict[str, Any]],
         by_concept = []
 
     return by_phase, by_concept
+
+
+def allocate_slots(kept_suspects: List[Dict[str, Any]], count: int) -> Dict[str, int]:
+    """
+    LEADER-PINNED severity-weighted slot allocation:
+    slots(T) = max(1, round(count * rank_score(T) / total))
+    Adjust rounding drift: if sum(slots) != count, add/remove single slots
+    from the HIGHEST-rank_score themes until sum equals count.
+    """
+    if not kept_suspects or count <= 0:
+        return {}
+
+    total_rank_score = sum(s["rank_score"] for s in kept_suspects)
+    if total_rank_score <= 0:
+        base = max(1, count // len(kept_suspects))
+        slots = {s["theme"]: base for s in kept_suspects}
+    else:
+        slots = {
+            s["theme"]: max(1, int(round(count * s["rank_score"] / total_rank_score)))
+            for s in kept_suspects
+        }
+
+    sum_slots = sum(slots.values())
+    if sum_slots != count:
+        diff = count - sum_slots
+        if diff > 0:
+            idx = 0
+            for _ in range(diff):
+                t_theme = kept_suspects[idx % len(kept_suspects)]["theme"]
+                slots[t_theme] += 1
+                idx += 1
+        elif diff < 0:
+            idx = 0
+            for _ in range(abs(diff)):
+                t_theme = kept_suspects[idx % len(kept_suspects)]["theme"]
+                if slots[t_theme] > 1:
+                    slots[t_theme] -= 1
+                else:
+                    found = False
+                    for s in kept_suspects:
+                        if slots[s["theme"]] > 1:
+                            slots[s["theme"]] -= 1
+                            found = True
+                            break
+                    if not found:
+                        slots[t_theme] -= 1
+                idx += 1
+    return slots
+
+
+def build_suspects_deck(
+    profile: Optional[Dict[str, Any]],
+    approved_themes: List[str],
+    count: int = 20
+) -> Dict[str, Any]:
+    """
+    Build a severity-weighted blended drill deck from approved suspect themes,
+    deduping by board EPD across the whole deck.
+    """
+    set_id = f"suspects-{uuid.uuid4().hex[:8]}"
+    created_iso = datetime.datetime.utcnow().isoformat()
+    empty_result = {
+        "id": set_id,
+        "label": "Usual Suspects",
+        "source": "usual_suspects",
+        "created": created_iso,
+        "themes": list(approved_themes) if approved_themes else [],
+        "drills": []
+    }
+
+    if not profile or not approved_themes:
+        return empty_result
+
+    all_suspects = usual_suspects(profile)
+    approved_set = set(approved_themes)
+    kept_suspects = [s for s in all_suspects if s["theme"] in approved_set]
+    if not kept_suspects:
+        return empty_result
+
+    kept_suspects.sort(key=lambda s: (-s["rank_score"], s["theme"]))
+    slots_map = allocate_slots(kept_suspects, count)
+
+    findings = profile.get("findings", [])
+    finding_map = {f["id"]: f for f in findings if "id" in f}
+
+    seen_epds: Set[str] = set()
+    deck_drills: List[Dict[str, Any]] = []
+    leftover_slots = 0
+
+    for s in kept_suspects:
+        theme = s["theme"]
+        target_slots = slots_map.get(theme, 1) + leftover_slots
+        leftover_slots = 0
+
+        t_finding_ids = s.get("finding_ids", [])
+        t_findings = [finding_map[fid] for fid in t_finding_ids if fid in finding_map]
+        t_findings.sort(key=lambda f: finding_severity(f), reverse=True)
+
+        added_for_theme = 0
+        for f in t_findings:
+            if added_for_theme >= target_slots:
+                break
+            try:
+                board_before = chess.Board(f["fen_before"])
+                epd = board_before.epd()
+            except Exception:
+                continue
+
+            if epd in seen_epds:
+                continue
+
+            seen_epds.add(epd)
+            drill = drills.build_drill_from_finding(f, source="usual_suspects", suspect_theme=theme)
+            deck_drills.append(drill)
+            added_for_theme += 1
+
+        if added_for_theme < target_slots:
+            leftover_slots += (target_slots - added_for_theme)
+
+    if leftover_slots > 0 and len(deck_drills) < count:
+        for s in kept_suspects:
+            if len(deck_drills) >= count:
+                break
+            theme = s["theme"]
+            t_finding_ids = s.get("finding_ids", [])
+            t_findings = [finding_map[fid] for fid in t_finding_ids if fid in finding_map]
+            t_findings.sort(key=lambda f: finding_severity(f), reverse=True)
+            for f in t_findings:
+                if len(deck_drills) >= count:
+                    break
+                try:
+                    board_before = chess.Board(f["fen_before"])
+                    epd = board_before.epd()
+                except Exception:
+                    continue
+                if epd in seen_epds:
+                    continue
+                seen_epds.add(epd)
+                drill = drills.build_drill_from_finding(f, source="usual_suspects", suspect_theme=theme)
+                deck_drills.append(drill)
+
+    return {
+        "id": set_id,
+        "label": "Usual Suspects",
+        "source": "usual_suspects",
+        "created": created_iso,
+        "themes": [s["theme"] for s in kept_suspects],
+        "drills": deck_drills
+    }

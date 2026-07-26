@@ -194,6 +194,26 @@ def load_profile() -> Optional[Dict[str, Any]]:
             return json.load(f)
     return None
 
+def save_approved_suspects(themes: List[str]) -> Dict[str, Any]:
+    _ensure_dirs()
+    path = os.path.join(TRAINING_DIR, "approved_suspects.json")
+    data = {
+        "themes": themes,
+        "updated": datetime.datetime.utcnow().isoformat()
+    }
+    _write_json_atomic(path, data)
+    return data
+
+def load_approved_suspects() -> Dict[str, Any]:
+    path = os.path.join(TRAINING_DIR, "approved_suspects.json")
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {"themes": []}
+
 def _variant_slug(style: Optional[str], color: Optional[str]) -> Optional[str]:
     if style and color:
         return f"{style}_{color}"
