@@ -421,7 +421,16 @@ async def analyze_pgn(request: PGNRequest):
 # ------------------------------------------------------------------
 
 from backend.training.pipeline import run_diagnosis
-from backend.training import store, drills, attempts, trends
+from backend.training import store, drills, attempts, trends, usual_suspects
+
+@app.get("/api/training/usual-suspects")
+async def get_usual_suspects():
+    profile = store.load_profile()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    suspects = usual_suspects.usual_suspects(profile)
+    by_phase, by_concept = usual_suspects.get_broad_aggregates(profile)
+    return {"suspects": suspects, "by_phase": by_phase, "by_concept": by_concept}
 import asyncio
 import json
 
