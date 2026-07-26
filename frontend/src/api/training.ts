@@ -274,3 +274,73 @@ export async function getIntuitionStats(): Promise<IntuitionStats> {
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
+// ------------------------------------------------------------------
+// Sacrifice / Tactical-Landmine Drill API
+// ------------------------------------------------------------------
+
+export interface SacPosition {
+  id: string;
+  fen: string;
+}
+
+export interface SacMove {
+  uci: string;
+  san: string;
+  eval_cp: number;
+  complexity: number;
+}
+
+export interface SafeMove {
+  san: string;
+  eval_cp: number;
+}
+
+export interface PlayableCandidate {
+  uci: string;
+  complexity: number;
+  eval_cp: number;
+}
+
+export interface SacGuessResult {
+  correct: boolean;
+  acceptable: boolean;
+  sac_move: SacMove;
+  safe_move: SafeMove;
+  eval_loss_cp: number;
+  playable_candidates: PlayableCandidate[];
+}
+
+export interface SacStats {
+  total: number;
+  correct: number;
+  acceptable: number;
+  accuracy: number;
+  recent_accuracy: number;
+}
+
+export async function startSacSession(count: number = 10): Promise<SacPosition[]> {
+  const res = await fetch(`${BASE_URL}/sac/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ count }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function submitSacGuess(finding_id: string, uci: string): Promise<SacGuessResult> {
+  const res = await fetch(`${BASE_URL}/sac/guess`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ finding_id, uci }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getSacStats(): Promise<SacStats> {
+  const res = await fetch(`${BASE_URL}/sac/stats`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}

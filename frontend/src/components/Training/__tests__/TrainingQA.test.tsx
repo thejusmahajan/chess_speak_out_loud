@@ -24,6 +24,9 @@ vi.mock('../../../api/training', () => ({
   startIntuitionSession: vi.fn(() => Promise.resolve([])),
   submitIntuitionGuess: vi.fn(() => Promise.resolve({ correct: false, rank: null, your_move: null, top_move: { uci: 'e2e4', san: 'e4', p: 0.5 }, top_policy: [] })),
   getIntuitionStats: vi.fn(() => Promise.resolve({ total: 0, correct: 0, accuracy: 0, recent_accuracy: 0 })),
+  startSacSession: vi.fn(() => Promise.resolve([])),
+  submitSacGuess: vi.fn(() => Promise.resolve({ correct: false, acceptable: false, sac_move: { uci: 'd2d4', san: 'd4', eval_cp: 15, complexity: 4.5 }, safe_move: { san: 'Bb5', eval_cp: 30 }, eval_loss_cp: 15, playable_candidates: [] })),
+  getSacStats: vi.fn(() => Promise.resolve({ total: 0, correct: 0, acceptable: 0, accuracy: 0, recent_accuracy: 0 })),
 }));
 
 vi.mock('../TrainingBoard', () => ({
