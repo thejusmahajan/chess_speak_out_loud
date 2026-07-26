@@ -1,7 +1,10 @@
 """
-Unit tests for backend/training/openings.py: verifying opening book classification
-and move notation parsing (e.g. 1.e4, 1...e5 tokens).
+Unit tests for backend/training/openings.py: verifying opening book classification,
+move notation parsing (e.g. 1.e4, 1...e5 tokens), package-bundled data resolution, and logging.
 """
+
+import os
+import logging
 import pytest
 from backend.training import openings
 
@@ -43,3 +46,43 @@ def test_lines_by_tag_populates():
     lines = openings.lines_by_tag()
     assert len(lines) > 100, f"Expected >100 opening tags, got {len(lines)}"
     assert "Sicilian_Defense" in lines or any("Sicilian" in k for k in lines)
+
+
+def test_openings_dir_resolution_order(tmp_path, monkeypatch):
+    """Verify resolution order: env var > backend/openings_data > data/openings."""
+    fake_env_dir = str(tmp_path / "env_openings")
+    os.makedirs(fake_env_dir, exist_ok=True)
+    monkeypatch.setenv("CSZERO_OPENINGS_DIR", fake_env_dir)
+
+    resolved = openings._get_openings_dir()
+    assert resolved == fake_env_dir
+
+
+def test_missing_openings_dir_logs_warning(caplog, tmp_path, monkeypatch):
+    """Verify missing openings dir logs a warning instead of failing silently."""
+    non_existent = str(tmp_path / "non_existent_openings_path")
+    monkeypatch.setenv("CSZERO_OPENINGS_DIR", non_existent)
+
+    # Save state to restore after test
+    prev_trie = dict(openings._openings_trie)
+    prev_tabiya = dict(openings._tabiya_fens)
+
+    openings._loaded = False
+    openings._openings_trie.clear()
+    openings._tabiya_fens.clear()
+
+    try:
+        with caplog.at_level(logging.WARNING):
+            res = openings.classify(["e2e4", "e7e5"])
+            assert res is None
+
+        assert any("Opening data directory not found" in record.message for record in caplog.records)
+    finally:
+        # Restore state so subsequent tests have loaded openings
+        openings._loaded = False
+        openings._openings_trie.clear()
+        openings._tabiya_fens.clear()
+        openings._openings_trie.update(prev_trie)
+        openings._tabiya_fens.update(prev_tabiya)
+        if prev_trie:
+            openings._loaded = True
