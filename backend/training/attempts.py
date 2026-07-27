@@ -143,3 +143,17 @@ def escalate_regressions(profile: dict, now=None) -> list[str]:
     if changed:
         _save_srs(srs)
     return regressed
+
+
+def get_stats() -> dict:
+    """Summary stats of SRS attempt history."""
+    log = attempts_log()
+    total = len(log)
+    correct = sum(1 for r in log if r.get("correct"))
+    accuracy = (correct / total) if total > 0 else 0.0
+    return {
+        "total": total,
+        "correct": correct,
+        "accuracy": round(accuracy, 3),
+        "due_now": len(due_drills()),
+    }

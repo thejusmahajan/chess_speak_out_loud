@@ -43,6 +43,7 @@ export default function PgnViewer() {
 
   const [pgnInput, setPgnInput] = useState(DEFAULT_PGN);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [autoAnalyze, setAutoAnalyze] = useState(false);
   const [showTop20, setShowTop20] = useState(false);
   const [thinkSeconds, setThinkSeconds] = useState(2); // LC0 time budget per analysis (seconds)
   const [glowMode, setGlowMode] = useState<'intuition' | 'calculation'>('intuition');
@@ -99,7 +100,7 @@ export default function PgnViewer() {
     setCurrentIndex(i);
     const st = gameStates.current[i];
     syncBoard(st);
-    if (!st.saliency && st.policy.length === 0) {
+    if (autoAnalyze && !st.saliency && st.policy.length === 0) {
       drawOverlays(null, [], false); // clear stale overlays while analyzing
       analyzeFen(st.fen, st.lastMoveUci, i);
     } else {
@@ -156,7 +157,9 @@ export default function PgnViewer() {
 
     syncBoard(newState);
     drawOverlays(null, [], false); // clear the previous position's arrows immediately
-    analyzeFen(newFen, uci, newIndex);
+    if (autoAnalyze) {
+      analyzeFen(newFen, uci, newIndex);
+    }
   };
 
   const handlePrev = () => goToIndex(currentIndexRef.current - 1);
@@ -308,7 +311,9 @@ export default function PgnViewer() {
       setCurrentIndex(0);
       syncBoard(states[0]);
       drawOverlays(null, [], false);
-      analyzeFen(states[0].fen, null, 0);
+      if (autoAnalyze) {
+        analyzeFen(states[0].fen, null, 0);
+      }
     } catch (err) {
       console.error('Invalid PGN:', err);
     }
@@ -347,7 +352,9 @@ export default function PgnViewer() {
     });
     cgRef.current = cg;
 
-    analyzeFen(INITIAL_FEN, null, 0);
+    if (autoAnalyze) {
+      analyzeFen(INITIAL_FEN, null, 0);
+    }
 
     return () => {
       cg.destroy();
@@ -520,6 +527,10 @@ export default function PgnViewer() {
         <h2>Neural Vision</h2>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <input type="checkbox" checked={autoAnalyze} onChange={(e) => setAutoAnalyze(e.target.checked)} />
+            Auto-Analyze on Move
+          </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
             <input type="checkbox" checked={showTop20} onChange={(e) => setShowTop20(e.target.checked)} />
             Show Top 20 Arrows

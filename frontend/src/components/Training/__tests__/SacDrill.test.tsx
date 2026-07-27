@@ -61,7 +61,7 @@ describe('SacDrill UI Tests', () => {
     });
 
     expect(screen.getByTestId('mock-training-board')).toBeInTheDocument();
-    expect(screen.getByText(/A strong sacrifice is available here — find it/i)).toBeInTheDocument();
+    expect(screen.getByText(/A sharp tactical continuation is available here — find it/i)).toBeInTheDocument();
     expect(screen.getByText(/Position 1 of 2/i)).toBeInTheDocument();
   });
 
@@ -94,7 +94,7 @@ describe('SacDrill UI Tests', () => {
     expect(trainingApi.submitSacGuess).toHaveBeenCalledWith('s-001-p020', 'd2d4');
 
     // Reveal panel check
-    expect(screen.getByText(/HIT! You found the sacrifice!/i)).toBeInTheDocument();
+    expect(screen.getByText(/HIT! You found the sharp move!/i)).toBeInTheDocument();
     expect(screen.getByText(/concedes only/i)).toBeInTheDocument();
     expect(screen.getByText(/complexity 4.50/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Next Position/i })).toBeInTheDocument();
@@ -319,7 +319,7 @@ describe('SacDrill UI Tests', () => {
 
     expect(screen.getByText(/Playout Complete/i)).toBeInTheDocument();
     expect(screen.getByText(/You kept the attack/i)).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /Back to sacrifices/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: /Back to/i }).length).toBeGreaterThan(0);
   });
 
   it('7. Handles engine_unavailable error gracefully', async () => {

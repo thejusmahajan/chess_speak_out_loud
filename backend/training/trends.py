@@ -61,6 +61,7 @@ def trend_report() -> dict:
                         if v["attempts"] else 0.0)
                 for k, v in d.items()}
 
+    from backend.training import sac_drill, intuition
     srs = attempts.load_srs()
     return {
         "profiles": series,
@@ -75,4 +76,7 @@ def trend_report() -> dict:
             "total_lapses": sum(e.get("lapses", 0) for e in srs.values()),
         },
         "latest_regressions": series[-1]["regressions"] if series else [],
+        "srs_stats": attempts.get_stats(),
+        "sac_stats": sac_drill.get_stats(),
+        "intuition_stats": intuition.get_stats(),
     }

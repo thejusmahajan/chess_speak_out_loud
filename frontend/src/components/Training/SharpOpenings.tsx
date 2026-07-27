@@ -60,7 +60,7 @@ export default function SharpOpenings() {
         </h2>
         {topOpening && topOpening.sacs > 0 ? (
           <p style={{ margin: 0, fontSize: '1.1rem', color: '#f59e0b', fontWeight: 600 }}>
-            🔥 Your {topOpening.name} ({topOpening.eco}) hides {topOpening.sacs} sacrifices you're not taking.
+            🔥 Your {topOpening.name} ({topOpening.eco}) hides {topOpening.sacs} sharp positions you're not taking.
           </p>
         ) : (
           <p style={{ margin: 0, fontSize: '1rem', opacity: 0.85 }}>
@@ -135,7 +135,7 @@ export default function SharpOpenings() {
                         <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: op.sacs > 0 ? '#f59e0b' : '#94a3b8' }}>
                           {op.sacs} ⚔️
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>sac candidates</div>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>sharp candidates</div>
                       </div>
 
                       <button
@@ -151,7 +151,7 @@ export default function SharpOpenings() {
                           borderColor: op.sacs > 0 ? '#f59e0b' : 'transparent',
                         }}
                       >
-                        ⚔ Drill this opening's sacrifices
+                        ⚔ Drill this opening's sharp positions
                       </button>
                     </div>
                   </div>

@@ -192,9 +192,9 @@ export default function SacDrill({ filterEco, onBack }: SacDrillProps = {}) {
   if (positions.length === 0) {
     return (
       <div className="sac-drill-panel glass-panel">
-        <h2 className="gradient-text">Sacrifice & Tactical-Landmine Training</h2>
+        <h2 className="gradient-text">Sharp Positions & Tactical Landmines</h2>
         <p className="empty-state-msg">
-          No eligible sacrifice positions found in profile. Run a diagnosis first to discover your landmines!
+          No eligible sharp positions found in profile. Run a diagnosis first to discover your landmines!
         </p>
         <button className="glass-btn primary" onClick={loadSession}>
           Try Again
@@ -425,7 +425,7 @@ export default function SacDrill({ filterEco, onBack }: SacDrillProps = {}) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
         <div>
           <h2 className="gradient-text" style={{ margin: 0, fontSize: '1.4rem' }}>
-            {filterEco ? `⚔️ ${filterEco} Sacrifice Training` : 'Sacrifice & Tactical-Landmine Training'}
+            {filterEco ? `⚔️ ${filterEco} Sharp Positions Training` : 'Sharp Positions & Tactical-Landmine Training'}
           </h2>
           <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>
             Position {currentIndex + 1} of {positions.length} • Found: {score}
@@ -450,7 +450,7 @@ export default function SacDrill({ filterEco, onBack }: SacDrillProps = {}) {
           fontSize: '1.05rem',
         }}
       >
-        💡 A strong sacrifice is available here — find it.
+        💡 A sharp tactical continuation is available here — find it.
       </div>
 
       {error && <div style={{ color: '#ef4444', marginBottom: '10px' }}>{error}</div>}
@@ -491,11 +491,11 @@ export default function SacDrill({ filterEco, onBack }: SacDrillProps = {}) {
               }}
             >
               {currentResult.correct ? (
-                <span>🎯 HIT! You found the sacrifice! ({currentResult.sac_move.san})</span>
+                <span>🎯 HIT! You found the sharp move! ({currentResult.sac_move.san})</span>
               ) : currentResult.acceptable ? (
-                <span>⚡ SOUND ALTERNATIVE! A sharp try — LC0 preferred the sacrifice {currentResult.sac_move.san}.</span>
+                <span>⚡ SOUND ALTERNATIVE! A sharp try — LC0 preferred {currentResult.sac_move.san}.</span>
               ) : (
-                <span>❌ MISS! You played it safe. The sound sacrifice was {currentResult.sac_move.san}.</span>
+                <span>❌ MISS! You played it safe. The sharp move was {currentResult.sac_move.san}.</span>
               )}
             </div>
 

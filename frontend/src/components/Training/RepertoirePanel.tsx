@@ -497,11 +497,26 @@ export default function RepertoirePanel() {
   useEffect(() => {
     getTopOpenings(12)
       .then((res: any) => {
-        const combined = [...(res?.white || []), ...(res?.black || [])];
-        setTopOpenings(combined);
+        const whiteOps = (res?.white || []).map((o: any) => ({ ...o, color: 'white' }));
+        const blackOps = (res?.black || []).map((o: any) => ({ ...o, color: 'black' }));
+        setTopOpenings([...whiteOps, ...blackOps]);
       })
       .catch(() => { /* selector fallback */ });
   }, []);
+
+  useEffect(() => {
+    if (mode === 'train' && topOpenings.length > 0) {
+      const colorAvailable = topOpenings.filter((o: any) => o.color === trainColor);
+      if (colorAvailable.length > 0 && !colorAvailable.some((o: any) => o.eco === selectedEco)) {
+        setSelectedEco(colorAvailable[0].eco);
+      }
+    }
+  }, [trainColor, topOpenings, mode]);
+
+  const colorOpenings = useMemo(
+    () => topOpenings.filter((o: any) => !o.color || o.color === trainColor),
+    [topOpenings, trainColor]
+  );
 
   const byKey = useMemo(() => {
     const m: Record<string, any> = {};
@@ -686,10 +701,10 @@ export default function RepertoirePanel() {
               onChange={(e) => setSelectedEco(e.target.value)}
               style={{ minWidth: '280px' }}
             >
-              {topOpenings.length > 0 ? (
-                topOpenings.map((o: any) => (
-                  <option key={o.eco} value={o.eco}>
-                    {o.eco} - {o.name} ({o.n_games} games)
+              {colorOpenings.length > 0 ? (
+                colorOpenings.map((o: any) => (
+                  <option key={`${o.color}-${o.eco}`} value={o.eco}>
+                    {o.eco} - {o.name} ({o.n_games || o.count || 0} games)
                   </option>
                 ))
               ) : (

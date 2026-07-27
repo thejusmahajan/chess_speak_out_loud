@@ -7,7 +7,7 @@ interface ProgressPanelProps {
 export default function ProgressPanel({ trends }: ProgressPanelProps) {
   if (!trends) return <div className="glass-panel">Loading trends...</div>;
 
-  const { profiles, motif_blind_series, training, latest_regressions } = trends;
+  const { profiles, motif_blind_series, training, latest_regressions, srs_stats, sac_stats, intuition_stats } = trends;
 
   // Simple Blunder Rate (confirmed_per_100) trend over profiles
   const blunderRates = profiles?.map((p: any) => p.aggregates?.confirmed_per_100 || 0) || [];
@@ -15,8 +15,42 @@ export default function ProgressPanel({ trends }: ProgressPanelProps) {
 
   return (
     <div className="progress-panel">
+      {/* Live Training Session Stats */}
+      <div className="glass-panel" style={{ marginBottom: '20px' }}>
+        <h3 className="gradient-text" style={{ marginTop: 0 }}>Active Training Performance</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginTop: '12px' }}>
+          <div className="glass-card" style={{ padding: '12px' }}>
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>SRS Drill Accuracy</span>
+            <div style={{ fontSize: '1.4rem', fontWeight: 600, color: '#38bdf8', marginTop: '4px' }}>
+              {srs_stats?.accuracy != null ? `${(srs_stats.accuracy * 100).toFixed(1)}%` : 'N/A'}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+              {srs_stats?.total || 0} total attempts
+            </div>
+          </div>
+          <div className="glass-card" style={{ padding: '12px' }}>
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Sharp Drills Accuracy</span>
+            <div style={{ fontSize: '1.4rem', fontWeight: 600, color: '#f59e0b', marginTop: '4px' }}>
+              {sac_stats?.accuracy != null ? `${(sac_stats.accuracy * 100).toFixed(1)}%` : 'N/A'}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+              {sac_stats?.total || 0} solved / {sac_stats?.acceptable || 0} sound
+            </div>
+          </div>
+          <div className="glass-card" style={{ padding: '12px' }}>
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Intuition Top-1 Hit Rate</span>
+            <div style={{ fontSize: '1.4rem', fontWeight: 600, color: '#34d399', marginTop: '4px' }}>
+              {intuition_stats?.accuracy != null ? `${(intuition_stats.accuracy * 100).toFixed(1)}%` : 'N/A'}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+              {intuition_stats?.correct || 0} / {intuition_stats?.total || 0} position guesses
+            </div>
+          </div>
+        </div>
+      </div>
+
       {latest_regressions && latest_regressions.length > 0 && (
-        <div className="regression-banner glass-panel" style={{ borderColor: 'var(--color-danger)' }}>
+        <div className="regression-banner glass-panel" style={{ borderColor: 'var(--color-danger)', marginBottom: '20px' }}>
           <h3 style={{ color: 'var(--color-danger)', marginTop: 0 }}>⚠️ Attention Required</h3>
           <p>You've regressed on:</p>
           <div className="tags">

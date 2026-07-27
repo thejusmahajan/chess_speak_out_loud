@@ -74,7 +74,7 @@ describe('SharpOpenings Component Tests', () => {
     render(<SharpOpenings />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Your London System \(D02\) hides 13 sacrifices/i)).toBeInTheDocument();
+      expect(screen.getByText(/Your London System \(D02\) hides 13 sharp positions/i)).toBeInTheDocument();
     });
 
     expect(screen.getByText('D02')).toBeInTheDocument();
@@ -97,14 +97,14 @@ describe('SharpOpenings Component Tests', () => {
       expect(screen.getByText('London System')).toBeInTheDocument();
     });
 
-    const drillBtns = screen.getAllByRole('button', { name: /⚔ Drill this opening's sacrifices/i });
+    const drillBtns = screen.getAllByRole('button', { name: /Drill this opening/i });
     fireEvent.click(drillBtns[0]); // Click D02 drill button
 
     await waitFor(() => {
       expect(trainingApi.startSacSession).toHaveBeenCalledWith(10, 'D02');
     });
 
-    expect(screen.getByText(/⚔️ D02 Sacrifice Training/i)).toBeInTheDocument();
+    expect(screen.getByText(/⚔️ D02 Sharp Positions Training/i)).toBeInTheDocument();
   });
 
   it('3. Recommendations section renders cards and supports color filtering', async () => {

@@ -266,6 +266,9 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
                 }
             })
 
+    import random
+    random.shuffle(drills)
+
     drill_set = {
         "id": f"set-{datetime.datetime.utcnow().strftime('%Y-%m-%d-%H%M%S')}-{uuid.uuid4().hex[:4]}",
         "created": datetime.datetime.utcnow().isoformat(),

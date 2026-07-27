@@ -287,6 +287,9 @@ def build_suspects_deck(
             else:
                 not_due.append(d)
 
+    import random
+    random.shuffle(unseen)
+
     final_drills = unseen + due + not_due
 
     return {

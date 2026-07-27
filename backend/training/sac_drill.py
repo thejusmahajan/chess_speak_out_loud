@@ -229,7 +229,8 @@ async def start_sac_playout(finding_id: str, lc0_engine) -> Dict[str, Any]:
     if not best_moves:
         return {"error": "engine_unavailable"}
 
-    defense_uci = best_moves[0]
+    m0 = best_moves[0]
+    defense_uci = m0["move"] if isinstance(m0, dict) else m0
     def_move = chess.Move.from_uci(defense_uci)
     board.push(def_move)
 
@@ -302,7 +303,8 @@ async def play_sac_move(
     if not best_moves_pre:
         return {"error": "engine_unavailable"}
 
-    lc0_best_uci = best_moves_pre[0]
+    mb = best_moves_pre[0]
+    lc0_best_uci = mb["move"] if isinstance(mb, dict) else mb
     try:
         m_best = chess.Move.from_uci(lc0_best_uci)
         lc0_best_san = board.san(m_best) if m_best in board.legal_moves else lc0_best_uci
@@ -347,7 +349,8 @@ async def play_sac_move(
         best_moves_post = post_user_analysis.get("best_moves", [])
         if not best_moves_post:
             return {"error": "engine_unavailable"}
-        lc0_reply_uci = best_moves_post[0]
+        mr = best_moves_post[0]
+        lc0_reply_uci = mr["move"] if isinstance(mr, dict) else mr
         try:
             m_rep = chess.Move.from_uci(lc0_reply_uci)
             lc0_reply_san = board.san(m_rep) if m_rep in board.legal_moves else lc0_reply_uci
