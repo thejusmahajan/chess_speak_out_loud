@@ -207,6 +207,15 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                 if board.turn == user_color and not is_time_scramble(node.comment):
                     epd = board.epd()
 
+                    if board.move_stack:
+                        setup_uci = board.peek().uci()
+                        tmp_b = board.copy()
+                        tmp_b.pop()
+                        pre_fen = tmp_b.fen()
+                    else:
+                        setup_uci = None
+                        pre_fen = None
+
                     policy_data = policy_cache.get(epd)
                     if policy_data is None:
                         dist = await engine.get_policy_distribution(board.fen(), nodes=1)
@@ -226,6 +235,8 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                             "ply": ply,
                             "move_number": (ply + 1) // 2,
                             "fen_before": board.fen(),
+                            "setup_uci": setup_uci,
+                            "pre_fen": pre_fen,
                             "epd": epd,
                             "played_move": move,
                             "played_uci": move.uci(),
@@ -316,9 +327,22 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                             saliency = flagged.get("_precomputed_saliency") or vision.saliency_absolute(flagged["fen_before"])
                             b_data_new["saliency"] = saliency
 
-                            pv_san_list = analysis_before["pv_lines"][0].split() if analysis_before["pv_lines"] else []
+                            mover_is_white = (flagged["user_color"] == "white")
+                            eval_best_cp = analysis_before.get("evaluation")
+                            if eval_best_cp is None:
+                                eval_best_cp = 0
+                            cp_mover = eval_best_cp if mover_is_white else -eval_best_cp
+
+                            pv_san_list = analysis_before["pv_lines"][0].split() if analysis_before.get("pv_lines") else []
                             b_data_new["pv_san_list"] = pv_san_list
-                            b_data_new["motifs"] = list(MotifDetector.analyze_pv(flagged["fen_before"], pv_san_list))
+                            b_data_new["motifs"] = list(
+                                MotifDetector.analyze_pv(
+                                    flagged.get("pre_fen"),
+                                    flagged.get("setup_uci"),
+                                    pv_san_list,
+                                    cp_mover,
+                                )
+                            )
                             b_data_new["concepts"] = analyze_position(flagged["fen_before"], analysis_before)
 
                             stage_b_cache.put(epd, b_data_new)
@@ -365,6 +389,8 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                     "ply": flagged["ply"],
                     "move_number": flagged["move_number"],
                     "fen_before": flagged["fen_before"],
+                    "setup_uci": flagged.get("setup_uci"),
+                    "pre_fen": flagged.get("pre_fen"),
                     "played": {"uci": flagged["played_uci"], "san": flagged["played_san"], "p": flagged["p_played"]},
                     "best": {"uci": flagged["best_uci"], "san": flagged["best_san"], "p": flagged["p_best"]},
                     "divergence": flagged["divergence"],
