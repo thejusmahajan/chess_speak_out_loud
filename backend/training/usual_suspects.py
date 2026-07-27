@@ -6,6 +6,7 @@ and builds severity-weighted blended drill decks from user-approved suspect them
 """
 
 import datetime
+import hashlib
 import uuid
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -36,6 +37,24 @@ def finding_severity(f: Dict[str, Any]) -> float:
     confirmed = bool(confirmation.get("confirmed", False))
     weight = 1.0 if confirmed else UNCONFIRMED_WEIGHT
     return min(swing_cp, SEVERITY_CAP) * weight
+
+
+def _finding_srs_bucket(finding_id: Optional[str], srs: Dict[str, Any], now_iso: str) -> int:
+    """SRS priority for deck SELECTION: 0=unseen (freshest), 1=due, 2=not-due (recently solved).
+
+    Lets a rebuild surface untouched/due exercises instead of re-selecting the same
+    already-solved high-severity findings every time.
+    """
+    if not finding_id:
+        return 0
+    drill_id = f"d-{hashlib.sha1(str(finding_id).encode('utf-8')).hexdigest()[:12]}"
+    entry = srs.get(drill_id)
+    if not entry:
+        return 0
+    due_ts = entry.get("due")
+    if due_ts and due_ts <= now_iso:
+        return 1
+    return 2
 
 
 def severity_label(mean_sev: float) -> str:
@@ -212,6 +231,10 @@ def build_suspects_deck(
     findings = profile.get("findings", [])
     finding_map = {f["id"]: f for f in findings if "id" in f}
 
+    # SRS state drives BOTH selection (prefer unseen/due) and the final ordering.
+    srs = attempts.load_srs()
+    now_iso = datetime.datetime.utcnow().isoformat()
+
     seen_epds: Set[str] = set()
     deck_drills: List[Dict[str, Any]] = []
     leftover_slots = 0
@@ -223,7 +246,7 @@ def build_suspects_deck(
 
         t_finding_ids = s.get("finding_ids", [])
         t_findings = [finding_map[fid] for fid in t_finding_ids if fid in finding_map]
-        t_findings.sort(key=lambda f: finding_severity(f), reverse=True)
+        t_findings.sort(key=lambda f: (_finding_srs_bucket(f.get("id"), srs, now_iso), -finding_severity(f)))
 
         added_for_theme = 0
         for f in t_findings:
@@ -253,7 +276,7 @@ def build_suspects_deck(
             theme = s["theme"]
             t_finding_ids = s.get("finding_ids", [])
             t_findings = [finding_map[fid] for fid in t_finding_ids if fid in finding_map]
-            t_findings.sort(key=lambda f: finding_severity(f), reverse=True)
+            t_findings.sort(key=lambda f: (_finding_srs_bucket(f.get("id"), srs, now_iso), -finding_severity(f)))
             for f in t_findings:
                 if len(deck_drills) >= count:
                     break
@@ -269,9 +292,6 @@ def build_suspects_deck(
                 deck_drills.append(drill)
 
     # SRS-aware reordering: group into UNSEEN -> DUE -> NOT-DUE
-    srs = attempts.load_srs()
-    now_iso = datetime.datetime.utcnow().isoformat()
-
     unseen: List[Dict[str, Any]] = []
     due: List[Dict[str, Any]] = []
     not_due: List[Dict[str, Any]] = []

@@ -257,3 +257,32 @@ def test_srs_aware_deck_ordering():
     assert d3_id in drill_ids
     assert drill_ids[-1] == d3_id
 
+
+def test_rebuild_selection_prefers_unseen_over_solved_highsev():
+    """SELECTION (not just ordering) must be SRS-aware: on a tight deck, an already-solved
+    high-severity finding must NOT crowd out an UNSEEN lower-severity one — otherwise every
+    rebuild re-selects the same solved drills and untouched ones never surface.
+
+    Mutation guard: fails on the old severity-only selection (which would pick f_solved).
+    """
+    f_solved = _make_finding("p01", "g001", ["fork"], swing_cp=800,
+                             fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+    f_unseen = _make_finding("p02", "g002", ["fork"], swing_cp=300,
+                             fen="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1")
+    profile = {"findings": [f_solved, f_unseen]}
+
+    d_solved = f"d-{hashlib.sha1(f_solved['id'].encode('utf-8')).hexdigest()[:12]}"
+    d_unseen = f"d-{hashlib.sha1(f_unseen['id'].encode('utf-8')).hexdigest()[:12]}"
+
+    now = datetime.datetime.utcnow()
+    future_due_iso = (now + datetime.timedelta(days=7)).isoformat()
+    # f_solved = NOT-DUE (recently solved); f_unseen absent from SRS (UNSEEN)
+    attempts._save_srs({d_solved: {"due": future_due_iso, "step": 3, "lapses": 0, "reps": 3}})
+
+    # Tight deck: 1 slot. The UNSEEN finding must win selection despite lower severity.
+    deck = usual_suspects.build_suspects_deck(profile, ["fork"], count=1)
+    ids = [d["id"] for d in deck["drills"]]
+    assert len(ids) == 1
+    assert ids == [d_unseen], f"expected the UNSEEN finding selected, got {ids}"
+    assert d_solved not in ids
+
