@@ -62,6 +62,16 @@ Tal persona; research note `docs/research_learned_lookahead.md` — the
 6. **Honesty to the user, including about my own errors.** I publicly corrected
    my wrong "saliency is 40% of TS2" estimate when data said 3%. He responds well
    to that and it keeps his trust calibrated.
+7. **Hold the vision; workers don't set it.** A worker — even a capable, fresh-eye
+   one — produces *verifiable work* (code, data, bugs) that you verify and integrate.
+   Its *strategic/vision opinions* are INPUT, not authority: it lacks the context of
+   the many decided sessions and will confidently argue to relitigate settled aims.
+   (2026-07-27: a fresh worker's audit found a real live bug — `concept_mapper` silently
+   emitting empty motifs, gold — while *in the same pass* arguing to DELETE the Steer/Tal
+   system, a core decided aim. The leader briefly amplified the delete-take before the user
+   corrected: "workers are workers and not leaders for a reason.") Extract the verifiable,
+   discard the vision-overreach, and never relitigate a decided aim on a clever outsider
+   argument. **Decide, don't hedge** — the user chose a captain, not a survey generator.
 
 ## 4. Decisions already made — DO NOT RELITIGATE (with the why)
 
@@ -75,6 +85,7 @@ Tal persona; research note `docs/research_learned_lookahead.md` — the
 | `metrics.py` is **leader-owned** | The mathematical source of truth; workers must file `QUESTIONS_FOR_LEADER.md` instead. |
 | **"sacrifice" is a material fact, never complexity** — detect via `lichess_tagger.cook()` over the forced line (`material_diff` drops ≥2), NEVER from `complexity`/`had_sharp_move` | The user caught the leader labelling quiet moves "sacrifices" and calling the London "sharp" — all from a complexity proxy with no material check. Ground every theme claim in `docs/THEME_DEFINITIONS.md`. |
 | `had_tal_move`→**`had_sharp_move`** is a *sharpness* signal; the real sacrifice comes from corrected `findings[].motifs` | Two distinct signals — conflating them IS the error above. Sharpness = "you had a sharper playable move than best"; sacrifice = "you missed a sound material sac." Renamed 2026-07-27. |
+| **Steer/Tal is a CORE aim — hone, never fold** | It is the *aspirational* training axis (steer the user toward the sharp, dangerous-but-sound chess they want), complementary to **Critical Points** (the *corrective* axis: where you went wrong by eval swing) — not a rival. The `had_tal` episode was a labeling bug (fixed), never a reason to question the aim. Chip it to perfection (sculpture); do not delete it. |
 | Opt #2 value-screen pruning: prune when **the mover** is lost (`-value < floor`, i.e. post-move side-to-move value > +0.60) | `fen_after` is opponent-to-move; raw `value < -0.60` prunes the mover's *winning* moves. Spec approved with this correction; not yet implemented. |
 | Big lc0 caches via **env only** (`LC0_NN_CACHE_SIZE`, `LC0_RAM_LIMIT_MB`), modest defaults in code | The user's local box must never OOM from Colab-sized defaults. |
 
