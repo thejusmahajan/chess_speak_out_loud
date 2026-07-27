@@ -6,6 +6,8 @@ python-chess's SimpleEngine.popen_uci(). Falls back to mock mode
 when the engine binary is not available.
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import os

@@ -96,7 +96,7 @@ def test_leaky_eco_gets_repaired(monkeypatch):
     profile = _make_profile(
         by_opening={"B00": {"moves": 10, "missed": 2, "blind": 1, "blind_rate": 0.1}},
         findings=[{"opening": {"eco": "B00", "name": "King's Pawn Opening"}}],
-        steer_summary={"B00": {"moves": 10, "tal_moves": 1, "mean_complexity": 0.35}},
+        steer_summary={"B00": {"moves": 10, "sharp_moves": 1, "mean_complexity": 0.35}},
     )
     # Engine: tabiya is sound (+10cp), sharp (40/30/30 wdl), no policy → no tint
     engine = MockEngine(eval_by_fen={fen_after_e4: 10})
@@ -133,7 +133,7 @@ def test_tinted_rec_bounded_eval_loss(monkeypatch):
 
     profile = _make_profile(
         by_opening={"C00": {"moves": 20, "missed": 0, "blind": 0, "blind_rate": 0.0}},
-        steer_summary={"C00": {"moves": 20, "tal_moves": 0, "mean_complexity": 0.30}},
+        steer_summary={"C00": {"moves": 20, "sharp_moves": 0, "mean_complexity": 0.30}},
     )
 
     # Policy at tabiya: two candidate moves
@@ -379,7 +379,7 @@ def test_dry_eco_classification(monkeypatch):
 
     profile = _make_profile(
         by_opening={"A00": {"moves": 15, "missed": 0, "blind": 0, "blind_rate": 0.0}},
-        steer_summary={"A00": {"moves": 10, "tal_moves": 0, "mean_complexity": 0.15}},
+        steer_summary={"A00": {"moves": 10, "sharp_moves": 0, "mean_complexity": 0.15}},
     )
 
     engine = MockEngine(eval_by_fen={fen: 5})

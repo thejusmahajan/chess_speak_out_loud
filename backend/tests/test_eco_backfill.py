@@ -61,7 +61,7 @@ def backfill_env(tmp_path, monkeypatch):
                 "id": "s-000-p004",
                 "game": {"white": "derdiedasdie", "black": "OpponentA", "date": "2026.07.21"},
                 "ply": 4,
-                "had_tal_move": True,
+                "had_sharp_move": True,
                 "opening": {"eco": "???", "name": "Unknown"},
             },
         ],

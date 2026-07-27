@@ -68,9 +68,13 @@ def sharpness_by_opening(profile: Dict[str, Any]) -> List[Dict[str, Any]]:
         steer_items = grp["steer_items"]
         finding_items = grp["finding_items"]
 
-        # Sac count: steer_findings where had_tal_move is True
-        sac_items = [sf for sf in steer_items if sf.get("had_tal_move")]
-        sacs = len(sac_items)
+        # Sharp position count: steer_findings where had_sharp_move is True
+        sharp_items = [sf for sf in steer_items if sf.get("had_sharp_move")]
+        sharp_positions = len(sharp_items)
+
+        # Real missed sacrifices from findings motifs (Phase A/B correct)
+        missed_sacs = [f for f in finding_items if "sacrifice" in (f.get("motifs") or [])]
+        missed_sacrifices = len(missed_sacs)
 
         # Total positions in this ECO
         n_positions = len(steer_items) + len(finding_items)
@@ -92,7 +96,7 @@ def sharpness_by_opening(profile: Dict[str, Any]) -> List[Dict[str, Any]]:
         sorted_steer = sorted(
             steer_items,
             key=lambda sf: (
-                1 if sf.get("had_tal_move") else 0,
+                1 if sf.get("had_sharp_move") else 0,
                 float(sf.get("steer", {}).get("complexity", sf.get("best", {}).get("complexity", 0.0)))
             ),
             reverse=True
@@ -108,12 +112,14 @@ def sharpness_by_opening(profile: Dict[str, Any]) -> List[Dict[str, Any]]:
                 if len(top_positions) >= 8:
                     break
 
-        sharpness_score = round(sacs * mean_complexity, 4)
+        sharpness_score = round(sharp_positions * mean_complexity, 4)
 
         results.append({
             "eco": eco,
             "name": grp["name"],
-            "sacs": sacs,
+            "sacs": sharp_positions,
+            "sharp_positions": sharp_positions,
+            "missed_sacrifices": missed_sacrifices,
             "mean_complexity": mean_complexity,
             "n_positions": n_positions,
             "top_positions": top_positions,

@@ -15,9 +15,9 @@ def sac_env(tmp_path, monkeypatch):
     store._ensure_dirs()
 
     # Synthetic profile with 4 steer_findings:
-    # 1. had_tal_move=True, complexity=4.5 -> ELIGIBLE
-    # 2. had_tal_move=False, complexity=5.0 -> EXCLUDED (no tal move)
-    # 3. had_tal_move=True, complexity=2.0 -> ELIGIBLE
+    # 1. had_sharp_move=True, complexity=4.5 -> ELIGIBLE
+    # 2. had_sharp_move=False, complexity=5.0 -> EXCLUDED (no sharp move)
+    # 3. had_sharp_move=True, complexity=2.0 -> ELIGIBLE
     # 4. Duplicate EPD of #1, complexity=3.0 -> EXCLUDED (duplicate board EPD)
     mock_profile = {
         "player_name": "TestPlayer",
@@ -32,7 +32,7 @@ def sac_env(tmp_path, monkeypatch):
                     {"uci": "c2c3", "complexity": 2.1, "eval_cp": 25},
                 ],
                 "eval_loss_cp": 15,
-                "had_tal_move": True,
+                "had_sharp_move": True,
                 "opening": {"eco": "D02", "name": "London System"},
             },
             {
@@ -42,7 +42,7 @@ def sac_env(tmp_path, monkeypatch):
                 "steer": {"uci": "b8c6", "san": "Nc6", "eval_cp": 0, "complexity": 0.8},
                 "playable_candidates": [{"uci": "b8c6", "complexity": 0.8, "eval_cp": 0}],
                 "eval_loss_cp": 0,
-                "had_tal_move": False,
+                "had_sharp_move": False,
                 "opening": {"eco": "D02", "name": "London System"},
             },
             {
@@ -55,7 +55,7 @@ def sac_env(tmp_path, monkeypatch):
                     {"uci": "f3e5", "complexity": 1.0, "eval_cp": 50},
                 ],
                 "eval_loss_cp": 70,
-                "had_tal_move": True,
+                "had_sharp_move": True,
                 "opening": {"eco": "C44", "name": "King's Pawn Game"},
             },
             {
@@ -65,7 +65,7 @@ def sac_env(tmp_path, monkeypatch):
                 "steer": {"uci": "b1c3", "san": "Nc3", "eval_cp": 10, "complexity": 3.0},
                 "playable_candidates": [{"uci": "b1c3", "complexity": 3.0, "eval_cp": 10}],
                 "eval_loss_cp": 10,
-                "had_tal_move": True,
+                "had_sharp_move": True,
             },
         ],
     }
@@ -74,8 +74,8 @@ def sac_env(tmp_path, monkeypatch):
     return training_dir, mock_profile
 
 
-def test_selection_filters_had_tal_move_and_dedupes(sac_env):
-    """Verify build_sac_session includes ONLY had_tal_move=True and dedupes by board EPD."""
+def test_selection_filters_had_sharp_move_and_dedupes(sac_env):
+    """Verify build_sac_session includes ONLY had_sharp_move=True and dedupes by board EPD."""
     session = sac_drill.build_sac_session(count=10)
     assert len(session) == 2  # s-001 (comp=4.5) and s-003 (comp=2.0)
 
@@ -85,7 +85,7 @@ def test_selection_filters_had_tal_move_and_dedupes(sac_env):
     assert "s-001-p020" in ids
     assert "s-003-p030" in ids
 
-    # Excluded: s-002 (had_tal_move=False) and s-004 (duplicate EPD of s-001)
+    # Excluded: s-002 (had_sharp_move=False) and s-004 (duplicate EPD of s-001)
     assert "s-002-p015" not in ids
     assert "s-004-p020" not in ids
 

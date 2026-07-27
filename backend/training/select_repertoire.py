@@ -61,7 +61,7 @@ def _classify_eco(
         return "repaired"
     ss = steer_summary.get(eco)
     if ss and ss.get("moves", 0) >= 3:
-        if ss.get("mean_complexity", 0.0) < DRY_COMPLEXITY_THRESHOLD and ss.get("tal_moves", 0) == 0:
+        if ss.get("mean_complexity", 0.0) < DRY_COMPLEXITY_THRESHOLD and ss.get("sharp_moves", ss.get("tal_moves", 0)) == 0:
             return "dry"
     return "kept"
 
@@ -200,7 +200,7 @@ async def build_repertoire(
         tint_complexity = None
         tint_eval_cp = None
         tint_eval_loss_cp = None
-        had_tal_move = False
+        had_sharp_move = False
 
         # Gather policy for the tabiya to score candidate complexity
         policy = await engine.get_policy_distribution(tabiya_fen, nodes=1)
@@ -252,9 +252,9 @@ async def build_repertoire(
             if candidates:
                 best_eval = max(c["eval_cp"] for c in candidates)
                 steer_res = metrics.steer_candidates(candidates, best_eval, cfg)
-                if steer_res["had_tal_move"] and steer_res["tal_move"]:
-                    had_tal_move = True
-                    tm = steer_res["tal_move"]
+                if steer_res["had_sharp_move"] and steer_res["sharp_move"]:
+                    had_sharp_move = True
+                    tm = steer_res["sharp_move"]
                     tint_move = {"uci": tm["uci"], "san": tm["san"]}
                     tint_complexity = tm["complexity"]
                     tint_eval_cp = tm["eval_cp"]
@@ -265,11 +265,11 @@ async def build_repertoire(
         # they actually play). Otherwise the opening earns a slot only if it
         # offers tactical value: a sharp tabiya or a sound sharper tint. A calm
         # 'kept'/'dry' line with nothing to fix or sharpen is not worth a slot.
-        if classification != "repaired" and not had_tal_move and not is_sharp:
+        if classification != "repaired" and not had_sharp_move and not is_sharp:
             continue
 
         # Determine final origin
-        if had_tal_move:
+        if had_sharp_move:
             origin = "tinted"
         elif classification == "repaired":
             origin = "repaired"

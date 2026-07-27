@@ -35,12 +35,14 @@ export interface SteerFinding {
   steer?: SteerCandidate;
   playable_candidates?: SteerCandidate[];
   eval_loss_cp?: number;
+  had_sharp_move?: boolean;
   had_tal_move?: boolean;
 }
 
 export interface SteerSummaryItem {
   moves: number;
-  tal_moves: number;
+  sharp_moves?: number;
+  tal_moves?: number;
   mean_complexity: number;
 }
 

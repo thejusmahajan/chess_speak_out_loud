@@ -74,27 +74,27 @@ def _cand(uci, eval_cp, complexity):
 
 
 def test_steer_picks_sharper_within_bound():
-    # best = +80 (calm); a +30 move (loss 50 <= 60) is much sharper -> Tal move.
+    # best = +80 (calm); a +30 move (loss 50 <= 60) is much sharper -> sharp move.
     cands = [_cand("a1a2", 80, 0.2), _cand("b1b2", 30, 0.8)]
     r = metrics.steer_candidates(cands, best_eval_cp=80, cfg=CFG)
-    assert r["had_tal_move"] is True
-    assert r["tal_move"]["uci"] == "b1b2"
+    assert r["had_sharp_move"] is True
+    assert r["sharp_move"]["uci"] == "b1b2"
     assert r["objective_best"]["uci"] == "a1a2"
 
 
 def test_steer_rejects_move_over_loss_bound():
-    # The sharp move costs 90cp (> 60) -> not playable; no Tal move.
+    # The sharp move costs 90cp (> 60) -> not playable; no sharp move.
     cands = [_cand("a1a2", 80, 0.2), _cand("b1b2", -10, 0.9)]
     r = metrics.steer_candidates(cands, best_eval_cp=80, cfg=CFG)
     assert [c["uci"] for c in r["playable"]] == ["a1a2"]
-    assert r["had_tal_move"] is False
+    assert r["had_sharp_move"] is False
 
 
 def test_steer_allows_slight_minus_but_not_lost():
     # A -50 move is within the floor (-60) and the loss bound -> playable.
     cands = [_cand("a1a2", 5, 0.2), _cand("b1b2", -50, 0.85)]
     r = metrics.steer_candidates(cands, best_eval_cp=5, cfg=CFG)
-    assert r["had_tal_move"] is True and r["tal_move"]["uci"] == "b1b2"
+    assert r["had_sharp_move"] is True and r["sharp_move"]["uci"] == "b1b2"
     # A -70 move (below the -60 floor) is rejected even if the loss is small.
     lost = [_cand("a1a2", -15, 0.2), _cand("b1b2", -70, 0.9)]
     r2 = metrics.steer_candidates(lost, best_eval_cp=-15, cfg=CFG)
@@ -104,8 +104,8 @@ def test_steer_allows_slight_minus_but_not_lost():
 def test_steer_no_tal_move_when_best_is_already_sharpest():
     cands = [_cand("a1a2", 80, 0.8), _cand("b1b2", 40, 0.3)]
     r = metrics.steer_candidates(cands, best_eval_cp=80, cfg=CFG)
-    assert r["had_tal_move"] is False
-    assert r["tal_move"]["uci"] == "a1a2"
+    assert r["had_sharp_move"] is False
+    assert r["sharp_move"]["uci"] == "a1a2"
 
 
 # --------------------------------------------------------- phase-aware gate

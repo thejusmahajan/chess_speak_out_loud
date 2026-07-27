@@ -113,7 +113,7 @@ async def generate_drill_set(count: int, profile: dict, repertoire: dict, engine
     drills = []
     
     if steer_count > 0 and profile and "steer_findings" in profile:
-        s_findings = [f for f in profile["steer_findings"] if f.get("had_tal_move")]
+        s_findings = [f for f in profile["steer_findings"] if f.get("had_sharp_move")]
         s_findings.sort(key=lambda x: x["steer"]["complexity"], reverse=True)
         seen_s_epds = set()
         

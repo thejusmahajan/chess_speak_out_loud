@@ -29,37 +29,37 @@ def mock_profile_with_openings():
             },
         ],
         "steer_findings": [
-            # D02 London System: 2 sac positions (had_tal_move=True), mean complexity = 0.80
+            # D02 London System: 2 sharp positions (had_sharp_move=True), mean complexity = 0.80
             {
                 "id": "s-001-p010",
                 "opening": {"eco": "D02", "name": "London System"},
-                "had_tal_move": True,
+                "had_sharp_move": True,
                 "steer": {"complexity": 0.90, "uci": "e2e4"},
             },
             {
                 "id": "s-001-p014",
                 "opening": {"eco": "D02", "name": "London System"},
-                "had_tal_move": True,
+                "had_sharp_move": True,
                 "steer": {"complexity": 0.70, "uci": "d4d5"},
             },
-            # C44 King's Pawn Game: 1 sac position, mean complexity = 0.50
+            # C44 King's Pawn Game: 1 sharp position, mean complexity = 0.50
             {
                 "id": "s-002-p008",
                 "opening": {"eco": "C44", "name": "King's Pawn Game"},
-                "had_tal_move": True,
+                "had_sharp_move": True,
                 "steer": {"complexity": 0.50, "uci": "g1f3"},
             },
             {
                 "id": "s-002-p012",
                 "opening": {"eco": "C44", "name": "King's Pawn Game"},
-                "had_tal_move": False,
+                "had_sharp_move": False,
                 "steer": {"complexity": 0.30, "uci": "c2c3"},
             },
             # Unclassified opening ('???') - should be excluded
             {
                 "id": "s-003-p005",
                 "opening": {"eco": "???", "name": "Unknown"},
-                "had_tal_move": True,
+                "had_sharp_move": True,
                 "steer": {"complexity": 0.95, "uci": "h2h3"},
             },
         ],
@@ -67,11 +67,11 @@ def mock_profile_with_openings():
 
 
 def test_sac_count_and_mean_complexity_per_eco(mock_profile_with_openings):
-    """Verify sac count matches had_tal_move count and mean complexity is exact."""
+    """Verify sharp count matches had_sharp_move count and mean complexity is exact."""
     results = openings_sharpness.sharpness_by_opening(mock_profile_with_openings)
 
     d02 = next(item for item in results if item["eco"] == "D02")
-    assert d02["sacs"] == 2
+    assert d02["sharp_positions"] == 2
     assert d02["mean_complexity"] == 0.80  # (0.90 + 0.70) / 2
     assert d02["n_positions"] == 3  # 2 steer + 1 finding
 

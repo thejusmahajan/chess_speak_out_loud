@@ -488,9 +488,9 @@ def steer_candidates(
     Returns:
       {"playable": [playable candidates, complexity desc],
        "objective_best": <playable candidate with the highest eval_cp>,
-       "tal_move": <highest-complexity playable candidate>,
-       "had_tal_move": bool}
-    had_tal_move is True only when the sharpest playable move is a *different*
+       "sharp_move": <highest-complexity playable candidate>,
+       "had_sharp_move": bool}
+    had_sharp_move is True only when the sharpest playable move is a *different*
     move than the objective best and beats its complexity by
     steer_complexity_edge — i.e. steering actually buys danger over just
     playing the best move.
@@ -502,18 +502,18 @@ def steer_candidates(
     ]
     if not playable:
         return {"playable": [], "objective_best": None,
-                "tal_move": None, "had_tal_move": False}
+                "sharp_move": None, "had_sharp_move": False}
 
     playable.sort(key=lambda c: c["complexity"], reverse=True)
     objective_best = max(playable, key=lambda c: c["eval_cp"])
-    tal_move = playable[0]
-    had_tal_move = (
-        tal_move["uci"] != objective_best["uci"]
-        and tal_move["complexity"] - objective_best["complexity"]
+    sharp_move = playable[0]
+    had_sharp_move = (
+        sharp_move["uci"] != objective_best["uci"]
+        and sharp_move["complexity"] - objective_best["complexity"]
         >= cfg.steer_complexity_edge
     )
     return {"playable": playable, "objective_best": objective_best,
-            "tal_move": tal_move, "had_tal_move": had_tal_move}
+            "sharp_move": sharp_move, "had_sharp_move": had_sharp_move}
 
 
 def is_opening_mistake(

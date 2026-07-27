@@ -422,7 +422,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
 
         # STAGE TS2: Steering Pass (Parallelized with bounded concurrency = engine.n)
         steer_findings = []
-        by_opening_steer = defaultdict(lambda: {"moves": 0, "complexity_sum": 0.0, "tal_moves": 0})
+        by_opening_steer = defaultdict(lambda: {"moves": 0, "complexity_sum": 0.0, "sharp_moves": 0})
         bt3_budget_remaining = metrics.DEFAULT_CONFIG.steer_bt3_budget
         steer_processed = 0
         search_used = 0
@@ -583,16 +583,16 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                 eco_all = opening_match_all["eco"] if opening_match_all else "???"
 
                 steer_finding = None
-                had_tal_move = False
+                had_sharp_move = False
                 obj_best_complexity = 0.0
 
                 if candidates:
                     best_eval_cp = max(c["eval_cp"] for c in candidates)
                     steer_res = metrics.steer_candidates(candidates, best_eval_cp)
 
-                    if steer_res["had_tal_move"] or (steer_res["objective_best"] and steer_res["objective_best"]["complexity"] >= metrics.DEFAULT_CONFIG.steer_highlight_complexity):
+                    if steer_res["had_sharp_move"] or (steer_res["objective_best"] and steer_res["objective_best"]["complexity"] >= metrics.DEFAULT_CONFIG.steer_highlight_complexity):
                         best_c = steer_res["objective_best"]
-                        tal_c = steer_res["tal_move"]
+                        sharp_c = steer_res["sharp_move"]
 
                         steer_finding = {
                             "id": f"s-{node['game_idx']:03d}-p{node['ply']:03d}",
@@ -604,13 +604,13 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                             "ply": node["ply"],
                             "fen_before": fen_before,
                             "best": {"uci": best_c["uci"], "san": best_c["san"], "eval_cp": best_c["eval_cp"], "complexity": best_c["complexity"], "components": best_c["components"]},
-                            "steer": {"uci": tal_c["uci"], "san": tal_c["san"], "eval_cp": tal_c["eval_cp"], "complexity": tal_c["complexity"], "components": tal_c["components"]} if tal_c else {"uci": best_c["uci"], "san": best_c["san"], "eval_cp": best_c["eval_cp"], "complexity": best_c["complexity"], "components": best_c["components"]},
+                            "steer": {"uci": sharp_c["uci"], "san": sharp_c["san"], "eval_cp": sharp_c["eval_cp"], "complexity": sharp_c["complexity"], "components": sharp_c["components"]} if sharp_c else {"uci": best_c["uci"], "san": best_c["san"], "eval_cp": best_c["eval_cp"], "complexity": best_c["complexity"], "components": best_c["components"]},
                             "playable_candidates": [{"uci": c["uci"], "complexity": c["complexity"], "eval_cp": c["eval_cp"]} for c in steer_res["playable"]],
-                            "eval_loss_cp": best_eval_cp - (tal_c["eval_cp"] if tal_c else best_eval_cp),
-                            "had_tal_move": steer_res["had_tal_move"],
+                            "eval_loss_cp": best_eval_cp - (sharp_c["eval_cp"] if sharp_c else best_eval_cp),
+                            "had_sharp_move": steer_res["had_sharp_move"],
                             "opening": {"eco": eco_all}
                         }
-                        had_tal_move = steer_res["had_tal_move"]
+                        had_sharp_move = steer_res["had_sharp_move"]
 
                     if steer_res["objective_best"]:
                         obj_best_complexity = steer_res["objective_best"]["complexity"]
@@ -620,16 +620,16 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                 if steer_processed % 10 == 0:
                     _progress(job_id, stage_steer_done=steer_processed)
 
-                return node_idx, steer_finding, eco_all, had_tal_move, obj_best_complexity, bool(candidates)
+                return node_idx, steer_finding, eco_all, had_sharp_move, obj_best_complexity, bool(candidates)
 
         if user_decision_nodes:
             ts2_results = await asyncio.gather(*[_process_steer_node(i, n) for i, n in enumerate(user_decision_nodes)])
             ts2_results.sort(key=lambda x: x[0])
 
-            for _, s_finding, eco_all, had_tal, obj_comp, had_cands in ts2_results:
+            for _, s_finding, eco_all, had_sharp, obj_comp, had_cands in ts2_results:
                 if s_finding is not None:
                     steer_findings.append(s_finding)
-                    by_opening_steer[eco_all]["tal_moves"] += 1 if had_tal else 0
+                    by_opening_steer[eco_all]["sharp_moves"] += 1 if had_sharp else 0
 
                 if eco_all is not None:
                     by_opening_steer[eco_all]["moves"] += 1
@@ -643,7 +643,7 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         for eco, st in by_opening_steer.items():
             steer_summary[eco] = {
                 "moves": st["moves"],
-                "tal_moves": st["tal_moves"],
+                "sharp_moves": st["sharp_moves"],
                 "mean_complexity": st["complexity_sum"] / max(1, st["moves"])
             }
             

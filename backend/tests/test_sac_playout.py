@@ -27,14 +27,14 @@ def sac_playout_env(tmp_path, monkeypatch):
                 "fen_before": "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 3",
                 "best": {"uci": "f1b5", "san": "Bb5", "eval_cp": 30},
                 "steer": {"uci": "d2d4", "san": "d4", "eval_cp": 15},
-                "had_tal_move": True,
+                "had_sharp_move": True,
             },
             {
                 "id": "s-black-001",
                 "fen_before": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
                 "best": {"uci": "e7e5", "san": "e5", "eval_cp": 0},
                 "steer": {"uci": "c7c5", "san": "c5", "eval_cp": -20},
-                "had_tal_move": True,
+                "had_sharp_move": True,
             },
         ],
     }

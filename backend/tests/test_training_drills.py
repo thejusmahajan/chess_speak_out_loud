@@ -118,7 +118,7 @@ async def test_generated_steer_drill_carries_and_accepts_bounded_alt(monkeypatch
         "steer_findings": [{
             "id": "s-000-p003",
             "fen_before": fen,
-            "had_tal_move": True,
+            "had_sharp_move": True,
             "best": {"uci": "b8c6", "san": "Nc6", "eval_cp": 20, "complexity": 0.2, "components": {}},
             "steer": {"uci": "g8f6", "san": "Nf6", "eval_cp": 10, "complexity": 0.8, "components": {}},
             "playable_candidates": [

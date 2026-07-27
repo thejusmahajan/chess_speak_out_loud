@@ -18,9 +18,9 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
 
   const steerFindings: any[] = profile.steer_findings || [];
   const steerSummaryEntries = Object.entries(profile.steer_summary || {}).sort(
-    (a: any, b: any) => (b[1].tal_moves || 0) - (a[1].tal_moves || 0)
+    (a: any, b: any) => ((b[1].sharp_moves ?? b[1].tal_moves) || 0) - ((a[1].sharp_moves ?? a[1].tal_moves) || 0)
   );
-  const talCandidates = steerFindings.filter((sf: any) => sf.had_tal_move);
+  const sharpCandidates = steerFindings.filter((sf: any) => sf.had_sharp_move ?? sf.had_tal_move);
 
   return (
     <div className="profile-report">
@@ -42,7 +42,7 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
           {steerFindings.length > 0 && (
             <div className="stat-box">
               <span className="stat-label">Tactical Steering</span>
-              <span className="stat-value">{steerFindings.length} <small className="dim">({talCandidates.length} sharp)</small></span>
+              <span className="stat-value">{steerFindings.length} <small className="dim">({sharpCandidates.length} sharp)</small></span>
             </div>
           )}
         </div>
@@ -114,7 +114,7 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
                 <strong>{steerFindings.length}</strong> Steer Positions
               </span>
               <span className="stat-pill" style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--color-danger)', color: '#f87171' }}>
-                <strong>{talCandidates.length}</strong> Sacrificial/Tal Motifs
+                <strong>{sharpCandidates.length}</strong> Sharp Candidates
               </span>
               {profile.steer_budget_exhausted && (
                 <span className="tag" style={{ backgroundColor: 'var(--color-warning)', color: '#000', fontWeight: 600 }}>
@@ -129,14 +129,14 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
               <h4 style={{ color: '#94a3b8', margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>Steering Summary by Opening</h4>
               <table className="glass-table" data-testid="steer-summary-table">
                 <thead>
-                  <tr><th>ECO</th><th>Moves</th><th>Sacrificial / Tal</th><th>Mean Sharpness</th></tr>
+                  <tr><th>ECO</th><th>Moves</th><th>Sharp Moves</th><th>Mean Sharpness</th></tr>
                 </thead>
                 <tbody>
                   {steerSummaryEntries.slice(0, 6).map(([eco, st]: any) => (
                     <tr key={eco}>
                       <td><strong>{eco}</strong></td>
                       <td>{st.moves || 0}</td>
-                      <td>{st.tal_moves || 0}</td>
+                      <td>{st.sharp_moves ?? st.tal_moves ?? 0}</td>
                       <td>{(st.mean_complexity || 0).toFixed(3)}</td>
                     </tr>
                   ))}
@@ -148,10 +148,11 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
           {steerFindings.length > 0 && (
             <div>
               <h4 style={{ color: '#94a3b8', margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>
-                Top Sacrificial &amp; Sharp Steer Candidates
+                Top Sharp Steer Candidates
               </h4>
               <div className="findings-grid" data-testid="steer-findings-grid">
-                {(talCandidates.length > 0 ? talCandidates : steerFindings).slice(0, 8).map((sf: any) => {
+                {(sharpCandidates.length > 0 ? sharpCandidates : steerFindings).slice(0, 8).map((sf: any) => {
+                  const isSharp = sf.had_sharp_move ?? sf.had_tal_move;
                   const moveNum = sf.move_number || Math.ceil((sf.ply || 1) / 2);
                   const playedText = sf.played?.san || sf.played?.uci || 'N/A';
                   const steerText = sf.steer?.san || sf.steer?.uci || sf.best?.san || sf.best?.uci || 'N/A';
@@ -161,11 +162,11 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
                       key={sf.id}
                       className="finding-card glass-card steer-card"
                       data-testid={`steer-card-${sf.id}`}
-                      style={{ borderLeft: sf.had_tal_move ? '3px solid #f87171' : '3px solid orange' }}
+                      style={{ borderLeft: isSharp ? '3px solid #f87171' : '3px solid orange' }}
                       onClick={() => onFindingClick({
                         ...sf,
                         move_number: moveNum,
-                        severity: sf.had_tal_move ? 'sacrificial' : 'steering',
+                        severity: isSharp ? 'sharp' : 'steering',
                         played: sf.played,
                         best: sf.steer || sf.best,
                         user_color: sf.user_color || (sf.ply % 2 === 1 ? 'white' : 'black'),
@@ -173,9 +174,9 @@ export default function ProfileReport({ profile, onFindingClick, onGenerateDrill
                     >
                       <div className="finding-header">
                         <span className="move-number">Move {moveNum} ({sf.opening?.eco || '???'})</span>
-                        {sf.had_tal_move ? (
+                        {isSharp ? (
                           <span className="severity blunder" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171' }}>
-                            🔥 Tal Sac
+                            ⚡ Sharp Move
                           </span>
                         ) : (
                           <span className="severity warning" style={{ background: 'rgba(255, 165, 0, 0.2)', color: 'orange' }}>

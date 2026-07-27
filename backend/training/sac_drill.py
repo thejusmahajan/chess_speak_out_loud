@@ -7,20 +7,21 @@ from typing import List, Dict, Any, Optional
 from backend.training import store, metrics
 
 
-def _get_tal_findings(eco: Optional[str] = None) -> List[Dict[str, Any]]:
+def _get_sharp_findings(eco: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Select steer_findings where had_sharp_move is True."""
     profile = store.load_profile()
     if not profile or "steer_findings" not in profile:
         return []
 
     steer_findings = profile["steer_findings"]
-    tal_findings = [sf for sf in steer_findings if sf.get("had_tal_move") is True]
+    sharp_findings = [sf for sf in steer_findings if sf.get("had_sharp_move") is True]
 
     if eco:
         eco_clean = eco.strip()
-        tal_findings = [sf for sf in tal_findings if sf.get("opening", {}).get("eco") == eco_clean]
+        sharp_findings = [sf for sf in sharp_findings if sf.get("opening", {}).get("eco") == eco_clean]
 
     # Rank by steer.complexity DESC
-    tal_findings.sort(
+    sharp_findings.sort(
         key=lambda sf: sf.get("steer", {}).get("complexity", 0.0),
         reverse=True
     )
@@ -28,7 +29,7 @@ def _get_tal_findings(eco: Optional[str] = None) -> List[Dict[str, Any]]:
     # Deduplicate by board EPD
     seen_epds = set()
     deduped = []
-    for sf in tal_findings:
+    for sf in sharp_findings:
         fen = sf.get("fen_before")
         if not fen:
             continue
@@ -44,14 +45,38 @@ def _get_tal_findings(eco: Optional[str] = None) -> List[Dict[str, Any]]:
     return deduped
 
 
+_get_tal_findings = _get_sharp_findings
+
+
+def select_missed_sacrifices(profile: Optional[Dict[str, Any]] = None, eco: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Select findings where 'sacrifice' is in motifs (sound material sacrifices missed by user).
+
+    Source of truth: Phase A Lichess cook() motifs on profile['findings'].
+    NEVER falls back to had_sharp_move / steer_findings.
+    """
+    if profile is None:
+        profile = store.load_profile()
+    if not profile or "findings" not in profile:
+        return []
+
+    findings = profile["findings"]
+    sac_findings = [f for f in findings if "sacrifice" in (f.get("motifs") or [])]
+
+    if eco:
+        eco_clean = eco.strip()
+        sac_findings = [f for f in sac_findings if f.get("opening", {}).get("eco") == eco_clean]
+
+    return sac_findings
+
+
 def build_sac_session(count: int = 10, eco: Optional[str] = None) -> List[Dict[str, str]]:
-    """Select eligible sacrifice/landmine positions from profile steer_findings.
+    """Select eligible sharp candidate positions from profile steer_findings.
     
-    Filters had_tal_move=True, optional eco filter, ranks by complexity DESC,
+    Filters had_sharp_move=True, optional eco filter, ranks by complexity DESC,
     dedupes by board EPD, and returns [{"id": finding_id, "fen": fen_before}] ONLY.
     Answers and evaluations stay server-side.
     """
-    eligible = _get_tal_findings(eco=eco)
+    eligible = _get_sharp_findings(eco=eco)
     if not eligible:
         return []
 

@@ -92,7 +92,7 @@ describe('ProfileReport Tactical Steering (TS2) Tests', () => {
 
     const steerCard = screen.getByTestId('steer-card-s-001-p10');
     expect(steerCard).toBeInTheDocument();
-    expect(steerCard).toHaveTextContent('Tal Sac');
+    expect(steerCard).toHaveTextContent('Sharp Move');
     expect(steerCard).toHaveTextContent('Nf6');
     expect(steerCard).toHaveTextContent('d6');
 
@@ -101,7 +101,7 @@ describe('ProfileReport Tactical Steering (TS2) Tests', () => {
     expect(handleFindingClick).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 's-001-p10',
-        severity: 'sacrificial',
+        severity: 'sharp',
         fen_before: 'r1bqk1nr/pppp1ppp/2n5/2b5/2BpP3/2P2N2/PP3PPP/RNBQK2R b KQkq - 0 5',
       })
     );
