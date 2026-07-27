@@ -21,6 +21,17 @@ repertoire** — including a *sacrificial/Tal* style the user cares about deeply
 current profile's headline finding: **middlegame, positional blindness** (0.18 vs
 0.08/0.07), flat across clock — that's what the user will train against.
 
+**⚑ THE FLAG'S MOTTO — the user's most important aim (2026-07-28), the end everything
+else serves:** *LC0 is the ultimate coach; we just don't yet speak its language.* The
+north star is to **decode LC0's own thinking** — read the plans it is actually weighing
+(its MCTS tree, WDL trajectory, attention, and ultimately its internal look-ahead via
+**mechanistic interpretability**) — and render it into **accurate, position-specific**
+human coaching. The **LLM is a TRANSLATOR of LC0's genuine thoughts, NEVER a chess
+reasoner** — today's chess LLMs hallucinate, and *a bad coach does more harm than no
+coach*. Every explanation must state the REAL objective the variations are based on and
+never a concept that isn't apt for the position. This is **many steps away — we
+contemplate before we build.** Seed: `docs/research_learned_lookahead.md`.
+
 The original campaign was **use the A100 fully without changing a single eval**
 (`archive/MISSION_FULL_A100.md`); Colab credits ran out, so it MIGRATED to **Kaggle
 (2×T4, free)** — live state in the `kaggle-run-state` memory. After that: UI analysis by
