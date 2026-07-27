@@ -434,9 +434,22 @@ async def analyze_pgn(request: PGNRequest):
         # Analyse BEFORE the move is played
         fen_before = board.fen()
 
+        setup_uci = None
+        pre_fen = None
+        if board.move_stack:
+            setup_uci = board.peek().uci()
+            tmp = board.copy()
+            tmp.pop()
+            pre_fen = tmp.fen()
+
         engine_result = await lc0_engine.analyze(fen=fen_before, depth=15, multipv=1)
         heatmaps = generate_all_heatmaps(fen_before)
-        concepts = analyze_position(fen_before, engine_analysis=engine_result)
+        concepts = analyze_position(
+            fen_before,
+            engine_analysis=engine_result,
+            pre_fen=pre_fen,
+            setup_uci=setup_uci,
+        )
 
         board.push(move)
 

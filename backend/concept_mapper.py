@@ -16,6 +16,7 @@ from typing import Optional
 import chess
 
 from backend.tactics import MotifDetector
+from backend.training import metrics
 
 # ------------------------------------------------------------------
 # Constants
@@ -80,6 +81,8 @@ class Observation:
 def analyze_position(
     fen: str,
     engine_analysis: Optional[dict] = None,
+    pre_fen: Optional[str] = None,
+    setup_uci: Optional[str] = None,
 ) -> dict:
     """
     Produce a structured, GM-style analysis of a chess position.
@@ -88,6 +91,8 @@ def analyze_position(
         fen: FEN string of the position.
         engine_analysis: Optional engine output dict (evaluation,
             best_moves, etc.) to enrich the summary.
+        pre_fen: Optional FEN before the setup move.
+        setup_uci: Optional UCI move string that reached fen.
 
     Returns:
         dict with:
@@ -103,31 +108,30 @@ def analyze_position(
     observations.extend(_assess_piece_activity(board))
     observations.extend(_assess_king_safety(board))
     
-    # Analyze tactical motifs if PVs are available
-    if engine_analysis and "best_moves" in engine_analysis and len(engine_analysis["best_moves"]) > 0:
-        best_move_obj = engine_analysis["best_moves"][0]
-        # In mock data, pv_lines might not be available per move. 
-        # But real LC0 analyze gives pv_lines at the top level or inside moves.
-        # Let's extract the PV san list.
-        # LC0Engine analyze returns `pv_lines`: list of lists of SAN strings.
+    # Analyze tactical motifs if PVs and pre_fen/setup_uci context are available
+    if pre_fen and setup_uci and engine_analysis:
         pv_lines = engine_analysis.get("pv_lines", [])
         if pv_lines and len(pv_lines) > 0:
             top_pv = pv_lines[0]
             if top_pv:
-                motifs = MotifDetector.analyze_pv(fen, top_pv)
-                if motifs:
-                    # Format motifs nicely (e.g., 'discoveredAttack' -> 'Discovered Attack')
-                    formatted_motifs = []
-                    for m in motifs:
-                        formatted = ''.join(' ' + c if c.isupper() else c for c in m).strip().title()
-                        formatted_motifs.append(formatted)
-                        
-                    obs_text = "LC0's primary forcing line involves tactical motifs: " + ", ".join(formatted_motifs) + "."
-                    observations.append(Observation(
-                        category="tactical_motifs",
-                        severity="warning",
-                        text=obs_text
-                    ))
+                pv_san_list = top_pv.split() if isinstance(top_pv, str) else top_pv
+                if pv_san_list:
+                    cp = metrics.eval_cp_number(engine_analysis.get("evaluation")) or 0
+                    cp_mover = cp if board.turn == chess.WHITE else -cp
+                    motifs = MotifDetector.analyze_pv(pre_fen, setup_uci, pv_san_list, cp_mover)
+                    if motifs:
+                        # Format motifs nicely (e.g., 'discoveredAttack' -> 'Discovered Attack')
+                        formatted_motifs = []
+                        for m in motifs:
+                            formatted = ''.join(' ' + c if c.isupper() else c for c in m).strip().title()
+                            formatted_motifs.append(formatted)
+                            
+                        obs_text = "LC0's primary forcing line involves tactical motifs: " + ", ".join(formatted_motifs) + "."
+                        observations.append(Observation(
+                            category="tactical_motifs",
+                            severity="warning",
+                            text=obs_text
+                        ))
 
     summary = _build_summary(board, observations, engine_analysis)
 
