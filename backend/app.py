@@ -165,6 +165,15 @@ class SacPlayoutMoveRequest(BaseModel):
     history: Optional[List[str]] = None
 
 
+class CriticalPointsRequest(BaseModel):
+    min_swing: int = Field(default=200, ge=0)
+
+
+class CriticalLinesRequest(BaseModel):
+    finding_id: str
+    force: bool = False
+
+
 
 # ------------------------------------------------------------------
 # Routes
@@ -895,7 +904,56 @@ async def openings_recommendations_route(color: Optional[str] = None):
     return {"recommendations": recs}
 
 
+# ------------------------------------------------------------------
+# Critical Points Endpoints
+# ------------------------------------------------------------------
 
+from backend.training import critical_points
+
+@app.post("/api/training/critical/points")
+async def critical_points_list(req: CriticalPointsRequest):
+    cps = critical_points.select_critical_points(
+        store.load_profile(), req.min_swing
+    )
+    return [
+        {
+            "id": f.get("id"),
+            "fen_before": f.get("fen_before"),
+            "swing_cp": f.get("confirmation", {}).get("swing_cp"),
+            "played": f.get("played"),
+            "best": f.get("best"),
+            "move_number": f.get("move_number"),
+            "user_color": f.get("user_color"),
+            "opening": f.get("opening"),
+        }
+        for f in cps
+    ]
+
+
+@app.post("/api/training/critical/lines")
+async def critical_lines_route(req: CriticalLinesRequest):
+    profile = store.load_profile()
+    if not profile:
+        raise HTTPException(status_code=404, detail="No profile found")
+
+    findings = profile.get("findings", [])
+    finding = None
+    for f in findings:
+        if f.get("id") == req.finding_id:
+            finding = f
+            break
+    if not finding:
+        raise HTTPException(status_code=404, detail="Finding not found")
+
+    result = await critical_points.critical_lines(
+        finding["fen_before"],
+        finding["played"]["uci"],
+        finding["user_color"],
+        lc0_engine,
+        force=req.force,
+    )
+    # If result has error, return it (200 with error field, like sac endpoints)
+    return result
 
 
 
