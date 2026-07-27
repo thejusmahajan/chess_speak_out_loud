@@ -146,6 +146,7 @@ class IntuitionGuessRequest(BaseModel):
 
 class SacSessionRequest(BaseModel):
     count: int = Field(default=10, ge=1, le=50)
+    eco: Optional[str] = None
 
 
 class SacGuessRequest(BaseModel):
@@ -821,7 +822,7 @@ from backend.training import sac_drill
 
 @app.post("/api/training/sac/session")
 async def sac_session(req: SacSessionRequest):
-    return sac_drill.build_sac_session(req.count)
+    return sac_drill.build_sac_session(req.count, eco=req.eco)
 
 
 @app.post("/api/training/sac/guess")

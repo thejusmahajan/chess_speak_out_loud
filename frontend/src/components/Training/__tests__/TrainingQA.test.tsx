@@ -27,6 +27,8 @@ vi.mock('../../../api/training', () => ({
   startSacSession: vi.fn(() => Promise.resolve([])),
   submitSacGuess: vi.fn(() => Promise.resolve({ correct: false, acceptable: false, sac_move: { uci: 'd2d4', san: 'd4', eval_cp: 15, complexity: 4.5 }, safe_move: { san: 'Bb5', eval_cp: 30 }, eval_loss_cp: 15, playable_candidates: [] })),
   getSacStats: vi.fn(() => Promise.resolve({ total: 0, correct: 0, acceptable: 0, accuracy: 0, recent_accuracy: 0 })),
+  getOpeningSharpness: vi.fn(() => Promise.resolve({ openings: [] })),
+  getOpeningRecommendations: vi.fn(() => Promise.resolve({ recommendations: [] })),
 }));
 
 vi.mock('../TrainingBoard', () => ({

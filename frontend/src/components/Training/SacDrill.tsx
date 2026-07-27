@@ -15,7 +15,12 @@ import type {
   SacPlayoutMoveResult,
 } from '../../api/training';
 
-export default function SacDrill() {
+export interface SacDrillProps {
+  filterEco?: string;
+  onBack?: () => void;
+}
+
+export default function SacDrill({ filterEco, onBack }: SacDrillProps = {}) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +63,7 @@ export default function SacDrill() {
       exitPlayout();
 
       const [sessionPositions, statsData] = await Promise.all([
-        startSacSession(10).catch(() => []),
+        startSacSession(10, filterEco).catch(() => []),
         getSacStats().catch(() => null),
       ]);
 
@@ -420,12 +425,17 @@ export default function SacDrill() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
         <div>
           <h2 className="gradient-text" style={{ margin: 0, fontSize: '1.4rem' }}>
-            Sacrifice & Tactical-Landmine Training
+            {filterEco ? `⚔️ ${filterEco} Sacrifice Training` : 'Sacrifice & Tactical-Landmine Training'}
           </h2>
           <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>
             Position {currentIndex + 1} of {positions.length} • Found: {score}
           </span>
         </div>
+        {onBack && (
+          <button className="glass-btn" onClick={onBack} style={{ fontSize: '0.85rem', padding: '6px 12px' }}>
+            ← Back to Sharp Openings
+          </button>
+        )}
       </div>
 
       {/* Prompt Banner */}

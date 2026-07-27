@@ -7,13 +7,17 @@ from typing import List, Dict, Any, Optional
 from backend.training import store, metrics
 
 
-def _get_tal_findings() -> List[Dict[str, Any]]:
+def _get_tal_findings(eco: Optional[str] = None) -> List[Dict[str, Any]]:
     profile = store.load_profile()
     if not profile or "steer_findings" not in profile:
         return []
 
     steer_findings = profile["steer_findings"]
     tal_findings = [sf for sf in steer_findings if sf.get("had_tal_move") is True]
+
+    if eco:
+        eco_clean = eco.strip()
+        tal_findings = [sf for sf in tal_findings if sf.get("opening", {}).get("eco") == eco_clean]
 
     # Rank by steer.complexity DESC
     tal_findings.sort(
@@ -40,14 +44,14 @@ def _get_tal_findings() -> List[Dict[str, Any]]:
     return deduped
 
 
-def build_sac_session(count: int = 10) -> List[Dict[str, str]]:
+def build_sac_session(count: int = 10, eco: Optional[str] = None) -> List[Dict[str, str]]:
     """Select eligible sacrifice/landmine positions from profile steer_findings.
     
-    Filters had_tal_move=True, ranks by complexity DESC, dedupes by board EPD,
-    and returns [{"id": finding_id, "fen": fen_before}] ONLY.
+    Filters had_tal_move=True, optional eco filter, ranks by complexity DESC,
+    dedupes by board EPD, and returns [{"id": finding_id, "fen": fen_before}] ONLY.
     Answers and evaluations stay server-side.
     """
-    eligible = _get_tal_findings()
+    eligible = _get_tal_findings(eco=eco)
     if not eligible:
         return []
 

@@ -33,6 +33,7 @@ def sac_env(tmp_path, monkeypatch):
                 ],
                 "eval_loss_cp": 15,
                 "had_tal_move": True,
+                "opening": {"eco": "D02", "name": "London System"},
             },
             {
                 "id": "s-002-p015",
@@ -42,6 +43,7 @@ def sac_env(tmp_path, monkeypatch):
                 "playable_candidates": [{"uci": "b8c6", "complexity": 0.8, "eval_cp": 0}],
                 "eval_loss_cp": 0,
                 "had_tal_move": False,
+                "opening": {"eco": "D02", "name": "London System"},
             },
             {
                 "id": "s-003-p030",
@@ -54,6 +56,7 @@ def sac_env(tmp_path, monkeypatch):
                 ],
                 "eval_loss_cp": 70,
                 "had_tal_move": True,
+                "opening": {"eco": "C44", "name": "King's Pawn Game"},
             },
             {
                 "id": "s-004-p020",
@@ -182,3 +185,19 @@ def test_api_endpoints_integration(sac_env):
     # 4. Unknown finding_id -> 404
     res_404 = client.post("/api/training/sac/guess", json={"finding_id": "nonexistent", "uci": "e2e4"})
     assert res_404.status_code == 404
+
+
+def test_sac_session_filtered_by_eco(sac_env):
+    """Mutation check: eco='D02' returns ONLY D02 sacrifices."""
+    session_d02 = sac_drill.build_sac_session(count=10, eco="D02")
+    assert len(session_d02) == 1
+    assert session_d02[0]["id"] == "s-001-p020"
+
+    # API endpoint test with eco
+    client = TestClient(app)
+    res = client.post("/api/training/sac/session", json={"count": 10, "eco": "C44"})
+    assert res.status_code == 200
+    items = res.json()
+    assert len(items) == 1
+    assert items[0]["id"] == "s-003-p030"
+

@@ -319,11 +319,11 @@ export interface SacStats {
   recent_accuracy: number;
 }
 
-export async function startSacSession(count: number = 10): Promise<SacPosition[]> {
+export async function startSacSession(count: number = 10, eco?: string): Promise<SacPosition[]> {
   const res = await fetch(`${BASE_URL}/sac/session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ count }),
+    body: JSON.stringify({ count, eco }),
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
@@ -341,6 +341,46 @@ export async function submitSacGuess(finding_id: string, uci: string): Promise<S
 
 export async function getSacStats(): Promise<SacStats> {
   const res = await fetch(`${BASE_URL}/sac/stats`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export interface OpeningSharpnessItem {
+  eco: string;
+  name: string;
+  sacs: number;
+  mean_complexity: number;
+  n_positions: number;
+  top_positions: string[];
+  sharpness_score: number;
+}
+
+export interface OpeningSharpnessResponse {
+  openings: OpeningSharpnessItem[];
+}
+
+export interface OpeningRecommendationItem {
+  eco: string;
+  name: string;
+  color: 'white' | 'black';
+  sac_idea: string;
+  themes: string[];
+  why: string;
+}
+
+export interface OpeningRecommendationsResponse {
+  recommendations: OpeningRecommendationItem[];
+}
+
+export async function getOpeningSharpness(): Promise<OpeningSharpnessResponse> {
+  const res = await fetch(`${BASE_URL}/openings/sharpness`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getOpeningRecommendations(color?: string): Promise<OpeningRecommendationsResponse> {
+  const url = color ? `${BASE_URL}/openings/recommendations?color=${encodeURIComponent(color)}` : `${BASE_URL}/openings/recommendations`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
@@ -403,5 +443,6 @@ export async function submitPlayoutMove(
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
 
 
