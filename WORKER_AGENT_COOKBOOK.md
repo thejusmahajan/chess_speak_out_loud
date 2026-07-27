@@ -185,6 +185,28 @@ caught in *this* project.
 - **Guard:** re-run their gate yourself, in the real environment. Numbers from the
   worker are a hypothesis.
 
+### 3.8 Report narrative ≠ actual diff — the story misdescribes the code
+- **Incident:** the UI-issues triage's prose said #9 was fixed by "removing the strict
+  `is_available()` checks so `analyze()`'s mock fallback runs" — but the diff left those
+  checks in place and instead fixed a real bug (`best_moves[0]` is a `dict {"move": uci}`
+  passed to `chess.Move.from_uci`). Separately it claimed to "create the `/api/training/
+  trends` endpoint in `app.py`" — that endpoint already existed; the actual change was in
+  `trends.py`. In both cases the *code was correct*; the *explanation* was wrong.
+- **Tell:** the report's root-cause/resolution and the `git diff` disagree — cited line
+  numbers don't contain what's claimed, or a "removed"/"created" thing is still/already there.
+- **Guard:** the DIFF is ground truth; the report is a hypothesis about what changed. Verify
+  the fix against the code, not the narrative — and don't let a confident wrong *story* make
+  you either reject correct code or trust incorrect code. (It cuts both ways.)
+
+### 3.9 Regression blamed on the wrong change
+- **Incident:** a TS2 cancellation test failed right after the theme-tagger Phase A landed;
+  it looked like the change broke `run_diagnosis`. Stashing the change and re-running on
+  committed HEAD showed it fails there too — a pre-existing load-sensitive 10s `wait_for`.
+- **Tell:** a failure appears "after" a change but the change doesn't touch the failing path.
+- **Guard:** isolate before blaming — `git stash` to committed HEAD (or stash just the
+  suspect files) and re-run. Prove causation; a post-hoc failure is not proof the last edit
+  caused it. (Corollary of §4's "re-run in the real env": also run the *baseline*.)
+
 ---
 
 ## 4. The verification protocol (the reviewer's gate — run this every time)

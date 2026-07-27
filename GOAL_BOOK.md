@@ -7,6 +7,11 @@
 > **v2 (2026-07-26):** decoupled the theme-KB from the drill features, fixed J2 scope
 > (current repertoire AND new sharp openings), added master-DB example games, defined the
 > similarity-scoring rule, un-parked attention heatmaps.
+> **v3 (2026-07-27):** corrected the sacrifice/sharpness conflation. `had_tal_move` was a
+> pure complexity signal with NO material check — it is a **sharpness** signal (renamed
+> `had_sharp_move`), NOT a sacrifice. A **real** sacrifice is material-based and comes only
+> from `lichess_tagger.cook()` tags on `findings[].motifs` (see `docs/THEME_DEFINITIONS.md`,
+> `THEME_TAGGER_FIX_SPEC.md`). J1/J7/J3 sac language below now maps to that real signal.
 
 ## North star (the soul of the tool)
 A ~2100–2200 Lichess player, **bored by dry/equal positions** (his London System drifts to
@@ -39,8 +44,10 @@ WHY LC0 favors a move** — "because it leads to a tactical configuration, not j
 advantage" (he called this "immensely helpful"); (b) train him to *imagine* tactical
 formations; (c) enrich drill themes; (d) power similarity testing; (e) link to example games.
 **Decoupling decision [leader, per Gemini review]:** the **drills (J1/J3/J7) ship first on
-existing `TS2` outputs (`had_tal_move`, `policy_trap`, complexity) + `lichess_tagger` motif
-tags** — they do NOT wait on this KB. The KB is a **parallel enrichment track**, and it is
+existing `TS2` outputs (`had_sharp_move` = sharpness, `policy_trap`, complexity) + real
+material-based `lichess_tagger` motif tags** (for genuine sacrifices) — they do NOT wait on
+this KB. `had_sharp_move` surfaces "sharp candidates"; only the `cook()`-based `sacrifice`
+motif surfaces a real sac (never conflate the two — see v3). The KB is a **parallel enrichment track**, and it is
 genuinely more foundational for **J2** (reaching a named tactical configuration *from an
 opening*), where the user himself said the formations must be laid down "first".
 
@@ -81,7 +88,9 @@ opening*), where the user himself said the formations must be laid down "first".
   from a list** → play the attack vs LC0 [E, Q7.2]. Verify via **similar-configuration tests**,
   where **the penalty for a miss scales UP with the position's similarity to the trained one**
   (miss a near-identical pattern → lose more; a distant one → more forgivable) [E, Q7.3-followup].
-  Maps to: `had_tal_move` steer_findings + motif tags. (No KB gate; KB enriches the theme list.)
+  Maps to: the REAL sacrifice signal — `findings[].motifs` containing `"sacrifice"` (material
+via `cook()`, "a sound sac you missed") — enriched by `had_sharp_move` steer_findings for
+sharp candidates. (No KB gate; KB enriches the theme list.)
 - **J3 — Thematic tactical drilling.** Motifs [E, Q3.1]: kingside sacs (B/N/Q), pawn sacs for
   dynamics, exchange sacs, knight forks, double attacks in London structures, KGA kingside
   attacks as Black, "sac to land a knight near the king." Drill = **solve the principle THEN play
@@ -101,9 +110,11 @@ opening*), where the user himself said the formations must be laid down "first".
    dashboard. His #1; builds on the existing profile; delivers the correction loop end-to-end.
 2. **Sprint 2 — LC0 intuition speed-drill** (J4+J5): 10-min daily 10s policy-guessing; lean,
    standalone, zero new engine deps. Early win.
-3. **Sprint 3 — Landmine + Tal-sac hesitation drills** (J1+J7): powered by TS2 (`had_tal_move`,
-   complexity) + `lichess_tagger` + **master-DB example lookup** + play-out-vs-LC0. **No KB
-   blocker** — delivers the sharp/sacrificial experience he craves early.
+3. **Sprint 3 — Landmine + Tal-sac hesitation drills** (J1+J7): powered by TS2 sharpness
+   (`had_sharp_move`, complexity) for sharp candidates + real material `lichess_tagger`
+   `sacrifice` motifs for genuine sacs + **master-DB example lookup** + play-out-vs-LC0. **No
+   KB blocker** — delivers the sharp/sacrificial experience he craves early. *(Built; the
+   sacrifice re-sourcing is being corrected in theme-tagger Phase B/C — see LEADER_BIBLE §6.)*
 4. **Sprint 4 — Sharp openings** (J2): derive current repertoire from the corpus + **recommend
    new 1.e4 sharp lines**; repertoire tree with high-complexity nodes. Needs the ECO fix.
 5. **Sprint 5 — Deep theme/config knowledge base** (enrichment): config→theme from articles/
