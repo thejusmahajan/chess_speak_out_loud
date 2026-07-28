@@ -15,7 +15,7 @@ from typing import Optional
 
 import chess
 
-from backend.training import store, metrics
+from backend.training import store, metrics, relational_facts
 
 
 # ------------------------------------------------------------------
@@ -163,3 +163,37 @@ async def critical_lines(
     }
     cache.put(epd, verdict)
     return verdict
+
+
+async def position_plan_facts(fen: str, pov: chess.Color, lc0_engine,
+                              nodes: int = 4000, multipv: int = 1) -> dict:
+    """Run LC0 on `fen`, then extract relational facts along its chosen line.
+
+    Returns the STATIC facts of the position PLUS the PLAN-level facts (what LC0's
+    continuation creates/removes, move by move) — the north-star principle "LC0 chooses
+    the line, the facts describe it", now covering plans as well as static positions.
+    No salience filtering: every true fact is emitted; ranking is the learned layer's job.
+    """
+    a = await lc0_engine.analyze(fen, multipv=multipv, nodes=nodes)
+    pv_san = (a.get("pv_lines") or [""])[0]
+    board = chess.Board(fen)
+    ucis = []
+    for san in pv_san.split():
+        try:
+            m = board.parse_san(san)
+            ucis.append(m.uci())
+            board.push(m)
+        except Exception:
+            break
+    if not ucis:
+        return {"fen": fen, "line_san": "", "line_uci": [], "eval": a.get("evaluation"),
+                "position_facts": [], "plan_facts": [], "note": "engine_unavailable"}
+    facts = relational_facts.relational_facts(fen, ucis, pov)
+    return {
+        "fen": fen,
+        "line_san": pv_san,
+        "line_uci": ucis,
+        "eval": a.get("evaluation"),
+        "position_facts": facts.get("position_facts", []),
+        "plan_facts": facts.get("per_move", []),
+    }
