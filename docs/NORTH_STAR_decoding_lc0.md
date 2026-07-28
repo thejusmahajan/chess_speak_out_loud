@@ -79,6 +79,36 @@ ideally a **schema the LLM fills**, not free prose. The LLM is a rendering layer
 ---
 
 ## 3. What "the objective of the position" concretely decomposes into
+
+**THE KEY REFINEMENT — the objective is CONTRASTIVE (user, 2026-07-28).** Describing the correct
+line's facts *in isolation* does NOT capture the objective — proven: a single-line Tier-B prototype
+mislabelled #1 `Bc6` a "sacrifice" (it wrongly attributed the *opponent's* exchange sac to the mover)
+and missed the real point of #2 (piece development). **The objective of a move is defined by what the
+INFERIOR alternatives FAIL to achieve compared to the correct continuation.** A human sees this by
+looking at the position; a machine reads it by CONTRAST — compute the facts for the best line AND for
+the top alternative(s) (we already have them: `critical_lines` / multipv), and the objective is the
+**salient delta**: what the best line achieves that the alternative doesn't (the eval/WDL gap tells the
+magnitude and *kind*; the structural diff tells *what* — e.g. "the safe move keeps material but leaves
+the king exposed / development lagging"). This also makes the eventual translator's job tractable and
+hallucination-resistant: it narrates a concrete factual *difference*, never "explain this position".
+Attribution rule (from the #1 bug): a "sacrifice" counts only when the MOVER gives the material, not
+when material merely dips because the opponent sacrificed.
+
+**DEEPER (user, 2026-07-28) — the objective lives in the FORCING TREE + a RELATIONAL FACT WEB, and both
+are computable (proven on `Bc6`/`cxb3`):**
+- *Forcing tree:* a move's meaning is in the branches it forces, invisible in its linear PV. Read from
+  LC0's search: **forcedness** = eval spread across the opponent's replies (recaptures ≈ −5, everything
+  else ≤ −10 ⇒ forced), **threat** = what the mover plays if the opponent ignores (`…bxc2`, +24). Verified.
+- *Relational fact web:* the real objective decomposed into CONCRETE geometric facts — protected passed
+  pawn (`c2`, defended by `Ba4`, 1 from queening), pawn-attacks-queen (`c2`→`Qd1`), x-ray/pin
+  (`Ba4`→c2→`Qd1`: a `Nxc2` is pinned), defender-removal (`Bxd4` removes the `Nd4` that guarded c2),
+  promotion support (`Qb6`). ALL verified computable; a general extractor auto-reproduced the
+  passed-pawn / queen-attack / defender-removal facts. So the "final sight" is NOT ineffable intuition —
+  it is extractable from board + tree. The mystery moved from "can we see it?" to "which facts are
+  SALIENT?" (leader+user judge salience; the forcing tree tells us which line the objective turns on).
+- Build: `RELATIONAL_FACTS_TASK.md` (pins via `board.pin`, conditional "what-if recapture" facts, zero
+  false positives). Fact-extraction is close; salience + composition remain the hard, human-gated part.
+
 So we know what to extract (and what the translator may assemble):
 - **The PLAN** — the recurring idea across LC0's high-visit subtrees (kingside storm, occupy d5,
   trade into a won endgame). Detectable as the common theme in the tree's principal lines.
