@@ -38,6 +38,18 @@ generalized: **instead of the user's analysis, the GM's annotation becomes the o
   idea is a deliberate FUTURE step, out of scope now.
 - **Annotation quality / granularity** varies — filter to substantive positional/tactical explanations.
 
+## SOURCE QUALITY BAR (user, 2026-07-28 — STRESSED)
+Quality gates ingestion, **on top of** licensing. Annotator authority is non-negotiable — a fluent
+amateur annotation is a bad coach (the motto).
+- **Lichess public studies are mostly AMATEUR-authored and unreliable — EXCLUDE by default.** Only ingest a
+  study if it is (a) authored by a **verified GM / world-class trainer**, or (b) a **verbatim transcription
+  of a reputable chess book / publication**. Provenance must prove the annotator's authority, or it does
+  not enter.
+- **Primary gold source = public-domain master books** (Capablanca, Lasker, Alekhine, Steinitz, Morphy-by-
+  masters, pre-1928) — above copyright AND world-class. These seed the gold `quality_tier`.
+- Unverified / amateur content **never enters the corpus** (or, at most, a clearly-marked lowest tier that
+  can NEVER override the gold). "GM-annotated somewhere on the internet" is not proof; verify the author.
+
 ## Modular knowledge architecture (design decision, user, 2026-07-28)
 The GM-derived knowledge is a **versioned, quality-tiered DATA ARTIFACT**, decoupled from the code that
 builds it and the app that consumes it — so a bigger/better corpus can REPLACE and IMPROVE it without
