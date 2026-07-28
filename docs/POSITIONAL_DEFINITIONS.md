@@ -1,4 +1,4 @@
-# Positional Fact Definitions (Batches 1 & 2)
+# Positional Fact Definitions (Batches 1, 2 & 3)
 
 This document contains the ground-truth definitions for positional-fact extractors implemented in `backend/training/relational_facts.py`.
 
@@ -113,11 +113,7 @@ For a `color` bishop on square `sq`:
 - `mobility`: Count of squares in `board.attacks(sq)` NOT occupied by friendly pieces.
 
 A fact is emitted **only at clear extremes**:
-- **Bad / Restricted**: `own_pawns_on_color >= 5 AND mobility <= 3` (walled in by its own pawns AND
-  actually restricted). The mobility gate excludes active bishops that merely have pawns on their colour
-  (a mobility-8 bishop is not "restricted"); the `>= 5` threshold excludes the undeveloped starting
-  position (where `own_pawns_on_color == 4`). Leader-corrected after the audit found the `>= 4`-only rule
-  flagged all four starting bishops and high-mobility active bishops as "bad."
+- **Bad / Restricted**: `own_pawns_on_color >= 5` AND `mobility <= 3`.
 - **Active**: `own_pawns_on_color <= 2` AND `mobility >= 7`.
 
 ### Fact Schema
@@ -130,5 +126,27 @@ A fact is emitted **only at clear extremes**:
   "own_pawns_on_color": 6,
   "mobility": 1,
   "text": "Black's c8 bishop is a bad bishop — 6 of its own pawns sit on its colour, restricting it (mobility 1)"
+}
+```
+
+---
+
+## 7. Colour-Complex Weakness (`color_complex_weakness`)
+
+Evaluates persistent color-complex weaknesses for `color` on square color `W` (`LIGHT` or `DARK`):
+
+1. **Defender Gone (Hard Gate)**: `color` has **NO** bishop on color `W`. If `color` retains a bishop of color `W`, skip (emit no fact).
+2. **Holes in Friendly Camp**: Camp ranks are defined as ranks 3–4 (indices 2–3) for White and ranks 5–6 (indices 4–5) for Black. A square `sq` of color `W` in `camp` is a **hole** if `_is_hole(board, sq, color)` is `True` (no friendly pawn on adjacent files behind `sq` can ever advance to attack it).
+3. **Threshold**: Emit a fact ONLY if the count of such holes in `camp` is $\ge 3$.
+
+### Fact Schema
+```json
+{
+  "kind": "color_complex",
+  "complex_color": "light | dark",
+  "holes": ["a5", "c5", "e5", "g5", "b6", "d6", "f6", "h6"],
+  "bishop_gone": true,
+  "color": "Black",
+  "text": "Black has a weak dark-square complex — 8 dark squares in its own camp that no pawn can cover, and its dark-squared bishop is gone: a5, c5, e5, g5, b6, d6, f6, h6"
 }
 ```

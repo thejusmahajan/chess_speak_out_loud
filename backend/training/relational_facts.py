@@ -14,6 +14,7 @@ Translates positions and tactical forcing lines into grounded piece-relationship
 - Rook on 7th rank (rooks/queens occupying enemy 2nd rank)
 - Control of open / half-open files (rooks/queens on open/half-open files)
 - Bishop quality & activity (metric-based bad vs active bishop classification)
+- Colour-complex weakness (holes on a square colour when defending bishop is gone)
 """
 
 from typing import List, Dict, Any, Optional, Union
@@ -44,6 +45,27 @@ def _ray_directions(piece_type: chess.PieceType) -> List[tuple[int, int]]:
     if piece_type in (chess.BISHOP, chess.QUEEN):
         dirs.extend([(1, 1), (1, -1), (-1, 1), (-1, -1)])
     return dirs
+
+
+def _is_hole(board: chess.Board, sq: int, color: chess.Color) -> bool:
+    """
+    Returns True if no friendly (color) pawn can EVER attack square `sq`.
+    That is, neither adjacent file (f-1 / f+1) contains a friendly pawn on a rank behind `sq`
+    (in direction of advance dr) that could advance to attack it.
+    """
+    dr = 1 if color == chess.WHITE else -1
+    r = chess.square_rank(sq)
+    f = chess.square_file(sq)
+    adj_files = [f_adj for f_adj in (f - 1, f + 1) if 0 <= f_adj <= 7]
+
+    color_pawns = board.pieces(chess.PAWN, color)
+    for p_sq in color_pawns:
+        p_f = chess.square_file(p_sq)
+        p_r = chess.square_rank(p_sq)
+        if p_f in adj_files:
+            if p_r * dr < r * dr:
+                return False
+    return True
 
 
 def protected_passed_pawns(board: chess.Board, pov: chess.Color) -> List[Dict[str, Any]]:
@@ -494,31 +516,17 @@ def tied_defenders(board: chess.Board, color: chess.Color) -> List[Dict[str, Any
 def outposts(board: chess.Board, color: chess.Color) -> List[Dict[str, Any]]:
     """
     Detect enemy pieces (knight, bishop, rook) sitting on outposts in color's half of the board.
+    Reuses shared _is_hole helper.
     """
     facts = []
     enemy_color = not color
-    dr = 1 if color == chess.WHITE else -1
     half_ranks = range(0, 4) if color == chess.WHITE else range(4, 8)
 
     for sq, piece in sorted(board.piece_map().items()):
         if piece.color == enemy_color and piece.piece_type in (chess.KNIGHT, chess.BISHOP, chess.ROOK):
             r = chess.square_rank(sq)
             if r in half_ranks:
-                f = chess.square_file(sq)
-                adj_files = [f_adj for f_adj in (f - 1, f + 1) if 0 <= f_adj <= 7]
-
-                can_be_challenged = False
-                color_pawns = board.pieces(chess.PAWN, color)
-
-                for p_sq in color_pawns:
-                    p_f = chess.square_file(p_sq)
-                    p_r = chess.square_rank(p_sq)
-                    if p_f in adj_files:
-                        if p_r * dr < r * dr:
-                            can_be_challenged = True
-                            break
-
-                if not can_be_challenged:
+                if _is_hole(board, sq, color):
                     sq_name = chess.square_name(sq)
                     p_str = piece.symbol().upper()
                     color_name = chess.COLOR_NAMES[color].capitalize()
@@ -605,9 +613,7 @@ def open_file_pieces(board: chess.Board, color: chess.Color) -> List[Dict[str, A
 def bishop_quality(board: chess.Board, color: chess.Color) -> List[Dict[str, Any]]:
     """
     Evaluate bishop quality based on friendly pawns on the same square color & mobility:
-    - bad: own_pawns_on_color >= 5 AND mobility <= 3 (walled in by its own pawns AND actually
-      restricted; the mobility gate excludes active bishops that merely have pawns on their colour,
-      and the >=5 threshold excludes the undeveloped starting position, where own_pawns_on_color == 4)
+    - bad: own_pawns_on_color >= 5 AND mobility <= 3
     - active: own_pawns_on_color <= 2 AND mobility >= 7
     """
     facts = []
@@ -648,6 +654,53 @@ def bishop_quality(board: chess.Board, color: chess.Color) -> List[Dict[str, Any
     return facts
 
 
+def color_complex_weakness(board: chess.Board, color: chess.Color) -> List[Dict[str, Any]]:
+    """
+    Detect persistent color-complex weakness for `color`:
+    1. Hard gate: defender bishop of color W is gone.
+    2. Holes on W in color's camp (ranks 2-3 for White, ranks 4-5 for Black).
+    3. Emit fact ONLY if hole count >= 3.
+    """
+    facts = []
+    color_name = chess.COLOR_NAMES[color].capitalize()
+    bishops = board.pieces(chess.BISHOP, color)
+    camp_ranks = [2, 3] if color == chess.WHITE else [4, 5]
+
+    for complex_name, is_light in [("light", True), ("dark", False)]:
+        color_bb = chess.BB_LIGHT_SQUARES if is_light else chess.BB_DARK_SQUARES
+
+        # 1. Defender gone check (hard gate)
+        has_bishop = any(bool(chess.BB_SQUARES[s] & color_bb) for s in bishops)
+        if has_bishop:
+            continue
+
+        # 2. Holes in camp
+        camp_sqs = [
+            s for s in range(64)
+            if chess.square_rank(s) in camp_ranks and bool(chess.BB_SQUARES[s] & color_bb)
+        ]
+        # A square occupied by our OWN pawn is not a hole (it is blocked, not weak).
+        def _own_pawn(s):
+            p = board.piece_at(s)
+            return p is not None and p.piece_type == chess.PAWN and p.color == color
+        holes = [s for s in camp_sqs if _is_hole(board, s, color) and not _own_pawn(s)]
+
+        # 3. Hole threshold (>= 3)
+        if len(holes) >= 3:
+            hole_names = [chess.square_name(s) for s in sorted(holes)]
+            holes_str = ", ".join(hole_names)
+            facts.append({
+                "kind": "color_complex",
+                "complex_color": complex_name,
+                "holes": hole_names,
+                "bishop_gone": True,
+                "color": color_name,
+                "text": f"{color_name} has a weak {complex_name}-square complex — {len(holes)} {complex_name} squares in its own camp that no pawn can cover, and its {complex_name}-squared bishop is gone: {holes_str}",
+            })
+
+    return facts
+
+
 def relational_facts(fen: str, line_ucis: List[str], pov: chess.Color) -> Dict[str, Any]:
     """
     Composition API: applies relational fact extractors to initial position and along line_ucis,
@@ -666,6 +719,7 @@ def relational_facts(fen: str, line_ucis: List[str], pov: chess.Color) -> Dict[s
     position_facts.extend(rook_on_seventh(board, pov))
     position_facts.extend(open_file_pieces(board, pov))
     position_facts.extend(bishop_quality(board, pov))
+    position_facts.extend(color_complex_weakness(board, pov))
 
     per_move = []
 
@@ -689,6 +743,7 @@ def relational_facts(fen: str, line_ucis: List[str], pov: chess.Color) -> Dict[s
             + rook_on_seventh(board_before, pov)
             + open_file_pieces(board_before, pov)
             + bishop_quality(board_before, pov)
+            + color_complex_weakness(board_before, pov)
         )
         facts_after = (
             protected_passed_pawns(board_after, pov)
@@ -700,6 +755,7 @@ def relational_facts(fen: str, line_ucis: List[str], pov: chess.Color) -> Dict[s
             + rook_on_seventh(board_after, pov)
             + open_file_pieces(board_after, pov)
             + bishop_quality(board_after, pov)
+            + color_complex_weakness(board_after, pov)
         )
 
         before_texts = {f["text"] for f in facts_before}
