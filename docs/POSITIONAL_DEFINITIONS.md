@@ -1,4 +1,4 @@
-# Positional Fact Definitions (Batch 1)
+# Positional Fact Definitions (Batches 1 & 2)
 
 This document contains the ground-truth definitions for positional-fact extractors implemented in `backend/training/relational_facts.py`.
 
@@ -33,7 +33,7 @@ For a pawn of color `color` on square `s` (file `f`, rank `r`), where `dr = +1` 
 
 A friendly piece (excluding pawns and kings) of color `color` is **tied to defense** if:
 1. It defends a friendly pawn `W` on square `W_sq` (i.e. the piece square is in `board.attackers(color, W_sq)`).
-2. The pawn `W` is a identified weakness (`isolated`, `backward`, or `doubled`).
+2. The pawn `W` is an identified weakness (`isolated`, `backward`, or `doubled`).
 3. The pawn `W` is currently attacked by at least one enemy piece (`board.attackers(not color, W_sq)` is non-empty).
 
 ### Fact Schema
@@ -63,5 +63,72 @@ An enemy piece (Knight, Bishop, or Rook) on square `sq` is an **outpost** in `co
   "square": "d5",
   "defender_color": "Black",
   "text": "The enemy N on d5 sits on an outpost — a hole Black can no longer challenge with a pawn"
+}
+```
+
+---
+
+## 4. Rook on 7th Rank (`rook_on_seventh`)
+
+A `color` rook or queen occupying the enemy's 2nd rank (rank index 6 for White, rank index 1 for Black).
+
+### Fact Schema
+```json
+{
+  "kind": "rook_seventh",
+  "piece": "R | Q",
+  "square": "c7",
+  "color": "White | Black",
+  "text": "White's rook on c7 occupies the 7th rank"
+}
+```
+
+---
+
+## 5. Control of Open / Half-Open Files (`open_file_pieces`)
+
+A `color` rook or queen on file `f` where:
+- **Open file**: File `f` contains **0** pawns of either color.
+- **Half-open file**: File `f` contains **0** `color` pawns, but the enemy has $\ge 1$ pawn.
+- Files containing friendly pawns emit no fact.
+
+### Fact Schema
+```json
+{
+  "kind": "file_control",
+  "piece": "R | Q",
+  "square": "d1",
+  "file": "d",
+  "kind_of": "open | half-open",
+  "text": "Black's rook on the open d-file"
+}
+```
+
+---
+
+## 6. Bishop Quality & Activity (`bishop_quality`)
+
+For a `color` bishop on square `sq`:
+- `own_pawns_on_color`: Count of friendly pawns (`color`) occupying squares of the **same color** (light/dark) as `sq`.
+- `mobility`: Count of squares in `board.attacks(sq)` NOT occupied by friendly pieces.
+
+A fact is emitted **only at clear extremes**:
+- **Bad / Restricted**: `own_pawns_on_color >= 5 AND mobility <= 3` (walled in by its own pawns AND
+  actually restricted). The mobility gate excludes active bishops that merely have pawns on their colour
+  (a mobility-8 bishop is not "restricted"); the `>= 5` threshold excludes the undeveloped starting
+  position (where `own_pawns_on_color == 4`). Leader-corrected after the audit found the `>= 4`-only rule
+  flagged all four starting bishops and high-mobility active bishops as "bad."
+- **Active**: `own_pawns_on_color <= 2` AND `mobility >= 7`.
+
+### Fact Schema
+```json
+{
+  "kind": "bishop_quality",
+  "quality": "bad | active",
+  "square": "c8",
+  "color": "Black",
+  "own_pawns_on_color": 6,
+  "mobility": 1,
+  "text": "Black's c8 bishop is a bad bishop — 6 of its own pawns sit on its colour, restricting it (mobility 1)"
 }
 ```
