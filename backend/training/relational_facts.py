@@ -8,6 +8,9 @@ Translates positions and tactical forcing lines into grounded piece-relationship
 - Conditional pins (recapture / hypothetical placement pins)
 - Defender removal (squares controlled by captured pieces)
 - King pressure assessment
+- Positional pawn weaknesses (isolated, doubled, backward)
+- Tied defenders (pieces tied to defending weak, attacked pawns)
+- Outposts (enemy pieces occupying unchallenged holes in friendly territory)
 """
 
 from typing import List, Dict, Any, Optional, Union
@@ -346,6 +349,187 @@ def king_pressure(board: chess.Board, pov: chess.Color) -> List[Dict[str, Any]]:
     return facts
 
 
+def pawn_weaknesses(board: chess.Board, color: chess.Color) -> List[Dict[str, Any]]:
+    """
+    Detect pawn weaknesses for `color`: isolated, doubled, and backward pawns.
+    """
+    facts = []
+    dr = 1 if color == chess.WHITE else -1
+    pawns = list(board.pieces(chess.PAWN, color))
+    pawns_by_file: Dict[int, List[int]] = {}
+
+    for sq in pawns:
+        f = chess.square_file(sq)
+        pawns_by_file.setdefault(f, []).append(sq)
+
+    # 1. Doubled pawns (reported once per file)
+    for f, sqs in sorted(pawns_by_file.items()):
+        if len(sqs) > 1:
+            file_name = chr(ord('a') + f)
+            sq_names = [chess.square_name(s) for s in sorted(sqs)]
+            any_attacked = any(bool(board.attackers(not color, s)) for s in sqs)
+            color_name = chess.COLOR_NAMES[color].capitalize()
+            att_str = " (and under attack)" if any_attacked else ""
+            facts.append({
+                "kind": "pawn_weakness",
+                "weakness": "doubled",
+                "file": file_name,
+                "squares": sq_names,
+                "square": sq_names[0],
+                "color": color_name,
+                "attacked": any_attacked,
+                "text": f"{color_name}'s pawns on file {file_name} ({', '.join(sq_names)}) are doubled{att_str}",
+            })
+
+    for sq in sorted(pawns):
+        f = chess.square_file(sq)
+        r = chess.square_rank(sq)
+        sq_name = chess.square_name(sq)
+        color_name = chess.COLOR_NAMES[color].capitalize()
+        is_attacked = bool(board.attackers(not color, sq))
+        att_str = " (and under attack)" if is_attacked else ""
+
+        # 2. Isolated pawn check
+        adj_files = [f_adj for f_adj in (f - 1, f + 1) if 0 <= f_adj <= 7]
+        has_adj_pawn = any(f_adj in pawns_by_file for f_adj in adj_files)
+        if not has_adj_pawn:
+            facts.append({
+                "kind": "pawn_weakness",
+                "weakness": "isolated",
+                "square": sq_name,
+                "color": color_name,
+                "attacked": is_attacked,
+                "text": f"{color_name}'s {sq_name} pawn is isolated{att_str}",
+            })
+
+        # 3. Backward pawn check
+        adj_support = False
+        for f_adj in adj_files:
+            for s_adj in pawns_by_file.get(f_adj, []):
+                r_adj = chess.square_rank(s_adj)
+                if r_adj * dr <= r * dr:
+                    adj_support = True
+                    break
+            if adj_support:
+                break
+
+        if not adj_support:
+            stop_r = r + dr
+            if 0 <= stop_r <= 7:
+                stop_sq = chess.square(f, stop_r)
+                stop_piece = board.piece_at(stop_sq)
+                stop_occ_by_enemy_pawn = (
+                    stop_piece is not None
+                    and stop_piece.piece_type == chess.PAWN
+                    and stop_piece.color != color
+                )
+                stop_ctrl_by_enemy_pawn = any(
+                    board.piece_at(att_sq).piece_type == chess.PAWN
+                    for att_sq in board.attackers(not color, stop_sq)
+                    if board.piece_at(att_sq) and board.piece_at(att_sq).color != color
+                )
+
+                if stop_occ_by_enemy_pawn or stop_ctrl_by_enemy_pawn:
+                    friendly_pawn_ahead = any(
+                        chess.square_rank(s_f) * dr > r * dr
+                        for s_f in pawns_by_file.get(f, [])
+                    )
+                    if not friendly_pawn_ahead:
+                        facts.append({
+                            "kind": "pawn_weakness",
+                            "weakness": "backward",
+                            "square": sq_name,
+                            "color": color_name,
+                            "attacked": is_attacked,
+                            "text": f"{color_name}'s {sq_name} pawn is backward{att_str}",
+                        })
+
+    return facts
+
+
+def tied_defenders(board: chess.Board, color: chess.Color) -> List[Dict[str, Any]]:
+    """
+    Find color pieces tied to defending a weak friendly pawn currently under attack.
+    """
+    facts = []
+    weaknesses = pawn_weaknesses(board, color)
+    weak_pawns = set()
+
+    for w in weaknesses:
+        if w["weakness"] in ("isolated", "backward"):
+            weak_pawns.add(chess.parse_square(w["square"]))
+        elif w["weakness"] == "doubled":
+            for sq_name in w.get("squares", []):
+                weak_pawns.add(chess.parse_square(sq_name))
+
+    seen = set()
+
+    for w_sq in sorted(weak_pawns):
+        enemy_attackers = board.attackers(not color, w_sq)
+        if enemy_attackers:
+            friendly_attackers = board.attackers(color, w_sq)
+            for def_sq in sorted(friendly_attackers):
+                def_piece = board.piece_at(def_sq)
+                if def_piece and def_piece.piece_type not in (chess.PAWN, chess.KING):
+                    key = (def_sq, w_sq)
+                    if key not in seen:
+                        seen.add(key)
+                        def_sq_name = chess.square_name(def_sq)
+                        w_sq_name = chess.square_name(w_sq)
+                        p_str = def_piece.symbol().upper()
+                        facts.append({
+                            "kind": "tied_defender",
+                            "piece": p_str,
+                            "square": def_sq_name,
+                            "defends": w_sq_name,
+                            "text": f"The {p_str} on {def_sq_name} is tied to the defence of the weak {w_sq_name} pawn",
+                        })
+
+    return facts
+
+
+def outposts(board: chess.Board, color: chess.Color) -> List[Dict[str, Any]]:
+    """
+    Detect enemy pieces (knight, bishop, rook) sitting on outposts in color's half of the board.
+    """
+    facts = []
+    enemy_color = not color
+    dr = 1 if color == chess.WHITE else -1
+    half_ranks = range(0, 4) if color == chess.WHITE else range(4, 8)
+
+    for sq, piece in sorted(board.piece_map().items()):
+        if piece.color == enemy_color and piece.piece_type in (chess.KNIGHT, chess.BISHOP, chess.ROOK):
+            r = chess.square_rank(sq)
+            if r in half_ranks:
+                f = chess.square_file(sq)
+                adj_files = [f_adj for f_adj in (f - 1, f + 1) if 0 <= f_adj <= 7]
+
+                can_be_challenged = False
+                color_pawns = board.pieces(chess.PAWN, color)
+
+                for p_sq in color_pawns:
+                    p_f = chess.square_file(p_sq)
+                    p_r = chess.square_rank(p_sq)
+                    if p_f in adj_files:
+                        if p_r * dr < r * dr:
+                            can_be_challenged = True
+                            break
+
+                if not can_be_challenged:
+                    sq_name = chess.square_name(sq)
+                    p_str = piece.symbol().upper()
+                    color_name = chess.COLOR_NAMES[color].capitalize()
+                    facts.append({
+                        "kind": "outpost",
+                        "enemy_piece": p_str,
+                        "square": sq_name,
+                        "defender_color": color_name,
+                        "text": f"The enemy {p_str} on {sq_name} sits on an outpost — a hole {color_name} can no longer challenge with a pawn",
+                    })
+
+    return facts
+
+
 def relational_facts(fen: str, line_ucis: List[str], pov: chess.Color) -> Dict[str, Any]:
     """
     Composition API: applies relational fact extractors to initial position and along line_ucis,
@@ -358,6 +542,9 @@ def relational_facts(fen: str, line_ucis: List[str], pov: chess.Color) -> Dict[s
     position_facts.extend(attacks_on_valuable(board, pov))
     position_facts.extend(pins_and_xrays(board, pov))
     position_facts.extend(king_pressure(board, pov))
+    position_facts.extend(pawn_weaknesses(board, pov))
+    position_facts.extend(tied_defenders(board, pov))
+    position_facts.extend(outposts(board, pov))
 
     per_move = []
 
@@ -371,8 +558,22 @@ def relational_facts(fen: str, line_ucis: List[str], pov: chess.Color) -> Dict[s
         board.push(move_obj)
         board_after = board.copy()
 
-        facts_before = protected_passed_pawns(board_before, pov) + attacks_on_valuable(board_before, pov) + pins_and_xrays(board_before, pov)
-        facts_after = protected_passed_pawns(board_after, pov) + attacks_on_valuable(board_after, pov) + pins_and_xrays(board_after, pov)
+        facts_before = (
+            protected_passed_pawns(board_before, pov)
+            + attacks_on_valuable(board_before, pov)
+            + pins_and_xrays(board_before, pov)
+            + pawn_weaknesses(board_before, pov)
+            + tied_defenders(board_before, pov)
+            + outposts(board_before, pov)
+        )
+        facts_after = (
+            protected_passed_pawns(board_after, pov)
+            + attacks_on_valuable(board_after, pov)
+            + pins_and_xrays(board_after, pov)
+            + pawn_weaknesses(board_after, pov)
+            + tied_defenders(board_after, pov)
+            + outposts(board_after, pov)
+        )
 
         before_texts = {f["text"] for f in facts_before}
         after_texts = {f["text"] for f in facts_after}
