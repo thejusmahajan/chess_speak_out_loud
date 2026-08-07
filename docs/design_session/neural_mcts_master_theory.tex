@@ -1,0 +1,457 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{mdframed}
+\usepackage{fancyhdr}
+\usepackage{listings}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\leftmark}
+\lhead{Decoding LC0: Master Theory}
+\cfoot{\thepage}
+
+\title{\Huge \textbf{Decoding the Mind of Neural Chess Engines}\\[0.5em]
+\Large A Unified Theory of Transformer Attentions, Monte Carlo Tree Search, Interpretability Probes, and AI-Human Coaching Systems}
+\author{\textbf{Chess Speak Out Loud Project Team}\\
+\small Sourced, Synthesized \& Formatted for Theoretical Completeness}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent This treatise presents a comprehensive, self-contained mathematical and architectural theory governing modern neural-network-guided chess engines, specifically focused on Leela Chess Zero (LC0) and its integration into interactive human coaching systems. We formally derive the Monte Carlo Tree Search (MCTS) framework and its governing Predictor Upper Confidence bounds applied to Trees (PUCT) formula, tracing its roots from classic multi-armed bandit algorithms (UCB1) to deep reinforcement learning. We explore mechanistic interpretability inside transformer representations, detailing how linear probes extract implicit future look-ahead activations ($3$--$7$ plies ahead) and detect "suppressed win" sacrificial continuations. Furthermore, we analyze alternative engine steering paradigms---including Reward Shaping, Multi-Objective RL, Intrinsic Motivation (Entropy Maximization), Dense Mobility Rewards, and Guided Trajectory Rollouts. Finally, we address the human-AI translation layer, introducing the Policy-MCTS Divergence Index ($\Delta_{\text{Policy, MCTS}}$), relational fact extraction, and the Salience Problem for grandmaster-level automated commentary.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% =========================================================================
+\chapter{Foundations of Neural Chess Architecture}
+% =========================================================================
+
+\section{The Paradigm Shift: From Minimax to Neural Intuition}
+For over half a century, computer chess was dominated by brute-force search algorithms. Systems such as Deep Blue and traditional Stockfish relied on hand-crafted evaluation functions paired with $\alpha$-$\beta$ pruned minimax search trees. An evaluation function mapped a board state $s$ to a scalar score $f(s) \in \mathbb{R}$ by summing weighted features such as material balance, pawn structure, and piece mobility:
+\begin{equation}
+f(s) = \sum_{i} w_i \cdot \phi_i(s)
+\end{equation}
+While computationally formidable, this approach suffered from two fundamental limitations:
+\begin{enumerate}
+    \item \textbf{Evaluation Blindness:} The evaluation function $f(s)$ was rigid and static. It could not perceive holistic geometric patterns, complex color-complex weaknesses, or long-term dynamic compensation for sacrificed material without explicit human programming.
+    \item \textbf{Combinatorial Explosion:} Without strong intuition guiding which moves to examine, $\alpha$-$\beta$ search was forced to calculate millions of subtrees per second, evaluating vast swaths of irrelevant continuations.
+\end{enumerate}
+
+The advent of AlphaZero and Leela Chess Zero (LC0) introduced a paradigm shift by replacing hand-crafted heuristics and deep uniform calculation with **Deep Neural Networks (DNNs)** trained via self-play reinforcement learning. The engine split chess playing into two unified components:
+\begin{itemize}
+    \item **Perceptual Intuition:** Provided by a deep neural network that evaluates positions and predicts move probabilities in a single forward pass without searching.
+    \item **Calculated Verification:** Provided by Monte Carlo Tree Search (MCTS), which uses the network's intuition to prune the search tree and verify lines deeply.
+\end{itemize}
+
+\section{The LC0 Transformer Architecture (\texttt{BT3-768x15x24h})}
+Modern flagship LC0 networks, such as the \texttt{BT3-768x15x24h} architecture used in our diagnostic pipeline, depart from classic Convolutional Residual Networks (ResNets) in favor of **Vision Transformers (ViTs)** adapted for spatial board topologies.
+
+\subsection{Input Board Representation}
+A chess position $s$ is converted into an input tensor $\mathbf{X}^{(0)} \in \mathbb{R}^{64 \times d}$ comprising 64 spatial tokens (one for each square from $a1$ to $h8$), where each square is embedded into a $d=768$-dimensional vector space. The input features for each square include:
+\begin{itemize}
+    \item Binary piece placement planes (Pawn, Knight, Bishop, Rook, Queen, King for both White and Black).
+    \item Repetition counters, castling rights, and side-to-move indicators.
+    \item Historical position planes (to capture en-passant and pawn movement momentum).
+\end{itemize}
+
+\subsection{Stacked Transformer Encoder Layers}
+The input tensor $\mathbf{X}^{(0)}$ passes sequentially through $L=15$ Transformer Encoder layers:
+\begin{equation}
+\mathbf{X}^{(0)} \xrightarrow{\text{Layer 1}} \mathbf{X}^{(1)} \xrightarrow{\text{Layer 2}} \dots \xrightarrow{\text{Layer } l} \dots \xrightarrow{\text{Layer 15}} \mathbf{X}^{(15)}
+\end{equation}
+Each Transformer layer $l$ consists of Multi-Head Self-Attention (MHSA) followed by a Feed-Forward Network (FFN) with Layer Normalization and residual connections:
+\begin{align}
+\mathbf{Z}^{(l)} &= \text{LayerNorm}\left( \mathbf{X}^{(l-1)} + \text{MHSA}\left( \mathbf{X}^{(l-1)} \right) \right) \\
+\mathbf{X}^{(l)} &= \text{LayerNorm}\left( \mathbf{Z}^{(l)} + \text{FFN}\left( \mathbf{Z}^{(l)} \right) \right)
+\end{align}
+
+In the MHSA module, each of the $H=24$ attention heads computes an attention matrix $\mathbf{A}_{h}^{(l)} \in \mathbb{R}^{64 \times 64}$ over the 64 squares:
+\begin{equation}
+\mathbf{A}_{h}^{(l)} = \text{softmax}\left( \frac{\mathbf{Q}_{h}^{(l)} (\mathbf{K}_{h}^{(l)})^T}{\sqrt{d_k}} \right)
+\end{equation}
+Where $\mathbf{Q}_{h}^{(l)} = \mathbf{X}^{(l-1)} \mathbf{W}_{Q,h}$ and $\mathbf{K}_{h}^{(l)} = \mathbf{X}^{(l-1)} \mathbf{W}_{K,h}$ are the Query and Key projections for head $h$. This allows the network to model spatial piece-to-piece dependencies across arbitrary board distances.
+
+\section{Dual Output Heads: Policy and Value}
+At layer 15, the hidden activation tensor $\mathbf{X}^{(15)}$ branches into two specialized output heads:
+
+\subsection{The Policy Head: Move Intuition}
+The Policy Head predicts a probability distribution over all $M \approx 1858$ legal moves in chess:
+\begin{equation}
+P(a|s) = \text{softmax}\left( \mathbf{W}_{\text{policy}} \mathbf{X}^{(15)} + \mathbf{b}_{\text{policy}} \right)_a, \quad \sum_{a \in \mathcal{A}(s)} P(a|s) = 1
+\end{equation}
+Where $\mathcal{A}(s)$ represents the set of legal move candidates in position $s$. $P(a|s)$ represents LC0's 0-node "instinct"---the move it prefers before calculating a single variation.
+
+\subsection{The Value Head: Calibrated Uncertainty}
+The Value Head outputs a Win/Draw/Loss probability vector $\mathbf{v}(s) = (w(s), d(s), l(s))^T \in [0,1]^3$, satisfying $w(s) + d(s) + l(s) = 1$:
+\begin{equation}
+\mathbf{v}(s) = \text{softmax}\left( \mathbf{W}_{\text{value}} \text{ReLU}\left( \mathbf{W}_{v1} \mathbf{X}^{(15)} + \mathbf{b}_{v1} \right) + \mathbf{b}_{\text{value}} \right)
+\end{equation}
+The expected scalar value $V(s) \in [-1, +1]$ from the side-to-move perspective is:
+\begin{equation}
+V(s) = w(s) - l(s)
+\end{equation}
+Unlike scalar evaluations in traditional engines, the WDL distribution exposes the **character of the fight**: a high draw probability indicates a stable position, whereas high win and loss probabilities ($w=45\%, d=10\%, l=45\%$) signal razor-sharp, high-entropy tactical chaos.
+
+\newpage
+% =========================================================================
+\chapter{Monte Carlo Tree Search \& The PUCT Formula}
+% =========================================================================
+
+\section{From Multi-Armed Bandits to Game Trees}
+The core decision problem in MCTS is allocating a finite computational budget (search visits) among competing candidate moves. This is mathematically modeled as a **Multi-Armed Bandit Problem**.
+
+\subsection{The Classic Multi-Armed Bandit \& UCB1}
+Suppose a gambler faces $K$ slot machines ("arms"), each yielding rewards from an unknown distribution. To maximize total payout over $T$ pulls, the gambler must balance:
+\begin{itemize}
+    \item \textbf{Exploitation:} Pulling the arm that has yielded the highest average reward so far.
+    \item \textbf{Exploration:} Pulling arms that have been tested infrequently to uncover hidden high-yield options.
+\end{itemize}
+In 2002, Auer et al. proved that the **Upper Confidence Bound (UCB1)** algorithm achieves logarithmically optimal regret by selecting the arm $i$ that maximizes:
+\begin{equation}
+i^* = \arg\max_{i} \left[ \bar{X}_i + c \sqrt{\frac{\ln N_{\text{total}}}{N_i}} \right]
+\end{equation}
+Where $\bar{X}_i$ is the empirical mean payout of arm $i$, $N_i$ is the number of times arm $i$ has been pulled, and $N_{\text{total}}$ is the total pulls across all arms.
+
+\subsection{UCT: UCB Applied to Trees (2006)}
+Kocsis and Szepesvári (2006) extended UCB1 to game trees in the **Upper Confidence bounds applied to Trees (UCT)** algorithm. Every node in the search tree was treated as an independent bandit problem. However, pure UCT suffered from a major drawback in chess: **it possessed zero prior knowledge**. At every new position, UCT was forced to sample every legal move---including absurd blunders like giving away a Queen---equally before focusing on promising lines.
+
+\section{Rigorous Derivation of the PUCT Formula}
+To solve UCT's zero-prior limitation, Rosin (2011) and Silver et al. (AlphaGo 2016, AlphaZero 2017) introduced **Predictor / Prior UCT (PUCT)**. By incorporating the neural network's policy prior $P(a|s)$, PUCT biases the exploration term toward moves that the network's intuition considers strong.
+
+\subsection{The PUCT Selection Rule}
+During the selection phase of MCTS, the engine traverses the search tree from the root node $s_0$. At each node $s$, it selects the action $a^*$ that maximizes the PUCT objective:
+\begin{equation}
+\label{eq:puct}
+a^* = \arg\max_{a \in \mathcal{A}(s)} \left[ Q(s,a) + U(s,a) \right]
+\end{equation}
+Where $Q(s,a)$ is the exploitation term (mean action value) and $U(s,a)$ is the exploration term (upper confidence bound).
+
+\subsection{Detailed Component Definitions}
+\begin{enumerate}
+    \item \textbf{Exploitation Term $Q(s,a)$:}
+    The average evaluation of all search visits that have passed through edge $(s,a)$:
+    \begin{equation}
+    Q(s,a) = \frac{W(s,a)}{N(s,a)}
+    \end{equation}
+    Where $W(s,a)$ is the accumulated Value Head score ($V(s')$) backpropagated through edge $(s,a)$, and $N(s,a)$ is the total visit count of edge $(s,a)$. If $N(s,a) = 0$, $Q(s,a)$ is initialized to a default value (e.g., parent value $V(s)$ or first-play urgency FPU).
+    
+    \item \textbf{Exploration Term $U(s,a)$:}
+    \begin{equation}
+    U(s,a) = c_{\text{puct}} \cdot P(a|s) \cdot \frac{\sqrt{\sum_{b \in \mathcal{A}(s)} N(s,b)}}{1 + N(s,a)}
+    \end{equation}
+    Where:
+    \begin{itemize}
+        \item $P(a|s) \in [0,1]$ is the 0-node Policy prior probability assigned to move $a$ by the Transformer network.
+        \item $\sum_{b} N(s,b) = N(s)$ is the total visit count of the parent node $s$.
+        \item $N(s,a)$ is the visit count of candidate move $a$. The denominator $(1 + N(s,a))$ ensures $U(s,a)$ shrinks as move $a$ is visited more frequently.
+        \item $c_{\text{puct}}$ is a scaling constant (typically $c_{\text{puct}} \approx 1.25 + \frac{\ln((N(s) + c_{\text{base}} + 1)/c_{\text{base}})}{c_{\text{init}}}$) that slowly increases exploration as total visits grow.
+    \end{itemize}
+\end{enumerate}
+
+\section{Asymptotic Analysis \& The Refutation Mechanism}
+The interaction between $Q(s,a)$ and $U(s,a)$ yields critical theoretical properties:
+
+\begin{mdframed}[backgroundcolor=gray!10]
+\textbf{Property 1: Policy Dominance at Low Visit Counts ($N(s,a) \to 0$)}\\
+When a position is first expanded, $N(s,a) = 0$ for all moves, making $U(s,a) \gg Q(s,a)$. The search priority is almost entirely dictated by $P(a|s)$. LC0 allocates 99\% of its initial calculations to top-policy moves.
+\end{mdframed}
+
+\begin{mdframed}[backgroundcolor=gray!10]
+\textbf{Property 2: Value Convergence at High Visit Counts ($N(s,a) \to \infty$)}\\
+As total search visits grow, $N(s,a)$ increases, driving $U(s,a) \to 0$. The selection rule converges to pure empirical action value:
+\begin{equation}
+\lim_{N(s) \to \infty} a^* = \arg\max_{a} Q(s,a)
+\end{equation}
+This guarantees that given sufficient compute, MCTS will find the objectively correct move even if the neural policy initially disliked it.
+\end{mdframed}
+
+\begin{mdframed}[backgroundcolor=gray!10]
+\textbf{Property 3: Automatic Refutation \& Searching Pivots}\\
+Suppose move $a_{\text{natural}}$ has a very high policy prior ($P(a_{\text{natural}}|s) = 0.80$). MCTS immediately investigates $a_{\text{natural}}$. However, if deep search reveals a hidden tactical refutation, the backpropagated scores $V(s')$ will be catastrophic, causing $Q(s,a_{\text{natural}})$ to collapse toward $-1.0$.
+
+As $Q(s,a_{\text{natural}})$ drops, the total sum $Q(s,a_{\text{natural}}) + U(s,a_{\text{natural}})$ falls below the priority of an alternative move $a_{\text{alt}}$ (which has a lower prior $P(a_{\text{alt}}|s) = 0.15$ but $N(s,a_{\text{alt}}) = 0$). The PUCT formula automatically triggers a **search pivot**, abandoning the failed natural move to explore candidate $a_{\text{alt}}$.
+\end{mdframed}
+
+\section{Intuitive Analogies of the PUCT Formula}
+
+\subsection{The Casino Slot Machine Model}
+In a casino with 50 slot machines:
+\begin{itemize}
+    \item $P(a|s)$ is your initial intuition about which machines look lucky before playing.
+    \item $Q(s,a)$ is your actual average payout from playing Machine A.
+    \item $N(s,a)$ is how many times you've pulled Machine A's lever.
+    \item The PUCT formula forces you to start playing the most promising-looking machines ($P$), but if Machine A stops paying out ($Q$ drops), you pivot to explore unplayed machines ($N=0$).
+\end{itemize}
+
+\subsection{The Talent Hiring / Job Interview Model}
+A hiring manager has 100 job applicants for 1 open position and a budget of 50 total interview slots:
+\begin{equation}
+\text{Priority} = \underbrace{Q(\text{Interview Score})}_{\text{Verified Technical Performance}} + c_{\text{puct}} \cdot \underbrace{P(\text{Resume Score})}_{\text{Policy Prior Screening}} \cdot \frac{\sqrt{\text{Total Interviews Conducted}}}{1 + \text{Rounds Done with Applicant}}
+\end{equation}
+\begin{itemize}
+    \item **Resume Screening ($P$):** Applicant A (ex-Google, 10 yrs exp) gets $P_A = 70\%$. Applicant B gets $P_B = 20\%$. Applicant A gets Round 1 first.
+    \item **Interviewing ($Q$):** Applicant A aces Round 1 ($Q_A = 0.95$). Because $Q_A$ is high, Applicant A is invited to Rounds 2 and 3.
+    \item **Bombing Round 3 (Refutation):** Applicant A fails the live coding test ($Q_A$ collapses to $0.10$).
+    \item **The Pivot:** Applicant B has $0$ rounds done ($N_B=0$), giving Applicant B a large Uncertainty Bonus. The hiring manager immediately stops interviewing Applicant A and calls Applicant B.
+\end{itemize}
+
+\section{The 4-Phase Search-Inference Loop}
+The physical execution of LC0 involves continuous communication between the CPU (managing the MCTS tree) and the GPU (executing Transformer forward passes):
+
+\begin{verbatim}
++-------------------------------------------------------------------+
+|                         SEARCH-INFERENCE LOOP                     |
+|                                                                   |
+|   [ CPU Thread: MCTS Tree ]                  [ GPU: Transformer ]  |
+|                                                                   |
+|   1. Selection (PUCT Walk)                                        |
+|   2. Expansion (Leaf Node)  ---> Batch FENs ---> 3. Forward Pass    |
+|   4. Backpropagation        <--- (P, V/WDL) <---   (lczerolens/ONNX)  |
++-------------------------------------------------------------------+
+\end{verbatim}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|p{5cm}|p{6cm}|}
+\hline
+\textbf{Phase} & \textbf{Engine Component} & \textbf{Mathematical Computation} \\ \hline
+1. Selection & CPU (C++ Engine Pool) & Walk down tree maximizing $Q(s,a) + U(s,a)$ until reaching an unexpanded leaf $s_L$. \\ \hline
+2. Expansion & CPU & Create child node $s_L$ by applying move $a$. \\ \hline
+3. Inference & GPU (PyTorch/ONNX via \texttt{lczerolens}) & Run batched forward pass on $s_L$ tensor to compute Policy $P(a'|s_L)$ and Value $\mathbf{v}(s_L)$. \\ \hline
+4. Backprop & CPU & Propagate $V(s_L)$ back up the path, updating $N(s,a) \leftarrow N(s,a)+1$ and $W(s,a) \leftarrow W(s,a) + V(s_L)$. \\ \hline
+\end{tabular}
+\caption{The 4-Phase Execution Pipeline}
+\end{table}
+
+\newpage
+% =========================================================================
+\chapter{Mechanistic Interpretability \& Linear Probing}
+% =========================================================================
+
+\section{Peering Inside the Black Box: Intermediate Transformer Layers}
+While standard engine wrappers only output the final Policy $P(a|s)$ and Value $V(s)$ from Layer 15, mechanistic interpretability seeks to read the \textbf{internal computational state} of the network at intermediate layers $l \in \{1, \dots, 14\}$.
+
+Using PyTorch layer hooks via \texttt{lczerolens} (see \texttt{backend/neural\_vision.py}), we extract the internal spatial activation tensor $\mathbf{X}^{(l)} \in \mathbb{R}^{64 \times 768}$ during a forward pass.
+
+\section{Mathematical Formulation of Linear Probes}
+A \textbf{Linear Probe} is a parameter-efficient classifier $\mathbf{W}_{\text{probe}} \in \mathbb{R}^{K \times 768}$ and bias vector $\mathbf{b} \in \mathbb{R}^K$ trained on frozen intermediate layer representations $\mathbf{X}^{(l)}$:
+\begin{equation}
+\hat{\mathbf{y}} = \sigma \left( \mathbf{W}_{\text{probe}} \mathbf{x}_{i}^{(l)} + \mathbf{b} \right)
+\end{equation}
+Where $\mathbf{x}_{i}^{(l)} \in \mathbb{R}^{768}$ is the activation vector at square token $i$ at layer $l$, and $\sigma$ is the sigmoid or softmax activation function.
+
+\subsection{Finding 1: Implicit Future Look-Ahead (3--7 Plies Ahead)}
+Research on chess transformer models (\textit{Evidence of Learned Look-Ahead in a Chess-Playing Neural Network}) reveals an extraordinary phenomenon: \textbf{middle layers (Layers 6--10) implicitly construct spatial board representations of future positions 3 to 7 plies ahead inside a single forward pass}, without any external MCTS tree search.
+
+By training a linear probe on Layer 8 activations, the probe can predict the optimal piece placement $4$ plies into the future with up to $\approx 92\%$ accuracy:
+\begin{equation}
+P(\text{Piece } p \text{ on square } j \text{ at ply } t+4) = \sigma \left( \mathbf{W}_{\text{future}}^{(8)} \mathbf{X}^{(8)} \right)
+\end{equation}
+
+\subsection{Finding 2: Time-Traveling Attention Heads}
+By isolating specific attention heads $h$ at layer $l$, we discover "look-ahead attention heads" whose query-key pairs $\mathbf{Q}_h^{(l)} (\mathbf{K}_h^{(l)})^T$ route information \textbf{forward and backward in time}. A head at Layer 7 attends to squares where pieces \textit{will be} located after a tactical exchange, routing that future structural information back to shape the immediate move selection at Layer 1.
+
+\section{The Suppressed-Win Probe ("The Tal Detector")}
+The most profound finding for our training tool is \textbf{Prior Override of Look-Ahead} (the "forgotten puzzle" phenomenon).
+
+\begin{mdframed}[backgroundcolor=red!5]
+\textbf{The Mechanism of Suppressed Sacrifices:}\\
+At intermediate layers (Layers 7--9), the transformer's hidden representations successfully discover a winning sacrificial combination or forced checkmate sequence. The linear probe at Layer 8 outputs a high probability of tactical victory ($\hat{y}_{\text{tactical}}^{(8)} > 0.90$).
+
+However, as the activations flow through deep layers (Layers 10--15), \textbf{deep training priors overpower the intermediate discovery}. The network's final output Policy Head $P(a|s)$ penalizes the sacrifice because giving up material looks statically risky based on millions of self-play games. The network "talks itself out" of the winning sacrifice, outputting a safe, passive move instead.
+\end{mdframed}
+
+Our system implements a \textbf{Suppressed-Win Probe} by comparing Layer 8 probe predictions against Layer 15 Policy outputs:
+\begin{equation}
+\Delta_{\text{suppression}} = \hat{y}_{\text{tactical}}^{(8)} - P(a_{\text{sac}}|s)
+\end{equation}
+When $\Delta_{\text{suppression}} > \tau$, the tool flags a \textbf{"Tal Sacrifice Suppressed by LC0"}, surfacing the move for the user as an aspirational training drill!
+
+\newpage
+% =========================================================================
+\chapter{Advanced Engine Steering \& Reinforcement Learning}
+% =========================================================================
+
+\section{Hacking MCTS Search vs. Representation Steering}
+A fundamental architectural debate in AI chess design is how to steer an engine toward specific playing styles (e.g., sharp sacrificial play, heavy pin/skewer configurations, or suffocating positional restriction).
+
+\subsection{Search Hacking: Heuristic PUCT Bias}
+One approach is modifying the PUCT selection formula at runtime by injecting an auxiliary motif score $M_{\text{motif}}(PV)$ computed over the Principal Variation (PV) of searched nodes:
+\begin{equation}
+Q_{\text{biased}}(s,a) = Q(s,a) + \lambda \cdot M_{\text{motif}}(\text{PV}(s,a))
+\end{equation}
+*Drawback:* Running complex feature taggers over millions of MCTS nodes per second introduces massive latency and risks the **Horizon Effect**, where the engine blunders material just to trigger a meaningless tactical tag.
+
+\subsection{Multi-Objective Reinforcement Learning}
+Instead of hacking search, Schrittwieser et al. proposed adding an Auxiliary Motif Output Head to the neural network alongside the Value Head:
+\begin{equation}
+\mathbf{v}_{\text{multi}}(s) = \left( V_{\text{win}}(s), V_{\text{motif}}(s) \right)
+\end{equation}
+At inference time, the user adjusts a dial $\alpha \in [0, 1]$ to set the effective evaluation:
+\begin{equation}
+V_{\text{steered}}(s) = (1 - \alpha) V_{\text{win}}(s) + \alpha V_{\text{motif}}(s)
+\end{equation}
+This allows seamless style adjustment without corrupting the core win-rate evaluation.
+
+\section{Creating Tactical Chaos: Intrinsic Motivation \& Entropy}
+Mikhail Tal famously remarked that chess is not a math problem, but an attack on the opponent's psychology. To create an engine that plays like Tal, we formalize "discomfort" using \textbf{Intrinsic Motivation} driven by \textbf{Policy Entropy}.
+
+When LC0 evaluates a candidate position $s'$, it predicts the opponent's response distribution $P(a_{\text{opp}}|s')$. The \textbf{Policy Entropy} $H(P_{s'})$ measures the opponent's uncertainty:
+\begin{equation}
+H(P_{s'}) = - \sum_{a_{\text{opp}}} P(a_{\text{opp}}|s') \ln P(a_{\text{opp}}|s')
+\end{equation}
+\begin{itemize}
+    \item \textbf{Low Entropy (Quiet Position):} The opponent has 1 obvious, easy response ($P = 95\%$, $H \to 0$).
+    \item \textbf{High Entropy (Nightmare Minefield):} The opponent faces 10 razor-sharp moves where a single mistake loses instantly, causing the policy distribution to flatten ($H \gg 0$).
+\end{itemize}
+
+By modifying the steering score to maximize opponent policy entropy:
+\begin{equation}
+\text{Score}_{\text{Tal}}(s') = V_{\text{win}}(s') + \gamma \cdot H(P_{s'})
+\end{equation}
+The engine relentlessly seeks out high-complexity tactical minefields. Sacrifices and wild attacks emerge spontaneously as the optimal mathematical solution to maximizing opponent chaos!
+
+\section{Creating Positional Paralyzation: Dense Mobility Rewards}
+Conversely, to model Magnus Carlsen's "anaconda" style, we reward the engine for restricting enemy piece mobility.
+
+Let $\mathcal{M}_{\text{opp}}(s')$ be the number of legal squares available to the opponent in position $s'$. We define a \textbf{Dense Mobility Restriction Reward}:
+\begin{equation}
+R_{\text{mobility}}(s') = - \lambda \cdot |\mathcal{M}_{\text{opp}}(s')|
+\end{equation}
+When integrated into MCTS trajectory rollouts, the engine prioritizes lines that trap, pin, and suffocate enemy pieces. Pins and skewers naturally emerge as the geometric consequence of mobility restriction.
+
+\section{Latent World Models \& Guided Trajectory Rollouts}
+In modern architectures (e.g., MuZero / Dreamer), the engine simulates future trajectories in a \textbf{Latent Space} $\mathbf{z}_{t+1} = g(\mathbf{z}_t, a_t)$.
+
+Using \textbf{Guided Trajectory Rollouts}, the engine simulates 100,000 future paths in its latent imagination. Instead of selecting the highest raw win-rate path, it applies a \textbf{Style Constraint Filter}:
+\begin{equation}
+\text{Path}^* = \arg\max_{\text{Path} \in \text{Futures}} V(\text{Path}) \quad \text{subject to} \quad \text{StyleScore}(\text{Path}) \ge \theta
+\end{equation}
+This guarantees that the engine plays objectively winning chess while strictly adhering to the user's selected tactical or structural training style.
+
+\newpage
+% =========================================================================
+\chapter{Human-AI Translation \& The Salience Problem}
+% =========================================================================
+
+\section{The Failure of the Single Evaluation Bar}
+For 30 years, chess software displayed a single scalar bar (e.g., $+1.4$) alongside a raw move variation. To a human student (rated $\sim 2100$), a score of $+1.4$ provides zero actionable learning value. It states \textit{that} a position is winning, but fails to explain \textit{why}.
+
+Our platform replaces the scalar bar with a multi-channeled \textbf{Neural Visualization Layer}:
+\begin{enumerate}
+    \item \textbf{Spatial Attention Heatmaps:} Rendering layer-averaged attention $\mathbf{A}^{(l)}$ directly over board squares via CSS overlays.
+    \item \textbf{Policy Disparity Vectors:} Displaying candidate move arrows colored by raw policy probability $P(a|s)$.
+    \item \textbf{WDL Atmospheric Lighting:} Coloring the UI border based on position entropy $H(\mathbf{v}(s))$.
+\end{enumerate}
+
+\section{The Policy-MCTS Divergence Index ($\Delta_{\text{Policy, MCTS}}$)}
+By comparing the 0-node Policy prior $P(a|s)$ against the final MCTS visit distribution $\pi_{\text{MCTS}}(a|s) = \frac{N(s,a)}{\sum_b N(s,b)}$, we define the \textbf{Divergence Index}:
+\begin{equation}
+\Delta_{\text{Policy, MCTS}}(a) = P(a|s) - \pi_{\text{MCTS}}(a|s)
+\end{equation}
+This classifies positions into three pedagogical categories:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|c|c|p{6cm}|}
+\hline
+\textbf{Category} & $P(a|s)$ & $\pi_{\text{MCTS}}(a|s)$ & \textbf{Pedagogical Meaning} \\ \hline
+\textbf{Solid Play} & High ($>0.50$) & High ($>0.50$) & Natural, sound move. Intuition and calculation agree. \\ \hline
+\textbf{Optical Trap} & High ($>0.60$) & Low ($<0.05$) & \textbf{Blunder Trap!} Move looks tempting to human/neural instinct, but fails to deep calculation. \\ \hline
+\textbf{Hidden Gem} & Low ($<0.05$) & High ($>0.60$) & \textbf{Grandmaster Move!} Counter-intuitive key move requiring deep calculation. \\ \hline
+\end{tabular}
+\caption{Classification via Policy-MCTS Divergence}
+\end{table}
+
+\section{Relational Board Facts \& The Salience Problem}
+To generate natural language explanations without LLM chess hallucination, our backend (\texttt{backend/training/relational\_facts.py}) extracts deterministic, verified board facts over LC0's principal variations:
+\begin{itemize}
+    \item \textbf{Tactical Facts:} Absolute/relative pins, x-rays, defender removal, protected passed pawns, knight outposts.
+    \item \textbf{Positional Facts:} Isolated/doubled/backward pawns, bad bishops, open files, 7th-rank rook placement.
+\end{itemize}
+
+\subsection{The Salience Problem Defined}
+A major challenge arises: for any position, the deterministic extractor outputs dozens of true board facts (e.g., "pawn on a3 is backward", "rook controls c-file", "knight pinned on f6"). Listing all true facts creates unreadable noise.
+
+\textbf{The Salience Problem:} \textit{Which two or three extracted facts represent THE actual objective of the position?}
+
+\subsection{Contrastive Objective Extraction}
+We solve salience by computing facts \textbf{contrastively} between the best line $a^*$ and inferior alternative lines $a_{\text{alt}}$:
+\begin{equation}
+\text{Salient Facts}(a^*) = \text{Facts}(a^*) \setminus \text{Facts}(a_{\text{alt}})
+\end{equation}
+The objective of a move is uniquely defined by what the correct continuation achieves that inferior alternatives fail to accomplish (e.g., "Move $a^*$ removes the defender of the dark squares, whereas move $a_{\text{alt}}$ leaves the dark squares weak").
+
+\subsection{Learning Salience from Grandmaster Annotations}
+To refine salience ranking, we pair contrastive facts with a public-domain corpus of grandmaster annotations (Steinitz, Capablanca, Alekhine). A master's textual comment on a position serves as a ground-truth label of what was salient. A supervised ranking model learns to score facts based on their alignment with master annotations, creating an accurate, non-hallucinating natural language coach!
+
+\newpage
+% =========================================================================
+\chapter{System Architecture of the AI Coach}
+% =========================================================================
+
+\section{System Dataflow Pipeline}
+The overall platform architecture integrates LC0 engine evaluation, PyTorch interpretability probes, deterministic fact extraction, and a constrained LLM translator:
+
+\begin{verbatim}
++-----------------------------------------------------------------------+
+|                      FULL CHESS SPEAK OUT LOUD PIPELINE               |
+|                                                                       |
+|  [User PGN Corpus]                                                    |
+|         |                                                             |
+|         v                                                             |
+|  [EnginePool (LC0 BT3 Net)] ---> Policy P(a|s) & MCTS PV/WDL          |
+|         |                       |                                     |
+|         v                       v                                     |
+|  [lczerolens Probes]      [Divergence Index Delta(Policy, MCTS)]      |
+|  (Attention / Layers)           |                                     |
+|         |                       v                                     |
+|         |             [Relational Fact Extractor]                     |
+|         |             (Pins, Defenders, Structure)                    |
+|         |                       |                                     |
+|         +---------------+-------+                                     |
+|                         |                                             |
+|                         v                                             |
+|             [Salience Ranker (GM Books)]                              |
+|                         |                                             |
+|                         v                                             |
+|             [Constrained LLM Translator]                              |
+|             (Schema-filling Narrator, No Hallucinations)              |
+|                         |                                             |
+|                         v                                             |
+|             [React Frontend & Vocal Coach]                            |
++-----------------------------------------------------------------------+
+\end{verbatim}
+
+\section{The Translator's Contract (Zero Hallucination Guarantee)}
+To adhere to the foundational project rule---\textit{"LC0 is the coach; the LLM is a translator of LC0's thoughts, never a chess reasoner"}---the LLM operates under a strict API contract:
+\begin{enumerate}
+    \item The LLM receives a structured JSON payload containing **only** verified relational facts, PV lines, and WDL values.
+    \item The LLM is forbidden from calculating moves or evaluating positions independently.
+    \item If evidence is ambiguous, the LLM must emit concise, factual descriptions or remain silent.
+    \item Every verbal claim must cite a specific board square, line, or verified fact present in the input packet.
+\end{enumerate}
+
+\section{Conclusion}
+By combining deep neural network intuition (Policy), MCTS calculation (PUCT), mechanistic interpretability (Linear Probes), contrastive fact extraction, and learned grandmaster salience, the **Chess Speak Out Loud** architecture transforms LC0 from an alien calculation engine into an intimate, position-grounded AI chess coach.
+
+\end{document}

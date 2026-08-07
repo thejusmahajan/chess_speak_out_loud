@@ -1,0 +1,15 @@
+% preamble_visual.tex
+\input{../book/preamble.tex}
+\usepackage{mctsviz}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{placeins}
+\usepackage{needspace}
+\captionsetup{font=small,labelfont=bf}
+
+\renewenvironment{realdata}[1][]
+  {\begin{tier}[title={Real engine output\ifstrempty{#1}{}{: #1}}]{DataTeal}}{\end{tier}}
+\renewenvironment{established}[1][]
+  {\begin{tier}[title={Established mechanism\ifstrempty{#1}{}{: #1}}]{BuildBlue}}{\end{tier}}
+\renewenvironment{hypothesis}[1][]
+  {\begin{tier}[title={This project's hypothesis --- not yet verified\ifstrempty{#1}{}{: #1}}]{HypPurple}}{\end{tier}}

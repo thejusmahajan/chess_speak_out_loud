@@ -1,0 +1,134 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue
+}
+
+\title{\textbf{Decoding Leela Chess Zero (LC0):\\Neural MCTS, Linear Probes \& The PUCT Formula}}
+\author{Chess Speak Out Loud --- Design Session Documentation}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Executive Summary}
+This document provides a rigorous mathematical and conceptual breakdown of the internal mechanics of Leela Chess Zero (LC0). It covers:
+\begin{enumerate}
+    \item The architecture of LC0's 15-layer Transformer network (\texttt{BT3-768x15x24h}).
+    \item How \textbf{Linear Probes} read intermediate activations and future look-ahead.
+    \item The step-by-step \textbf{Search-Inference Loop} during Monte Carlo Tree Search (MCTS).
+    \item The complete derivation and history of the \textbf{PUCT} formula.
+    \item Real-world intuitive analogies (Slot Machines, Dating, and Job Interviews) explaining the exploration-exploitation balance.
+\end{enumerate}
+
+---
+
+\section{The LC0 Neural Architecture \& Linear Probes}
+
+\subsection{Engine Binary vs. Weight File}
+The \texttt{lc0} system consists of two distinct components:
+\begin{itemize}
+    \item \textbf{C++ Engine Binary:} Manages Monte Carlo Tree Search (MCTS), node visit counts, move ordering, and GPU batching.
+    \item \textbf{Neural Weights File (\texttt{.pb.gz} / \texttt{.onnx}):} A 15-layer Transformer network (\texttt{BT3-768x15x24h}) that outputs move instincts and position evaluations.
+\end{itemize}
+
+\subsection{Transformer Layer Forward Pass}
+When a position $s$ (represented as 64 spatial board tokens of dimension $d=768$) enters the network, it passes through 15 sequential encoder layers:
+\begin{equation}
+\mathbf{x}^{(0)} \xrightarrow{\text{Layer 1}} \mathbf{x}^{(1)} \xrightarrow{\text{Layer 2}} \dots \xrightarrow{\text{Layer 8}} \dots \xrightarrow{\text{Layer 14}} \left( P(a|s), V(s) \right)
+\end{equation}
+Where:
+\begin{itemize}
+    \item $P(a|s) \in [0, 1]^{1858}$ is the \textbf{Policy Head} (prior probability over legal move candidates).
+    \item $V(s) = (W, D, L) \in [0,1]^3$ is the \textbf{Value Head} (Win/Draw/Loss distribution).
+\end{itemize}
+
+\subsection{Linear Probes on Intermediate Layers}
+Research demonstrates that middle layers (Layers 6–10) construct internal representations of the board state $3$ to $7$ plies ahead. A \textbf{Linear Probe} is a classifier $\mathbf{W}_{\text{probe}}$ trained directly on the activation tensor $\mathbf{x}^{(k)}$ at layer $k$:
+\begin{equation}
+\hat{\mathbf{y}}_{\text{future}} = \sigma \left( \mathbf{W}_{\text{probe}} \mathbf{x}^{(k)} + \mathbf{b} \right)
+\end{equation}
+This allows our diagnostic system to detect:
+\begin{itemize}
+    \item \textbf{Foreseen Future Board States:} Extracting piece locations $4$ plies ahead before full MCTS expansion.
+    \item \textbf{Suppressed Win Probe (The "Tal Probe"):} Detecting positions where intermediate layers $\mathbf{x}^{(8)}$ identify a winning sacrificial continuation, but output layer $P(a|s)$ suppresses it due to high material penalty priors.
+\end{itemize}
+
+---
+
+\section{Neural Monte Carlo Tree Search (Neural MCTS)}
+
+\subsection{The 4-Phase Iterative Loop}
+During analysis, the engine executes an iterative 4-phase loop:
+\begin{enumerate}
+    \item \textbf{Selection:} Traverses the existing tree from the root using the \textbf{PUCT} formula to select the leaf node $s$.
+    \item \textbf{Expansion:} Creates a child node for a selected candidate move $a$.
+    \item \textbf{Neural Inference:} Submits the new child board $s'$ to the GPU for a forward pass, obtaining $P(a'|s')$ and $V(s')$.
+    \item \textbf{Backpropagation:} Updates total visit counts $N(s,a)$ and cumulative win evaluations $W(s,a)$, yielding updated expected value $Q(s,a) = W(s,a)/N(s,a)$.
+\end{enumerate}
+
+---
+
+\section{The PUCT Formula: Rigorous Derivation}
+
+\subsection{The Full Mathematical Expression}
+At node $s$, the selection rule picks the action $a^*$ maximizing the PUCT objective:
+\begin{equation}
+a^* = \arg\max_{a} \left[ Q(s,a) + U(s,a) \right]
+\end{equation}
+Where the Upper Confidence Bound term $U(s,a)$ is explicitly defined as:
+\begin{equation}
+U(s,a) = c_{\text{puct}} \cdot P(a|s) \cdot \frac{\sqrt{\sum_{b} N(s,b)}}{1 + N(s,a)}
+\end{equation}
+
+\subsection{Definition of Terms}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|l|l|}
+\hline
+\textbf{Symbol} & \textbf{Mathematical Definition} & \textbf{Role in Search} \\ \hline
+$Q(s,a)$ & $\frac{W(s,a)}{N(s,a)}$ (Mean Action Value) & \textbf{Exploitation:} Real calculated win rate \\ \hline
+$P(a|s)$ & Policy Prior Probability & \textbf{Intuition:} Neural Network's 0-node instinct \\ \hline
+$N(s,a)$ & Visit Count for move $a$ & \textbf{Experience:} Number of times line evaluated \\ \hline
+$\sum_b N(s,b)$ & Parent Node Total Visits & \textbf{Context:} Total depth budget spent at node $s$ \\ \hline
+$c_{\text{puct}}$ & Exploration Constant ($\approx 1.25$--$2.5$) & Scales policy influence relative to $Q$ \\ \hline
+\end{tabular}
+\caption{Components of the PUCT Formula}
+\end{table}
+
+\subsection{Asymptotic Behavior}
+\begin{itemize}
+    \item \textbf{Low Visit Regime ($N(s,a) \to 0$):} $U(s,a) \gg Q(s,a)$. Search priority is almost entirely dominated by the neural prior $P(a|s)$. High-policy moves are calculated first.
+    \item \textbf{High Visit Regime ($N(s,a) \to \infty$):} $U(s,a) \to 0$. Search priority converges to pure action value $Q(s,a)$. The calculation reflects true tactical outcome.
+    \item \textbf{Refutation Mechanism:} If a high-policy move $a_{\text{natural}}$ blunders materially, $Q(s,a_{\text{natural}})$ drops to $0$. As a result, its priority collapses, forcing $U(s, a_{\text{alt}})$ for lower-policy moves to exceed it, automatically triggering a search pivot.
+\end{itemize}
+
+---
+
+\section{Real-World Analogy: The Job Interview Model}
+
+To understand how PUCT optimizes search resource allocation, consider a hiring manager filling $1$ job position from $100$ applicants:
+
+\begin{equation}
+\text{Interview Priority} = \underbrace{Q(\text{Interview Score})}_{\text{Exploitation of Verified Ability}} + c_{\text{puct}} \cdot \underbrace{P(\text{Resume Score})}_{\text{Policy Prior Prediction}} \cdot \underbrace{\frac{\sqrt{\text{Total Interviews Done}}}{1 + \text{Rounds with Candidate}}}_{\text{Uncertainty Bonus}}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{$P(a|s)$ (Resume Rating):} HR scans resumes before interviewing. Candidate A (ex-Google, 10 yrs exp) has $P_A = 70\%$. Candidate B has $P_B = 20\%$. Candidate A gets Round 1 first.
+    \item \textbf{$Q(s,a)$ (Technical Coding Performance):} Candidate A performs well in Round 1 ($Q_A = 0.95$). Because $Q_A$ is high, candidate A is invited to Rounds 2 and 3.
+    \item \textbf{Refutation (Bombing Round 3):} In Round 3, Candidate A fails System Design ($Q_A$ drops to $0.10$).
+    \item \textbf{The Pivot:} Candidate B has $0$ rounds done ($N_B=0$), so Candidate B's Uncertainty Bonus exceeds Candidate A's decayed score ($Q_A = 0.10$). HR immediately pivots to interview Candidate B.
+\end{itemize}
+
+\end{document}

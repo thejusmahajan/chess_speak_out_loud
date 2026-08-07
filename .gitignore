@@ -39,3 +39,21 @@ scratch/
 
 games_of_derdiedasdie/
 cszero_kaggle_data.zip
+
+# LaTeX build artifacts
+*.aux
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.stdout
+
+# Rendered page previews under docs/ (regenerate with:
+#   pdftoppm -r 110 -png <file>.pdf page)
+# All figures are TikZ, so no document depends on a committed image.
+docs/design_session/**/*.png
+
+# LaTeX console captures (regenerable)
+docs/design_session/**/build*.txt
+docs/design_session/**/_probe.pdf

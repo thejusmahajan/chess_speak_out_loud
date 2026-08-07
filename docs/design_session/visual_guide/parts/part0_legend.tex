@@ -1,0 +1,15 @@
+\chapter*{Part 0: How to read these pictures}
+\addcontentsline{toc}{chapter}{Part 0: How to read these pictures}
+
+Every search-tree diagram in this document is drawn using a fixed visual grammar. The meaning of every border, color, arrow, and bar is defined here once and remains constant throughout the guide.
+
+\begin{figure}[htbp]
+\centering
+\input{figures/fig_0_1.tex}
+\caption{\textbf{FIG-0.1: The visual grammar legend.} Node borders, fill saturations, path highlights, and edge thicknesses maintain byte-identical definitions across all tree frames.}
+\label{fig:0_1}
+\end{figure}
+
+\begin{keyidea}
+Solid blue borders represent expanded nodes evaluated by the network; dashed grey borders represent unvisited nodes whose $Q$ value is an FPU (First Play Urgency) guess. The thick green border marks a node created on the current iteration, while red fill indicates a refuted move where $Q$ collapsed.
+\end{keyidea}

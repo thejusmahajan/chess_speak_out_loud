@@ -1,0 +1,762 @@
+{
+  "fig_1_3.p_kd6": {
+    "value": 45.13,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.1.moves[Kd6].P"
+  },
+  "fig_1_3.p_kf6": {
+    "value": 44.23,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.1.moves[Kf6].P"
+  },
+  "fig_1_3.p_kf5": {
+    "value": 5.38,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.1.moves[Kf5].P"
+  },
+  "fig_1_3.p_kd5": {
+    "value": 5.26,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.1.moves[Kd5].P"
+  },
+  "fig_1_3.root_v": {
+    "value": 0.97602,
+    "path": "simulate_search.py -> ROOT_V"
+  },
+  "fig_1_3.root_d": {
+    "value": 0.024,
+    "path": "KNOWLEDGE_BASE.md -> \u00a72.1"
+  },
+  "fig_2_1.tree.Kd6.N": {
+    "value": 1,
+    "path": "simulate_search.py -> sim_rows[1].state[Kd6].N"
+  },
+  "fig_2_1.tree.Kd6.Q": {
+    "value": 0.96766,
+    "path": "simulate_search.py -> sim_rows[1].state[Kd6].Q"
+  },
+  "fig_2_1.strip.Kd6.S": {
+    "value": 1.7635838635746484,
+    "path": "simulate_search.py -> sim_rows[0].state[Kd6].S"
+  },
+  "fig_2_1.tree.Kf6.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[1].state[Kf6].N"
+  },
+  "fig_2_1.tree.Kf6.Q": {
+    "value": 0.7501497431098967,
+    "path": "simulate_search.py -> sim_rows[1].state[Kf6].Q"
+  },
+  "fig_2_1.strip.Kf6.S": {
+    "value": 1.7478779589166122,
+    "path": "simulate_search.py -> sim_rows[0].state[Kf6].S"
+  },
+  "fig_2_1.tree.Kf5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[1].state[Kf5].N"
+  },
+  "fig_2_1.tree.Kf5.Q": {
+    "value": 0.7501497431098967,
+    "path": "simulate_search.py -> sim_rows[1].state[Kf5].Q"
+  },
+  "fig_2_1.strip.Kf5.S": {
+    "value": 1.0699064078447067,
+    "path": "simulate_search.py -> sim_rows[0].state[Kf5].S"
+  },
+  "fig_2_1.tree.Kd5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[1].state[Kd5].N"
+  },
+  "fig_2_1.tree.Kd5.Q": {
+    "value": 0.7501497431098967,
+    "path": "simulate_search.py -> sim_rows[1].state[Kd5].Q"
+  },
+  "fig_2_1.strip.Kd5.S": {
+    "value": 1.067812287223635,
+    "path": "simulate_search.py -> sim_rows[0].state[Kd5].S"
+  },
+  "fig_2_2.tree.Kd6.N": {
+    "value": 1,
+    "path": "simulate_search.py -> sim_rows[2].state[Kd6].N"
+  },
+  "fig_2_2.tree.Kd6.Q": {
+    "value": 0.96766,
+    "path": "simulate_search.py -> sim_rows[2].state[Kd6].Q"
+  },
+  "fig_2_2.strip.Kd6.S": {
+    "value": 1.3614646129891685,
+    "path": "simulate_search.py -> sim_rows[1].state[Kd6].S"
+  },
+  "fig_2_2.tree.Kf6.N": {
+    "value": 1,
+    "path": "simulate_search.py -> sim_rows[2].state[Kf6].N"
+  },
+  "fig_2_2.tree.Kf6.Q": {
+    "value": 0.98598,
+    "path": "simulate_search.py -> sim_rows[2].state[Kf6].Q"
+  },
+  "fig_2_2.strip.Kf6.S": {
+    "value": 1.5220521597955128,
+    "path": "simulate_search.py -> sim_rows[1].state[Kf6].S"
+  },
+  "fig_2_2.tree.Kf5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[2].state[Kf5].N"
+  },
+  "fig_2_2.tree.Kf5.Q": {
+    "value": 0.6646029526635865,
+    "path": "simulate_search.py -> sim_rows[2].state[Kf5].Q"
+  },
+  "fig_2_2.strip.Kf5.S": {
+    "value": 0.8440415586597184,
+    "path": "simulate_search.py -> sim_rows[1].state[Kf5].S"
+  },
+  "fig_2_2.tree.Kd5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[2].state[Kd5].N"
+  },
+  "fig_2_2.tree.Kd5.Q": {
+    "value": 0.6646029526635865,
+    "path": "simulate_search.py -> sim_rows[2].state[Kd5].Q"
+  },
+  "fig_2_2.strip.Kd5.S": {
+    "value": 0.841947317420689,
+    "path": "simulate_search.py -> sim_rows[1].state[Kd5].S"
+  },
+  "fig_2_3.tree.Kd6.N": {
+    "value": 1,
+    "path": "simulate_search.py -> sim_rows[3].state[Kd6].N"
+  },
+  "fig_2_3.tree.Kd6.Q": {
+    "value": 0.96766,
+    "path": "simulate_search.py -> sim_rows[3].state[Kd6].Q"
+  },
+  "fig_2_3.strip.Kd6.S": {
+    "value": 1.5246158998496782,
+    "path": "simulate_search.py -> sim_rows[2].state[Kd6].S"
+  },
+  "fig_2_3.tree.Kf6.N": {
+    "value": 2,
+    "path": "simulate_search.py -> sim_rows[3].state[Kf6].N"
+  },
+  "fig_2_3.tree.Kf6.Q": {
+    "value": 0.9686349999999999,
+    "path": "simulate_search.py -> sim_rows[3].state[Kf6].Q"
+  },
+  "fig_2_3.strip.Kf6.S": {
+    "value": 1.5318288688311825,
+    "path": "simulate_search.py -> sim_rows[2].state[Kf6].S"
+  },
+  "fig_2_3.tree.Kf5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[3].state[Kf5].N"
+  },
+  "fig_2_3.tree.Kf5.Q": {
+    "value": 0.6582871193302532,
+    "path": "simulate_search.py -> sim_rows[3].state[Kf5].Q"
+  },
+  "fig_2_3.strip.Kf5.S": {
+    "value": 0.7973936790624905,
+    "path": "simulate_search.py -> sim_rows[2].state[Kf5].S"
+  },
+  "fig_2_3.tree.Kd5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[3].state[Kd5].N"
+  },
+  "fig_2_3.tree.Kd5.Q": {
+    "value": 0.6582871193302532,
+    "path": "simulate_search.py -> sim_rows[3].state[Kd5].Q"
+  },
+  "fig_2_3.strip.Kd5.S": {
+    "value": 0.794431804124225,
+    "path": "simulate_search.py -> sim_rows[2].state[Kd5].S"
+  },
+  "fig_2_3.kf8_v": {
+    "value": 0.95129,
+    "path": "simulate_search.py -> ITERATIONS[2].value"
+  },
+  "fig_2_4.tree.Kd6.N": {
+    "value": 2,
+    "path": "simulate_search.py -> sim_rows[4].state[Kd6].N"
+  },
+  "fig_2_4.tree.Kd6.Q": {
+    "value": 0.982625,
+    "path": "simulate_search.py -> sim_rows[4].state[Kd6].Q"
+  },
+  "fig_2_4.strip.Kd6.S": {
+    "value": 1.6498281648981468,
+    "path": "simulate_search.py -> sim_rows[3].state[Kd6].S"
+  },
+  "fig_2_4.tree.Kf6.N": {
+    "value": 2,
+    "path": "simulate_search.py -> sim_rows[4].state[Kf6].N"
+  },
+  "fig_2_4.tree.Kf6.Q": {
+    "value": 0.9686349999999999,
+    "path": "simulate_search.py -> sim_rows[4].state[Kf6].Q"
+  },
+  "fig_2_4.strip.Kf6.S": {
+    "value": 1.414344401483788,
+    "path": "simulate_search.py -> sim_rows[3].state[Kf6].S"
+  },
+  "fig_2_4.tree.Kf5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[4].state[Kf5].N"
+  },
+  "fig_2_4.tree.Kf5.Q": {
+    "value": 0.6637576193302531,
+    "path": "simulate_search.py -> sim_rows[4].state[Kf5].Q"
+  },
+  "fig_2_4.strip.Kf5.S": {
+    "value": 0.8209312463921645,
+    "path": "simulate_search.py -> sim_rows[3].state[Kf5].S"
+  },
+  "fig_2_4.tree.Kd5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[4].state[Kd5].N"
+  },
+  "fig_2_4.tree.Kd5.Q": {
+    "value": 0.6637576193302531,
+    "path": "simulate_search.py -> sim_rows[4].state[Kd5].Q"
+  },
+  "fig_2_4.strip.Kd5.S": {
+    "value": 0.8173034963461739,
+    "path": "simulate_search.py -> sim_rows[3].state[Kd5].S"
+  },
+  "fig_2_4.kd8_v": {
+    "value": 0.99759,
+    "path": "simulate_search.py -> ITERATIONS[3].value"
+  },
+  "fig_2_5.tree.Kd6.N": {
+    "value": 3,
+    "path": "simulate_search.py -> sim_rows[5].state[Kd6].N"
+  },
+  "fig_2_5.tree.Kd6.Q": {
+    "value": 0.98839,
+    "path": "simulate_search.py -> sim_rows[5].state[Kd6].Q"
+  },
+  "fig_2_5.strip.Kd6.S": {
+    "value": 1.5077885374428317,
+    "path": "simulate_search.py -> sim_rows[4].state[Kd6].S"
+  },
+  "fig_2_5.tree.Kf6.N": {
+    "value": 2,
+    "path": "simulate_search.py -> sim_rows[5].state[Kf6].N"
+  },
+  "fig_2_5.tree.Kf6.Q": {
+    "value": 0.9686349999999999,
+    "path": "simulate_search.py -> sim_rows[5].state[Kf6].Q"
+  },
+  "fig_2_5.strip.Kf6.S": {
+    "value": 1.4833255220717139,
+    "path": "simulate_search.py -> sim_rows[4].state[Kf6].S"
+  },
+  "fig_2_5.tree.Kf5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[5].state[Kf5].N"
+  },
+  "fig_2_5.tree.Kf5.Q": {
+    "value": 0.6677929526635865,
+    "path": "simulate_search.py -> sim_rows[5].state[Kf5].Q"
+  },
+  "fig_2_5.strip.Kf5.S": {
+    "value": 0.8515736949856333,
+    "path": "simulate_search.py -> sim_rows[4].state[Kf5].S"
+  },
+  "fig_2_5.tree.Kd5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[5].state[Kd5].N"
+  },
+  "fig_2_5.tree.Kd5.Q": {
+    "value": 0.6677929526635865,
+    "path": "simulate_search.py -> sim_rows[5].state[Kd5].Q"
+  },
+  "fig_2_5.strip.Kd5.S": {
+    "value": 0.8473844888371861,
+    "path": "simulate_search.py -> sim_rows[4].state[Kd5].S"
+  },
+  "fig_2_5.kf7_v": {
+    "value": 0.99992,
+    "path": "simulate_search.py -> ITERATIONS[4].value"
+  },
+  "fig_2_6.tree.Kd6.N": {
+    "value": 3,
+    "path": "simulate_search.py -> sim_rows[6].state[Kd6].N"
+  },
+  "fig_2_6.tree.Kd6.Q": {
+    "value": 0.98839,
+    "path": "simulate_search.py -> sim_rows[6].state[Kd6].Q"
+  },
+  "fig_2_6.strip.Kd6.S": {
+    "value": 1.42877836912147,
+    "path": "simulate_search.py -> sim_rows[5].state[Kd6].S"
+  },
+  "fig_2_6.tree.Kf6.N": {
+    "value": 3,
+    "path": "simulate_search.py -> sim_rows[6].state[Kf6].N"
+  },
+  "fig_2_6.tree.Kf6.Q": {
+    "value": 0.9719566666666667,
+    "path": "simulate_search.py -> sim_rows[6].state[Kf6].Q"
+  },
+  "fig_2_6.strip.Kf6.S": {
+    "value": 1.5441096308070792,
+    "path": "simulate_search.py -> sim_rows[5].state[Kf6].S"
+  },
+  "fig_2_6.tree.Kf5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[6].state[Kf5].N"
+  },
+  "fig_2_6.tree.Kf5.Q": {
+    "value": 0.6676296193302532,
+    "path": "simulate_search.py -> sim_rows[6].state[Kf5].Q"
+  },
+  "fig_2_6.strip.Kf5.S": {
+    "value": 0.8777897996277796,
+    "path": "simulate_search.py -> sim_rows[5].state[Kf5].S"
+  },
+  "fig_2_6.tree.Kd5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[6].state[Kd5].N"
+  },
+  "fig_2_6.tree.Kd5.Q": {
+    "value": 0.6676296193302532,
+    "path": "simulate_search.py -> sim_rows[6].state[Kd5].Q"
+  },
+  "fig_2_6.strip.Kd5.S": {
+    "value": 0.8731058550858273,
+    "path": "simulate_search.py -> sim_rows[5].state[Kd5].S"
+  },
+  "fig_2_6.e6_kf8_v": {
+    "value": 0.9786,
+    "path": "simulate_search.py -> ITERATIONS[5].value"
+  },
+  "fig_2_7.tree.Kd6.N": {
+    "value": 4,
+    "path": "simulate_search.py -> sim_rows[7].state[Kd6].N"
+  },
+  "fig_2_7.tree.Kd6.Q": {
+    "value": 0.9839425,
+    "path": "simulate_search.py -> sim_rows[7].state[Kd6].Q"
+  },
+  "fig_2_7.strip.Kd6.S": {
+    "value": 1.470839062762354,
+    "path": "simulate_search.py -> sim_rows[6].state[Kd6].S"
+  },
+  "fig_2_7.tree.Kf6.N": {
+    "value": 3,
+    "path": "simulate_search.py -> sim_rows[7].state[Kf6].N"
+  },
+  "fig_2_7.tree.Kf6.Q": {
+    "value": 0.9719566666666667,
+    "path": "simulate_search.py -> sim_rows[7].state[Kf6].Q"
+  },
+  "fig_2_7.strip.Kf6.S": {
+    "value": 1.4447845427131751,
+    "path": "simulate_search.py -> sim_rows[6].state[Kf6].S"
+  },
+  "fig_2_7.tree.Kf5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[7].state[Kf5].N"
+  },
+  "fig_2_7.tree.Kf5.Q": {
+    "value": 0.6665071193302532,
+    "path": "simulate_search.py -> sim_rows[7].state[Kf5].Q"
+  },
+  "fig_2_7.strip.Kf5.S": {
+    "value": 0.8976828839135871,
+    "path": "simulate_search.py -> sim_rows[6].state[Kf5].S"
+  },
+  "fig_2_7.tree.Kd5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[7].state[Kd5].N"
+  },
+  "fig_2_7.tree.Kd5.Q": {
+    "value": 0.6665071193302532,
+    "path": "simulate_search.py -> sim_rows[7].state[Kd5].Q"
+  },
+  "fig_2_7.strip.Kd5.S": {
+    "value": 0.8925515843318027,
+    "path": "simulate_search.py -> sim_rows[6].state[Kd5].S"
+  },
+  "fig_2_7.e6_kd8_v": {
+    "value": 0.9706,
+    "path": "simulate_search.py -> ITERATIONS[6].value"
+  },
+  "fig_2_8.tree.Kd6.N": {
+    "value": 4,
+    "path": "simulate_search.py -> sim_rows[8].state[Kd6].N"
+  },
+  "fig_2_8.tree.Kd6.Q": {
+    "value": 0.9839425,
+    "path": "simulate_search.py -> sim_rows[8].state[Kd6].Q"
+  },
+  "fig_2_8.strip.Kd6.S": {
+    "value": 1.400850136604491,
+    "path": "simulate_search.py -> sim_rows[7].state[Kd6].S"
+  },
+  "fig_2_8.tree.Kf6.N": {
+    "value": 3,
+    "path": "simulate_search.py -> sim_rows[8].state[Kf6].N"
+  },
+  "fig_2_8.tree.Kf6.Q": {
+    "value": 0.9719566666666667,
+    "path": "simulate_search.py -> sim_rows[8].state[Kf6].Q"
+  },
+  "fig_2_8.strip.Kf6.S": {
+    "value": 1.4826985447692769,
+    "path": "simulate_search.py -> sim_rows[7].state[Kf6].S"
+  },
+  "fig_2_8.tree.Kf5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[8].state[Kf5].N"
+  },
+  "fig_2_8.tree.Kf5.Q": {
+    "value": 0.6665071193302532,
+    "path": "simulate_search.py -> sim_rows[8].state[Kf5].Q"
+  },
+  "fig_2_8.strip.Kf5.S": {
+    "value": 0.9150073503220726,
+    "path": "simulate_search.py -> sim_rows[7].state[Kf5].S"
+  },
+  "fig_2_8.tree.Kd5.N": {
+    "value": 0,
+    "path": "simulate_search.py -> sim_rows[8].state[Kd5].N"
+  },
+  "fig_2_8.tree.Kd5.Q": {
+    "value": 0.6665071193302532,
+    "path": "simulate_search.py -> sim_rows[8].state[Kd5].Q"
+  },
+  "fig_2_8.strip.Kd5.S": {
+    "value": 0.9094645942404707,
+    "path": "simulate_search.py -> sim_rows[7].state[Kd5].S"
+  },
+  "fig_3_1_64.Kd6.N": {
+    "value": 31,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.64.moves[Kd6].N"
+  },
+  "fig_3_1_64.Kd6.Q": {
+    "value": 0.99344,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.64.moves[Kd6].Q"
+  },
+  "fig_3_1_64.Kf6.N": {
+    "value": 24,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.64.moves[Kf6].N"
+  },
+  "fig_3_1_64.Kf6.Q": {
+    "value": 0.95335,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.64.moves[Kf6].Q"
+  },
+  "fig_3_1_64.Kf5.N": {
+    "value": 0,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.64.moves[Kf5].N"
+  },
+  "fig_3_1_64.Kf5.Q": {
+    "value": 0.664,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.64.moves[Kf5].Q"
+  },
+  "fig_3_1_64.Kd5.N": {
+    "value": 0,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.64.moves[Kd5].N"
+  },
+  "fig_3_1_64.Kd5.Q": {
+    "value": 0.664,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.64.moves[Kd5].Q"
+  },
+  "fig_3_1_128.Kd6.N": {
+    "value": 62,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.128.moves[Kd6].N"
+  },
+  "fig_3_1_128.Kd6.Q": {
+    "value": 0.97932,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.128.moves[Kd6].Q"
+  },
+  "fig_3_1_128.Kf6.N": {
+    "value": 58,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.128.moves[Kf6].N"
+  },
+  "fig_3_1_128.Kf6.Q": {
+    "value": 0.96332,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.128.moves[Kf6].Q"
+  },
+  "fig_3_1_128.Kf5.N": {
+    "value": 1,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.128.moves[Kf5].N"
+  },
+  "fig_3_1_128.Kf5.Q": {
+    "value": 0.0,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.128.moves[Kf5].Q"
+  },
+  "fig_3_1_128.Kd5.N": {
+    "value": 1,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.128.moves[Kd5].N"
+  },
+  "fig_3_1_128.Kd5.Q": {
+    "value": 0.0,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.128.moves[Kd5].Q"
+  },
+  "fig_3_1_800.Kd6.N": {
+    "value": 377,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.800.moves[Kd6].N"
+  },
+  "fig_3_1_800.Kd6.Q": {
+    "value": 0.9561,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.800.moves[Kd6].Q"
+  },
+  "fig_3_1_800.Kf6.N": {
+    "value": 240,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.800.moves[Kf6].N"
+  },
+  "fig_3_1_800.Kf6.Q": {
+    "value": 0.92742,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.800.moves[Kf6].Q"
+  },
+  "fig_3_1_800.Kf5.N": {
+    "value": 1,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.800.moves[Kf5].N"
+  },
+  "fig_3_1_800.Kf5.Q": {
+    "value": 0.0,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.800.moves[Kf5].Q"
+  },
+  "fig_3_1_800.Kd5.N": {
+    "value": 1,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.800.moves[Kd5].N"
+  },
+  "fig_3_1_800.Kd5.Q": {
+    "value": 0.0,
+    "path": "engine_data.json -> positions.kp_endgame.ladder.800.moves[Kd5].Q"
+  },
+  "fig_3_3.Kf4.N": {
+    "value": 172,
+    "path": "engine_data.json -> positions.opposition_draw.ladder.800.moves[Kf4].N"
+  },
+  "fig_3_3.Kd4.N": {
+    "value": 171,
+    "path": "engine_data.json -> positions.opposition_draw.ladder.800.moves[Kd4].N"
+  },
+  "fig_3_3.Kd3.N": {
+    "value": 155,
+    "path": "engine_data.json -> positions.opposition_draw.ladder.800.moves[Kd3].N"
+  },
+  "fig_3_3.Kf3.N": {
+    "value": 152,
+    "path": "engine_data.json -> positions.opposition_draw.ladder.800.moves[Kf3].N"
+  },
+  "fig_3_3.Ke3.N": {
+    "value": 148,
+    "path": "engine_data.json -> positions.opposition_draw.ladder.800.moves[Ke3].N"
+  },
+  "fig_4_1_64.Qb7.N": {
+    "value": 26,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.64.moves[Qb7].N"
+  },
+  "fig_4_1_64.Qb7.Q": {
+    "value": 0.56874,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.64.moves[Qb7].Q"
+  },
+  "fig_4_1_64.Qb8+.N": {
+    "value": 0,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.64.moves[Qb8+].N"
+  },
+  "fig_4_1_64.Qb8+.Q": {
+    "value": 0.13723,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.64.moves[Qb8+].Q"
+  },
+  "fig_4_1_64.Rxd7.N": {
+    "value": 1,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.64.moves[Rxd7].N"
+  },
+  "fig_4_1_64.Rxd7.Q": {
+    "value": 0.14086,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.64.moves[Rxd7].Q"
+  },
+  "fig_4_1_64.Qb5.N": {
+    "value": 1,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.64.moves[Qb5].N"
+  },
+  "fig_4_1_64.Qb5.Q": {
+    "value": -0.1659,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.64.moves[Qb5].Q"
+  },
+  "fig_4_1_64.Qc3.N": {
+    "value": 1,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.64.moves[Qc3].N"
+  },
+  "fig_4_1_64.Qc3.Q": {
+    "value": -0.11112,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.64.moves[Qc3].Q"
+  },
+  "fig_4_1_128.Qb7.N": {
+    "value": 53,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.128.moves[Qb7].N"
+  },
+  "fig_4_1_128.Qb7.Q": {
+    "value": 0.62435,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.128.moves[Qb7].Q"
+  },
+  "fig_4_1_128.Qb8+.N": {
+    "value": 0,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.128.moves[Qb8+].N"
+  },
+  "fig_4_1_128.Qb8+.Q": {
+    "value": 0.24863,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.128.moves[Qb8+].Q"
+  },
+  "fig_4_1_128.Rxd7.N": {
+    "value": 1,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.128.moves[Rxd7].N"
+  },
+  "fig_4_1_128.Rxd7.Q": {
+    "value": 0.14086,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.128.moves[Rxd7].Q"
+  },
+  "fig_4_1_128.Qb5.N": {
+    "value": 1,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.128.moves[Qb5].N"
+  },
+  "fig_4_1_128.Qb5.Q": {
+    "value": -0.1659,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.128.moves[Qb5].Q"
+  },
+  "fig_4_1_128.Qc3.N": {
+    "value": 1,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.128.moves[Qc3].N"
+  },
+  "fig_4_1_128.Qc3.Q": {
+    "value": -0.11112,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.128.moves[Qc3].Q"
+  },
+  "fig_4_1_400.Qb7.N": {
+    "value": 169,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.400.moves[Qb7].N"
+  },
+  "fig_4_1_400.Qb7.Q": {
+    "value": 0.65752,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.400.moves[Qb7].Q"
+  },
+  "fig_4_1_400.Qb8+.N": {
+    "value": 0,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.400.moves[Qb8+].N"
+  },
+  "fig_4_1_400.Qb8+.Q": {
+    "value": 0.0,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.400.moves[Qb8+].Q"
+  },
+  "fig_4_1_400.Rxd7.N": {
+    "value": 4,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.400.moves[Rxd7].N"
+  },
+  "fig_4_1_400.Rxd7.Q": {
+    "value": 0.31545,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.400.moves[Rxd7].Q"
+  },
+  "fig_4_1_400.Qb5.N": {
+    "value": 2,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.400.moves[Qb5].N"
+  },
+  "fig_4_1_400.Qb5.Q": {
+    "value": -0.10191,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.400.moves[Qb5].Q"
+  },
+  "fig_4_1_400.Qc3.N": {
+    "value": 2,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.400.moves[Qc3].N"
+  },
+  "fig_4_1_400.Qc3.Q": {
+    "value": -0.00054,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.400.moves[Qc3].Q"
+  },
+  "fig_4_1_1600.Qb7.N": {
+    "value": 172,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.1600.moves[Qb7].N"
+  },
+  "fig_4_1_1600.Qb7.Q": {
+    "value": 0.65874,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.1600.moves[Qb7].Q"
+  },
+  "fig_4_1_1600.Qb8+.N": {
+    "value": 3,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.1600.moves[Qb8+].N"
+  },
+  "fig_4_1_1600.Qb8+.Q": {
+    "value": 1.0,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.1600.moves[Qb8+].Q"
+  },
+  "fig_4_1_1600.Rxd7.N": {
+    "value": 4,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.1600.moves[Rxd7].N"
+  },
+  "fig_4_1_1600.Rxd7.Q": {
+    "value": 0.31545,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.1600.moves[Rxd7].Q"
+  },
+  "fig_4_1_1600.Qb5.N": {
+    "value": 2,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.1600.moves[Qb5].N"
+  },
+  "fig_4_1_1600.Qb5.Q": {
+    "value": -0.10191,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.1600.moves[Qb5].Q"
+  },
+  "fig_4_1_1600.Qc3.N": {
+    "value": 2,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.1600.moves[Qc3].N"
+  },
+  "fig_4_1_1600.Qc3.Q": {
+    "value": -0.00054,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.1600.moves[Qc3].Q"
+  },
+  "fig_4_1_6400.Qb7.N": {
+    "value": 172,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.6400.moves[Qb7].N"
+  },
+  "fig_4_1_6400.Qb7.Q": {
+    "value": 0.65874,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.6400.moves[Qb7].Q"
+  },
+  "fig_4_1_6400.Qb8+.N": {
+    "value": 3,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.6400.moves[Qb8+].N"
+  },
+  "fig_4_1_6400.Qb8+.Q": {
+    "value": 1.0,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.6400.moves[Qb8+].Q"
+  },
+  "fig_4_1_6400.Rxd7.N": {
+    "value": 4,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.6400.moves[Rxd7].N"
+  },
+  "fig_4_1_6400.Rxd7.Q": {
+    "value": 0.31545,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.6400.moves[Rxd7].Q"
+  },
+  "fig_4_1_6400.Qb5.N": {
+    "value": 2,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.6400.moves[Qb5].N"
+  },
+  "fig_4_1_6400.Qb5.Q": {
+    "value": -0.10191,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.6400.moves[Qb5].Q"
+  },
+  "fig_4_1_6400.Qc3.N": {
+    "value": 2,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.6400.moves[Qc3].N"
+  },
+  "fig_4_1_6400.Qc3.Q": {
+    "value": -0.00054,
+    "path": "engine_data.json -> positions.opera_before_qb8.ladder.6400.moves[Qc3].Q"
+  },
+  "fig_6_1.v_bare": {
+    "value": 0.98838,
+    "path": "KNOWLEDGE_BASE.md -> \u00a76"
+  },
+  "fig_6_1.d_bare": {
+    "value": 0.012,
+    "path": "KNOWLEDGE_BASE.md -> \u00a76"
+  },
+  "fig_6_1.v_hist": {
+    "value": 0.95129,
+    "path": "KNOWLEDGE_BASE.md -> \u00a76"
+  },
+  "fig_6_1.d_hist": {
+    "value": 0.049,
+    "path": "KNOWLEDGE_BASE.md -> \u00a76"
+  }
+}

@@ -1,0 +1,54 @@
+\chapter{The Two Partners}
+\label{ch:partners}
+
+The search engine operates as a partnership between two distinct components: the \textbf{Manager} (\texttt{lc0.exe}), which maintains tree bookkeeping and decision selection, and the \textbf{Artist} (the BT3 neural network), which evaluates positions in single forward passes.
+
+\section{The Handshake}
+
+\begin{established}[The Engine-Network Handshake]
+The interaction between manager and neural network proceeds step-by-step:
+\begin{center}
+\begin{minipage}{\linewidth}
+\captionsetup{type=figure}
+\centering
+\subcaptionbox{Manager holds board}{\input{figures/fig_1_1a.tex}}\qquad
+\subcaptionbox{Board slides to Artist}{\input{figures/fig_1_1b.tex}}\\[2ex]
+\subcaptionbox{Artist returns cards}{\input{figures/fig_1_1c.tex}}\qquad
+\subcaptionbox{Manager writes node}{\input{figures/fig_1_1d.tex}}
+\captionof{figure}{\textbf{FIG-1.1: The handshake cycle.} Manager passes board position to network; network returns policy prior probabilities and single-look WDL value evaluation.}
+\label{fig:1_1}
+\end{minipage}
+\end{center}
+\end{established}
+
+\clearpage
+\section{Anatomy of a Tree Node}
+
+\begin{established}[Search Tree Node Anatomy]
+Each node in the MCTS search tree stores both measured network feedback and running statistics:
+\begin{center}
+\input{figures/fig_1_2.tex}
+\captionof{figure}{\textbf{FIG-1.2: Node Anatomy.} Prior probability $P(a)$, visit count $n_a$, running average evaluation $Q(a)$, single-pass value $V$, curiosity bonus $U(a)$, and selection score $S(a) = Q(a) + U(a)$.}
+\label{fig:1_2}
+\end{center}
+\end{established}
+
+\section{The Initial Network Evaluation}
+
+\begin{realdata}[Initial Position Assessment]
+For our subject endgame position (\texttt{4k3/8/4K3/4P3/8/8/8/8 w - - 0 1}), one single forward pass produces initial policy priors and win-draw-loss assessment:
+\begin{center}
+\begin{minipage}{\linewidth}
+\captionsetup{type=figure}
+\centering
+\subcaptionbox{Cards Face-Down}{\input{figures/fig_1_3a.tex}}\qquad
+\subcaptionbox{Evaluated Numbers}{\input{figures/fig_1_3b.tex}}
+\captionof{figure}{\textbf{FIG-1.3: Policy and WDL cards for K+P endgame.} The policy places 89.36\% of attention on winning moves (Kd6 45.13\%, Kf6 44.23\%), but still leaves 10.64\% on drawing moves (Kf5 5.38\%, Kd5 5.26\%). Initial root value $V = +0.97602$, $d = 0.024$.}
+\label{fig:1_3}
+\end{minipage}
+\end{center}
+
+\begin{keyidea}
+The network policy is an informed initial instinct, not an unassailable oracle. $89.36\%$ of its attention went to winning moves, but $10.64\%$ remained on moves that throw away the win. The search exists to verify and refine this instinct.
+\end{keyidea}
+\end{realdata}
