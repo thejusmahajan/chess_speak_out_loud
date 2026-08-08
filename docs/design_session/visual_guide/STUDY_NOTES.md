@@ -63,6 +63,9 @@ This document records the Q&A study log for *Inside LC0's Mind: A Visual Guide*.
   - **Role of $V$ in $Q(a)$:** For unvisited moves, $Q(a) = Q_{\text{FPU}} = V(\text{root}) - 0.33\sqrt{\sum_{\text{visited}}P}$. For visited moves, $Q(a)$ is the average of $V(\text{leaf})$ values backed up from leaf evaluations. $V$ directly sets the baseline exploitation score.
   - **Role of $P$ in $U(a)$:** $P(a)$ powers the exploration bonus $U(a) = c_{\text{puct}}(N) \cdot P(a) \cdot \frac{\sqrt{\max(N,1)}}{1+n_a}$.
 - **Citations:** [ch07_search_by_hand.tex:L57](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch07_search_by_hand.tex#L57); [ch07_search_by_hand.tex:L99-L101](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch07_search_by_hand.tex#L99-L101); [ch05_machines_to_trees.tex §One iteration, four phases](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch05_machines_to_trees.tex#L71-L77); [KNOWLEDGE_BASE.md §2.2](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/visual_guide/KNOWLEDGE_BASE.md#L81-L85)
+
+---
+
 ### Q4: Detailed Step-by-Step Mechanism of $V$ and $P$ When Presented to MCTS
 - **Question:** Explain in detail what happens when the position value $V$ and the $P$ priors are presented to the MCTS engine. (Note: `neural_mcts_visual_guide_v2` omits these explicit formulas; recorded here as noted).
 - **Answer:**
@@ -72,6 +75,7 @@ This document records the Q&A study log for *Inside LC0's Mind: A Visual Guide*.
   3. **Setting the Baseline (Iteration 1):** In our position, $V(\text{root}) = +0.97602$. Before any move is visited, $\sum_{\text{visited}} P = 0$, so $Q_{\text{FPU}} = +0.97602$ for all 4 moves. $V$ sets the baseline optimism for the entire move list.
   4. **Transition to Measured $Q$ (Iteration 2+):** When a move (e.g. Kd6) is visited, it is expanded and its leaf evaluated to get $V(\text{leaf}) = +0.96766$. Kd6 now has a *measured* average $Q(\text{Kd6}) = +0.96766$, while unvisited moves (Kf6, Kd5, Kf5) drop to $Q_{\text{FPU}} = 0.97184 - 0.33\sqrt{0.4513} = 0.75015$.
   5. **Summary:** $V$ provides the initial $Q_{\text{FPU}}$ baseline for unvisited moves, and downstream $V(\text{leaf})$ evaluations supply the measured $Q(a)$ values as search progresses.
+- **Citations:** [ch06_building_puct.tex §First-play urgency](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch06_building_puct.tex#L273-L295); [ch07_search_by_hand.tex §Iteration 1 & 2](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch07_search_by_hand.tex#L97-L141); [KNOWLEDGE_BASE.md §2.2](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/visual_guide/KNOWLEDGE_BASE.md#L81-L85)
 
 ---
 
@@ -82,6 +86,8 @@ This document records the Q&A study log for *Inside LC0's Mind: A Visual Guide*.
   2. **$V$ fills in initial Quality:** Since no move has been played yet, MCTS uses the position evaluation $V = +0.97602$ as the starting Quality for *every single move*.
   3. **$P$ picks the first winner:** Because all moves tie on starting Quality ($+0.97602$), the move priors $P$ decide the winner. Kd6 ($P = 45.13\%$) gets the highest exploration bonus and is selected for Iteration 1.
   4. **The first move is tested:** MCTS plays Kd6 down the tree, and the network evaluates that new board position to get a real measured value ($V = +0.96766$).
+  5. **MCTS updates the scorecard:** Kd6's temporary estimate is replaced with its real measured value ($+0.96766$). The unvisited moves drop slightly in estimate (FPU penalty). MCTS then recalculates scores and picks the move for Iteration 2 (Kf6).
+- **Citations:** [ch07_search_by_hand.tex §Iteration 1 & 2](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch07_search_by_hand.tex#L97-L141); [KNOWLEDGE_BASE.md §2.3](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/visual_guide/KNOWLEDGE_BASE.md#L96-L120)
 
 ---
 
@@ -92,4 +98,14 @@ This document records the Q&A study log for *Inside LC0's Mind: A Visual Guide*.
   2. **Search is a policy improvement operator:** Search tests moves deeper down the tree, measures their actual outcomes ($V$), and builds a dynamic score $S = Q + U$. "Intuition guides calculation; calculation corrects intuition."
   3. **$P$ is static; $S$ updates live:** $P$ never changes during search. But $S$ continuously updates after every iteration as visits ($N$) pile up and real measured values ($Q$) back up.
 - **Citations:** [ch07_search_by_hand.tex:L86-L90](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch07_search_by_hand.tex#L86-L90); [ch12_two_heads.tex §Why this improves anything](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch12_two_heads.tex#L226-L245); [KNOWLEDGE_BASE.md §2.1](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/visual_guide/KNOWLEDGE_BASE.md#L75-L77)
-- **Citations:** [ch07_search_by_hand.tex §Iteration 1 & 2](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch07_search_by_hand.tex#L97-L141); [KNOWLEDGE_BASE.md §2.3](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/visual_guide/KNOWLEDGE_BASE.md#L96-L120)
+
+---
+
+### Q7: Comparison to Human Candidate Move Selection & Calculation
+- **Question:** Is it like human players listing candidate moves first and then analyzing each move?
+- **Answer:** **Yes, conceptually, but with three crucial differences.**
+  - **The Conceptual Analogy:** The relationship between $P$ and MCTS mirrors human thought: *"Intuition guides calculation; calculation corrects intuition."* Initial policy intuition ($P$) proposes where to start looking, and deep calculation ($Q$) verifies or refutes it.
+  - **Difference 1 (No Hard Filter):** Humans usually select 2–3 candidate moves and ignore the rest entirely. MCTS assigns a non-zero prior $P$ to *every legal move* — there is no hard filter, so low-prior moves (like a 1.6% queen sac) can still be pulled in if visits pile up elsewhere.
+  - **Difference 2 (Engine Intuition, Not Human):** $P$ models what *this engine's search* would choose, not human choice or human candidate selection.
+  - **Difference 3 (Node-by-Node Interleaving):** Humans often analyze line A several plies deep before switching to line B. MCTS recalculates $S = Q + U$ across all candidate moves after *every single node visit*.
+- **Citations:** [ch12_two_heads.tex:L244](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch12_two_heads.tex#L244); [ch12_two_heads.tex §What the policy is a model of](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch12_two_heads.tex#L96-L100); [ch12_two_heads.tex:L86-L88](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch12_two_heads.tex#L86-L88); [ch06_building_puct.tex:L335](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/design_session/book/chapters/ch06_building_puct.tex#L335)

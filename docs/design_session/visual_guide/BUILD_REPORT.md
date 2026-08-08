@@ -72,46 +72,107 @@ Node dimensions: width $\text{vgNodeW} = 20\text{mm} = 2.0\text{cm}$ (half-width
    - *Status:* FIG-5.1 was a text chain; FIG-5.2 was two prose boxes.
    - *Handling:* FIG-5.1 redrawn as 15 transformer encoder layer blocks with input tokens, embedding, Layer 8 tap, and output heads. FIG-5.2b redrawn as a conceptual signal strength curve rising at Layer 8 and collapsing at Layer 15 (shape only, zero numbers, inside purple `hypothesis` box).
 
+8. **Legibility Sweep Across All Figures (Task A1):**
+   - *Status:* All 67 figures in `make_figures.py` updated to `scale=1.0` (or omitted scale) and font size `\scriptsize` (or `\small`/`\normalsize`).
+   - *Verification:* Grep check `scale=0\.[0-9]+.*\\tiny` returned **0 matches** across `figures/*.tex`. Rendered PNGs audited at 110 dpi without zooming.
+9. **Figure-ID Drift & File Renaming (Task A2):**
+   - *Status:* `fig_1_9.tex` renamed to `fig_1_10.tex` (Math overview) and `fig_1_10a-d.tex` renamed to `fig_1_11a-d.tex` (Term breakdown). `make_figures.py`, `part1_partners.tex`, and `part2_growing_tree.tex` updated accordingly.
+10. **Part 0 Foundations Chapter & Physics Bridges (Task B):**
+    - *Status:* Built complete Foundations chapter (§0.1--§0.9) in `part0_legend.tex` with figures `FIG-0.1` through `FIG-0.9`. Defined `BridgeOrange` (`#D97706`) and `bridge` tcolorbox environment in `preamble_visual.tex` & `mctsviz.sty`.
+11. **Visual Derivation & Physics Bridge Framing:**
+    - *Status:* Derivation of expectation, sample means, concentration bounds, UCB1, and UCT stretched across §0.2--§0.9 with dedicated TikZ figures (`FIG-0.3` WDL Simplex, `FIG-0.5` $Q=W/N$, `FIG-0.6` Hoeffding bound, `FIG-0.7` UCB1 & Union Bound, `FIG-0.8` Negamax sign flip).
+    - *Physics Bridges:* Refined physics bridge framing in Part 0: retained Diffusion ($\Delta x_{\text{rms}} \propto \sqrt{t}$); replaced Ergodicity with Law of Large Numbers (LLN) & non-uniform sampling; cut Free Energy and Parity bridges.
+    - *Union Bound Derivation (§0.6):* Expanded $\ln N$ derivation into a rigorous 4-step union bound argument demonstrating why simultaneous confidence across $K \cdot N^p$ events costs only logarithmically more width ($\epsilon \propto \sqrt{\ln M}$).
+    - *Equation Register (E1--E12):* Formally labeled E10 (PUCT), E11 ($Q_{\text{FPU}}$), and E12 ($c_{\text{puct}}$) in Section 1.4, updated `FIG-0.9`, and added explicit `\eqref{eq:E1}`--`\eqref{eq:E12}` cross-references across Parts 1--6.
+
+
 ---
 
 ## 4. Per-Figure Acceptance Checklist (`LATEX_SPEC.md` §7)
 
-Each figure has been rendered to PNG at 300 dpi and audited page-by-page. Printed page numbers reflect final compiled PDF (`neural_mcts_visual_guide_v2.pdf`).
+Each figure has been rendered to PNG at both 300 dpi and 110 dpi and audited page-by-page. Printed page numbers reflect final compiled PDF (`neural_mcts_visual_guide_v2.pdf`, 49 pages total).
 
 Audit checks performed:
 - **`Gold bar and gold ring match:`** YES / N/A
 - **`Caption nums in figure:`** YES
 - **`No label/arrow/node overlap:`** YES (verified by coordinate extent arithmetic in §2)
+- **`Every printed digit in figure_data.json:`** YES (mechanically verified by `verify_provenance_coverage()` in `make_figures.py`)
+- **`All figure text legible at 110 dpi without zooming:`** YES (audited on rendered screen PNGs)
 
-| Figure ID | Printed Page | Tier | pdflatex exit 0 | PNG inspected | Gold bar & ring match | Caption nums in figure | No overlap | Provenance JSON path | Status | Note on What Changed / Verified |
-|---|:---:|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|---|
-| FIG-0.1 | p. 2 | — | YES | YES | N/A | YES | YES | — | PASSED | Visual grammar legend intact; clear definitions. |
-| FIG-1.1a-d | p. 3 | established | YES | YES | N/A | YES | YES | — | PASSED | Redrawn in 2x2 grid. Policy & WDL cards moved to (3.4, 1.9) and (3.4, -1.9), completely clear of board. |
-| FIG-1.2 | p. 4 | established | YES | YES | N/A | YES | YES | — | PASSED | Node anatomy callouts aligned; placed cleanly at top of page 4. |
-| FIG-1.3a-b | p. 4 | realdata | YES | YES | N/A | YES | YES | `fig_1_3.*` | PASSED | Initial assessment cards (face-down vs evaluated) placed side-by-side in single row. |
-| FIG-2.0 | p. 5 | realdata | YES | YES | N/A | YES | YES | `fig_2_0.*` | PASSED | Iteration 0 starting state; 4 children unvisited (dashed grey), $Q_{\text{FPU}} = +0.97602$. |
-| FIG-2.1 | p. 6 | realdata | YES | YES | YES | YES | YES | `fig_2_1.*` | PASSED | Tree = Kd6 post-expansion $n=1, Q=+0.96766$; S-bar strip = pre-selection $S=1.76358$ (gold bar on Kd6 matches gold ring). |
-| FIG-2.2 | p. 7 | realdata | YES | YES | YES | YES | YES | `fig_2_2.*` | PASSED | Tree = Kf6 post-expansion $n=1, Q=+0.98598$; S-bar strip = pre-selection $S=1.52205$; caption explicitly attributes pre-pick FPU 0.75015 vs post-pick FPU 0.66460. |
-| FIG-2.3 | p. 7 | realdata | YES | YES | YES | YES | YES | `fig_2_3.*` | PASSED | Tree = Kf8 leaf post-expansion; backprop routed via `\vglane` right margin lane ($x=6.5, y=-4.5$). Proven disjoint from Kd5 ($x \in [3.5 \dots 5.5]$). |
-| FIG-2.4 | p. 8 | realdata | YES | YES | YES | YES | YES | `fig_2_4.*` | PASSED | Tree = Kd8 leaf post-expansion; S-bar strip = pre-selection $S=1.64983$; backprop routed via `\vglane` right margin lane ($x=6.5, y=-4.5$). |
-| FIG-2.5 | p. 8 | realdata | YES | YES | YES | YES | YES | `fig_2_5.*` | PASSED | Tree = Kf7 leaf post-expansion; Depth 2 row Kd8 (-5.8), Kf7 (-3.4), Kf8 (-1.0) with clean 4mm gaps. Green burst centered on Kf7; backprop routed via `\vglane` ($x=6.5, y=-4.5$). |
-| FIG-2.6 | p. 9 | realdata | YES | YES | YES | YES | YES | `fig_2_6.*` | PASSED | Tree = e6 leaf (under Kf8) post-expansion; backprop routed via `\vglane` ($x=6.5, y=-6.3$). |
-| FIG-2.7 | p. 9 | realdata | YES | YES | YES | YES | YES | `fig_2_7.*` | PASSED | Tree = e6 leaf (under Kd8) post-expansion; backprop routed via `\vglane` ($x=6.5, y=-6.3$). |
-| FIG-2.8 | p. 10 | realdata | YES | YES | YES | YES | YES | `fig_2_8.*` | PASSED | Final 8-iteration state; S-bar strip = pre-selection $S=1.48270$ (gold bar on Kf6 matches gold ring). |
-| FIG-2.9 | p. 10 | realdata | YES | YES | N/A | YES | YES | — | PASSED | Time-lapse wrapped to 2 rows of 4; stripped text labels; structural depth growth (1->2->3) visible. |
-| FIG-2.10a-c | p. 11 | realdata | YES | YES | N/A | YES | YES | `fig_2_10.*` | PASSED | Sign flip walk-through (+0.95129 White -> -0.95129 Black edge -> +0.95129 Root). |
-| FIG-2.11 | p. 11 | established | YES | YES | N/A | YES | YES | — | PASSED | Depth emergence summary card. |
-| FIG-3.1a-c | p. 12 | realdata | YES | YES | N/A | YES | YES | `fig_3_1_*` | PASSED | Refutation ladder (64, 128, 800 nodes); Kf5/Kd5 marked red with $n=1, Q=0.00000$. |
-| FIG-3.2 | p. 13 | established | YES | YES | N/A | YES | YES | — | PASSED | PUCT score race plot; solid markers at measured $N=64, 128$. |
-| FIG-3.3 | p. 13 | realdata | YES | YES | N/A | YES | YES | `fig_3_3.*` | PASSED | Dead drawn opposition position ($N=171, 148, 172, 155, 152$). |
-| FIG-3.4 | p. 13 | cartoon | YES | YES | N/A | YES | YES | — | PASSED | Single-look vs deep refutation caveat boxes. |
-| FIG-4.1a-e | p. 14 | realdata | YES | YES | N/A | YES | YES | `fig_4_1_*` | PASSED | Morphy mind change (64..6400 nodes); 2x2+1 grid; bestmove flip to Qb8+ at 1600 nodes ($Q=1.000$). |
-| FIG-4.2 | p. 15 | realdata | YES | YES | N/A | YES | YES | — | PASSED | Proof beats sampling diagram (3 visits $Q=1.000$ vs 172 visits $Q=0.659$). |
-| FIG-4.3 | p. 15 | realdata | YES | YES | N/A | YES | YES | — | PASSED | Root policy distribution bar (89.36% winning slice vs 10.64% drawing slice refutation). |
-| FIG-4.4 | p. 15 | established | YES | YES | N/A | YES | YES | — | PASSED | Move decision flowchart (max $n$ ranking with proven win exception). |
-| FIG-5.1 | p. 16 | established+cartoon | YES | YES | N/A | YES | YES | — | PASSED | Redrawn as 15 transformer encoder layer blocks with embedding, Layer 8 tap, and output heads. |
-| FIG-5.2a-b | p. 17 | hypothesis | YES | YES | N/A | YES | YES | — | PASSED | (a) Layer 8 probe tap, (b) Suppressed sacrifice conceptual signal curve peaking at L8 and collapsing at L15. |
-| FIG-5.3 | p. 17 | realdata | YES | YES | N/A | YES | YES | — | PASSED | Morphy measured policy override counterpart ($P(\text{Qb8+}) = 1.60\%$ vs $Q=1.00000$). |
-| FIG-5.4 | p. 17 | hypothesis | YES | YES | N/A | YES | YES | — | PASSED | Attention map tooling comparison (diffuse map vs single-head target). |
-| FIG-6.1a-b | p. 18 | realdata | YES | YES | N/A | YES | YES | `fig_6_1.*` | PASSED | Bare FEN ($V=+0.98838, d=0.012$) vs FEN-with-History ($V=+0.95129, d=0.049$). |
-| FIG-6.2 | p. 18 | — | YES | YES | N/A | YES | YES | — | PASSED | Product visual guide summary card. |
+### Figure Acceptance Table
+
+| Figure ID | Printed Page | Tier | pdflatex exit 0 | PNG inspected | Gold bar & ring match | Caption nums in figure | No overlap | Every printed digit in figure_data.json | Legible at 110 dpi | Provenance JSON path | Status | Note on What Changed / Verified |
+|---|:---:|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|---|
+| FIG-0.1 | p. 3 | — | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | Visual grammar legend key; clear definitions. |
+| FIG-0.2 | p. 4 | — | YES | YES | N/A | YES | YES | YES | YES | `fig_0_2.*` | PASSED | Core Symbol & Notation Reference Table. |
+| FIG-0.3 | p. 5 | realdata | YES | YES | N/A | YES | YES | YES | YES | `fig_0_3.*` | PASSED | Expected score and WDL Simplex diagram. |
+| FIG-0.4 | p. 6 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_0_4.*` | PASSED | Logistic Centipawn <-> Probability conversion curve. |
+| FIG-0.5 | p. 7 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_0_5.*` | PASSED | Incremental sample mean convergence ($Q=W/N$). |
+| FIG-0.6 | p. 8 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_0_6.*` | PASSED | Standard error $1/\sqrt{n}$ law & Hoeffding radius. |
+| FIG-0.7 | p. 9 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_0_7.*` | PASSED | Optimism principle and UCB1 derivation. |
+| FIG-0.8 | p. 10 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_0_8.*` | PASSED | Nested bandits and Negamax sign flips. |
+| FIG-0.9 | p. 12 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_0_9.*` | PASSED | Master Equation Register (E1--E12) card. |
+| FIG-1.0 | p. 13 | established | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | Setup board (1k2/3R4/8/8/8/8/8/8) + piece table. |
+| FIG-1.1a-d | p. 13 | established | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | Redrawn in 2x2 grid. Policy & WDL cards clear of board. |
+| FIG-1.7 | p. 14 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_1_7.*` | PASSED | Requirements R1--R3 + Morphy witness position ($P(\text{Qb8+}) = 1.60\%$). |
+| FIG-1.8a-c | p. 15 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_1_8*` | PASSED | Attempts 1--3 side-by-side (scale=1.0, 44mm subcaptionboxes). |
+| FIG-1.9 | p. 16 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_1_8*` | PASSED | Attempts 4--5 + giant boxed PUCT selection formula. |
+| FIG-1.10 | p. 17 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_1_10.*` | PASSED | Math formula overview diagram (file renamed to `fig_1_10.tex`). |
+| FIG-1.11a-d | p. 18 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_1_11*` | PASSED | 2x2 term-by-term breakdown (file renamed to `fig_1_11a-d.tex`). |
+| FIG-1.2 | p. 19 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_1_2.*` | PASSED | Node anatomy callouts. |
+| FIG-1.3a-b | p. 20 | realdata | YES | YES | N/A | YES | YES | YES | YES | `fig_1_3.*` | PASSED | Initial assessment cards. |
+| FIG-1.4a-b | p. 21 | established | YES | YES | N/A | YES | YES | YES | YES | `fig_1_4.*` | PASSED | (a) Symbolic $V$ placeholders; (b) One $V$ per position rule. |
+| FIG-1.5 | p. 21 | realdata | YES | YES | N/A | YES | YES | YES | YES | `fig_1_5.*` | PASSED | Policy head prediction definition card. |
+| FIG-1.6a-d | p. 22 | realdata | YES | YES | N/A | YES | YES | YES | YES | `fig_1_6.*` | PASSED | 4-panel search iteration cycle. |
+| FIG-2.B_a-c | p. 23 | realdata | YES | YES | N/A | YES | YES | YES | YES | `fig_2_b.*` | PASSED | Solid bar segment origin + tracking table. |
+| FIG-2.0 | p. 23 | realdata | YES | YES | N/A | YES | YES | YES | YES | `fig_2_0.*` | PASSED | Iteration 0 starting state. |
+| FIG-2.1 | p. 24 | realdata | YES | YES | YES | YES | YES | YES | YES | `fig_2_1.*` | PASSED | Tree = Kd6 post-expansion $n=1, Q=+0.96766$. |
+| FIG-2.2 | p. 24 | realdata | YES | YES | YES | YES | YES | YES | YES | `fig_2_2.*` | PASSED | Tree = Kf6 post-expansion $n=1, Q=+0.98598$. |
+| FIG-2.3 | p. 25 | realdata | YES | YES | YES | YES | YES | YES | YES | `fig_2_3.*` | PASSED | Tree = Kf8 leaf; backprop routed via `\vglane` ($x=6.5$). |
+| FIG-2.4 | p. 25 | realdata | YES | YES | YES | YES | YES | YES | YES | `fig_2_4.*` | PASSED | Tree = Kd8 leaf post-expansion. |
+| FIG-2.5 | p. 26 | realdata | YES | YES | YES | YES | YES | YES | YES | `fig_2_5.*` | PASSED | Tree = Kf7 leaf post-expansion; Depth 2 row clear gaps. |
+| FIG-2.6 | p. 26 | realdata | YES | YES | YES | YES | YES | YES | YES | `fig_2_6.*` | PASSED | Tree = e6 leaf (under Kf8); backprop routed via `\vglane`. |
+| FIG-2.7 | p. 27 | realdata | YES | YES | YES | YES | YES | YES | YES | `fig_2_7.*` | PASSED | Tree = e6 leaf (under Kd8); backprop routed via `\vglane`. |
+| FIG-2.8 | p. 27 | realdata | YES | YES | YES | YES | YES | YES | YES | `fig_2_8.*` | PASSED | Final 8-iteration state. |
+| FIG-2.9 | p. 28 | realdata | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | Time-lapse wrapped to 2 rows of 4. |
+| FIG-2.10a-c | p. 28 | realdata | YES | YES | N/A | YES | YES | YES | YES | `fig_2_10.*` | PASSED | Sign flip walk-through. |
+| FIG-2.11 | p. 28 | established | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | Depth emergence summary card. |
+| FIG-3.1a-c | p. 29 | realdata | YES | YES | N/A | YES | YES | YES | YES | `fig_3_1_*` | PASSED | Refutation ladder (64, 128, 800 nodes). |
+| FIG-3.2 | p. 29 | established | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | PUCT score race plot. |
+| FIG-3.3 | p. 30 | realdata | YES | YES | N/A | YES | YES | YES | YES | `fig_3_3.*` | PASSED | Dead drawn opposition position ($N=171, 148, 172, 155, 152$). |
+| FIG-3.4 | p. 30 | cartoon | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | Single-look vs deep refutation caveat boxes. |
+| FIG-4.1a-e | p. 31 | realdata | YES | YES | N/A | YES | YES | YES | YES | `fig_4_1_*` | PASSED | Morphy mind change (64..6400 nodes). |
+| FIG-4.2 | p. 31 | realdata | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | Proof beats sampling diagram. |
+| FIG-4.3 | p. 32 | realdata | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | Root policy distribution bar. |
+| FIG-4.4 | p. 32 | cartoon | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | High-tier policy blunders summary card. |
+| FIG-5.1 | p. 33 | established | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | 15-layer transformer pipeline layout. |
+| FIG-5.2a-b | p. 34 | hypothesis | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | Layer-8 peak / Layer-15 collapse tactical concept curve. |
+| FIG-5.3 | p. 34 | realdata | YES | YES | N/A | YES | YES | YES | YES | `fig_5_3.*` | PASSED | Morphy 1.60% prior head card. |
+| FIG-5.4 | p. 34 | cartoon | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | Network role & limitations summary card. |
+| FIG-6.1a-b | p. 35 | realdata | YES | YES | N/A | YES | YES | YES | YES | `fig_6_1_*` | PASSED | FPU drop trap (0 visits vs 1 visit). |
+| FIG-6.2 | p. 35 | cartoon | YES | YES | N/A | YES | YES | YES | YES | — | PASSED | Final traps summary card. |
+
+### Figure Renumbering History Mapping (Task A2)
+
+| Original Figure ID | Intermediate Figure ID | Final Displayed Figure ID | TeX Source File | Description |
+|---|---|---|---|---|
+| `FIG-2.A` | `FIG-1.9` | `FIG-1.10` | `figures/fig_1_10.tex` | Math formula overview diagram |
+| `FIG-1.9` | `FIG-1.10a-d` | `FIG-1.11a-d` | `figures/fig_1_11a-d.tex` | Term-by-term breakdown (4 subcaptions) |
+
+### Master Equation Register (E1--E12)
+
+| Equation ID | Formula | Section Introduced | Core Role / Definition |
+|---|---|---|---|
+| E1 | $\mathbb{E}[\text{score}] = w + \frac{1}{2}d$ | §0.3 | Observable expected score |
+| E2 | $V = w - l \in [-1, +1]$ | §0.3 | Net win value (side-to-move relative) |
+| E3 | $\mathbb{E}[\text{score}] = \frac{1}{1 + 10^{-\text{cp}/400}}$ | §0.3 | Centipawn to probability logistic map |
+| E4 | $Q_n = Q_{n-1} + \frac{1}{n}(x_n - Q_{n-1}) = \frac{W_n}{n}$ | §0.4 | Incremental sample mean update ($W/N$) |
+| E5 | $\text{SE}(Q_n) = \sigma/\sqrt{n}$ | §0.5 | Standard error $1/\sqrt{n}$ decay law |
+| E6 | $\epsilon = R\sqrt{\frac{\ln(1/\delta)}{2n}}$ | §0.5 | Hoeffding concentration confidence radius |
+| E7 | $a^* = \argmax_i \left[ Q_i + c\sqrt{\frac{\ln N}{n_i}} \right]$ | §0.6 | UCB1 multi-armed bandit selection rule |
+| E8 | $V_{\text{parent}} = -V_{\text{child}}$ | §0.7 | Negamax two-player value backup |
+| E9 | $a^* = \argmax_a \left[ Q(s,a) + c\sqrt{\frac{\ln N(s)}{n_a}} \right]$ | §0.7 | UCT tree search selection rule |
+| E10 | $S(a) = Q(a) + c_{\text{puct}} P(a) \frac{\sqrt{N}}{1+n_a}$ | §1.4 | PUCT selection formula (LC0 core) |
+| E11 | $Q_{\text{FPU}} = Q(\text{parent}) - c_{\text{fpu}}\sqrt{\sum_{\text{vis}} P}$ | §1.4 | First Play Urgency unvisited baseline |
+| E12 | $c_{\text{puct}}(N) = c_{\text{base}} + c_{\text{factor}}\ln\left(\frac{N+c_{\text{mod}}}{c_{\text{mod}}}\right)$ | §1.4 | Logarithmic CPUCT growth with total $N$ |
+
