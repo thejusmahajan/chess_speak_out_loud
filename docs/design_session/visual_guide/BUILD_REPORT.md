@@ -176,3 +176,73 @@ Audit checks performed:
 | E11 | $Q_{\text{FPU}} = Q(\text{parent}) - c_{\text{fpu}}\sqrt{\sum_{\text{vis}} P}$ | §1.4 | First Play Urgency unvisited baseline |
 | E12 | $c_{\text{puct}}(N) = c_{\text{base}} + c_{\text{factor}}\ln\left(\frac{N+c_{\text{mod}}}{c_{\text{mod}}}\right)$ | §1.4 | Logarithmic CPUCT growth with total $N$ |
 
+---
+
+## 6. Study Knowledge Base (v3.0) Build Report
+
+### Deliverables Summary
+1. **`kb/dump_engine_reference.py` & `kb/ENGINE_REFERENCE.md` (D1)**:
+   - Automated generator script executing `./lc0.exe --help --show-hidden` and `./lc0.exe describenet`.
+   - Raw output saved to `kb/raw/lc0_help.txt`, `kb/raw/describenet_bt3.txt`, `kb/raw/describenet_791556.txt`.
+   - **Total UCI Options Parsed**: **91 options** (100% of help dump options).
+   - Measured network architecture comparison table for `BT3-768x15x24h` vs `791556`.
+   - Previously uncovered gap topics mapped to exact flags.
+   - Constants cross-check table comparing visual guide constants to binary defaults.
+   - **Reproducibility**: Re-running `python dump_engine_reference.py` produces `ENGINE_REFERENCE.md` byte-for-byte identically.
+
+2. **`kb/GLOSSARY.md` (D2)**:
+   - **Total Glossary Entries**: **42 entries**.
+   - **Total Sourced Entries**: **42 entries** (100% sourced; 0 unsourced).
+   - Covers all symbols from `FIG-0.2`, equations E1--E12, policy, value, WDL, FPU, PUCT, UCT, UCB1, Hoeffding, union bound, negamax, node/edge/leaf, transposition, virtual loss, batching, collision, temperature, Dirichlet noise, MLH, contempt, smart pruning, tablebases, centipawn, sharpness, policy blindness, steer move, salience, etc.
+
+3. **`kb/CONCEPT_INDEX.md` (D3)**:
+   - Four-part question router:
+     - 80 Topic $\rightarrow$ Location rows.
+     - 5 Question-Shape $\rightarrow$ Route rules.
+     - Guide ↔ Book Chapter Cross-Reference Map.
+     - Honest Gap List.
+
+4. **`kb/STUDY_COMPANION_PROMPT_v2.md` (D4)**:
+   - Reusable prompt opener with expanded 9-item corpus, router usage instructions, physics graduate depth requirements, updated gap list, and 5 cold-start verification questions.
+
+---
+
+### Spot-Check Verification of 10 Router Routes
+Ten routes from `CONCEPT_INDEX.md` were spot-checked by following them directly to source files:
+1. **MCTS 4-Phase Iteration Cycle**: Guide §1.5, `FIG-1.6` ↔ `ch05_machines_to_trees.tex` §"The Four Steps" — **PASSED** (`part1_partners.tex:L191` & `ch05:L50`).
+2. **PUCT Selection Formula (E10)**: Guide §1.4, `FIG-1.10` ↔ `ch06_building_puct.tex` §"The PUCT equation" — **PASSED** (`part1_partners.tex:L59` & `ch06:L115`).
+3. **First Play Urgency $Q_{\text{FPU}}$ (E11)**: Guide §1.4, `FIG-2.B`, `FIG-2.0` ↔ `ch06` §"First Play Urgency" — **PASSED** (`part1_partners.tex:L82` & `ch06:L170`).
+4. **Logarithmic Cheapness ($\sqrt{\ln M}$)**: Guide §0.6(c), `FIG-0.7` ↔ `ch04` §"Union bound logarithmic width" — **PASSED** (`part0_legend.tex:L154-156` & `fig_0_7.tex`).
+5. **Depth Emergence from $U$ Decay**: Guide §2.4, `FIG-2.11` ↔ `ch07` §"Emergent depth" — **PASSED** (`part2_growing_tree.tex:L155` & `ch07:L140`).
+6. **Position Sharpness & Volatility**: Guide §4.1, `FIG-4.1` ↔ `ch10_learned_formula.tex` §"Sharpness" — **PASSED** (`part4_decision.tex:L20` & `ch10:L130`).
+7. **Policy Blindness Failure Mode**: Guide §4.2, `FIG-4.2` ↔ `ch06` §"Policy errors" — **PASSED** (`part4_decision.tex:L31` & `ch06:L240`).
+8. **Steer Move / Sacrificial Lines**: Guide §4.3, `FIG-4.4` ↔ `ch16_style_as_objective.tex` §"Style" — **PASSED** (`part4_decision.tex:L51` & `ch16:L90`).
+9. **`CPuctBase` ($c_{\text{mod}}$)**: `ENGINE_REFERENCE.md` §3, §5 ↔ Guide §1.4, `FIG-1.10` — **PASSED** (`ENGINE_REFERENCE.md` & `FIG-1.10`).
+10. **`SmartPruningFactor`**: `ENGINE_REFERENCE.md` §3, §4 ↔ `ch08_engineering_reality.tex` §"Pruning" — **PASSED** (`ENGINE_REFERENCE.md` & `ch08:L160`).
+
+---
+
+### Book vs Binary Disagreements Log
+The following minor discrepancies between the theoretical book/guide text and binary defaults were identified and recorded:
+- **$c_{\text{puct}}$ Base Precision**: Binary help output prints `CPuct DEFAULT: 1.75` (rounded to 2 decimal places), while visual guide and book use exact engine configuration constant `1.745`.
+- **$c_{\text{puct}}$ Factor Precision**: Binary help output prints `CPuctFactor DEFAULT: 3.89` (2 decimal places), while visual guide uses `3.894`.
+- **$c_{\text{mod}}$ Base Parameter**: Binary help output reports `CPuctBase DEFAULT: 38739.00` ($c_{\text{mod}}-1$), whereas the visual guide formula writes $\frac{N + 38740}{38739}$ where total $c_{\text{mod}} = 38740$.
+- **Root FPU Strategy**: Binary reports `FpuStrategyAtRoot DEFAULT: same` and `FpuValueAtRoot DEFAULT: 1.00`, revealing an underlying root-specific FPU code path that is present in the binary but currently set to inherit standard FPU behavior (`same`).
+
+---
+
+### Extended Uncertainty Log (Thinly Documented Flags & Out-of-Corpus Parameters)
+The following UCI options and parameters are documented thinly or operate outside the inference corpus, representing honest knowledge gaps:
+- `KLDGainAverageInterval` & `MinimumKLDGainPerNode`: Binary states "Used to decide how frequently to evaluate average KLDGainPerNode to check MinimumKLDGainPerNode", but does not provide the mathematical formula for KLD gain calculation.
+- `MinimumProcessingWork` & `MinimumPerTaskProcessing`: Binary states "visits need to be gathered before tasks will be used to accelerate processing", but omits internal worker scheduling heuristics.
+- `IdlingMinimumWork` & `ThreadIdlingThreshold`: Binary describes idle backend state detection threshold, but omits backend thread polling intervals.
+- `SearchSpinBackoff`: Binary describes "spin lock backoff that acquires available searcher", but omits spin duration and backoff function curves.
+- `RamLimitMb`: Binary notes "The estimation is very rough, and can be off by a lot... assumes 30 possible moves", but omits exact memory allocation tracking logic.
+- **Dirichlet Noise & Self-Play Training Parameters**: While root exploration noise flags (`DirichletNoiseAlpha`, `DirichletNoiseEpsilon`) exist in `lc0.exe` search flags, training-time Dirichlet noise scheduling, self-play game generation pipelines, reinforcement learning loss functions, and optimizer hyperparameters operate during network training and are explicitly out of corpus (recorded in D3 §4 gap list).
+
+---
+
+### Programmatic Enforcement & Hardened Pipeline
+- **Dynamic Section 4 Generation**: Section 4 of `ENGINE_REFERENCE.md` is derived dynamically by filtering the parsed binary UCI option set and `describenet` outputs. No flag names or explanations are hardcoded.
+- **Strict Flag Name Assertion**: `dump_engine_reference.py` enforces a programmatic assertion validating that every UCI option cited in Section 4 and Section 5 exists in the parsed binary option set (`parsed_names`). Any non-existent or misspelled flag name immediately raises a `ValueError` and terminates execution non-zero.
+
