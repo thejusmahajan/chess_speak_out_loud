@@ -4,6 +4,18 @@
 this repository (a JSON file of measured engine output, a script that reproduces it, or a
 compile test that was actually run on this machine on 2026-08-07).
 
+**Companion file:** `kb/ADDENDUM.md` closes gaps found by auditing a real study session — which
+network produced which number (§A), why `N(node) = 1 + Σ n` (§B), the `+1` in the `c_puct` numerator
+(§C), what was switched off during measurement (§D), the declared gaps (§H), and what smart pruning
+does to every ladder in this corpus (§J). **On conflict the addendum wins**, and one point it
+corrects is stated ambiguously in this very file: every measured
+number here came from **791556** (15 SE-ResNet blocks × 192 filters), *not* from BT3, even though
+`kb/ENGINE_REFERENCE.md` labels BT3 "Primary".
+
+**§J applies to every table below.** All ladders were collected with `SmartPruningFactor` at its
+default `1.33`, so `nodes_requested` overstates the search (800 → a tree of 620) and a ladder's
+terminal `S` column may rank first a move the engine had already excluded from selection.
+
 **Rule for anyone building the guide from this file:** if a number, a chess claim, or a
 mechanism is not in this file and not in one of the data files it points at, **you may not put
 it in the document.** Ask instead. This project has been burned once by a worker inventing
@@ -58,7 +70,7 @@ Stockfish PVs (quotable verbatim):
 - Kd6: `1. Kd6 Kf7 2. e6+ Kf6 3. e7 Kf5 4. e8=Q Kf4 5. Kd5 Kf5`
 - Kf5: `1. Kf5 Ke7 2. Ke4 Ke6 3. Kd4 Ke7`
 
-Source: `docs/design_session/book/data/engine_data.json` → `positions.kp_endgame.stockfish`.
+Source: `docs/study/book/data/engine_data.json` → `positions.kp_endgame.stockfish`.
 
 ---
 
@@ -88,7 +100,7 @@ selection is decided by the priors alone.
 
 ### 2.3 The eight iterations — the spine of the animation
 
-Reproduced exactly by `docs/design_session/book/tools/simulate_search.py`, which cross-checks
+Reproduced exactly by `docs/study/book/tools/simulate_search.py`, which cross-checks
 itself against `lc0.exe go nodes 8` and prints `MISMATCH` if it ever drifts. **Run it; do not
 retype these.** Full per-iteration `Q`, `U`, `S` for all four moves is in its stdout.
 
@@ -165,7 +177,7 @@ it is the definition of a hard position.
 
 ### 2.5 Child and grandchild nodes (needed to draw depth 2 and 3)
 
-`docs/design_session/book/data/children_data.json`
+`docs/study/book/data/children_data.json`
 
 | Node | FEN | Ladders available |
 |---|---|---|
@@ -292,17 +304,18 @@ Largest where repetition matters — fortresses, perpetuals, drawn endgames.
 
 | Path | What it is |
 |---|---|
-| `docs/design_session/book/data/engine_data.json` | measured ladders for 6 positions × many node budgets, plus Stockfish ground truth. **223 KB. The primary source of truth.** |
-| `docs/design_session/book/data/children_data.json` | child and grandchild ladders for the K+P tree (depth 2–3) |
-| `docs/design_session/book/data/corpus_stats.json` | corpus statistics |
-| `docs/design_session/book/tools/collect_engine_data.py` | regenerates `engine_data.json` from `engine/lc0.exe` |
-| `docs/design_session/book/tools/collect_children.py` | regenerates `children_data.json` |
-| `docs/design_session/book/tools/simulate_search.py` | **reproduces the 8 iterations by hand arithmetic and refuses to disagree with the engine** |
-| `docs/design_session/book/preamble.tex` | the book's shared preamble: colours, tcolorbox tiers, xskak defaults |
-| `docs/design_session/book/chapters/ch07_search_by_hand.tex` | the prose version of what the tree animation must show |
-| `docs/design_session/book/chapters/ch09_reading_a_tree.tex` | how to read a tree — the guide's figures should agree with it |
-| `docs/design_session/visual_guide/tikz/mctsviz.sty` | **the drawing macros. Compile-tested. Use these; do not hand-roll TikZ.** |
-| `docs/design_session/visual_guide/tikz/_probe.tex` | the compile test that proves the macros work |
+| `docs/study/book/data/engine_data.json` | measured ladders for 6 positions × many node budgets, plus Stockfish ground truth. **223 KB. The primary source of truth.** |
+| `docs/study/book/data/children_data.json` | child and grandchild ladders for the K+P tree (depth 2–3) |
+| `docs/study/book/data/corpus_stats.json` | corpus statistics |
+| `docs/study/book/tools/collect_engine_data.py` | regenerates `engine_data.json` from `engine/lc0.exe` |
+| `docs/study/book/tools/collect_children.py` | regenerates `children_data.json` |
+| `docs/study/book/tools/simulate_search.py` | **reproduces the 8 iterations by hand arithmetic and refuses to disagree with the engine.** Note it replays *measured* leaf values (`ITERATIONS`, L28-36) — it validates the selection rule, not the evaluation |
+| `docs/study/book/tools/smart_pruning_probe.py` | control vs `--smart-pruning-factor=0` on the K+P position; the experiment behind `kb/ADDENDUM.md` §J |
+| `docs/study/book/preamble.tex` | the book's shared preamble: colours, tcolorbox tiers, xskak defaults |
+| `docs/study/book/chapters/ch07_search_by_hand.tex` | the prose version of what the tree animation must show |
+| `docs/study/book/chapters/ch09_reading_a_tree.tex` | how to read a tree — the guide's figures should agree with it |
+| `docs/study/guide/tikz/mctsviz.sty` | **the drawing macros. Compile-tested. Use these; do not hand-roll TikZ.** |
+| `docs/study/guide/tikz/_probe.tex` | the compile test that proves the macros work |
 
 Regenerating engine data requires the `cszero` conda environment and `engine/lc0.exe` with
 `791556.pb.gz` (see `HOW_TO_RUN.md`). **You should not need to regenerate anything** — the JSON

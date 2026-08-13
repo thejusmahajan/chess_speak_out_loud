@@ -23,8 +23,8 @@ Every term and symbol used across *Inside LC0's Mind: A Visual Guide*, the 16 bo
 
 ### Collision (Node Collision)
 - **Definition**: Occurs when parallel search threads select the same unvisited leaf node before its neural evaluation returns, managed via virtual loss or task workers.
-- **Source Citation**: `ENGINE_REFERENCE.md` (`MinimumPickingWork`, `TaskWorkers`), `ch08_engineering_reality.tex:L110`.
-- **Action Location**: `ENGINE_REFERENCE.md` (`--minimum-picking-work`).
+- **Source Citation**: `ENGINE_REFERENCE.md` (`MinimumPickingWork`, `TaskWorkers`), `ch08_engineering_reality.tex:L66-L76` (§"Collisions").
+- **Action Location**: `ENGINE_REFERENCE.md` (`--minimum-picking-work`, `--max-collision-events`, `--max-collision-visits`).
 
 ### Contempt
 - **Definition**: Artificial evaluation bias adjustment altering draw score or score expectation against opponents of differing Elo ratings.
@@ -257,9 +257,9 @@ Every term and symbol used across *Inside LC0's Mind: A Visual Guide*, the 16 bo
 - **Action Location**: `FIG-0.3`, `FIG-1.1`.
 
 ### Virtual Loss
-- **Definition**: Temporary visit count increment or value penalty added to active search paths to prevent concurrent worker threads from picking identical nodes.
-- **Source Citation**: `ENGINE_REFERENCE.md` (`VirtualLoss`), `ch08_engineering_reality.tex:L125`.
-- **Action Location**: `ENGINE_REFERENCE.md` (`--virtual-loss`).
+- **Definition**: A fictitious loss booked on every edge of a selected-but-not-yet-evaluated path ($N \mathrel{+}= 1$, $W \mathrel{-}= 1$) so that the next selection goes elsewhere; removed and replaced by the true value when the evaluation returns.
+- **Source Citation**: `ch08_engineering_reality.tex:L35-L64` (§"Virtual loss", incl. the worked example $N{=}9, W{=}7.2$).
+- **Action Location**: **No UCI flag exists.** `lc0.exe` v0.32.1 exposes no `--virtual-loss` option — the word does not occur in `raw/lc0_help.txt`. The tunable neighbours are `--max-collision-events` (917) and `--max-collision-visits` (80000). See `ADDENDUM.md` §F.
 
 ### $w$ (Win Probability)
 - **Definition**: Neural value head output probability representing expected win likelihood for side-to-move, bounded in $[0, 1]$.

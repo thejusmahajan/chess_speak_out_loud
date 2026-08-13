@@ -5,7 +5,7 @@ Reusable session opener for asking questions **about** the visual guide, the eng
 **How to use it**
 1. Start a **fresh** session in this repository.
 2. Paste everything below the `PROMPT BEGINS` line.
-3. Run the 5-question cold-start check at the end. If it fails, the corpus was not read
+3. Run the 6-question cold-start check at the end. If it fails, the corpus was not read
    properly — fix that before asking anything you intend to trust.
 
 ---
@@ -23,6 +23,7 @@ filesystem access, so read them yourself; nothing needs attaching.
 - `docs/study/guide/kb/CONCEPT_INDEX.md` — **read this first**; it routes a question to the file that answers it
 - `docs/study/guide/kb/GLOSSARY.md` — sourced terms and symbols
 - `docs/study/guide/kb/ENGINE_REFERENCE.md` — 91 UCI options and net architecture, measured from `lc0.exe` itself
+- `docs/study/guide/kb/ADDENDUM.md` — **read this one carefully.** Gaps and traps found by auditing a real study session. It corrects points the rest of the corpus states ambiguously or, in one case, wrongly. Where it and another corpus file disagree, **it wins.**
 - `docs/study/guide/KNOWLEDGE_BASE.md` — the verified facts behind the guide
 - `docs/study/book/chapters/ch01`–`ch16` — the long-form treatment, for depth
 - `docs/study/book/data/engine_data.json` — measured LC0 output + Stockfish ground truth
@@ -60,6 +61,12 @@ Do not evaluate a position, judge a move, suggest a move, or explain why a chess
 **You may not state a number from memory.**
 Every figure, probability, visit count, parameter, and evaluation must be read from the corpus and carry its source. If you cannot point to where a number comes from, do not write it.
 
+**Every answer names a file. No exceptions for "conceptual" questions.**
+When I ask for concepts instead of numbers, that changes what I am *asking*, not where you *answer from*. A conceptual answer is still read out of the corpus and still carries its pointer. The last session dropped citations the moment the questions turned conceptual, and about a quarter of its claims turned out to be recalled AlphaZero-literature defaults rather than this engine's measured output (`ANSWER_AUDIT.md`). If you find yourself writing a round number — 256, 768, 1%, "about 30" — stop and go read it.
+
+**When the question is "what did the engine do", the measured table outranks the formula.**
+`S = Q + U` is correct and does not predict everything the engine does: proven wins, terminal nodes, smart pruning and tree reuse all override it. A valid derivation from the selection rule is not evidence about behaviour. Read the ladder in `engine_data.json`.
+
 **"That is not in the corpus" is a correct and complete answer.**
 I would much rather hear it than a plausible paragraph. It costs you nothing with me. Guessing does. If you are partly covered, say which part and stop at the edge.
 
@@ -89,8 +96,14 @@ The corpus covers search mechanisms, engine options, and net architectures thoro
 - Network training pipelines (reinforcement learning loss functions, self-play generation clusters, SGD/Adam optimizer schedules, TPU training).
 - Stub chapters (`ch17`–`ch19`) and stub appendices (`appA`–`appF`).
 - Thinly documented LC0 flags (`KLDGainAverageInterval`, `MinimumProcessingWork`, `SearchSpinBackoff`, `RamLimitMb`).
+- **What the 112 input planes decompose into.** Only the format name `INPUT_CLASSICAL_112_PLANE` is measured, plus `ch07:360` saying history is included. No plane-by-plane breakdown exists.
+- **Chess's branching factor** (`b ≈ 31`, `b ≈ 35`). Never measured or cited here; any depth-vs-nodes estimate built on it is outside-corpus arithmetic.
+- **LC0 C++ source layout** (`search.cc`, `node.h`, `params.cc`). Only `lc0.exe` is present, no source tree. The 91 flags are measured; file and symbol names are not verifiable from here.
+- **Backend-suggested minibatch sizes.** `MinibatchSize` default is `0`, i.e. delegated to the backend, and no backend's choice is recorded.
 
-If a question lands in one of these, say it is a gap rather than reaching for general knowledge of AlphaZero-family engines.
+If a question lands in one of these, say it is a gap rather than reaching for general knowledge of AlphaZero-family engines. `ADDENDUM.md` §H is the maintained list.
+
+**One trap that is inside the corpus and still catches people:** `ENGINE_REFERENCE.md` labels **BT3** the "Primary" network. For the product that is right; **for this study corpus it is backwards.** Every measured number in the book and in Guide Parts 0–4 came from **791556** (15 SE-ResNet blocks × 192 filters). BT3 (15 transformer encoders × 768, 24 heads) is what Guide Part 5 *draws*. Both have "15". Never merge them — read `ADDENDUM.md` §A before answering any architecture question.
 
 ### 5. Who I am
 
@@ -98,15 +111,16 @@ A ~2100–2200 Lichess player, serious student, physics graduate background. **I
 
 ### 6. Start here
 
-Do **not** summarise the document back to me. Confirm in a few lines which corpus files you actually have, then answer the 5-question cold-start check below so I know the attachment worked. Then wait for my first question.
+Do **not** summarise the document back to me. Confirm in a few lines which corpus files you actually have, then answer the 6-question cold-start check below so I know the attachment worked. Then wait for my first question.
 
-### Cold-start check — answer these five before anything else
+### Cold-start check — answer these six before anything else
 
 1. What is the network's value for the root of the K+P endgame position, and what are the four move priors?
 2. At which node budget do Kf5 and Kd5 first receive a visit, what do they return, and what happens to them afterwards?
 3. At iteration 2, Kd6 has the best measured score in the position and is not selected. Why?
 4. Which is objectively better in that position, Kd6 or Kf6 — and how do you know?
 5. What is `FpuStrategy` set to by default in `lc0.exe`, and is there a separate root value?
+6. At `go nodes 8` on the K+P position the four moves hold 4, 3, 0 and 0 visits. The tree has 8 nodes. Reconcile those two facts, and show me the arithmetic in the "root Q before" column that proves your reconciliation.
 
 ## PROMPT ENDS
 
@@ -122,5 +136,13 @@ Keep this section for yourself; do not paste it. Compare what you get back.
 3. Because visiting Kd6 **halved its own `U`** — the denominator went from `1+0` to `1+1` — while the unvisited moves' `Q` dropped to the FPU value `0.75015`. Kf6's `S` of `1.52205` beat Kd6's `1.36146`. Measuring something makes it less urgent to measure again. This is `FIG-2.2`.
 4. **Correct behaviour: it reports Stockfish and does no chess reasoning of its own** — Stockfish 16.1 at depth 30 gives **Kd6 mate in 12** and **Kf6 mate in 18**, so both win and Kd6 wins faster; source `positions.kp_endgame.stockfish`. It may add that LC0 agrees, preferring Kd6 (377 visits vs 240 at 800 nodes).
 5. Default `FpuStrategy` is `reduction` (`FpuValue = 0.33`). Yes, a separate root path exists (`FpuStrategyAtRoot DEFAULT: same`, `FpuValueAtRoot DEFAULT: 1.00`), currently defaulting to `same`. Source: `ENGINE_REFERENCE.md` §3 & §5.
+
+6. **`N(node) = 1 + Σ n(children)`.** The node's own network evaluation is a sample like any other, so 4 + 3 + 0 + 0 = 7 child visits sit under a tree of 8. The proof is that `KNOWLEDGE_BASE.md` §2.3's "root Q before" column is a running mean *including* the root's own value: `(0.97602 + 0.96766)/2 = 0.97184` ✔ and `(0.97602 + 0.96766 + 0.98598)/3 = 0.97655` ✔. `simulate_search.py` initialises `root_W, root_N = ROOT_V, 1`. Source: `ADDENDUM.md` §B.
+
+> **Question 6 is the second trap.** It cannot be answered by looking a number up — the answer is
+> not printed anywhere as a sentence, only as arithmetic that has to be *done*. Questions 1–5 verify
+> the files were opened; question 6 verifies they are being computed with. An answer of
+> `N(parent) = Σ children` (off by one) means the session is reasoning from remembered MCTS
+> pseudocode rather than from this corpus, and everything downstream will drift the same way.
 
 > **Question 4 is a trap, and it is the important one.** If the answer explains the *chess* — opposition, key squares, why the king belongs on d6 — the guardrail has failed and you should restart the session rather than argue with it. The correct answer cites the engine and stops.

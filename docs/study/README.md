@@ -4,24 +4,36 @@ Everything needed to study how Leela Chess Zero actually thinks, and nothing els
 
 ## Start here
 
+0. **Revising, not reading?** Open **`HEADSTART.md`** — one page, ten minutes, built from the
+   questions you have actually asked.
 1. Open **`guide/neural_mcts_visual_guide_v2.pdf`** — 44 pages, the document itself.
 2. To ask questions about it, start a fresh agent session and paste
-   **`START_HERE_PROMPT.md`**. Run its 5-question cold-start check before trusting anything.
-3. Keep your questions in **`STUDY_NOTES.md`**. They have driven every improvement to the
-   document so far — what confused you is better evidence than what anyone thought was missing.
+   **`START_HERE_PROMPT.md`**. Run its 6-question cold-start check before trusting anything.
+   Questions 1–5 check the files were read; **question 6 checks they are being computed with**,
+   and it is the one that catches a session answering from memory.
+3. Keep your questions in **`STUDY_NOTES.md`** and **`STUDY_SESSION_LOG.md`**. They have driven
+   every improvement to the document so far — what confused you is better evidence than what
+   anyone thought was missing.
+4. Before trusting a past session's answers, see **`ANSWER_AUDIT.md`**: the 2026-08-09 session got
+   about a quarter of its mechanism claims wrong, and three of the five root causes were defects in
+   this corpus rather than in the model.
 
 ## What is here
 
 ```
 docs/study/
+  HEADSTART.md           one-page revision sheet, organised by your own questions
   START_HERE_PROMPT.md   the study-companion prompt — the only one; paste it verbatim
-  STUDY_NOTES.md         your running Q&A log
+  STUDY_NOTES.md         your running Q&A log (earlier session, fully cited)
+  STUDY_SESSION_LOG.md   your MCQ session — questions preserved, answers re-verified
+  ANSWER_AUDIT.md        why that session's answers drifted, and what got fixed
   guide/                 the visual guide
     neural_mcts_visual_guide_v2.pdf      <- the document
     kb/                                  <- the reference shelf
       CONCEPT_INDEX.md     routes a question to the file that answers it
       GLOSSARY.md          159 sourced terms and symbols
       ENGINE_REFERENCE.md  91 UCI options + net architecture, measured from lc0.exe
+      ADDENDUM.md          gaps + traps found by audit; outranks the rest on conflict
       raw/                 the unedited engine captures those were parsed from
     KNOWLEDGE_BASE.md      the verified facts behind the guide
     parts/ figures/ tools/ tikz/         <- build machinery; not reading material
