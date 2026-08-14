@@ -446,5 +446,111 @@ export async function submitPlayoutMove(
   return res.json();
 }
 
+// ------------------------------------------------------------------
+// Puzzle Streak API
+// ------------------------------------------------------------------
+
+export interface PuzzlePayload {
+  id: string;
+  session_id: string;
+  set_id: string;
+  seed?: number;
+  index: number;
+  total: number;
+  streak: number;
+  best_streak: number;
+  alive: boolean;
+  fen: string;
+  orientation: 'white' | 'black';
+  rating: number;
+  themes: string[];
+  puzzle_url: string;
+  correct?: boolean;
+  solved?: boolean;
+  opponent_uci?: string;
+  ply?: number;
+  solution?: string[];
+  solution_san?: string;
+  streak_ended_at?: number;
+  completed?: boolean;
+}
+
+export interface PuzzleSetMetadata {
+  id: string;
+  name: string;
+  min_rating: number;
+  max_rating: number;
+  themes: string[];
+  size: number;
+  created: string;
+}
+
+export interface CreatePuzzleSetParams {
+  name: string;
+  min_rating?: number;
+  max_rating?: number;
+  themes?: string[];
+  size?: number;
+}
+
+export async function createPuzzleSet(params: CreatePuzzleSetParams): Promise<PuzzleSetMetadata> {
+  const res = await fetch(`${BASE_URL}/puzzles/sets`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function listPuzzleSets(): Promise<PuzzleSetMetadata[]> {
+  const res = await fetch(`${BASE_URL}/puzzles/sets`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function deletePuzzleSet(setId: string): Promise<{ deleted: boolean }> {
+  const res = await fetch(`${BASE_URL}/puzzles/sets/${setId}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function startPuzzleSession(setId: string, seed?: number): Promise<PuzzlePayload> {
+  const res = await fetch(`${BASE_URL}/puzzles/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ set_id: setId, seed }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getPuzzleSession(sessionId: string): Promise<PuzzlePayload> {
+  const res = await fetch(`${BASE_URL}/puzzles/session/${sessionId}`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function submitPuzzleMove(sessionId: string, uci: string): Promise<PuzzlePayload> {
+  const res = await fetch(`${BASE_URL}/puzzles/session/${sessionId}/move`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ uci }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function nextPuzzle(sessionId: string): Promise<PuzzlePayload> {
+  const res = await fetch(`${BASE_URL}/puzzles/session/${sessionId}/next`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+
 
 

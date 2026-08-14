@@ -9,11 +9,12 @@ import UsualSuspects from './UsualSuspects';
 import IntuitionDrill from './IntuitionDrill';
 import SacDrill from './SacDrill';
 import SharpOpenings from './SharpOpenings';
+import PuzzleStreak from './PuzzleStreak';
 import { getProfile, generateDrills, getDueDrills, getDrillsList, getTrends } from '../../api/training';
 import './Training.css';
 
 export default function TrainingTab() {
-  const [view, setView] = useState<'diagnose' | 'profile' | 'usual_suspects' | 'drills' | 'progress' | 'saved_sets' | 'repertoire' | 'intuition' | 'sacrifices' | 'sharp_openings'>('diagnose');
+  const [view, setView] = useState<'diagnose' | 'profile' | 'usual_suspects' | 'drills' | 'progress' | 'saved_sets' | 'repertoire' | 'intuition' | 'sacrifices' | 'sharp_openings' | 'puzzle_streak'>('diagnose');
   const [profile, setProfile] = useState<any>(null);
   const [drillSetId, setDrillSetId] = useState<string | null>(null);
   const [reviewItems, setReviewItems] = useState<any[] | null>(null);
@@ -160,6 +161,12 @@ export default function TrainingTab() {
         >
           ⚔️ Sharp Openings
         </button>
+        <button
+          className={`glass-btn ${view === 'puzzle_streak' ? 'active' : ''}`}
+          onClick={() => setView('puzzle_streak')}
+        >
+          🔥 Puzzle Streak
+        </button>
         <button 
           className={`glass-btn ${view === 'drills' && reviewItems ? 'active' : ''}`}
           onClick={handleReview}
@@ -269,6 +276,8 @@ export default function TrainingTab() {
         {view === 'sacrifices' && <SacDrill />}
 
         {view === 'sharp_openings' && <SharpOpenings />}
+
+        {view === 'puzzle_streak' && <PuzzleStreak onExit={() => setView('profile')} />}
 
         {view === 'drills' && (drillSetId || reviewItems) && (
           <DrillMode setId={drillSetId || undefined} dueItems={reviewItems || undefined} onExit={() => { setView('profile'); fetchSRS(); fetchTrendsData(); }} />

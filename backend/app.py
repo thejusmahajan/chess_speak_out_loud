@@ -174,6 +174,23 @@ class CriticalLinesRequest(BaseModel):
     force: bool = False
 
 
+class CreatePuzzleSetRequest(BaseModel):
+    name: str
+    min_rating: int = Field(default=1500, ge=0, le=4000)
+    max_rating: int = Field(default=2000, ge=0, le=4000)
+    themes: Optional[List[str]] = None
+    size: int = Field(default=200, ge=1, le=10000)
+
+
+class StartPuzzleSessionRequest(BaseModel):
+    set_id: str
+    seed: Optional[int] = None
+
+
+class SubmitPuzzleMoveRequest(BaseModel):
+    uci: str
+
+
 
 # ------------------------------------------------------------------
 # Routes
@@ -967,6 +984,75 @@ async def critical_lines_route(req: CriticalLinesRequest):
     )
     # If result has error, return it (200 with error field, like sac endpoints)
     return result
+
+
+# ------------------------------------------------------------------
+# Puzzle Streak Endpoints
+# ------------------------------------------------------------------
+
+from backend.training import puzzle_sets
+
+
+@app.post("/api/training/puzzles/sets")
+async def create_puzzle_set_endpoint(req: CreatePuzzleSetRequest):
+    try:
+        return puzzle_sets.create_set(
+            name=req.name,
+            min_rating=req.min_rating,
+            max_rating=req.max_rating,
+            themes=req.themes,
+            size=req.size,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/training/puzzles/sets")
+async def list_puzzle_sets_endpoint():
+    return puzzle_sets.list_sets()
+
+
+@app.delete("/api/training/puzzles/sets/{set_id}")
+async def delete_puzzle_set_endpoint(set_id: str):
+    try:
+        puzzle_sets.get_set(set_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Set {set_id!r} not found")
+    deleted = puzzle_sets.delete_set(set_id)
+    return {"deleted": deleted}
+
+
+@app.post("/api/training/puzzles/session")
+async def start_puzzle_session_endpoint(req: StartPuzzleSessionRequest):
+    try:
+        return puzzle_sets.start_session(req.set_id, seed=req.seed)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Set {req.set_id!r} not found")
+
+
+@app.get("/api/training/puzzles/session/{session_id}")
+async def get_puzzle_session_endpoint(session_id: str):
+    try:
+        return puzzle_sets.get_session(session_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Session {session_id!r} not found")
+
+
+@app.post("/api/training/puzzles/session/{session_id}/move")
+async def submit_puzzle_move_endpoint(session_id: str, req: SubmitPuzzleMoveRequest):
+    try:
+        return puzzle_sets.submit_move(session_id, req.uci)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Session {session_id!r} not found")
+
+
+@app.post("/api/training/puzzles/session/{session_id}/next")
+async def next_puzzle_endpoint(session_id: str):
+    try:
+        return puzzle_sets.next_puzzle(session_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Session {session_id!r} not found")
+
 
 
 
