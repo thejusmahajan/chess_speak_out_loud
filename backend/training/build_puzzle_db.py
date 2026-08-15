@@ -65,6 +65,15 @@ def build(zst_path: str = ZST_PATH, out_path: str | None = None,
             theme TEXT,
             n INT
         )""")
+    # Created empty and populated separately by puzzle_regime.build_flag_cache,
+    # which needs a board replay per puzzle. It must exist even when empty:
+    # puzzle_regime._sample LEFT JOINs it on every query, so omitting it breaks
+    # deck building and session drawing outright.
+    cur.execute("""
+        CREATE TABLE puzzle_flags (
+            id TEXT PRIMARY KEY,
+            quiet_first INT, retreat_first INT, declined_capture INT
+        )""")
 
     motif_counts: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     kept = seen = 0
