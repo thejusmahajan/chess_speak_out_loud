@@ -182,15 +182,31 @@ def build_flag_cache(band: tuple[int, int] = BAND, verbose: bool = True) -> int:
 
 def _sample(where: str, params: list, n: int, seed: Optional[int]) -> list[dict]:
     """Deterministic-if-seeded sample. Popularity filter keeps out the puzzles
-    the community flagged as bad or ambiguous."""
-    sql = ("SELECT p.id, p.fen, p.moves, p.rating, p.popularity, p.themes "
-           "FROM puzzles p LEFT JOIN puzzle_flags f ON f.id = p.id "
-           f"WHERE {where}")
+    the community flagged as bad or ambiguous.
+
+    Two phases on purpose: select the matching *ids*, shuffle those, then fetch
+    full rows only for the n that were chosen. Materialising every matching row
+    to take 30 of them cost 151s and 1.06 GB per deck once the database grew to
+    5.5M puzzles. Shuffling the id list with the same seed picks the same
+    positions as shuffling the row list would, so seeded results are unchanged.
+    """
+    # Only join the flags table when the predicate actually references it. The
+    # join costs an index lookup per candidate row, which on a 5.5M-row database
+    # dominates the query for the theme/rating decks that never look at flags.
+    join = " LEFT JOIN puzzle_flags f ON f.id = p.id" if "f." in where else ""
+    id_sql = f"SELECT p.id FROM puzzles p{join} WHERE {where}"
     with _connect() as conn:
-        rows = [dict(r) for r in conn.execute(sql, params).fetchall()]
-    rng = random.Random(seed)
-    rng.shuffle(rows)
-    return rows[:n]
+        ids = [r[0] for r in conn.execute(id_sql, params).fetchall()]
+        rng = random.Random(seed)
+        rng.shuffle(ids)
+        chosen = ids[:n]
+        if not chosen:
+            return []
+        qs = ",".join("?" * len(chosen))
+        by_id = {r["id"]: dict(r) for r in conn.execute(
+            "SELECT id, fen, moves, rating, popularity, themes "
+            f"FROM puzzles WHERE id IN ({qs})", chosen).fetchall()}
+    return [by_id[i] for i in chosen if i in by_id]
 
 
 def build_deck(name: str, n: int = 30, clock: int = 12,
