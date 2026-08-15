@@ -58,9 +58,10 @@ if is_black:
     saliency_map = {sq[0] + str(9 - int(sq[1])): v for sq, v in saliency_map.items()}
 ```
 
-Measured across 55 black-to-move positions, the mean per-square residual between
-the buggy map and the rank-flipped corrected map is **0.0003** on a [0,1] scale.
-The two are the same map, reflected. That number is the bug's signature.
+Measured across 40 black-to-move positions, the mean per-square residual between
+the buggy map and the rank-flipped corrected map is **0.0003** on a [0,1] scale
+(median 0.0002, max 0.0007). The two are the same map, reflected. That number is
+the bug's signature.
 
 ---
 
@@ -102,30 +103,30 @@ c5/d5 outposts, and a bishop on g4.
 
 | square | attention | occupant |
 |---|---:|---|
-| e1 | 1.000 | **White king** |
-| h1 | 0.799 | White rook |
-| a1 | 0.726 | White rook |
-| b7 | 0.689 | Black pawn (king shield) |
-| e2 | 0.624 | White bishop |
-| b8 | 0.594 | **Black king** |
+| h5 | 1.000 | **Black queen** |
+| b8 | 0.864 | **Black king** |
+| d8 | 0.859 | Black rook |
+| f3 | 0.765 | White knight — *pinned by the g4 bishop* |
+| d5 | 0.748 | Black knight |
+| e2 | 0.670 | White bishop — *behind the pin* |
 
-Six for six occupied. The network is attending to both kings, the two rooks that
-have not yet connected, and the pawn shielding the black king — which is, in a
-position where the whole game turns on whether White's uncastled king survives,
-exactly the right set of squares to care about.
+Six for six occupied. The attention sits on the queen leading the attack, the
+king it is aimed at, the rook that is about to join, and — pointedly — on both
+ends of the pin down the e2/f3 diagonal.
 
 **Buggy (side-to-move frame) — the six most-attended squares:**
 
 | square | attention | occupant |
 |---|---:|---|
-| e8 | 1.000 | *empty* |
-| h8 | 0.799 | *empty* |
-| a8 | 0.726 | *empty* |
-| b2 | 0.689 | *empty* |
-| e7 | 0.624 | *empty* |
-| b1 | 0.595 | *empty* |
+| h4 | 1.000 | White bishop |
+| b1 | 0.865 | *empty* |
+| d1 | 0.859 | *empty* |
+| f6 | 0.766 | *empty* |
+| d4 | 0.749 | *empty* |
+| e7 | 0.670 | *empty* |
 
-Six for six **empty**.
+One for six. Five of the network's six most-attended squares have nothing on
+them at all.
 
 ![corrected](figures/bt3_attention_corrected.svg)
 ![mirrored](figures/bt3_attention_mirrored.svg)
@@ -134,8 +135,42 @@ Six for six **empty**.
 Black's side; heat is attention received.*
 
 The broken map is a confident claim that a 15-layer transformer is devoting its
-peak attention to six squares with nothing on them. Stated that way it is
-absurd. Rendered as a smooth orange heatmap, it looked like insight.
+peak attention to squares with nothing on them. Stated that way it is absurd.
+Rendered as a smooth orange heatmap, it looked like insight.
+
+---
+
+## The second bug, which this write-up found
+
+An earlier version of this post used different figures. They were wrong, and the
+way they were wrong is worth more than the original finding.
+
+BT3's input is not a board. It is **112 planes**, of which roughly 84 encode the
+previous eight positions. The extraction code built its input from a bare FEN —
+so every one of those history planes was empty, and the network was being fed
+something it never sees in play.
+
+The tell came from the value head. On 20 midgame positions it returned
+`value = -1.000` with `wdl = [0, 0, 1]` — total, certain loss — on positions
+that were nothing of the kind, while the LC0 binary running *the same weights*
+returned sharp, sensible evaluations. The starting position looked perfectly
+fine, because its true history genuinely is empty. That coincidence is what let
+this survive.
+
+Fixing it moved the attention maps by 0.11–0.20 per square, with only one to
+three of the top five squares surviving. Two orders of magnitude larger than the
+frame bug's signature, and it invalidated the figures I had already published.
+
+There is a trap inside the fix, too. `Board.mirror()` returns a board with an
+**empty move stack**, so mirroring a black-to-move position into the
+white-to-move frame silently throws the history away a second time. The mirrored
+frame has to be rebuilt by replaying mirrored moves.
+
+The frame finding itself survives all of this untouched: both maps come from a
+single forward pass, so the reflection between them is a fact about coordinates,
+not about input quality. Re-measured on properly-fed inputs, the residual is
+still 0.0003. But the *reading* of the old figures — which squares the network
+cared about — was a description of a degenerate forward pass.
 
 ---
 
@@ -146,10 +181,10 @@ Not by a test. By asking a question the code could not answer for itself:
 so does it?*
 
 For white-to-move positions it plainly did. For black-to-move positions the
-attention kept landing on empty squares in Black's own camp while the game was
-being decided in White's. One position could be noise. The pattern held across
-every black-to-move position I looked at, and the mirror symmetry between the
-two sets was the tell.
+attention kept landing on empty squares, while the pieces actually deciding the
+game went unattended. One position could be noise. The pattern held across every
+black-to-move position I looked at, and the mirror symmetry between the two sets
+was the tell.
 
 The general form of this check is worth stating, because it generalises past
 chess: **hold the model fixed and vary the thing your code treats as
@@ -209,6 +244,7 @@ you understand the mechanism that produced it.
 ---
 
 *Code: [`backend/neural_vision.py`](https://github.com/thejusmahajan/chess_speak_out_loud)
-— `_attention_saliency` (frame-relative), `saliency_absolute` /
-`_saliency_absolute_batch` (corrected). Network: BT3-768x15x24h. Figures
-generated with python-chess from the captured tensors.*
+— `_attention_saliency` (frame-relative), `saliency_absolute` (corrected frame),
+`_input_board` (history-bearing input, including the mirrored replay).
+Network: BT3-768x15x24h-swa-2790000. All figures regenerated from forward passes
+carrying the game's real 37-ply history.*

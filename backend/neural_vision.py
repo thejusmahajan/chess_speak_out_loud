@@ -87,10 +87,19 @@ class NeuralVision:
 
     @staticmethod
     def _same_position(a: chess.Board, b: chess.Board) -> bool:
-        """Position equality ignoring move counters, which shift under mirroring."""
+        """Position equality ignoring move counters, which shift under mirroring.
+
+        En passant is compared the way FEN reports it — only when the capture is
+        actually legal. A replayed board sets ep_square after any double pawn
+        push, while a board parsed from a FEN that printed "-" has none, so a
+        raw ep_square comparison rejects perfectly valid replays.
+        """
+        def eff_ep(board: chess.Board):
+            return board.ep_square if board.has_legal_en_passant() else None
+
         return (a.board_fen() == b.board_fen() and a.turn == b.turn
                 and a.castling_rights == b.castling_rights
-                and a.ep_square == b.ep_square)
+                and eff_ep(a) == eff_ep(b))
 
     def _input_board(self, fen: str, history_ucis: Optional[list[str]] = None,
                      root_fen: Optional[str] = None):
