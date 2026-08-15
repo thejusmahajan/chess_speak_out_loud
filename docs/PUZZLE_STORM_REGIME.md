@@ -16,8 +16,11 @@ time is the number that matters; it is the Storm improvement.
 
 ## What the data says
 
-Measured over the 74,051 puzzles rated 1500–2000 with popularity ≥ 80
-(`data/puzzles/puzzles.sqlite`). `quiet%` = share of puzzles whose **first
+Measured over the 1,361,207 puzzles rated 1500–2000 with popularity ≥ 80
+(`data/puzzles/puzzles.sqlite`). The table below was first computed on a 74,051-puzzle
+sample; re-measuring on the full database moved the headline figures by ≤0.1
+percentage point (quiet-first 27.4% → 27.3%, declined-capture 19.3% → 19.3%,
+retreat-first 2.7% → 2.7%), so the per-theme rates are quoted as originally measured. `quiet%` = share of puzzles whose **first
 solution move is neither a check nor a capture** — i.e. invisible to a player
 who scans forcing moves first, which is what everyone does on a clock.
 
@@ -60,7 +63,7 @@ Two conclusions, and they set the whole plan:
 
 ## The decks
 
-28 decks, 950 puzzles, in `data/puzzles/regime/decks/`. All rated 1500–2000,
+27 decks, 960 puzzles, in `data/puzzles/regime/decks/`. All rated 1500–2000,
 popularity ≥ 80 (filters out puzzles the community flagged as ambiguous),
 seeded so they rebuild identically.
 
@@ -78,11 +81,11 @@ seeded so they rebuild identically.
 These have **no lichess equivalent** — they are computed here with
 python-chess by replaying each puzzle and inspecting the first solution move:
 
-- **`trap-quiet-first`** (21,914 puzzles in band, 27.4%) — solution opens with
+- **`trap-quiet-first`** (401,437 puzzles in band, 27.3%) — solution opens with
   no check and no capture.
-- **`trap-declined-capture`** (15,459, 19.3%) — a capture was available and the
+- **`trap-declined-capture`** (283,441, 19.3%) — a capture was available and the
   solution *declined* it. The hardest reflex to unlearn on a clock.
-- **`trap-retreat-first`** (2,160, 2.7%) — solution opens by moving a piece
+- **`trap-retreat-first`** (39,095, 2.7%) — solution opens by moving a piece
   *backwards*. Rare, and almost never found under time pressure.
 
 If you drill nothing else, drill these three.
@@ -126,7 +129,7 @@ From the repo root, in the `cszero` env:
 ```bash
 # one-time (already done)
 python -m backend.training.puzzle_regime cache      # derived flags for the band
-python -m backend.training.puzzle_regime plan       # build all 28 decks
+python -m backend.training.puzzle_regime plan       # build all 27 decks
 
 # a session
 python -m backend.training.puzzle_regime drill quiet-trappedPiece
