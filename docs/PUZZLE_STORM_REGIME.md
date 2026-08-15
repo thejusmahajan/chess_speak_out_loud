@@ -16,42 +16,44 @@ time is the number that matters; it is the Storm improvement.
 
 ## What the data says
 
-Measured over the 1,361,207 puzzles rated 1500–2000 with popularity ≥ 80
-(`data/puzzles/puzzles.sqlite`). The table below was first computed on a 74,051-puzzle
-sample; re-measuring on the full database moved the headline figures by ≤0.1
-percentage point (quiet-first 27.4% → 27.3%, declined-capture 19.3% → 19.3%,
-retreat-first 2.7% → 2.7%), so the per-theme rates are quoted as originally measured. `quiet%` = share of puzzles whose **first
+Measured over all **1,361,207** puzzles rated 1500–2000 with popularity ≥ 80
+(`data/puzzles/puzzles.sqlite`). `quiet%` = share of puzzles whose **first
 solution move is neither a check nor a capture** — i.e. invisible to a player
 who scans forcing moves first, which is what everyone does on a clock.
 
 | theme | pool | quiet% | |
 |---|---:|---:|---|
-| trappedPiece | 1583 | 83.9% | ← quiet blindness |
-| quietMove | 3150 | 75.7% | |
-| pawnEndgame | 2923 | 73.7% | |
-| zugzwang | 933 | 64.5% | |
-| bishopEndgame | 1087 | 63.6% | |
-| knightEndgame | 662 | 53.5% | |
-| promotion | 1790 | 50.5% | |
-| defensiveMove | 5134 | 50.2% | |
-| advancedPawn | 5364 | 47.8% | |
-| rookEndgame | 3569 | 37.8% | |
-| pin | 5964 | 25.2% | |
-| skewer | 1532 | 24.9% | |
-| clearance | 1356 | 19.9% | |
-| fork | 9306 | 15.9% | |
-| discoveredAttack | 4434 | 10.9% | ← forcing, but indirect |
-| capturingDefender | 820 | 9.8% | |
-| deflection | 4107 | 9.4% | |
-| intermezzo | 1362 | 8.7% | |
-| sacrifice | 7799 | 7.6% | |
-| attraction | 4425 | 3.2% | |
-| mateIn2 | 5533 | 1.5% | |
-| hangingPiece | 2640 | 0.0% | ← pure recognition |
+| trappedPiece | 29,564 | 83.2% | ← quiet blindness |
+| quietMove | 58,586 | 75.1% | |
+| pawnEndgame | 53,406 | 73.4% | |
+| zugzwang | 16,355 | 64.9% | |
+| bishopEndgame | 21,083 | 62.9% | |
+| knightEndgame | 12,117 | 53.8% | |
+| promotion | 33,642 | 50.5% | |
+| defensiveMove | 94,647 | 50.1% | |
+| advancedPawn | 98,791 | 48.1% | |
+| rookEndgame | 65,194 | 37.7% | |
+| skewer | 28,645 | 25.9% | |
+| pin | 110,137 | 25.3% | |
+| clearance | 23,485 | 20.0% | |
+| fork | 172,026 | 15.8% | |
+| discoveredAttack | 81,514 | 10.8% | ← forcing, but indirect |
+| capturingDefender | 14,585 | 10.6% | |
+| deflection | 73,639 | 9.0% | |
+| intermezzo | 26,633 | 8.2% | |
+| sacrifice | 143,290 | 7.7% | |
+| attraction | 81,755 | 3.1% | |
+| mateIn2 | 99,809 | 1.5% | |
+| hangingPiece | 48,605 | 0.0% | ← pure recognition |
+
+These were first computed on a 74,051-puzzle sample and re-measured on the full
+database. Nothing moved by more than ~1 percentage point and no conclusion
+changed, which is worth stating plainly: the sample was adequate, and the
+re-measurement was a check rather than a correction.
 
 Two conclusions, and they set the whole plan:
 
-1. **27.4% of the band opens with a quiet move**, and in the top block it is
+1. **27.3% of the band opens with a quiet move** (371,662 of 1,361,207), and in the top block it is
    50–84%. This is the single biggest structural trap in Storm.
 2. The motifs usually filed together as "hard" split into two unrelated
    failure modes. `deflection`/`attraction`/`intermezzo` are 3–9% quiet —
