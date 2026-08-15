@@ -185,6 +185,9 @@ class CreatePuzzleSetRequest(BaseModel):
 class StartPuzzleSessionRequest(BaseModel):
     set_id: str
     seed: Optional[int] = None
+    # Draw this many puzzles fresh from the pool for the session. Omit to use
+    # the set's own stored puzzles.
+    session_size: Optional[int] = None
 
 
 class SubmitPuzzleMoveRequest(BaseModel):
@@ -1025,7 +1028,8 @@ async def delete_puzzle_set_endpoint(set_id: str):
 @app.post("/api/training/puzzles/session")
 async def start_puzzle_session_endpoint(req: StartPuzzleSessionRequest):
     try:
-        return puzzle_sets.start_session(req.set_id, seed=req.seed)
+        return puzzle_sets.start_session(req.set_id, seed=req.seed,
+                                         session_size=req.session_size)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Set {req.set_id!r} not found")
 

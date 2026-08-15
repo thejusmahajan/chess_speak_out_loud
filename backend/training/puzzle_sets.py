@@ -1,7 +1,14 @@
 """Puzzle sets and Puzzle Streak sessions.
 
-Persists custom puzzle sets and tracks streak sessions where puzzles climb
-in difficulty across 50-point rating bins and are reshuffled each session.
+A set is a *specification* — a rating band plus optional themes — with a
+snapshot of matching puzzles. A session orders puzzles **strictly ascending by
+rating**, so difficulty never steps backwards.
+
+Variety therefore cannot come from the ordering: a strict ascending sort is
+essentially unique, and reshuffling only permutes exact rating ties (measured:
+83-89% of positions identical between sessions on a 200-puzzle set). It comes
+instead from *which* puzzles a session draws — see draw_from_pool, which
+samples fresh from the full database each time.
 """
 
 from __future__ import annotations
@@ -142,19 +149,12 @@ def delete_set(set_id: str) -> bool:
 
 
 def streak_order(puzzles: list[dict], seed: int | None = None) -> list[dict]:
-    """Bucket puzzles into 50-point rating bins, shuffle within buckets, and concatenate ascending."""
+    """Order puzzles strictly in ascending difficulty (monotonic rating),
+    using the seed to randomize ties among puzzles with the same rating."""
     rng = random.Random(seed)
-    buckets: dict[int, list[dict]] = {}
-    for p in puzzles:
-        b = p["rating"] // 50
-        buckets.setdefault(b, []).append(p)
-
-    ordered: list[dict] = []
-    for b in sorted(buckets.keys()):
-        items = list(buckets[b])
-        rng.shuffle(items)
-        ordered.extend(items)
-    return ordered
+    shuffled = list(puzzles)
+    rng.shuffle(shuffled)
+    return sorted(shuffled, key=lambda p: p["rating"])
 
 
 def _orientation(row: dict, board: chess.Board) -> str:
@@ -225,10 +225,54 @@ def _save_session_data(session: dict) -> None:
     store._write_json_atomic(_session_path(session["id"]), session)
 
 
-def start_session(set_id: str, seed: int | None = None) -> dict:
-    """Create a new streak session for a set, ordering puzzles in ascending difficulty."""
+def draw_from_pool(set_data: dict, n: int, seed: int | None = None) -> list[dict]:
+    """Draw n fresh puzzles from the whole database matching a set's criteria.
+
+    A set is really a *specification* — a rating band plus optional themes — and
+    the database holds millions of puzzles that satisfy it. Drawing fresh each
+    session is what keeps runs from repeating: reordering a fixed set cannot,
+    because strict ascending order by rating is essentially unique (measured:
+    83-89% of positions identical between sessions on a 200-puzzle set).
+
+    Returns [] if the pool cannot satisfy the query, so callers can fall back to
+    the puzzles stored on the set.
+    """
+    where = ["p.rating BETWEEN ? AND ?", "p.popularity >= ?"]
+    params: list = [set_data.get("min_rating", 1500),
+                    set_data.get("max_rating", 2000),
+                    set_data.get("min_popularity", 80)]
+    themes = set_data.get("themes") or []
+    if themes:
+        where.append("(" + " OR ".join("p.themes LIKE ?" for _ in themes) + ")")
+        params += [f"%{t}%" for t in themes]
+    try:
+        return puzzle_regime._sample(" AND ".join(where), params, n, seed=seed)
+    except Exception:
+        return []
+
+
+def start_session(set_id: str, seed: int | None = None,
+                  session_size: int | None = None) -> dict:
+    """Create a new streak session, ordered strictly ascending by rating.
+
+    With session_size, the puzzles are drawn fresh from the pool for this
+    session; without it, the set's own stored puzzles are used (unchanged
+    behaviour). Ordering is strictly ascending either way — variety comes from
+    *which* puzzles appear, never from disturbing the difficulty ramp.
+    """
     set_data = get_set(set_id)
     puzzles = set_data.get("puzzles", [])
+
+    if session_size:
+        drawn = draw_from_pool(set_data, session_size, seed=seed)
+        if len(drawn) >= min(session_size, len(puzzles) or session_size):
+            puzzles = drawn
+        elif puzzles:
+            # Pool could not satisfy the query (small/absent DB): subsample the
+            # stored puzzles rather than silently replaying the same order.
+            rng = random.Random(seed)
+            puzzles = rng.sample(puzzles, min(session_size, len(puzzles)))
+
     ordered = streak_order(puzzles, seed=seed)
 
     session_id = uuid.uuid4().hex[:12]
@@ -241,6 +285,7 @@ def start_session(set_id: str, seed: int | None = None) -> dict:
         "streak": 0,
         "best_streak": 0,
         "alive": True,
+        "session_size": session_size,
         "started": datetime.datetime.now().isoformat(timespec="seconds"),
         "order": [p["id"] for p in ordered],
         "history": [],

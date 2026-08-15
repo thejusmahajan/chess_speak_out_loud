@@ -46,23 +46,23 @@ def test_streak_order_non_decreasing_buckets():
 
 
 def test_streak_order_seed_reshuffle_preserves_monotonicity():
-    """Different seeds must produce different orders within buckets, but both preserve monotonicity."""
+    """Different seeds must randomize tied ratings, while both strictly preserve monotonicity."""
     puzzles = []
     for b in range(30, 40):  # 1500 to 1999 in 50-point bins
         for i in range(5):
-            puzzles.append({"id": f"p_{b}_{i}", "rating": b * 50 + (i * 9)})
+            puzzles.append({"id": f"p_{b}_{i}", "rating": b * 50})
 
     order1 = puzzle_sets.streak_order(puzzles, seed=1)
     order2 = puzzle_sets.streak_order(puzzles, seed=2)
 
     ids1 = [p["id"] for p in order1]
     ids2 = [p["id"] for p in order2]
-    assert ids1 != ids2, "Different seeds must produce different orderings"
+    assert ids1 != ids2, "Different seeds must produce different tie-breakings for equal ratings"
 
-    buckets1 = [p["rating"] // 50 for p in order1]
-    buckets2 = [p["rating"] // 50 for p in order2]
-    assert all(b1 <= b2 for b1, b2 in zip(buckets1, buckets1[1:]))
-    assert all(b1 <= b2 for b1, b2 in zip(buckets2, buckets2[1:]))
+    ratings1 = [p["rating"] for p in order1]
+    ratings2 = [p["rating"] for p in order2]
+    assert all(r1 <= r2 for r1, r2 in zip(ratings1, ratings1[1:]))
+    assert all(r1 <= r2 for r1, r2 in zip(ratings2, ratings2[1:]))
 
 
 def _create_mock_set(set_id: str, puzzle_rows: list[dict]) -> dict:
@@ -116,6 +116,40 @@ def test_full_correct_playthrough_solves_and_increments_streak():
     assert res2["streak"] == 1
     assert res2["best_streak"] == 1
     assert res2["alive"] is True
+
+
+def test_session_size_varies_content_but_never_the_difficulty_ramp(monkeypatch):
+    """Variety must come from which puzzles are drawn, never from the ordering.
+
+    Ordering stays strictly ascending; two sessions of the same set should
+    still differ in content. Uses the stored-puzzle fallback path so the test
+    does not depend on the puzzle database being present.
+    """
+    rows = [
+        {"id": f"p{i}", "rating": 1500 + i * 7,
+         "fen": "rnb2rk1/ppp3pp/3bpq2/4N3/2BPpB2/4Q3/PPP2PPP/R3K2R w KQ - 2 12",
+         "moves": "e3e4 f6f4 e4f4 f8f4", "popularity": 90, "themes": "middlegame"}
+        for i in range(60)
+    ]
+    _create_mock_set("test-pool", rows)
+
+    # Keep the test off the real puzzle database: force the stored-puzzle
+    # fallback, and serve row lookups from these synthetic rows.
+    by_id = {r["id"]: r for r in rows}
+    monkeypatch.setattr(puzzle_sets, "draw_from_pool", lambda *a, **k: [])
+    monkeypatch.setattr(puzzle_sets, "_rows_for",
+                        lambda ids: [by_id[i] for i in ids if i in by_id])
+
+    a = puzzle_sets.start_session("test-pool", seed=1, session_size=20)
+    b = puzzle_sets.start_session("test-pool", seed=2, session_size=20)
+
+    assert len(a["order"]) == 20 and len(b["order"]) == 20
+    assert a["order"] != b["order"], "different seeds must draw different puzzles"
+
+    for sess in (a, b):
+        ratings = [by_id[pid]["rating"] for pid in sess["order"]]
+        assert all(x <= y for x, y in zip(ratings, ratings[1:])), \
+            "difficulty must never step backwards within a session"
 
 
 def test_orientation_is_fixed_for_the_whole_puzzle():

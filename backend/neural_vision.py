@@ -6,6 +6,7 @@ import logging
 import os
 import tempfile
 from pathlib import Path
+from typing import Optional
 import chess
 
 logger = logging.getLogger(__name__)
@@ -58,7 +59,91 @@ class NeuralVision:
 
     def is_available(self) -> bool:
         return True
-        
+
+    # ------------------------------------------------------------------
+    # Input construction
+    #
+    # BT3's input is 112 planes, ~84 of which encode the previous 8 positions.
+    # Building the tensor from a bare FEN leaves all of those empty, which is
+    # input the network never sees in play: evaluate_batch then returns
+    # value=-1.0 / wdl=[0,0,1] on essentially every midgame position, and the
+    # attention maps shift by 0.11-0.20 per square against a properly-fed pass.
+    # The starting position is the one case where a bare FEN is correct, since
+    # its true history really is empty -- which is exactly why this hid so long.
+    #
+    # The trap when fixing it: chess.Board.mirror() returns a board with an
+    # EMPTY move_stack, so mirroring a black-to-move position for the
+    # white-to-move frame silently throws the history away again. The mirrored
+    # frame has to be built by replaying mirrored moves.
+    # ------------------------------------------------------------------
+
+    _warned_no_history = False
+
+    @staticmethod
+    def _mirror_move(move: chess.Move) -> chess.Move:
+        """Vertical flip of a move (a1<->a8), matching Board.mirror()."""
+        return chess.Move(move.from_square ^ 56, move.to_square ^ 56,
+                          promotion=move.promotion)
+
+    @staticmethod
+    def _same_position(a: chess.Board, b: chess.Board) -> bool:
+        """Position equality ignoring move counters, which shift under mirroring."""
+        return (a.board_fen() == b.board_fen() and a.turn == b.turn
+                and a.castling_rights == b.castling_rights
+                and a.ep_square == b.ep_square)
+
+    def _input_board(self, fen: str, history_ucis: Optional[list[str]] = None,
+                     root_fen: Optional[str] = None):
+        """(LczeroBoard in the white-to-move frame with history, is_black).
+
+        history_ucis are the moves from root_fen (default: the standard start)
+        that lead to fen. Without them the tensor is built from the bare FEN and
+        the history planes are empty -- degraded, and warned about once.
+        """
+        from lczerolens import LczeroBoard
+
+        target = chess.Board(fen)
+        is_black = target.turn == chess.BLACK
+
+        if not history_ucis:
+            if not NeuralVision._warned_no_history:
+                NeuralVision._warned_no_history = True
+                logger.warning(
+                    "NeuralVision called without move history: %d of BT3's 112 "
+                    "input planes will be empty and results are unreliable for "
+                    "anything but the starting position. Pass history_ucis.",
+                    84)
+            src = target.mirror() if is_black else target
+            return LczeroBoard(src.fen()), is_black
+
+        root = chess.Board(root_fen) if root_fen else chess.Board()
+        moves = [chess.Move.from_uci(u) for u in history_ucis]
+
+        if is_black:
+            board = LczeroBoard(root.mirror().fen())
+            for mv in moves:
+                board.push(self._mirror_move(mv))
+            expected = target.mirror()
+        else:
+            board = LczeroBoard(root.fen())
+            for mv in moves:
+                board.push(mv)
+            expected = target
+
+        if not self._same_position(board, expected):
+            # Bad history is worse than none: it would feed the network a
+            # plausible-looking tensor for a different game.
+            raise ValueError(
+                f"history_ucis do not lead to {fen!r} "
+                f"(replay reached {board.board_fen()!r}, expected {expected.board_fen()!r})")
+        return board, is_black
+
+    def _input_tensor(self, fen: str, history_ucis: Optional[list[str]] = None,
+                      root_fen: Optional[str] = None):
+        board, is_black = self._input_board(fen, history_ucis, root_fen)
+        return board.to_input_tensor(), is_black
+
+
     def saliency(self, fen: str, policy_dist: list[dict] = None) -> dict[str, float]:
         if self.mode == "attention" and self.model is not None:
             try:
@@ -127,7 +212,8 @@ class NeuralVision:
             
         return saliency_map
 
-    def saliency_absolute(self, fen: str) -> dict[str, float]:
+    def saliency_absolute(self, fen: str,
+                          history_ucis: Optional[list[str]] = None) -> dict[str, float]:
         """
         Public API: BT3 attention saliency keyed by TRUE absolute squares,
         correct for BOTH white-to-move and black-to-move positions.
@@ -140,12 +226,13 @@ class NeuralVision:
         if self.mode != "attention" or self.model is None:
             return self._policy_fallback(fen, None)
         try:
-            return self._saliency_absolute(chess.Board(fen))
+            return self._saliency_absolute(chess.Board(fen), history_ucis)
         except Exception as exc:
             logger.error("saliency_absolute failed (%s) — fallback", exc)
             return self._policy_fallback(fen, None)
 
-    def saliency_absolute_batch(self, fens: list[str]) -> list[dict[str, float]]:
+    def saliency_absolute_batch(self, fens: list[str],
+                                histories: Optional[list[list[str]]] = None) -> list[dict[str, float]]:
         """
         Public API: Batched BT3 attention saliency for a list of FENs, keyed by
         TRUE absolute squares, correct for BOTH white- and black-to-move positions.
@@ -159,24 +246,26 @@ class NeuralVision:
         if self.mode != "attention" or self.model is None:
             return [self._policy_fallback(f, None) for f in fens]
         try:
-            return self._saliency_absolute_batch(fens)
+            return self._saliency_absolute_batch(fens, histories)
         except Exception as exc:
             logger.error("saliency_absolute_batch failed (%s) — fallback to serial", exc)
-            return [self._saliency_absolute(chess.Board(f)) for f in fens]
+            return [self._saliency_absolute(chess.Board(f),
+                                            histories[i] if histories else None)
+                    for i, f in enumerate(fens)]
 
-    def _saliency_absolute_batch(self, fens: list[str]) -> list[dict[str, float]]:
+    def _saliency_absolute_batch(self, fens: list[str],
+                                 histories: Optional[list[list[str]]] = None) -> list[dict[str, float]]:
         import torch
         from lczerolens import LczeroBoard
 
-        boards = [chess.Board(f) for f in fens]
         input_tensors = []
         is_black_list = []
 
-        for b in boards:
-            is_black = (b.turn == chess.BLACK)
+        for i, f in enumerate(fens):
+            t, is_black = self._input_tensor(
+                f, histories[i] if histories else None)
+            input_tensors.append(t)
             is_black_list.append(is_black)
-            eval_fen = b.mirror().fen() if is_black else b.fen()
-            input_tensors.append(LczeroBoard(eval_fen).to_input_tensor())
 
         batch_tensor = torch.stack(input_tensors).to(self.device)
 
@@ -231,7 +320,8 @@ class NeuralVision:
 
         return results
 
-    def evaluate_batch(self, fens: list[str]) -> list[dict]:
+    def evaluate_batch(self, fens: list[str],
+                       histories: Optional[list[list[str]]] = None) -> list[dict]:
         """
         Public API: Batched BT3 position evaluation (value + WDL + legal policy) for a
         list of FENs in ONE forward pass.
@@ -248,21 +338,19 @@ class NeuralVision:
         if self.mode != "attention" or self.model is None:
             return [self._eval_fallback(f) for f in fens]
         try:
-            return self._evaluate_batch(fens)
+            return self._evaluate_batch(fens, histories)
         except Exception as exc:
             logger.error("evaluate_batch failed (%s) — fallback to serial", exc)
             return [self._evaluate_one(f) for f in fens]
 
-    def _evaluate_batch(self, fens: list[str]) -> list[dict]:
+    def _evaluate_batch(self, fens: list[str],
+                        histories: Optional[list[list[str]]] = None) -> list[dict]:
         import torch
         from lczerolens import LczeroBoard
 
         boards = [chess.Board(f) for f in fens]
-        input_tensors = []
-
-        for b in boards:
-            eval_fen = b.mirror().fen() if b.turn == chess.BLACK else b.fen()
-            input_tensors.append(LczeroBoard(eval_fen).to_input_tensor())
+        input_tensors = [self._input_tensor(f, histories[i] if histories else None)[0]
+                         for i, f in enumerate(fens)]
 
         batch_tensor = torch.stack(input_tensors).to(self.device)
 
@@ -323,7 +411,8 @@ class NeuralVision:
             "policy": [{"uci": m.uci(), "p": p_uniform} for m in legal],
         }
 
-    def _saliency_absolute(self, board: "chess.Board") -> dict[str, float]:
+    def _saliency_absolute(self, board: "chess.Board",
+                           history_ucis: Optional[list[str]] = None) -> dict[str, float]:
         """
         BT3 attention for `board`, always keyed by TRUE absolute squares.
 
@@ -332,11 +421,8 @@ class NeuralVision:
         so we evaluate the vertically-mirrored (white-to-move) board and flip the
         square keys back (rank r -> 9-r). Verified against the white-to-move map.
         """
-        if board.turn == chess.WHITE:
-            return self._attention_saliency(board.fen())
-        mirrored = board.mirror()  # swaps colors + flips ranks -> white to move
-        s = self._attention_saliency(mirrored.fen())
-        return {sq[0] + str(9 - int(sq[1])): v for sq, v in s.items()}
+        return self._saliency_absolute_batch(
+            [board.fen()], [history_ucis] if history_ucis else None)[0]
 
     def calculation_saliency(
         self,
