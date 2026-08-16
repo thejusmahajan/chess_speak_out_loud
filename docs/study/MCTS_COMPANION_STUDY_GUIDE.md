@@ -78,7 +78,7 @@ Two derived numbers:
        E = 0.5 + 0.5*V        V = 2*E - 1
 ```
 
-For our position the network returns **V = +0.976**.
+For our position the network returns **V = +0.97602**.
 
 **Why the search uses V and not E.** Chess is zero-sum. Whatever is good for
 White by exactly that much is bad for Black. On the V scale, switching sides is
@@ -96,12 +96,12 @@ That sign flip is the whole reason V exists.
 For our position:
 
 ```
-   Kd6   P = 0.451     (45.1%)
-   Kf6   P = 0.442     (44.2%)
-   Kf5   P = 0.054      (5.4%)
-   Kd5   P = 0.053      (5.3%)
-                        -------
-                        100.0%
+   Kd6   P = 0.4513    (45.13%)
+   Kf6   P = 0.4423    (44.23%)
+   Kf5   P = 0.0538     (5.38%)
+   Kd5   P = 0.0526     (5.26%)
+                        --------
+                        100.00%
 ```
 
 **What P is not.** P is *not* the evaluation of the move. The network has not
@@ -109,8 +109,8 @@ looked at any of these positions. P is a trained reflex — "in positions of thi
 shape, these are the moves that turned out to be worth examining." It is
 attention, not judgement.
 
-Notice the network put 89.3% of its attention on the two winning king moves and
-still left 10.7% on the two that throw the win away. It is not certain. Good —
+Notice the network put 89.4% of its attention on the two winning king moves and
+still left 10.6% on the two that throw the win away. It is not certain. Good —
 that residue is what lets the search check them cheaply and move on.
 
 ---
@@ -132,7 +132,7 @@ they hold different numbers.
 ```
                           s  =  the position (a NODE, a circle)
                           |       - this is a board, White to move
-                          |       - the network gave it V = +0.976
+                          |       - the network gave it V = +0.97602
           +-------+-------+-------+
           |       |       |       |
          Kd6     Kf6     Kf5     Kd5      <-- a = the ACTIONS (EDGES, arrows)
@@ -276,15 +276,26 @@ is literally no measurement to average. So the engine needs a placeholder, and
 it uses the **parent position's own value** as the starting floor:
 
 ```
-   Q(a) = V(s)  -  k * sqrt( sum of P over arrows already visited )
-                   ----------------------------------------------
-                   the FPU reduction  (k is about 0.336 in our trace)
+   Q(a) = Q(s)  -  k * sqrt( sum of P over arrows already visited )
+          ----     ----------------------------------------------
+          parent's the FPU reduction        (k = 0.33)
+          RUNNING
+          average
 ```
 
+Two details that are easy to get wrong, and both matter:
+
+* The first term is the parent's **running average Q(s)**, not its original
+  network value `V(s)`. Early on they are equal, because the parent's only
+  sample is its own evaluation. They drift apart as children report back.
+* The sum is over the **policy mass already explored**, not the number of moves
+  explored. Spending a visit on a 45% move makes the engine far more cautious
+  about the rest than spending one on a 5% move would.
+
 Read the reduction physically: *"we have already spent effort on arrows covering
-this much of the network's attention, and none of it beat the parent's value, so
-be a little more pessimistic about the untried ones."* At the very start nothing
-has been visited, the sum is 0, and the placeholder is simply `V(s)` itself.
+this much of the network's attention, and none of it beat the parent, so be a
+little more pessimistic about the untried ones."* At the very start nothing has
+been visited, the sum is 0, and the placeholder is simply the parent's value.
 
 This is called **First Play Urgency**.
 
@@ -294,13 +305,13 @@ This is called **First Play Urgency**.
 > default value get replaced by the new value?"* — **Yes. Completely.**
 
 ```
-   BEFORE          Q(Kd6) = 0.976     <- borrowed from the parent. A placeholder.
+   BEFORE          Q(Kd6) = 0.97602   <- borrowed from the parent. A placeholder.
                                           Not a measurement of anything.
 
    the search plays Kd6, reaches the child position,
-   the network evaluates it, the value comes back as x_1 = +0.968
+   the network evaluates it, the value comes back as x_1 = +0.96766
 
-   AFTER           Q(Kd6) = 0.968     <- its own measurement. n = 1, W = 0.968.
+   AFTER           Q(Kd6) = 0.96766   <- its own measurement. n = 1, W = 0.96766.
 ```
 
 The placeholder is **discarded, not blended**. It was never data. From this
@@ -322,84 +333,105 @@ now with a slightly larger FPU reduction, because `Kd6`'s prior has joined the
 
 ## Part 7 — The full trace, four iterations, every number checkable
 
-Constants used throughout, so you can reproduce every line:
+Constants, so you can reproduce every line:
 
 ```
-   V(root) = 0.976        c = 1.745        k = 0.336
-   sqrt(N) uses N = max(1, visits made from this node)
+   V(root) = 0.97602      c = 1.745      k = 0.33
+   P:  Kd6 0.4513   Kf6 0.4423   Kf5 0.0538   Kd5 0.0526
+
+   U(a)  = c * P(a) * sqrt(N) / (1 + n(a)),  N = max(1, visits from this node)
+   Q_FPU = Q(parent) - k * sqrt(sum of P over visited arrows)
 ```
 
 ### Iteration 0 — nothing visited yet
 
-Every arrow has `n = 0`, so every `Q` is the placeholder `0.976`.
-Nothing has been visited, so the FPU reduction is `k * sqrt(0) = 0`.
-`N = max(1, 0) = 1`, so `sqrt(N) = 1`.
+Every arrow has `n = 0`, so every `Q` is the placeholder. Nothing is visited, so
+the FPU reduction is `k * sqrt(0) = 0` and the placeholder is the parent's value
+itself. `N = max(1, 0) = 1`.
 
 ```
-   arrow   Q       U = 1.745 * P * 1 / (1+0)        S = Q + U
-   -----   -----   ------------------------------   ---------
-   Kd6     0.976   1.745 * 0.451 = 0.787            1.763
-   Kf6     0.976   1.745 * 0.442 = 0.771            1.747
-   Kf5     0.976   1.745 * 0.054 = 0.094            1.070
-   Kd5     0.976   1.745 * 0.053 = 0.092            1.068
+   arrow   n   Q         U = 1.745 * P * 1 / (1+0)     S = Q + U
+   -----   -   -------   ---------------------------   ---------
+   Kd6     0   0.97602   1.745*0.4513 = 0.78752        1.76354
+   Kf6     0   0.97602   1.745*0.4423 = 0.77181        1.74783
+   Kf5     0   0.97602   1.745*0.0538 = 0.09388        1.06990
+   Kd5     0   0.97602   1.745*0.0526 = 0.09179        1.06781
 ```
 
-All four `Q` values are identical, so **the policy prior alone decides the
-first move examined.** Largest S is `Kd6`.
+All four `Q` are identical, so **the policy prior alone decides the first move
+examined.**
 
-> **Selected: Kd6.** Play it, evaluate the child, get x_1 = +0.968 back.
-> Now n(Kd6) = 1, W(Kd6) = 0.968, Q(Kd6) = 0.968, and N = 1.
+> **Selected: Kd6.** Play it, evaluate the child, `x_1 = +0.96766` comes back.
+> Now `n(Kd6) = 1`, `Q(Kd6) = 0.96766`.
+> The root's own average updates too: `Q(root) = mean(0.97602, 0.96766) = 0.97184`.
 
 ### Iteration 1 — one arrow has a real measurement
 
-FPU reduction is now `0.336 * sqrt(0.451) = 0.336 * 0.6716 = 0.226`,
-so unvisited arrows sit at `0.976 - 0.226 = 0.750`.
+Visited policy mass is `0.4513`, so the reduction is
+`0.33 * sqrt(0.4513) = 0.33 * 0.67179 = 0.22169`, and unvisited arrows sit at
+`0.97184 - 0.22169 = 0.75015`.
 
 ```
-   arrow   n   Q       U = 1.745 * P * 1 / (1+n)        S
-   -----   -   -----   ------------------------------   -----
-   Kd6     1   0.968   1.745*0.451/2 = 0.393            1.361
-   Kf6     0   0.750   1.745*0.442/1 = 0.771            1.522
-   Kf5     0   0.750   1.745*0.054/1 = 0.094            0.845
-   Kd5     0   0.750   1.745*0.053/1 = 0.092            0.843
+   arrow   n   Q         U = 1.745 * P * 1 / (1+n)     S
+   -----   -   -------   ---------------------------   -------
+   Kd6     1   0.96766   1.745*0.4513/2 = 0.39376      1.36142
+   Kf6     0   0.75015   1.745*0.4423/1 = 0.77181      1.52196
+   Kf5     0   0.75015   1.745*0.0538/1 = 0.09388      0.84403
+   Kd5     0   0.75015   1.745*0.0526/1 = 0.09179      0.84194
 ```
 
-Look at what happened to `Kd6`. Its evaluation came back **excellent**
-(+0.968) — and its score still *fell*, from 1.763 to 1.361. Two things did that:
+`Kd6`'s evaluation came back **excellent** (+0.96766) — and its score still
+*fell*, from 1.76354 to 1.36142. Two separate things did that:
 
-1. Its `U` halved, because `n` went from 0 to 1.
-2. Its `Q` dropped very slightly, from the borrowed 0.976 to its real 0.968.
+1. Its `U` halved, because `n` went 0 -> 1.
+2. Its `Q` dropped slightly, the borrowed 0.97602 giving way to the measured
+   0.96766.
 
-Meanwhile `Kf6` kept its full curiosity bonus. So:
+Meanwhile `Kf6` kept its full curiosity bonus.
 
-> **Selected: Kf6.** The search moves on, exactly as intended.
+> **Selected: Kf6.** `x_1 = +0.98598` comes back — even better than Kd6's.
+> `Q(root) = mean(0.97602, 0.96766, 0.98598) = 0.97655`.
 
-### Iteration 2 — the second good move gets its measurement
+### Iteration 2 — both good moves now measured
 
-Suppose the child position after `Kf6` evaluates to +0.965 (illustrative — the
-network would return its own number here; the mechanism does not depend on the
-exact value).
+Visited policy mass is `0.4513 + 0.4423 = 0.8936`, so the reduction grows to
+`0.33 * sqrt(0.8936) = 0.33 * 0.94531 = 0.31195`, and unvisited arrows drop to
+`0.97655 - 0.31195 = 0.66460`.
 
-Now `n(Kd6) = 1`, `n(Kf6) = 1`, and `N = 2`, so `sqrt(N) = 1.4142`.
-FPU reduction is now `0.336 * sqrt(0.451 + 0.442) = 0.336 * 0.9450 = 0.318`,
-so unvisited arrows sit at `0.976 - 0.318 = 0.659`.
-
-### Iteration 3 — and here is the answer to "why revisit a move?"
+`N = 2` now, so `sqrt(N) = 1.41421`.
 
 ```
-   arrow   n   Q        U = 1.745 * P * 1.4142 / (1+n)      S
-   -----   -   ------   ---------------------------------   ------
-   Kd6     1   0.9680   1.745*0.451*1.4142/2 = 0.5565       1.5245
-   Kf6     1   0.9650   1.745*0.442*1.4142/2 = 0.5454       1.5104
-   Kf5     0   0.6585   1.745*0.054*1.4142/1 = 0.1333       0.7917
-   Kd5     0   0.6585   1.745*0.053*1.4142/1 = 0.1308       0.7893
+   arrow   n   Q         U = 1.745 * P * 1.41421 / (1+n)     S
+   -----   -   -------   ---------------------------------   -------
+   Kd6     1   0.96766   1.745*0.4513*1.41421/2 = 0.55696    1.52462
+   Kf6     1   0.98598   1.745*0.4423*1.41421/2 = 0.54585    1.53183
+   Kf5     0   0.66460   1.745*0.0538*1.41421/1 = 0.13279    0.79739
+   Kd5     0   0.66460   1.745*0.0526*1.41421/1 = 0.12983    0.79443
 ```
 
-> **Selected: Kd6 — again.**
+> **Selected: Kf6 — for the second time.**
 
-The two bad moves have now fallen to roughly 0.79 while the two good moves sit
-at roughly 1.52. They are not competitive and will be starved of attention from
-here on.
+Note how close it was: 1.53183 against 1.52462. `Kf6` won only because its
+measured value came back higher. The two bad moves have fallen to about 0.79 and
+are no longer competitive.
+
+### Iteration 3 — and this is the answer to "why revisit a move?"
+
+`Kf6` is entered again. Its second sample comes back lower, `x_2 = +0.95128`,
+and the average moves accordingly:
+
+```
+   Q(Kf6) = (0.98598 + 0.95128) / 2 = 0.96863        n(Kf6) = 2
+```
+
+Check with the incremental form:
+`0.98598 + (0.95128 - 0.98598)/2 = 0.98598 - 0.01735 = 0.96863`. Agrees.
+
+The unvisited arrows drop again, to `0.97024 - 0.31195 = 0.65829`, because the
+root's own running average moved.
+
+**The important part is not the arithmetic — it is where that second sample came
+from.** See 8.2.
 
 ---
 
@@ -415,29 +447,38 @@ This is the sharpest question in the whole log, and the answer is that **the
 average is not taken over moves. It is taken over visits** — and visits are
 distributed wildly unequally.
 
-Look at the trace. After four iterations:
+After four iterations:
 
 ```
-   Kd6   visited 2 times
-   Kf6   visited 1 time
+   Kd6   visited 1 time
+   Kf6   visited 2 times
    Kf5   visited 0 times     <- contributes NOTHING to any average
    Kd5   visited 0 times     <- contributes NOTHING to any average
 ```
 
-A blunder that is never visited contributes exactly zero terms to `W`. A blunder
-that *is* visited once contributes one bad term — and then its `U` halves, its
-`Q` collapses to the bad measured value, and it is never selected again. Run the
-search to 10,000 nodes and the split is typically 97%+ of visits on the best one
-or two moves and a handful on everything else.
+An unvisited blunder contributes exactly zero terms to `W`. A blunder that *is*
+visited once contributes one bad term — then its `U` halves, its `Q` collapses to
+the bad measured value, and it is never selected again. Run to 10,000 nodes and
+the split is typically 97%+ of visits on the best one or two moves.
 
-So the parent's value does not become "the average of one good move and three
-blunders." It becomes, very nearly, "the value of the good move" — because the
-good move supplied almost every sample.
+Watch the two bad moves being squeezed out **without ever being played**:
+
+```
+   before iteration 1:  Kf5 = 1.06990    (0.69 behind the leader)
+   before iteration 2:  Kf5 = 0.84403    (0.68 behind)
+   before iteration 3:  Kf5 = 0.79739    (0.73 behind, and falling)
+```
+
+They fall because the FPU reduction keeps growing as good moves absorb policy
+mass. The engine becomes progressively more sceptical of the untried remainder.
+
+So the parent's value never becomes "the average of one good move and three
+blunders." It becomes, very nearly, "the value of the good moves" — because the
+good moves supplied essentially every sample.
 
 **This is the single most important idea in MCTS.** Uniform search averages over
 moves. MCTS *samples* moves in proportion to how promising they look, so the
-average is dominated by the lines actually worth playing. A blunder is punished
-once, cheaply, and then abandoned.
+average is dominated by the lines actually worth playing.
 
 ### 8.2 "Why visit a move again? What is the point?"
 
@@ -445,31 +486,34 @@ once, cheaply, and then abandoned.
 > factor is halved, it will again be selected. What is the point of visiting it
 > again? Go on the same move until the other move gets selected?"*
 
-Iteration 3 above selects `Kd6` for the second time. Here is what physically
-happens — and it is **not** a repeat of iteration 1.
+Iteration 3 selects `Kf6` for the second time. What physically happens is **not**
+a repeat of iteration 2.
 
-The first visit to `Kd6` created the child position `s1'` and evaluated it. That
-child now exists in the tree, with **its own four arrows** and its own statistics.
+The first visit to `Kf6` created the child position and evaluated it. That child
+now exists in the tree, with **its own arrows** and its own statistics.
 
-So the second visit to `Kd6` does not stop at `s1'`. It passes *through* it and
-applies the same selection rule one level down, choosing among Black's replies —
-and evaluates a position **two plies deep**.
+So the second visit does not stop there. It passes *through* and applies the same
+selection rule one level down, choosing among Black's replies, and evaluates a
+position **two plies deep**.
 
 ```
-   Visit 1 to Kd6:   root --Kd6--> [s1'] evaluate here          depth 1
-   Visit 2 to Kd6:   root --Kd6--> s1' --Kf8--> [s2'] evaluate  depth 2
-   Visit 3 to Kd6:   root --Kd6--> s1' --Kd8--> [s3'] evaluate  depth 2
-                                       (or deeper, down whichever
-                                        reply now looks best)
+   Visit 1 to Kf6:   root --Kf6--> [child] evaluate here          depth 1
+   Visit 2 to Kf6:   root --Kf6--> child --reply--> [grandchild]  depth 2
+                                              evaluate here
 ```
 
-**Revisiting a move is how the search gets deeper.** Depth is not scheduled by
-anyone. Nobody writes "now search 18 plies." Depth is the *consequence* of the
-same move winning the `S` comparison repeatedly, each win pushing the frontier
-one level further down that line.
+And the consequence is visible in the numbers. The first look at `Kf6` returned
+`+0.98598`. The second, one ply deeper, returned `+0.95128` — Black's best reply
+takes some of the shine off. The average settles at `0.96863`, a better estimate
+than either sample alone.
 
-That is why a strong engine's principal variation is long and its refuted
-sidelines are one node deep. The tree is not balanced, and it should not be.
+**Revisiting a move is how the search gets deeper.** Depth is never scheduled.
+Nobody writes "now search 18 plies." Depth is the *consequence* of the same move
+winning the `S` comparison repeatedly, each win pushing the frontier one level
+further down that line.
+
+That is why a strong engine's principal variation is long while its refuted
+sidelines are one node deep. The tree is deliberately unbalanced.
 
 ### 8.3 "Why does the network evaluate positions rather than moves?"
 
@@ -500,28 +544,33 @@ Do these with a calculator. Answers follow.
 1. At iteration 0, why do all four arrows have the same `Q`?
 2. `Kd6` returned an *excellent* +0.968 and its score still fell from 1.763 to
    1.361. Give both reasons.
-3. Compute `U(Kf5)` at iteration 3 from scratch.
+3. Compute `U(Kf5)` at iteration 2 from scratch.
 4. An arrow has `n = 3`, `W = 1.80`. A fourth evaluation returns `x_4 = 0.20`.
    Compute the new `Q` both ways (direct and incremental).
 5. Which value does an unvisited arrow use — the parent's or the child's? Why
    can it not be the child's?
 6. If the search runs 10,000 iterations and `Kd5` is visited 3 times, roughly
    how much does `Kd5` affect the root's final estimate?
+7. The FPU baseline fell from 0.75015 to 0.66460 even though no new bad news
+   arrived. Why?
 
 <details>
 <summary>Answers</summary>
 
 1. None of them has been visited, so none has a measurement of its own. All four
-   borrow the same parent value 0.976. Only `P` distinguishes them, through `U`.
-2. (a) `n` went 0 -> 1 so `U` halved, 0.787 -> 0.393. (b) `Q` was replaced, the
-   borrowed 0.976 giving way to the measured 0.968.
-3. `1.745 * 0.054 * sqrt(2) / (1+0) = 1.745 * 0.054 * 1.4142 = 0.1333`.
+   borrow the same parent value 0.97602. Only `P` distinguishes them, through `U`.
+2. (a) `n` went 0 -> 1 so `U` halved, 0.78752 -> 0.39376. (b) `Q` was replaced,
+   the borrowed 0.97602 giving way to the measured 0.96766.
+3. `1.745 * 0.0538 * sqrt(2) / (1+0) = 1.745 * 0.0538 * 1.41421 = 0.13279`.
 4. Direct: `(1.80 + 0.20)/4 = 0.500`. Incremental: `Q_old = 1.80/3 = 0.600`,
    then `0.600 + (0.20 - 0.600)/4 = 0.600 - 0.100 = 0.500`. Same.
 5. The parent's, reduced by the FPU term. It cannot be the child's because the
    child position has not been created or evaluated — there is nothing to read.
 6. Almost nothing: 3 samples out of 10,000, about 0.03% of the weight. This is
    8.1 restated.
+7. The *visited policy mass* grew from 0.4513 to 0.8936 when Kf6 was visited, so
+   the reduction `0.33*sqrt(mass)` grew from 0.22169 to 0.31195. The engine gets
+   more sceptical of untried moves as the explored share rises.
 
 </details>
 
@@ -556,9 +605,14 @@ Do these with a calculator. Answers follow.
 
 ---
 
-*Companion to `docs/study/guide/neural_mcts_visual_guide_v2.pdf`. Numbers traced
-from `docs/study/STUDY_DIALOGUE_MCTS_FOUNDATIONS.md`; the constants c = 1.745
-and k = 0.336 were recovered by fitting the published scores and reproduce every
-figure in that log to within rounding. LC0's real exploration constant grows
-slowly with visit count rather than staying fixed, which does not change any
-mechanism described here.*
+*Companion to `docs/study/guide/neural_mcts_visual_guide_v2.pdf`. Every number
+here is taken from that guide's own figure sources (`guide/figures/fig_2_*.tex`),
+so the two documents agree to five decimal places. The constants c = 1.745 and
+k = 0.33 reproduce every published score exactly.*
+
+*One subtlety worth stating, because getting it wrong is easy: the FPU baseline
+is computed from the parent's **running average Q**, not from its original
+network value V. The two differ as soon as children start reporting back — using
+V here gives 0.75433 where the engine gives 0.75015. LC0's real exploration
+constant also grows slowly with visit count rather than staying fixed, which
+changes none of the mechanisms described here.*
