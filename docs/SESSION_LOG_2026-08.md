@@ -185,6 +185,29 @@ routinely already closed (two of two checked returned `410 Gone` / "not publishe
 
 ---
 
+## 3b. Hereon AEON-UP — the live application
+
+Postdoctoral Researcher, *Probabilistic Deep Learning for Urban Air Quality*,
+Helmholtz-Zentrum Hereon, Geesthacht. **Ref. 1056, deadline 3 September 2026**,
+start 1 Oct 2026, two years, TVöD E13. PIs **Dr. Martin Ramacher** and
+**Dr. Matthias Karl**.
+
+Best fit found in the search: the required-PhD list names Physics *and*
+Environmental Sciences; the project couples physics-based chemistry transport
+models (their group runs CMAQ over the North Sea) with probabilistic deep
+learning. The gap is Bayesian methods and neural processes.
+
+Materials in `job_search/applications/hereon_aeon_up/` — a one-page cover letter
+rebuilt around **uncertainty** (a confidently wrong model is more dangerous than
+a visibly uncertain one, evidenced by the two silent pipeline errors), the CV,
+and `STUDY_BOOK.md` covering neural processes, the aleatoric/epistemic
+distinction, CRPS and calibration, and enough urban air quality to hold a
+conversation.
+
+Still open: the letter's salutation, a sentence on ultrafine particles now that
+Karl's involvement is known, and implementing a conditional neural process on
+synthetic data — the single highest-value piece of preparation.
+
 ## 4. Open items
 
 1. **Apply.** Materials are done; the binding constraint is volume. 3 submissions in
