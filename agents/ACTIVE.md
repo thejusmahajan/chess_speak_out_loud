@@ -8,13 +8,7 @@ output, report deviations, stop and ask when the brief doesn't cover a decision)
 
 ## Live now
 
-### 1. `briefs/2026-08-19_salience-cnp-brainstorm.md` — **ACTIVE** ← start here
-Design/brainstorm. Attack the leader's hypothesis that a conditional neural process is the
-right tool for the salience problem. Re-derive the leader's measurements first and
-contradict them if they don't hold. Output: one report into `agents/reports/`.
-**No production code.** Route: Antigravity — read the repo files it names.
-
-### 2. `briefs/2026-08-18_cnp-synthetic-build.md` — **ACTIVE** (queued)
+### 1. `briefs/2026-08-18_cnp-synthetic-build.md` — **ACTIVE** (queued)
 Implementation, in the **separate** `cnp_synthetic` repo. Build a conditional neural process
 on synthetic data with an honest uncertainty evaluation. Self-contained; the canonical copy
 sits in that repo. Handed over 2026-08-18 but never run — the worker was unavailable.
@@ -29,7 +23,7 @@ passed it are all findable from here.
 
 | Brief | Target | Type | Status | Delivered | Audit verdict |
 |---|---|---|---|---|---|
-| `2026-08-19_salience-cnp-brainstorm` | chess_speak_out_loud | design | **ACTIVE** | — | — |
+| `2026-08-19_salience-cnp-brainstorm` | chess_speak_out_loud | design | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT WITH CORRECTIONS** — Part 0 re-derivation exact; §1.1/1.2/1.3/5.2/5.4 confirmed; **§5.3 confirmed = real bug** (move delta discarded in `rank_salient_facts`). **§1.4 FALSE** (235,511 `quietMove` puzzles; 27.3% of band `quiet_first`). **§5.5 right number, wrong cause** — do NOT relax the provenance invariant. Part 4 metric not measurable as specified. See `…_AUDIT.md` |
 | `2026-08-18_cnp-synthetic-build` | cnp_synthetic | implementation | **ACTIVE** (queued) | — | — |
 
 Status values: `ACTIVE` · `DELIVERED` (worker returned, not yet checked) · `AUDITED` (leader
