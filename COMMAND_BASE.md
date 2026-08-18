@@ -115,3 +115,8 @@ Everything past that waits until the application is out.
 The standing rule from experience: **delegate code and labour, never content or
 judgement.** Every worker deliverable gets spot-checked against its raw output, not
 against its own report — the last two both claimed checks they had not performed.
+
+Every brief lives in **`agents/`** (added 2026-08-19) — `agents/ACTIVE.md` says what is
+live, `agents/briefs/` is the immutable archive, `agents/reports/` holds deliveries and
+audit verdicts. The worker is handed one instruction: *read `agents/ACTIVE.md` and execute
+the topmost ACTIVE brief.*
