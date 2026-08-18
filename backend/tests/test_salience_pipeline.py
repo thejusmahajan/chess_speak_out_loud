@@ -398,3 +398,107 @@ def test_provenance_gate_accepts_genuine_source_prose():
         assert normalize_for_match(sentence) in haystack, (
             "normalization is too strict — genuine transcription would be rejected"
         )
+
+
+def test_created_facts_are_not_asserted_about_the_queried_position():
+    """Created facts must be temporally qualified so they are not asserted of the present board."""
+    fen = "r1b2rk1/pp1nqppp/2pbpn2/8/2BP4/2N1PN2/PP2QPPP/R1B2RK1 w - - 0 11"
+    line = ["c4d3", "f6g4", "e2e4"]
+    ranked = rank_salient_facts(fen, chess.WHITE, line_ucis=line, top_k=10)
+
+    for fact in ranked:
+        if fact["delta_role"] == "created":
+            assert fact["text"].startswith("After "), f"created fact lacks 'After ' prefix: {fact['text']}"
+        if "d3 bishop is active" in fact["text_raw"]:
+            assert fact["text"].startswith("After ") or fact["text"].startswith("No longer true after "), (
+                f"d3 bishop fact asserted without temporal qualification: {fact['text']}"
+            )
+
+
+def test_every_fact_carries_a_temporal_frame():
+    """Every returned fact carries delta_role, delta_move, delta_ply, and text_raw."""
+    fen = "r1b2rk1/pp1nqppp/2pbpn2/8/2BP4/2N1PN2/PP2QPPP/R1B2RK1 w - - 0 11"
+    line = ["c4d3", "f6g4", "e2e4"]
+    ranked = rank_salient_facts(fen, chess.WHITE, line_ucis=line, top_k=10)
+
+    assert ranked, "expected at least one fact"
+    for fact in ranked:
+        assert fact["delta_role"] in {"static", "created", "removed"}
+        assert "text_raw" in fact and isinstance(fact["text_raw"], str)
+        if fact["delta_role"] == "static":
+            assert fact["delta_move"] is None
+            assert fact["delta_ply"] is None
+        else:
+            assert isinstance(fact["delta_move"], str)
+            assert isinstance(fact["delta_ply"], int)
+
+
+def test_san_prefix_is_correct():
+    """For the witness line, a move-3 created fact carries delta_ply==2, delta_move=='e2e4', and exact prefix."""
+    fen = "r1b2rk1/pp1nqppp/2pbpn2/8/2BP4/2N1PN2/PP2QPPP/R1B2RK1 w - - 0 11"
+    line = ["c4d3", "f6g4", "e2e4"]
+    ranked = rank_salient_facts(fen, chess.WHITE, line_ucis=line, top_k=10)
+
+    fact = next(f for f in ranked if f["delta_move"] == "e2e4" and f["delta_role"] == "created")
+    assert fact["delta_ply"] == 2
+    assert fact["text"].startswith("After Bd3 Ng4 Qe4: ")
+
+
+def test_removed_facts_are_marked_as_no_longer_true():
+    """Facts removed by a move are marked delta_role=='removed' with 'No longer true after <SAN>: '."""
+    fen = "8/2r1b3/1pk5/6P1/5q2/3R4/Q1P1K3/8 w - - 5 38"
+    ranked = rank_salient_facts(fen, chess.WHITE, line_ucis=["a2d5"], top_k=20)
+
+    fact = next(
+        f for f in ranked if f["text_raw"] == "White's queen on the open a-file" and f["delta_role"] == "removed"
+    )
+    assert fact["delta_role"] == "removed"
+    assert fact["text"].startswith("No longer true after Qd5#: ")
+
+
+def test_static_and_created_variants_both_survive_dedup():
+    """Static and created instances with the same text_raw both survive dedup under distinct delta_role."""
+    fen = "3r2k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1"
+    line = ["d1e1", "g8f8", "e1d1"]
+    ranked = rank_salient_facts(fen, chess.WHITE, line_ucis=line, top_k=20)
+
+    dfile_facts = [f for f in ranked if "open d-file" in f["text_raw"]]
+    roles = {f["delta_role"] for f in dfile_facts}
+    assert "static" in roles, "static variant missing"
+    assert "created" in roles, "created variant missing"
+
+
+def test_no_line_output_is_unchanged():
+    """With line_ucis=None, output is byte-identical to the baseline before the change."""
+    fen = "r1b2rk1/pp1nqppp/2pbpn2/8/2BP4/2N1PN2/PP2QPPP/R1B2RK1 w - - 0 11"
+    ranked = rank_salient_facts(fen, chess.WHITE, line_ucis=None, top_k=6)
+
+    for fact in ranked:
+        assert fact["delta_role"] == "static"
+        assert fact["delta_move"] is None
+        assert fact["delta_ply"] is None
+        assert fact["text"] == fact["text_raw"]
+
+    expected = [
+        ("White's c1 bishop is a bad bishop — 5 of its own pawns sit on its colour, restricting it (mobility 1)", 0.56),
+        ("Black's c8 bishop is a bad bishop — 5 of its own pawns sit on its colour, restricting it (mobility 0)", 0.55),
+        ("Black's d6 bishop is active — unobstructed by its own pawns, controlling 9 squares", 0.45),
+        ("Enemy king on g8 has 3 shield pawn(s) and 1 adjacent defender(s)", 0.21),
+        ("Enemy king on g1 has 3 shield pawn(s) and 1 adjacent defender(s)", 0.2),
+    ]
+    actual = [(f["text"], f["salience_score"]) for f in ranked]
+    assert actual == expected
+
+
+def test_gm_comment_path_still_works():
+    """Prose-alignment branch still returns aligned facts and carries the temporal metadata."""
+    ranked = rank_salient_facts(STEINITZ_FEN, chess.BLACK, gm_comment=STEINITZ_COMMENT, top_k=3)
+    assert len(ranked) == 2
+    assert all(f["alignment_score"] == 1.0 for f in ranked)
+    assert {f["kind"] for f in ranked} == {"pawn_weakness", "bishop_quality"}
+    for fact in ranked:
+        assert fact["delta_role"] == "static"
+        assert fact["delta_move"] is None
+        assert fact["delta_ply"] is None
+        assert fact["text"] == fact["text_raw"]
+

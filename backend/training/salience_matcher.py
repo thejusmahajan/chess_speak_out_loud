@@ -324,22 +324,68 @@ def rank_salient_facts(
     fen = board_or_fen.fen() if isinstance(board_or_fen, chess.Board) else board_or_fen
     line = list(line_ucis or [])
 
+    san_prefixes: List[str] = []
+    if line:
+        b_sim = chess.Board(fen)
+        san_history: List[str] = []
+        for move_uci in line:
+            move_obj = chess.Move.from_uci(move_uci)
+            san_history.append(b_sim.san(move_obj))
+            b_sim.push(move_obj)
+            san_prefixes.append(" ".join(san_history))
+
     facts: List[Dict[str, Any]] = []
     seen = set()
     for colour in (chess.WHITE, chess.BLACK):
         extracted = relational_facts(fen, line, colour)
-        collected = list(extracted["position_facts"])
-        for per_move in extracted["per_move"]:
-            collected.extend(per_move.get("creates", []))
-            collected.extend(per_move.get("removes", []))
-        for fact in collected:
-            key = (fact["kind"], fact["text"])
-            if key in seen:
-                continue
-            seen.add(key)
-            tagged = dict(fact)
+        for f in extracted["position_facts"]:
+            raw_text = f["text"]
+            tagged = dict(f)
             tagged["fact_pov"] = chess.COLOR_NAMES[colour]
-            facts.append(tagged)
+            tagged["delta_role"] = "static"
+            tagged["delta_move"] = None
+            tagged["delta_ply"] = None
+            tagged["text_raw"] = raw_text
+            tagged["text"] = raw_text
+
+            key = (tagged["kind"], tagged["text_raw"], tagged["delta_role"], tagged["delta_move"])
+            if key not in seen:
+                seen.add(key)
+                facts.append(tagged)
+
+        for ply_idx, per_move in enumerate(extracted["per_move"]):
+            move_uci = per_move.get("move", line[ply_idx] if ply_idx < len(line) else None)
+            prefix = san_prefixes[ply_idx] if ply_idx < len(san_prefixes) else ""
+
+            for f in per_move.get("creates", []):
+                raw_text = f["text"]
+                tagged = dict(f)
+                tagged["fact_pov"] = chess.COLOR_NAMES[colour]
+                tagged["delta_role"] = "created"
+                tagged["delta_move"] = move_uci
+                tagged["delta_ply"] = ply_idx
+                tagged["text_raw"] = raw_text
+                tagged["text"] = f"After {prefix}: {raw_text}"
+
+                key = (tagged["kind"], tagged["text_raw"], tagged["delta_role"], tagged["delta_move"])
+                if key not in seen:
+                    seen.add(key)
+                    facts.append(tagged)
+
+            for f in per_move.get("removes", []):
+                raw_text = f["text"]
+                tagged = dict(f)
+                tagged["fact_pov"] = chess.COLOR_NAMES[colour]
+                tagged["delta_role"] = "removed"
+                tagged["delta_move"] = move_uci
+                tagged["delta_ply"] = ply_idx
+                tagged["text_raw"] = raw_text
+                tagged["text"] = f"No longer true after {prefix}: {raw_text}"
+
+                key = (tagged["kind"], tagged["text_raw"], tagged["delta_role"], tagged["delta_move"])
+                if key not in seen:
+                    seen.add(key)
+                    facts.append(tagged)
 
     if gm_comment and gm_comment.strip():
         scored = align_prose_to_facts(gm_comment, facts)

@@ -8,13 +8,7 @@ output, report deviations, stop and ask when the brief doesn't cover a decision)
 
 ## Live now
 
-### 1. `briefs/2026-08-19_salience-temporal-frame-fix.md` — **ACTIVE** ← start here
-Correctness fix. `rank_salient_facts` asserts future facts as present facts (a pin by a
-piece on an empty square, scored top). Tag every fact with its temporal frame, qualify the
-text of non-static facts, fix the dedup collision. **Must not change any scoring weight** —
-see its §6. Two files only. Route: Antigravity.
-
-### 2. `briefs/2026-08-18_cnp-synthetic-build.md` — **ACTIVE** (queued)
+### 1. `briefs/2026-08-18_cnp-synthetic-build.md` — **ACTIVE** (queued)
 Implementation, in the **separate** `cnp_synthetic` repo. Build a conditional neural process
 on synthetic data with an honest uncertainty evaluation. Self-contained; the canonical copy
 sits in that repo. Handed over 2026-08-18 but never run — the worker was unavailable.
@@ -29,7 +23,7 @@ passed it are all findable from here.
 
 | Brief | Target | Type | Status | Delivered | Audit verdict |
 |---|---|---|---|---|---|
-| `2026-08-19_salience-temporal-frame-fix` | chess_speak_out_loud | implementation | **ACTIVE** | — | — |
+| `2026-08-19_salience-temporal-frame-fix` | chess_speak_out_loud | implementation | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT** — boundaries clean; suite 297p/5s reproduced independently (290 baseline + 7 new); **2 mutations each killed 2 guards** so the tests are real; witness fixed on the real path; §6 obeyed (grep: zero scoring changes); SAN prefix does **not** contaminate prose alignment. See `…_AUDIT.md` |
 | `2026-08-19_salience-cnp-brainstorm` | chess_speak_out_loud | design | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT WITH CORRECTIONS** — Part 0 re-derivation exact; §1.1/1.2/1.3/5.2/5.4 confirmed; **§5.3 confirmed = real bug** (move delta discarded in `rank_salient_facts`). **§1.4 FALSE** (235,511 `quietMove` puzzles; 27.3% of band `quiet_first`). **§5.5 right number, wrong cause** — do NOT relax the provenance invariant. Part 4 metric not measurable as specified. See `…_AUDIT.md` |
 | `2026-08-18_cnp-synthetic-build` | cnp_synthetic | implementation | **ACTIVE** (queued) | — | — |
 
