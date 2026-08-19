@@ -1,5 +1,23 @@
 # ACTIVE — what the worker should do now
 
+## ⚑ DEADLINE ITEMS — read this first, every session
+
+| item | due | status |
+|---|---|---|
+| **AEON-UP application (Hereon, ref. 1056)** | **2026-09-03** | **NOT SENT** — materials corrected, verified, dated, on disk |
+
+**Rules while any deadline item is `NOT SENT`:**
+1. Its status is stated at the start of the session, before anything else. Not as a closing footnote.
+2. **At most one non-deadline brief may be ACTIVE.**
+3. Every new brief filed carries a one-line **"why this before the deadline item?"** — usually
+   there is a good answer; the value is in having to write it.
+
+*Why this block exists: a registry, a ledger, an audit protocol and three documents were built
+while this item sat unsent. `COMMAND_BASE.md` warned about exactly that — "infrastructure that
+postpones exposure" — and was read many times during it.*
+
+---
+
 **Worker: find the section below matching the folder you have open, then execute its topmost
 brief marked `ACTIVE`.** Briefs target three different repositories, so which one you can do
 depends on your workspace — do **not** simply take the first `ACTIVE` in the file.
@@ -26,13 +44,13 @@ corrections are applied. Read the brief's opening — three binding constraints 
 do-not-claim file, the forbidden-source list, the corrected a8 frame). `job_search` is in the
 workspace now, so the study room is readable and is preferred source material.
 
-**3. `briefs/2026-08-19_attention-export-with-history.md` — ACTIVE
+**3. `briefs/2026-08-19_attention-export-with-history.md` — QUEUED (WIP limit; the trainer is in flight)
 Regenerate the attention JSON using **real move histories**. The previous export ran BT3 with
 84 of its 112 input planes empty; the code was audited and accepted, only the data is wrong.
 Three real master-game positions with full histories are pinned in the brief.
 
-**2. `briefs/2026-08-19_attention-export-json.md` — SUPERSEDED (data) / AUDITED (code)**
-Do not run. Its code is accepted and reused by brief 1 above; only its output was rejected.
+**4. `briefs/2026-08-19_attention-export-json.md` — SUPERSEDED (data) / AUDITED (code)**
+Do not run. Its code is accepted and is reused by brief 3; only its output was rejected.
 
 ### If your workspace is `thejusmahajan.github.io`
 
@@ -44,15 +62,16 @@ The interactive attention page. Do **not** start until the regenerated export (c
 
 ### If your workspace is `cnp_synthetic`
 
-**1. `briefs/2026-08-18_cnp-synthetic-build.md` — ACTIVE (queued)**
+**1. `briefs/2026-08-18_cnp-synthetic-build.md` — QUEUED (WIP limit)**
 Build a conditional neural process on synthetic data with an honest uncertainty evaluation.
 Self-contained; the canonical copy sits in that repo. Handed over 2026-08-18 but never run —
 the worker was unavailable.
 
 ---
 
-**Leader's priority, if asked:** `attention-export-with-history` (chess repo) is the only live
-implementation task. The website repoint is complete; its remaining items are leader-owned copy.
+**Leader's priority, if asked:** the **trainer** is the single ACTIVE task; everything else is
+QUEUED under the WIP limit until the deadline item ships or the trainer completes. The website
+repoint is done; its remaining items are leader-owned copy, not worker briefs.
 
 ---
 
@@ -67,13 +86,13 @@ passed it are all findable from here.
 | `2026-08-19_attention-demo-page` | thejusmahajan.github.io | implementation | **BLOCKED** | — | — |
 | `2026-08-19_knowledge-base-audit` | chess_speak_out_loud | design/audit | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT** — best worker design deliverable to date. Every spot-check held: **CV_AI_MODULE said black-to-move index 0 = h8, actually a8** (code does `^56`, rank-flip only) in the *lead-with-this* interview story; `INFERENCE_PRIORS` violates the Bible's own no-hand-coded-salience rule; "pilot validated the method" is false (measured 0/35); `HOW_TO_RUN` claims requirements.txt is empty (36 lines); Bible states 200 AND 239 tests (actual 302). Honestly declared it could not reach `job_search` — **that gap hid a live do-not-claim violation in the submittable CV ("mechanistic interpretability"), found and fixed by the leader.** See `…_AUDIT.md` |
 | `2026-08-19_knowledge-trainer-build` | chess_speak_out_loud | implementation | **ACTIVE** | — | — |
-| `2026-08-19_attention-export-with-history` | chess_speak_out_loud | implementation | **ACTIVE** | — | — |
+| `2026-08-19_attention-export-with-history` | chess_speak_out_loud | implementation | **QUEUED** (WIP limit) | — | — |
 | `2026-08-19_attention-export-json` | chess_speak_out_loud | implementation | **AUDITED** (code) / **SUPERSEDED** (data) | `reports/…_REPORT.md` | **ACCEPT CODE, REJECT DATA** — frame verified independently against a live `saliency_absolute` call to 0.0005 (quantisation error) incl. black-to-move; row sums 0.994–1.005 so axes are not transposed; suite 302p/5s reproduced; model presence honestly reported. **But the brief pinned `history_ucis=None`**, running BT3 with 84 of 112 planes empty — measured max diff **0.48**, correlation 0.85, top squares change. Leader error. Data regenerated by `…_with-history`. See `…_AUDIT.md` |
 | `2026-08-19_website-repoint-part2` | thejusmahajan.github.io | implementation | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT** — all 5 gates pass on independent re-run; clinical contact paragraph now on **0** pages; **every one of the 15 blog posts changed exactly 2 lines, all in the contact block** (grep for non-footer changed lines returns 0), so no article text moved; meta description replaced; GOTM-FABM + observational validation restored; `&amp;` fixed; all internal links resolve. Worker **corrected a leader error in the gate spec** (21 pages, not 20 — index.html was already done in part 1) instead of forcing the number. See `…_AUDIT.md` |
 | `2026-08-19_website-repoint-aeon-up` | thejusmahajan.github.io | implementation | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT (task incomplete — leader spec errors)** — copy applied verbatim, nothing invented, gates pass, real internship date preserved. Worker correctly reported a leader spec error and refused to write copy it wasn't given. Gaps, all leader's: clinical footer on **20** pages not 4; meta description untouched; GOTM-FABM + "validated against observational data" lost in the card swap; bare `&` in title. Closed by `…_part2`. See `…_AUDIT.md` |
 | `2026-08-19_salience-temporal-frame-fix` | chess_speak_out_loud | implementation | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT** — boundaries clean; suite 297p/5s reproduced independently (290 baseline + 7 new); **2 mutations each killed 2 guards** so the tests are real; witness fixed on the real path; §6 obeyed (grep: zero scoring changes); SAN prefix does **not** contaminate prose alignment. See `…_AUDIT.md` |
 | `2026-08-19_salience-cnp-brainstorm` | chess_speak_out_loud | design | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT WITH CORRECTIONS** — Part 0 re-derivation exact; §1.1/1.2/1.3/5.2/5.4 confirmed; **§5.3 confirmed = real bug** (move delta discarded in `rank_salient_facts`). **§1.4 FALSE** (235,511 `quietMove` puzzles; 27.3% of band `quiet_first`). **§5.5 right number, wrong cause** — do NOT relax the provenance invariant. Part 4 metric not measurable as specified. See `…_AUDIT.md` |
-| `2026-08-18_cnp-synthetic-build` | cnp_synthetic | implementation | **ACTIVE** (queued) | — | — |
+| `2026-08-18_cnp-synthetic-build` | cnp_synthetic | implementation | **QUEUED** (WIP limit) | — | — |
 
 Status values: `ACTIVE` · `DELIVERED` (worker returned, not yet checked) · `AUDITED` (leader
 verified — record the verdict) · `SUPERSEDED by <id>` · `ABANDONED`.

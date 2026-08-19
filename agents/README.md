@@ -44,6 +44,37 @@ the first `ACTIVE` in the file — take the first one under *your* repository's 
 Reports always go to `agents/reports/` in `chess_speak_out_loud`, whichever repo the work
 happened in.
 
+### INTENT OUTRANKS INSTRUCTIONS
+
+Every brief carries an `## INTENT` section: one paragraph describing what a correct result looks
+like, *independent of the instructions*.
+
+**If any instruction conflicts with the stated intent, the intent wins — stop and report.** Doing
+so is a success, never a boundary violation.
+
+This exists because a brief once told a worker to feed a neural network no move history. The
+worker complied perfectly and produced a data set that passed every gate while the model ran on 28
+of its 112 input planes. There was nothing for it to check the instruction against. Now there is.
+
+### Risk header → how much verification this task gets
+
+Every brief header carries three fields, and they determine the protocol — not the leader's mood:
+
+```
+Blast-radius:   private | repo | external      (who sees a mistake)
+Reversibility:  trivial | costly | irreversible
+Failure-mode:   loud | SILENT                  (does it announce itself?)
+```
+
+| profile | required |
+|---|---|
+| any `external` **or** `SILENT` | full protocol + null test + spec-review pass |
+| `repo` + `loud` | diff + gate re-run + mutation test |
+| `private` + `loud` + `trivial` | run it, read the diff |
+
+`SILENT` does independent work here: every serious failure in this project's history was quiet,
+and size was a poor predictor of severity.
+
 ### The standing contract — applies to EVERY brief, without being restated in it
 
 1. **Stay inside the declared scope.** Each brief names the files you may create or edit.
@@ -99,10 +130,25 @@ Depends on:   <brief-id or none>
   constraints. Here the context *is* the work. Ask it to argue against us; a worker that
   only agrees has produced nothing.
 
-**Audit before anything is believed.** Findings go in `reports/` next to the delivery:
-`git status` (boundaries), read the **diff not the report**, re-run the gate yourself,
-mutation-test the key guard, run the real path on real data, check each metric measures
-what its name claims. Sign-off means "I checked", never "they said so".
+**Audit before anything is believed.** Findings go in `reports/` next to the delivery.
+
+An audit that lacks any of these five fields is not an audit:
+
+```
+- boundary check:             the git status output, pasted
+- gate re-run:                MY command, MY output — never theirs
+- mutation proof:             what I broke, which test went red, restore confirmed
+- independent re-derivation:  one number reproduced by a DIFFERENT path than their test
+                              (their test can encode their misunderstanding;
+                               my re-derivation cannot inherit it)
+- what I could not check:     explicit, and MUST BE NON-EMPTY
+```
+
+The last field is mandatory and non-empty by design: an audit claiming to have checked everything
+is either untrue or trivial. Twice this session the worker's own "could not verify" section
+contained the most important finding — read it first, not last.
+
+Sign-off means "I checked", never "they said so".
 
 **After auditing**, update the brief's `Status:` line and add the verdict row to
 `ACTIVE.md`. That is what turns this folder into a bug-hunting tool: when something breaks
