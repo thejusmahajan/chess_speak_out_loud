@@ -169,6 +169,7 @@
     "explanation": "In urban air quality, predicting at an already-sampled location is trivial interpolation; predicting at an unmonitored location is the true spatial task.",
     "trap": "Reporting 98% $R^2$ using random K-fold on spatial time-series without spatial block splitting.",
     "sources": [
+      "https://doi.org/10.1016/j.ecolmodel.2017.06.019",
       "docs/SESSION_LOG_2026-08.md",
       "docs/career_strategy_conversation_aug2026.md"
     ],

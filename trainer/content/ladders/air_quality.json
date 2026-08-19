@@ -9,6 +9,7 @@
     "explanation": "CTMs take meteorological inputs (wind fields, temperature from WRF) and emission inventories to solve advection-diffusion-reaction differential equations.",
     "trap": "Confusing a statistical regression model with a deterministic physics-chemistry transport model.",
     "sources": [
+      "https://doi.org/10.5194/gmd-12-3357-2019",
       "https://doi.org/10.1175/JAM2536.1",
       "docs/SESSION_LOG_2026-08.md"
     ],
@@ -25,6 +26,7 @@
     "explanation": "Non-linear photochemistry means reducing primary emissions does not always linearly reduce secondary pollutants (e.g., the $\\text{NO}_x$ titration effect where reducing $\\text{NO}$ locally increases $\\text{O}_3$).",
     "trap": "Assuming Ozone is emitted directly from vehicle exhaust.",
     "sources": [
+      "https://doi.org/10.5194/gmd-12-3357-2019",
       "https://doi.org/10.1175/JAM2536.1",
       "docs/SESSION_LOG_2026-08.md"
     ],
@@ -42,6 +44,7 @@
     "trap": "Averaging individual pollutant sub-indices instead of taking the maximum.",
     "sources": [
       "https://doi.org/10.1175/JAM2536.1",
+      "https://doi.org/10.1016/j.envint.2019.04.013",
       "docs/SESSION_LOG_2026-08.md"
     ],
     "difficulty": 1050,
@@ -73,7 +76,8 @@
     "explanation": "Emission inventories are subject to high uncertainties in spatial distribution and temporal activity profiles (e.g., rush hour peaks, cold-start emissions).",
     "trap": "Believing emission inventories measure actual air concentrations rather than emitted mass fluxes.",
     "sources": [
-      "https://doi.org/10.5194/gmd-12-4857-2019",
+      "https://doi.org/10.5194/gmd-12-3357-2019",
+      "https://doi.org/10.1175/JAM2536.1",
       "docs/SESSION_LOG_2026-08.md"
     ],
     "difficulty": 1230,
@@ -105,9 +109,8 @@
     "explanation": "Regional models provide boundary conditions (background concentrations at city borders), which CityChem ingests to simulate local street-level microphysics.",
     "trap": "Claiming personal hands-on experience running CMAQ or CityChem in an interview rather than articulating their structural principles.",
     "sources": [
-      "https://doi.org/10.5194/gmd-12-4857-2019",
-      "https://doi.org/10.1175/JAM2536.1",
-      "docs/SESSION_LOG_2026-08.md"
+      "https://doi.org/10.5194/gmd-12-3357-2019",
+      "https://doi.org/10.1175/JAM2536.1"
     ],
     "difficulty": 1460,
     "requires": ["aq-l2-002", "aq-l1-001"]
@@ -122,7 +125,7 @@
     "explanation": "Sub-grid street canyon parameterizations (like OSPM or CityChem's subgrid module) explicitly model building aspect ratio ($H/W$) and vortex circulation.",
     "trap": "Applying simple 2D spatial smoothing across street canyons without accounting for building heights and wind direction relative to the street axis.",
     "sources": [
-      "https://doi.org/10.5194/gmd-12-4857-2019",
+      "https://doi.org/10.5194/gmd-12-3357-2019",
       "docs/SESSION_LOG_2026-08.md"
     ],
     "difficulty": 1490,
@@ -138,6 +141,7 @@
     "explanation": "Inversion episodes violate steady-state Gaussian dispersion assumptions, requiring models to incorporate time-varying boundary layer height.",
     "trap": "Assuming high wind and turbulent vertical dispersion persist under strong winter radiation inversions.",
     "sources": [
+      "https://doi.org/10.5194/gmd-12-3357-2019",
       "https://doi.org/10.1175/JAM2536.1",
       "docs/SESSION_LOG_2026-08.md"
     ],
@@ -154,7 +158,8 @@
     "explanation": "Solving full Navier-Stokes with chemical kinetics at 10m resolution for an entire metropolitan region exceeds available supercomputing budgets for real-time forecasting.",
     "trap": "Assuming computing power alone will solve the real-time urban resolution gap without statistical/learned downscaling.",
     "sources": [
-      "https://doi.org/10.5194/gmd-12-4857-2019",
+      "https://doi.org/10.5194/gmd-12-3357-2019",
+      "https://arxiv.org/abs/1910.13556",
       "docs/SESSION_LOG_2026-08.md"
     ],
     "difficulty": 1690,
@@ -170,7 +175,8 @@
     "explanation": "Multi-fidelity conditioning preserves the physical conservation laws and boundary conditions from the CTM while allowing the neural process to model high-resolution localized sensor observations.",
     "trap": "Replacing physical models entirely with pure black-box ML, which violates mass conservation and fails out of distribution.",
     "sources": [
-      "docs/SESSION_LOG_2026-08.md",
+      "https://doi.org/10.5194/gmd-12-3357-2019",
+      "https://arxiv.org/abs/1807.01613",
       "docs/career_strategy_conversation_aug2026.md"
     ],
     "difficulty": 1730,
@@ -186,9 +192,9 @@
     "explanation": "This hybrid design combines the global physics and mass conservation of CTMs with the micro-scale flexibility and calibrated real-time inference of Neural Processes.",
     "trap": "Claiming you personally developed or operated EPISODE-CityChem codebases rather than articulating the hybrid integration architecture.",
     "sources": [
-      "docs/SESSION_LOG_2026-08.md",
-      "docs/career_strategy_conversation_aug2026.md",
-      "https://doi.org/10.5194/gmd-12-4857-2019"
+      "https://doi.org/10.5194/gmd-12-3357-2019",
+      "https://arxiv.org/abs/1910.13556",
+      "https://arxiv.org/abs/1807.01613"
     ],
     "difficulty": 1980,
     "requires": ["aq-l4-001", "aq-l4-002"]

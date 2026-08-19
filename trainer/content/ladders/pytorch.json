@@ -60,7 +60,9 @@
       "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md"
     ],
     "difficulty": 1180,
-    "requires": ["pyt-l1-001"]
+    "requires": [
+      "pyt-l1-001"
+    ]
   },
   {
     "id": "pyt-l2-002",
@@ -76,7 +78,10 @@
       "backend/neural_vision.py"
     ],
     "difficulty": 1220,
-    "requires": ["pyt-l1-001", "pyt-l1-002"]
+    "requires": [
+      "pyt-l1-001",
+      "pyt-l1-002"
+    ]
   },
   {
     "id": "pyt-l2-003",
@@ -92,7 +97,9 @@
       "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md"
     ],
     "difficulty": 1250,
-    "requires": ["pyt-l1-001"]
+    "requires": [
+      "pyt-l1-001"
+    ]
   },
   {
     "id": "pyt-l3-001",
@@ -107,7 +114,10 @@
       "https://pytorch.org/docs/stable/generated/torch.nn.Module.html"
     ],
     "difficulty": 1420,
-    "requires": ["pyt-l2-001", "pyt-l1-002"]
+    "requires": [
+      "pyt-l2-001",
+      "pyt-l1-002"
+    ]
   },
   {
     "id": "pyt-l3-002",
@@ -123,7 +133,10 @@
       "https://pytorch.org/docs/stable/optim.html"
     ],
     "difficulty": 1450,
-    "requires": ["pyt-l2-003", "pyt-l2-001"]
+    "requires": [
+      "pyt-l2-003",
+      "pyt-l2-001"
+    ]
   },
   {
     "id": "pyt-l4-001",
@@ -140,7 +153,10 @@
       "docs/writeup_attention_frame_bug.md"
     ],
     "difficulty": 1680,
-    "requires": ["pyt-l3-001", "pyt-l2-002"]
+    "requires": [
+      "pyt-l3-001",
+      "pyt-l2-002"
+    ]
   },
   {
     "id": "pyt-l4-002",
@@ -156,7 +172,11 @@
       "backend/training/attention_export.py"
     ],
     "difficulty": 1720,
-    "requires": ["pyt-l3-001", "pyt-l2-002", "pyt-l1-003"]
+    "requires": [
+      "pyt-l3-001",
+      "pyt-l2-002",
+      "pyt-l1-003"
+    ]
   },
   {
     "id": "pyt-l4-003",
@@ -172,7 +192,10 @@
       "backend/training/attention_export.py"
     ],
     "difficulty": 1750,
-    "requires": ["pyt-l3-001", "pyt-l2-002"]
+    "requires": [
+      "pyt-l3-001",
+      "pyt-l2-002"
+    ]
   },
   {
     "id": "pyt-l5-001",
@@ -189,6 +212,10 @@
       "docs/writeup_attention_frame_bug.md"
     ],
     "difficulty": 1960,
-    "requires": ["pyt-l4-001", "pyt-l4-002", "pyt-l4-003"]
+    "requires": [
+      "pyt-l4-001",
+      "pyt-l4-002",
+      "pyt-l4-003"
+    ]
   }
 ]

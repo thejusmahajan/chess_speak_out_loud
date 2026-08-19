@@ -173,7 +173,7 @@ def test_verify_cards_fails_on_missing_sources(tmp_path: Path):
     }
     ladder_file.write_text(json.dumps([card]), encoding="utf-8")
     
-    success, errors = verify_all_cards(ladders_dir=tmp_path)
+    success, errors, _ = verify_all_cards(ladders_dir=tmp_path)
     assert not success
     assert any("Sources list must be non-empty" in e for e in errors)
 
@@ -218,6 +218,6 @@ def test_verify_cards_fails_on_level_inversion_or_cycle(tmp_path: Path):
     ]
     ladder_file.write_text(json.dumps(cards), encoding="utf-8")
     
-    success, errors = verify_all_cards(ladders_dir=tmp_path)
+    success, errors, _ = verify_all_cards(ladders_dir=tmp_path)
     assert not success
     assert any("requires must be lower level" in e for e in errors)
