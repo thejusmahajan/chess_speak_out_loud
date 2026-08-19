@@ -55,8 +55,9 @@ the worker was unavailable.
 ---
 
 **Leader's priority, if asked:** `website-repoint-part2` first (it removes text that is actively
-harming the AEON-UP application today), then `attention-export-json`. They are independent and
-can be done in either order.
+harming the AEON-UP application today), then `attention-export-with-history`. They are
+independent and can be done in either order — but they are in **different repositories**, so
+whichever folder is open decides which one you can actually do.
 
 ---
 
