@@ -70,6 +70,16 @@ Run these. They are cheap; every one of them corresponds to a failure above.
 10. **`git add -A` is banned.** It swept 356k lines of generated caches and a duplicated copy of
     `backend/` into a commit I had not inspected. Stage named paths, then read `git show --stat`
     before believing the commit.
+11. **Show the derivation, not just the value.** Every pinned literal is accompanied by the
+    command that produced it, pasted into the brief, so the worker can re-derive it. A brief that
+    asserts a value without showing where it came from is not ready. This turns the worker into a
+    free check on me.
+12. **Every constraint that could be wrong carries its reason.** Mechanical constraints ("write to
+    this path") need none. Judgement constraints — a model input, a threshold, a scope boundary, a
+    gate value — must say *why*, because a constraint without a reason is unfalsifiable by the
+    executor. The test: **if this instruction were wrong, could the worker tell?** The one gate I
+    explained was the one the worker corrected; the one I asserted bare was the one that shipped a
+    bad data set.
 
 ---
 
@@ -91,6 +101,27 @@ The cookbook's protocol, plus the part I keep having to add:
    error is mine to record.
 
 ---
+
+## 3b. How much rigour — and when honesty gets cheap
+
+**Rigour is proportional to `blast radius × irreversibility × SILENCE`.** The third factor is the
+one usually forgotten and it matters most here: every serious failure in this project's history
+was *quiet* — a fake batch loop, a parity test asserting softmax sums to 1, a corpus that was our
+own output restated, a heatmap mirrored for half of all positions, a metric named "sacrifice" with
+no material check. Work whose failure mode is silent gets the full protocol regardless of size.
+Work that would crash loudly can lean on the crash.
+
+**Prefer causal checks to correlated ones.** The characteristic failure of this work is *output
+that satisfies the check without satisfying the intent*. A check is only trustworthy when breaking
+the thing it guards makes it fail — that is what mutation testing buys, and why re-deriving a
+number independently beats re-running the worker's test (their test can encode their
+misunderstanding; my re-derivation cannot inherit it). Where a check cannot be made causal, say so
+instead of reporting it as verification.
+
+**Severity attaches to concealment, never to failure.** Fabrication has happened here three times,
+so briefs are harsh about claiming an unrun check — but that same severity can suppress
+disclosure, which is the behaviour worth most. "Not run" and "I could not reach this" must always
+be the cheapest available answers. The best worker outputs this session were all admissions.
 
 ## 4. Rules earned the hard way
 
