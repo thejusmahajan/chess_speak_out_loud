@@ -14,7 +14,16 @@ pages (part 1's brief wrongly excluded blog files wholesale); plus the meta desc
 facts lost in a card swap, and a malformed `&`. **Open the `thejusmahajan.github.io` folder
 as the workspace.** Article text stays untouched — footer chrome only.
 
-### 2. `briefs/2026-08-18_cnp-synthetic-build.md` — **ACTIVE** (queued)
+### 2. `briefs/2026-08-19_attention-export-json.md` — **ACTIVE** (run in THIS repo)
+Export real BT3 attention as JSON for the public demo. Correctness-critical: the frame must
+match the audited `saliency_absolute`, including for the black-to-move position. Blocks the
+demo page below.
+
+### 3. `briefs/2026-08-19_attention-demo-page.md` — **BLOCKED**
+The interactive attention page. Do not start until the export above is delivered **and the
+leader has audited it**. Website repo.
+
+### 4. `briefs/2026-08-18_cnp-synthetic-build.md` — **ACTIVE** (queued)
 Implementation, in the **separate** `cnp_synthetic` repo. Build a conditional neural process
 on synthetic data with an honest uncertainty evaluation. Self-contained; the canonical copy
 sits in that repo. Handed over 2026-08-18 but never run — the worker was unavailable.
@@ -29,6 +38,8 @@ passed it are all findable from here.
 
 | Brief | Target | Type | Status | Delivered | Audit verdict |
 |---|---|---|---|---|---|
+| `2026-08-19_attention-demo-page` | thejusmahajan.github.io | implementation | **BLOCKED** | — | — |
+| `2026-08-19_attention-export-json` | chess_speak_out_loud | implementation | **ACTIVE** | — | — |
 | `2026-08-19_website-repoint-part2` | thejusmahajan.github.io | implementation | **ACTIVE** | — | — |
 | `2026-08-19_website-repoint-aeon-up` | thejusmahajan.github.io | implementation | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT (task incomplete — leader spec errors)** — copy applied verbatim, nothing invented, gates pass, real internship date preserved. Worker correctly reported a leader spec error and refused to write copy it wasn't given. Gaps, all leader's: clinical footer on **20** pages not 4; meta description untouched; GOTM-FABM + "validated against observational data" lost in the card swap; bare `&` in title. Closed by `…_part2`. See `…_AUDIT.md` |
 | `2026-08-19_salience-temporal-frame-fix` | chess_speak_out_loud | implementation | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT** — boundaries clean; suite 297p/5s reproduced independently (290 baseline + 7 new); **2 mutations each killed 2 guards** so the tests are real; witness fixed on the real path; §6 obeyed (grep: zero scoring changes); SAN prefix does **not** contaminate prose alignment. See `…_AUDIT.md` |
