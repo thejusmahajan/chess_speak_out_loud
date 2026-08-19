@@ -8,11 +8,11 @@ output, report deviations, stop and ask when the brief doesn't cover a decision)
 
 ## Live now
 
-### 1. `briefs/2026-08-19_website-repoint-aeon-up.md` — **ACTIVE** ← start here
-Repoint the personal site from clinical bioinformatics to environmental modelling + ML,
-ahead of the AEON-UP deadline (3 Sept). **Open the `thejusmahajan.github.io` folder as the
-workspace, not this repo.** All copy is written by the leader — the worker applies it and
-must invent no biographical detail. Blog posts are out of scope entirely.
+### 1. `briefs/2026-08-19_website-repoint-part2.md` — **ACTIVE** ← start here
+Finishes the site repoint. The clinical-seeking contact paragraph is duplicated into **20**
+pages (part 1's brief wrongly excluded blog files wholesale); plus the meta description, two
+facts lost in a card swap, and a malformed `&`. **Open the `thejusmahajan.github.io` folder
+as the workspace.** Article text stays untouched — footer chrome only.
 
 ### 2. `briefs/2026-08-18_cnp-synthetic-build.md` — **ACTIVE** (queued)
 Implementation, in the **separate** `cnp_synthetic` repo. Build a conditional neural process
@@ -29,7 +29,8 @@ passed it are all findable from here.
 
 | Brief | Target | Type | Status | Delivered | Audit verdict |
 |---|---|---|---|---|---|
-| `2026-08-19_website-repoint-aeon-up` | thejusmahajan.github.io | implementation | **ACTIVE** | — | — |
+| `2026-08-19_website-repoint-part2` | thejusmahajan.github.io | implementation | **ACTIVE** | — | — |
+| `2026-08-19_website-repoint-aeon-up` | thejusmahajan.github.io | implementation | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT (task incomplete — leader spec errors)** — copy applied verbatim, nothing invented, gates pass, real internship date preserved. Worker correctly reported a leader spec error and refused to write copy it wasn't given. Gaps, all leader's: clinical footer on **20** pages not 4; meta description untouched; GOTM-FABM + "validated against observational data" lost in the card swap; bare `&` in title. Closed by `…_part2`. See `…_AUDIT.md` |
 | `2026-08-19_salience-temporal-frame-fix` | chess_speak_out_loud | implementation | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT** — boundaries clean; suite 297p/5s reproduced independently (290 baseline + 7 new); **2 mutations each killed 2 guards** so the tests are real; witness fixed on the real path; §6 obeyed (grep: zero scoring changes); SAN prefix does **not** contaminate prose alignment. See `…_AUDIT.md` |
 | `2026-08-19_salience-cnp-brainstorm` | chess_speak_out_loud | design | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT WITH CORRECTIONS** — Part 0 re-derivation exact; §1.1/1.2/1.3/5.2/5.4 confirmed; **§5.3 confirmed = real bug** (move delta discarded in `rank_salient_facts`). **§1.4 FALSE** (235,511 `quietMove` puzzles; 27.3% of band `quiet_first`). **§5.5 right number, wrong cause** — do NOT relax the provenance invariant. Part 4 metric not measurable as specified. See `…_AUDIT.md` |
 | `2026-08-18_cnp-synthetic-build` | cnp_synthetic | implementation | **ACTIVE** (queued) | — | — |
