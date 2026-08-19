@@ -1,5 +1,37 @@
 [
   {
+    "id": "aq-l0-001",
+    "ladder": "air-quality",
+    "level": 0,
+    "topic": "criteria air pollutants",
+    "question": "What are 'criteria air pollutants', and what are the main gases and particles monitored in urban air quality?",
+    "answer": "Criteria air pollutants are a set of ubiquitous air pollutants with legally established public health limits: Nitrogen Dioxide (NO2), Ground-level Ozone (O3), Fine Particulate Matter (PM2.5 and PM10), Sulfur Dioxide (SO2), and Carbon Monoxide (CO).",
+    "explanation": "Environmental agencies maintain continuous monitoring networks for these specific pollutants to track compliance with national and WHO health guidelines.",
+    "trap": "Confusing greenhouse gases like CO2 (which drive global climate change) with criteria toxic air pollutants like NO2 and PM2.5 (which cause direct respiratory harm).",
+    "sources": [
+      "https://doi.org/10.1175/JAM2536.1",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 780,
+    "requires": []
+  },
+  {
+    "id": "aq-l0-002",
+    "ladder": "air-quality",
+    "level": 0,
+    "topic": "emission vs concentration concept",
+    "question": "What is the difference between an emission rate and an air pollutant concentration?",
+    "answer": "An emission rate is the mass of pollutant released at the source per unit time (such as grams of NO2 per second from a vehicle exhaust pipe or chimney). A concentration is the mass of pollutant dispersed in a given volume of air that people breathe (measured in micrograms per cubic meter).",
+    "explanation": "Meteorology (wind speed, direction, atmospheric mixing height) determines how high or low the resulting concentration will be for a given emission rate.",
+    "trap": "Believing that doubling vehicle emissions on a street always doubles the measured concentration (wind dispersion can blow emissions away or trap them).",
+    "sources": [
+      "https://doi.org/10.5194/gmd-12-3357-2019",
+      "https://doi.org/10.1175/JAM2536.1"
+    ],
+    "difficulty": 790,
+    "requires": []
+  },
+  {
     "id": "aq-l1-001",
     "ladder": "air-quality",
     "level": 1,
@@ -14,7 +46,7 @@
       "docs/SESSION_LOG_2026-08.md"
     ],
     "difficulty": 990,
-    "requires": []
+    "requires": ["aq-l0-001", "aq-l0-002"]
   },
   {
     "id": "aq-l1-002",
@@ -22,8 +54,8 @@
     "level": 1,
     "topic": "primary vs secondary pollutants",
     "question": "What is the difference between a primary pollutant and a secondary pollutant, and give an example of each?",
-    "answer": "Primary pollutants are emitted directly from sources (e.g., Nitric Oxide $\\text{NO}$ and primary particulate matter from tailpipes). Secondary pollutants are formed in the atmosphere through photochemical reactions among precursors (e.g., Ground-level Ozone $\\text{O}_3$ formed from $\\text{NO}_x$ and VOCs in sunlight).",
-    "explanation": "Non-linear photochemistry means reducing primary emissions does not always linearly reduce secondary pollutants (e.g., the $\\text{NO}_x$ titration effect where reducing $\\text{NO}$ locally increases $\\text{O}_3$).",
+    "answer": "Primary pollutants are emitted directly from sources (e.g., Nitric Oxide NO and primary particulate matter from tailpipes). Secondary pollutants are formed in the atmosphere through photochemical reactions among precursors (e.g., Ground-level Ozone O3 formed from NOx and VOCs in sunlight).",
+    "explanation": "Non-linear photochemistry means reducing primary emissions does not always linearly reduce secondary pollutants (e.g., the NOx titration effect where reducing NO locally increases O3).",
     "trap": "Assuming Ozone is emitted directly from vehicle exhaust.",
     "sources": [
       "https://doi.org/10.5194/gmd-12-3357-2019",
@@ -31,7 +63,7 @@
       "docs/SESSION_LOG_2026-08.md"
     ],
     "difficulty": 1020,
-    "requires": []
+    "requires": ["aq-l0-001"]
   },
   {
     "id": "aq-l1-003",
@@ -39,7 +71,7 @@
     "level": 1,
     "topic": "Air Quality Index (AQI)",
     "question": "What is the Air Quality Index (AQI), and how is it calculated from multiple criteria pollutants?",
-    "answer": "The Air Quality Index (AQI) is a dimensionless standardized public communication metric mapping pollutant concentrations to a segmented health scale (0-500). For each criteria pollutant ($\\text{PM}_{2.5}$, $\\text{PM}_{10}$, $\\text{NO}_2$, $\\text{O}_3$, $\\text{SO}_2$, $\\text{CO}$), a sub-index is computed via linear piecewise interpolation; the overall AQI is the maximum of the individual sub-indices.",
+    "answer": "The Air Quality Index (AQI) is a dimensionless standardized public communication metric mapping pollutant concentrations to a segmented health scale (0-500). For each criteria pollutant (PM2.5, PM10, NO2, O3, SO2, CO), a sub-index is computed via linear piecewise interpolation; the overall AQI is the maximum of the individual sub-indices.",
     "explanation": "The 'max-operator' formulation ensures the reported AQI reflects the single most hazardous pollutant at any given time.",
     "trap": "Averaging individual pollutant sub-indices instead of taking the maximum.",
     "sources": [
@@ -48,17 +80,17 @@
       "docs/SESSION_LOG_2026-08.md"
     ],
     "difficulty": 1050,
-    "requires": []
+    "requires": ["aq-l0-001"]
   },
   {
     "id": "aq-l2-001",
     "ladder": "air-quality",
     "level": 2,
     "topic": "Ultrafine Particles (UFP)",
-    "question": "What are Ultrafine Particles (UFP), and why are mass metrics like $\\text{PM}_{2.5}$ inadequate for measuring their health risk?",
-    "answer": "Ultrafine Particles (UFP) are airborne particles with an aerodynamic diameter $\\le 100\\,\\text{nm}$ (0.1 $\\mu\\text{m}$). Mass concentration metrics like $\\text{PM}_{2.5}$ are dominated by a few large particles and miss UFPs completely, even though UFPs dominate Particle Number Concentration (PNC), have massive surface area per unit mass, and penetrate deep into alveoli and the bloodstream.",
-    "explanation": "A clean mass reading ($\\,\\mu g/m^3$) can conceal dangerously high particle number concentrations (particles/$cm^3$) near major roads and airports.",
-    "trap": "Assuming $\\text{PM}_{2.5}$ and UFP measure the same physical phenomena or share the same regulatory limits.",
+    "question": "What are Ultrafine Particles (UFP), and why are mass metrics like PM2.5 inadequate for measuring their health risk?",
+    "answer": "Ultrafine Particles (UFP) are airborne particles with an aerodynamic diameter of 100 nanometers or smaller (0.1 micrometers). Mass concentration metrics like PM2.5 are dominated by a few large particles and miss UFPs completely, even though UFPs dominate Particle Number Concentration (PNC), have massive surface area per unit mass, and penetrate deep into alveoli and the bloodstream.",
+    "explanation": "A clean mass reading in micrograms per cubic meter can conceal dangerously high particle number concentrations (particles per cubic centimeter) near major roads and airports.",
+    "trap": "Assuming PM2.5 and UFP measure the same physical phenomena or share the same regulatory limits.",
     "sources": [
       "https://doi.org/10.1016/j.envint.2019.04.013",
       "docs/SESSION_LOG_2026-08.md"
@@ -81,7 +113,7 @@
       "docs/SESSION_LOG_2026-08.md"
     ],
     "difficulty": 1230,
-    "requires": ["aq-l1-001"]
+    "requires": ["aq-l1-001", "aq-l0-002"]
   },
   {
     "id": "aq-l2-003",
@@ -122,7 +154,7 @@
     "topic": "street canyon dispersion dynamics",
     "question": "What is a 'street canyon' effect, and why does standard Gaussian dispersion fail inside narrow urban streets?",
     "answer": "A street canyon is a street flanked by continuous multi-story buildings on both sides. Perpendicular winds create a recirculating vortex (rotor) that traps tailpipe emissions at the leeward pedestrian sidewalk, creating localized pollution concentrations orders of magnitude higher than background levels, which open-terrain Gaussian plumes fail to model.",
-    "explanation": "Sub-grid street canyon parameterizations (like OSPM or CityChem's subgrid module) explicitly model building aspect ratio ($H/W$) and vortex circulation.",
+    "explanation": "Sub-grid street canyon parameterizations (like OSPM or CityChem's subgrid module) explicitly model building aspect ratio (Height to Width ratio H/W) and vortex circulation.",
     "trap": "Applying simple 2D spatial smoothing across street canyons without accounting for building heights and wind direction relative to the street axis.",
     "sources": [
       "https://doi.org/10.5194/gmd-12-3357-2019",
@@ -137,7 +169,7 @@
     "level": 3,
     "topic": "temperature inversions & boundary layer dynamics",
     "question": "What is an atmospheric temperature inversion, and why does it cause acute urban pollution accumulation episodes?",
-    "answer": "A temperature inversion occurs when warmer air overlays cooler air near the surface ($dT/dz > 0$), inverting the normal lapse rate. This caps vertical atmospheric mixing at the planetary boundary layer (PBL) height. Surface emissions (traffic, heating) are trapped in a shallow, stagnant volume of air, causing pollutant concentrations to skyrocket over consecutive days.",
+    "answer": "A temperature inversion occurs when warmer air overlays cooler air near the surface, inverting the normal lapse rate where temperature drops with altitude. This caps vertical atmospheric mixing at the planetary boundary layer height. Surface emissions (traffic, heating) are trapped in a shallow, stagnant volume of air, causing pollutant concentrations to skyrocket over consecutive days.",
     "explanation": "Inversion episodes violate steady-state Gaussian dispersion assumptions, requiring models to incorporate time-varying boundary layer height.",
     "trap": "Assuming high wind and turbulent vertical dispersion persist under strong winter radiation inversions.",
     "sources": [
@@ -154,8 +186,8 @@
     "level": 4,
     "topic": "resolution gap & downscaling",
     "question": "What is the 'resolution gap' in urban air quality modeling, and why can pure physical models not be run at 10m resolution in real time?",
-    "answer": "The resolution gap is the mismatch between the coarse grid of numerical models (e.g. 1 km - 10 km) and the fine spatial gradients of human exposure (e.g. 10m - 50m in street canyons). Physical models cannot run at 10m city-wide in real time because computational complexity scales cubically with spatial grid resolution and the Courant-Friedrichs-Lewy (CFL) numerical stability condition forces microscopic time steps.",
-    "explanation": "Solving full Navier-Stokes with chemical kinetics at 10m resolution for an entire metropolitan region exceeds available supercomputing budgets for real-time forecasting.",
+    "answer": "The resolution gap is the mismatch between the coarse grid of numerical models (e.g. 1 km - 10 km) and the fine spatial gradients of human exposure (e.g. 10m - 50m in street canyons). Physical models cannot run at 10m city-wide in real time because computational complexity scales cubically with spatial grid resolution and numerical stability conditions force microscopic time steps.",
+    "explanation": "Solving full Navier-Stokes fluid dynamics with chemical kinetics at 10m resolution for an entire metropolitan region exceeds available supercomputing budgets for real-time forecasting.",
     "trap": "Assuming computing power alone will solve the real-time urban resolution gap without statistical/learned downscaling.",
     "sources": [
       "https://doi.org/10.5194/gmd-12-3357-2019",
@@ -171,7 +203,7 @@
     "level": 4,
     "topic": "physics-informed ML coupling paradigms",
     "question": "What are the three primary paradigms for coupling numerical physical models (CTMs) with machine learning models?",
-    "answer": "1. Residual/Bias Correction: ML predicts the spatial error residual $\\Delta y = y_{\\text{obs}} - y_{\\text{physics}}$ given local covariates.\n2. Surrogate Emulation: ML replaces computationally expensive physical subroutines (e.g. non-linear chemical solver) with a fast neural surrogate.\n3. Multi-Fidelity Feature Conditioning: The coarse physical model output serves as a continuous spatial covariate conditioning a probabilistic neural process.",
+    "answer": "1. Residual/Bias Correction: ML predicts the spatial error residual (observed concentration minus physics prediction) given local covariates.\n2. Surrogate Emulation: ML replaces computationally expensive physical subroutines (e.g. non-linear chemical solver) with a fast neural surrogate.\n3. Multi-Fidelity Feature Conditioning: The coarse physical model output serves as a continuous spatial covariate conditioning a probabilistic neural process.",
     "explanation": "Multi-fidelity conditioning preserves the physical conservation laws and boundary conditions from the CTM while allowing the neural process to model high-resolution localized sensor observations.",
     "trap": "Replacing physical models entirely with pure black-box ML, which violates mass conservation and fails out of distribution.",
     "sources": [
@@ -188,7 +220,7 @@
     "level": 5,
     "topic": "physics-ML hybrid modeling interview answer",
     "question": "How would you design an end-to-end hybrid architecture coupling a physics-based CTM like EPISODE-CityChem with a learned probabilistic neural process for real-time urban air quality?",
-    "answer": "1. Multi-Fidelity Architecture: Treat the physics-based CTM (EPISODE-CityChem) as the low-fidelity physical prior. Run the CTM on its standard regional/urban grid (e.g. 1 km) to enforce mass conservation, regional transport, and chemical stoichiometry.\n2. High-Resolution Covariate Fusion: Construct a 10m target query grid containing static high-resolution GIS covariates: building morphology (height, aspect ratio $H/W$), road traffic indices, distance to intersections, vegetation indices, and localized meteorology.\n3. Real-Time Observational Conditioning: Ingest live urban sensor stations as the context set $C = \\{(x_c, y_c)\\}$ inside a Convolutional Conditional Neural Process (ConvCNP).\n4. Probabilistic Residual & Concentration Estimation: Condition the ConvCNP decoder on both the local sensor context set and the interpolated CTM background field to predict high-resolution Gaussian concentrations $(\\mu(x_t), \\sigma(x_t))$.\n5. Regulatory Validation: Evaluate the hybrid model via Leave-One-Station-Out cross-validation and verify calibration on acute peak episodes (e.g. temperature inversions) to guarantee physical consistency and reliable uncertainty.",
+    "answer": "1. Multi-Fidelity Architecture: Treat the physics-based CTM (EPISODE-CityChem) as the low-fidelity physical prior. Run the CTM on its standard regional/urban grid (e.g. 1 km) to enforce mass conservation, regional transport, and chemical stoichiometry.\n2. High-Resolution Covariate Fusion: Construct a 10m target query grid containing static high-resolution GIS covariates: building morphology (height, aspect ratio H/W), road traffic indices, distance to intersections, vegetation indices, and localized meteorology.\n3. Real-Time Observational Conditioning: Ingest live urban sensor stations as the context set in a Convolutional Conditional Neural Process (ConvCNP).\n4. Probabilistic Residual & Concentration Estimation: Condition the ConvCNP decoder on both the local sensor context set and the interpolated CTM background field to predict high-resolution Gaussian concentrations (mean and standard deviation).\n5. Regulatory Validation: Evaluate the hybrid model via Leave-One-Station-Out cross-validation and verify calibration on acute peak episodes (e.g. temperature inversions) to guarantee physical consistency and reliable uncertainty.",
     "explanation": "This hybrid design combines the global physics and mass conservation of CTMs with the micro-scale flexibility and calibrated real-time inference of Neural Processes.",
     "trap": "Claiming you personally developed or operated EPISODE-CityChem codebases rather than articulating the hybrid integration architecture.",
     "sources": [

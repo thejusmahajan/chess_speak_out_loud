@@ -1,50 +1,97 @@
 [
   {
+    "id": "np-l0-001",
+    "ladder": "neural-processes",
+    "level": 0,
+    "topic": "model capacity concept",
+    "question": "What does 'model capacity' mean in machine learning?",
+    "answer": "Model capacity is the mathematical ability or expressive power of a model to fit complex, intricate relationships. A low-capacity model (like a straight line) cannot capture curved data (underfitting), while a high-capacity model (like a deep neural network with millions of weights) can represent highly complex, non-linear functions.",
+    "explanation": "If a dataset has complex spatial physics, you need enough capacity (layers, neurons, or data-driven kernels) to represent the physical gradients without oversmoothing.",
+    "trap": "Confusing model capacity with dataset size or physical GPU memory.",
+    "sources": [
+      "https://arxiv.org/abs/1807.01613",
+      "PLAN_SALIENCE_CNP.md"
+    ],
+    "difficulty": 780,
+    "requires": []
+  },
+  {
+    "id": "np-l0-002",
+    "ladder": "neural-processes",
+    "level": 0,
+    "topic": "kernel & kernel matrix concept",
+    "question": "What is a 'kernel' and a 'kernel matrix' in spatial and Gaussian Process modeling?",
+    "answer": "A kernel is a similarity function k(x, x') that outputs a high number when two points x and x' are close together in space, and decays toward zero as they move farther apart. A kernel matrix is the N-by-N table containing the similarity scores between all pairs of N observation points.",
+    "explanation": "For example, in spatial air quality, a sensor at location A shares high kernel covariance with a point 100 meters away, but nearly zero covariance with a point 50 km away.",
+    "trap": "Confusing an operating system kernel with a mathematical covariance kernel.",
+    "sources": [
+      "https://arxiv.org/abs/1807.01613"
+    ],
+    "difficulty": 790,
+    "requires": []
+  },
+  {
+    "id": "np-l0-003",
+    "ladder": "neural-processes",
+    "level": 0,
+    "topic": "parametric vs non-parametric intuition",
+    "question": "What is the difference between a parametric model and a non-parametric model?",
+    "answer": "A parametric model summarizes all training data into a fixed, finite number of weights theta (which does not grow when you collect more data, like a standard neural network). A non-parametric model retains the actual data points directly in its formulation (so its capacity grows dynamically with dataset size N, like a Gaussian Process).",
+    "explanation": "Neural Processes combine the best of both worlds: they use fixed neural network weights to learn how to ingest arbitrary collections of data points at test time.",
+    "trap": "Thinking 'non-parametric' means a model has no parameters or variables at all.",
+    "sources": [
+      "https://arxiv.org/abs/1807.01613",
+      "PLAN_SALIENCE_CNP.md"
+    ],
+    "difficulty": 800,
+    "requires": []
+  },
+  {
     "id": "np-l1-001",
     "ladder": "neural-processes",
     "level": 1,
     "topic": "Gaussian Processes & kernel scaling",
     "question": "What is a Gaussian Process (GP), and why does its computational complexity make it difficult to scale to massive spatial datasets?",
-    "answer": "A Gaussian Process is a non-parametric probabilistic model defining a prior distribution over functions, where any finite collection of points has a joint multivariate Gaussian distribution. Inference requires inverting an $N \\times N$ kernel covariance matrix, which scales with $\\mathcal{O}(N^3)$ computational time and $\\mathcal{O}(N^2)$ memory.",
-    "explanation": "While GPs offer exact Bayesian inference and closed-form uncertainty, cubic scaling $\\mathcal{O}(N^3)$ makes exact GP inference intractable for datasets with tens of thousands of spatial points.",
-    "trap": "Thinking a Gaussian Process is a parametric neural network, or that GP training is $\\mathcal{O}(N)$.",
+    "answer": "A Gaussian Process is a non-parametric probabilistic model defining a prior distribution over functions, where any finite collection of points has a joint multivariate Gaussian distribution. Inference requires inverting an N-by-N kernel covariance matrix, which scales with cubic computational time O(N^3) and quadratic memory O(N^2).",
+    "explanation": "While GPs offer exact Bayesian inference and closed-form uncertainty, cubic scaling O(N^3) makes exact GP inference intractable for datasets with tens of thousands of spatial points.",
+    "trap": "Thinking a Gaussian Process is a parametric neural network, or that GP training scales linearly O(N).",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
       "PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 990,
-    "requires": []
+    "requires": ["np-l0-002", "np-l0-003"]
   },
   {
     "id": "np-l1-002",
     "ladder": "neural-processes",
     "level": 1,
-    "topic": "Matérn & RBF spatial covariance kernels",
-    "question": "What is the difference between an RBF (Squared Exponential) kernel and a Matérn 3/2 or 5/2 kernel in spatial modelling?",
-    "answer": "The RBF kernel assumes infinitely differentiable, infinitely smooth functions, which is unrealistically smooth for turbulent physical phenomena. Matérn kernels introduce a smoothness parameter $\\nu$, yielding finitely differentiable functions (e.g. $\\nu=3/2$ once differentiable, $\\nu=5/2$ twice differentiable) that match realistic physical spatial roughness.",
-    "explanation": "Atmospheric concentrations have sharp gradients near buildings and roads; Matérn kernels accommodate these realistic local fluctuations without oversmoothing.",
-    "trap": "Defaulting to RBF for all physical spatial processes without testing finite-smoothness Matérn kernels.",
+    "topic": "Matern & RBF spatial covariance kernels",
+    "question": "What is the difference between an RBF (Squared Exponential) kernel and a Matern 3/2 or 5/2 kernel in spatial modelling?",
+    "answer": "The RBF kernel assumes infinitely differentiable, infinitely smooth functions, which is unrealistically smooth for turbulent physical phenomena. Matern kernels introduce a smoothness parameter nu, yielding finitely differentiable functions (e.g. nu=3/2 once differentiable, nu=5/2 twice differentiable) that match realistic physical spatial roughness.",
+    "explanation": "Atmospheric concentrations have sharp gradients near buildings and roads; Matern kernels accommodate these realistic local fluctuations without oversmoothing.",
+    "trap": "Defaulting to RBF for all physical spatial processes without testing finite-smoothness Matern kernels.",
     "sources": [
       "https://arxiv.org/abs/1807.01613"
     ],
     "difficulty": 1040,
-    "requires": []
+    "requires": ["np-l0-002"]
   },
   {
     "id": "np-l1-003",
     "ladder": "neural-processes",
     "level": 1,
     "topic": "parametric vs non-parametric models",
-    "question": "What is the key distinction between parametric models (e.g. standard MLPs) and non-parametric models (e.g. Gaussian Processes)?",
-    "answer": "Parametric models summarize all training data into a fixed, finite number of parameters $\\theta$ (whose capacity does not grow with dataset size $N$). Non-parametric models retain data directly in their functional formulation (e.g. kernel matrices), allowing model capacity to grow dynamically with the amount of data observed.",
-    "explanation": "Neural Processes bridge this divide: they use parametric neural network weights to learn a functional mapping from arbitrary-sized non-parametric context sets to predictive distributions.",
-    "trap": "Thinking 'non-parametric' means having zero parameters rather than infinite-dimensional functional capacity.",
+    "question": "How do Neural Processes bridge the divide between parametric models and non-parametric Gaussian Processes?",
+    "answer": "Neural Processes use a fixed, finite set of neural network weights (parametric) to learn a functional mapping from an arbitrary-sized set of observations (context points) to predictive mean and variance distributions (non-parametric behavior) in a single linear-time forward pass O(N).",
+    "explanation": "This gives them the data-driven flexibility of Gaussian Processes without the cubic O(N^3) matrix inversion bottleneck.",
+    "trap": "Believing a Neural Process performs matrix inversions at test time.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
       "PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1060,
-    "requires": []
+    "requires": ["np-l0-003"]
   },
   {
     "id": "np-l2-001",
@@ -52,15 +99,15 @@
     "level": 2,
     "topic": "context set vs target set",
     "question": "In the Neural Process meta-learning framework, what are the Context Set and Target Set?",
-    "answer": "The Context Set $C = \\{(x_c, y_c)\\}_{c=1}^{N_C}$ consists of observed conditioning points available at test time (e.g., current sensor station measurements). The Target Set $T = \\{(x_t, y_t)\\}_{t=1}^{N_T}$ consists of target query locations where the model must predict the output distribution $P(y_t | x_t, C)$ (e.g., unmonitored city grid locations).",
-    "explanation": "During training, each meta-batch samples a synthetic task: a random subset of data acts as context $C$, and the remaining points act as targets $T$. The model learns to condition on arbitrary context sets in a single forward pass.",
-    "trap": "Confusing the context set with the standard training dataset. The context set is fed directly as model input at inference time.",
+    "answer": "The Context Set C consists of observed conditioning points available at test time (e.g., current sensor station measurements). The Target Set T consists of query locations where the model must predict the output distribution (e.g., unmonitored city grid locations).",
+    "explanation": "During training, each meta-batch samples a synthetic task: a random subset of data acts as context C, and the remaining points act as targets T. The model learns to condition on arbitrary context sets in a single forward pass.",
+    "trap": "Confusing the context set with the entire training dataset. The context set is fed directly as model input at inference time.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
       "PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1210,
-    "requires": ["np-l1-001"]
+    "requires": ["np-l1-003"]
   },
   {
     "id": "np-l2-002",
@@ -68,23 +115,23 @@
     "level": 2,
     "topic": "conditioning vs retraining",
     "question": "How does a Neural Process adapt to new context data at inference time compared to a standard Neural Network or Gaussian Process?",
-    "answer": "A standard Neural Network requires fine-tuning or gradient descent updates to incorporate new data. A Gaussian Process conditions analytically via $\\mathcal{O}(N^3)$ matrix inversion. A Neural Process incorporates new context data purely in a single forward pass $(\\mathcal{O}(N_C + N_T))$ by passing context pairs through its deterministic encoder and aggregating them into a context representation vector.",
-    "explanation": "This forward-pass conditioning gives Neural Processes the flexible adaptation speed of meta-learning with linear $\\mathcal{O}(N)$ scaling.",
+    "answer": "A standard Neural Network requires fine-tuning or gradient descent updates to incorporate new data. A Gaussian Process conditions analytically via O(N^3) matrix inversion. A Neural Process incorporates new context data purely in a single forward pass O(N_context + N_target) by passing context pairs through its deterministic encoder and aggregating them into a context representation vector.",
+    "explanation": "This forward-pass conditioning gives Neural Processes the flexible adaptation speed of meta-learning with linear O(N) scaling.",
     "trap": "Believing a Neural Process runs gradient descent when conditioned on new context points.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
       "PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1240,
-    "requires": ["np-l1-001"]
+    "requires": ["np-l1-003"]
   },
   {
     "id": "np-l2-003",
     "ladder": "neural-processes",
     "level": 2,
     "topic": "meta-learning task distribution",
-    "question": "How does training a Neural Process across a distribution of tasks $\\mathcal{P}(\\mathcal{T})$ differ from standard empirical risk minimization?",
-    "answer": "Standard empirical risk minimization learns a single fixed mapping from inputs $x$ to targets $y$. Meta-learning trains the model across an ensemble of distinct function tasks: for each task $j \\sim \\mathcal{P}(\\mathcal{T})$, the model is rewarded for predicting unseen target points given a randomly sampled context subset, training the network to be a general function approximator.",
+    "question": "How does training a Neural Process across a distribution of tasks differ from standard empirical risk minimization?",
+    "answer": "Standard training learns a single fixed mapping from inputs x to targets y. Meta-learning trains the model across an ensemble of distinct function tasks: for each task, the model is rewarded for predicting unseen target points given a randomly sampled context subset, training the network to be a general function approximator.",
     "explanation": "In chess salience or air quality, tasks correspond to different games, atmospheric days, or monitoring station configurations.",
     "trap": "Training on a static context set without varying context size and locations during meta-training.",
     "sources": [
@@ -92,7 +139,7 @@
       "PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1260,
-    "requires": ["np-l1-001", "np-l1-003"]
+    "requires": ["np-l1-003"]
   },
   {
     "id": "np-l3-001",
@@ -100,8 +147,8 @@
     "level": 3,
     "topic": "Conditional Neural Process (CNP) architecture",
     "question": "What are the three core architectural components of a Conditional Neural Process (CNP)?",
-    "answer": "1. Encoder $h_\\theta$: An MLP mapping each context pair $(x_c, y_c)$ into a latent representation vector $r_c = h_\\theta(x_c, y_c)$.\n2. Aggregator $\\bigoplus$: A permutation-invariant aggregation operator (typically mean pooling: $r_C = \\frac{1}{|C|} \\sum_{c \\in C} r_c$).\n3. Decoder $g_\\phi$: An MLP that concatenates query location $x_t$ with global context vector $r_C$ to output Gaussian parameters: $g_\\phi(x_t, r_C) = (\\mu_t, \\sigma_t)$.",
-    "explanation": "The mean aggregator ensures that the context representation $r_C$ does not depend on the ordering of context points, satisfying permutation invariance.",
+    "answer": "1. Encoder h_theta: An MLP mapping each context pair (x_c, y_c) into a latent representation vector r_c.\n2. Aggregator: A permutation-invariant aggregation operator (typically mean pooling: average of all r_c vectors).\n3. Decoder g_phi: An MLP that concatenates query location x_t with the global context vector to output Gaussian parameters (mean mu and standard deviation sigma).",
+    "explanation": "The mean aggregator ensures that the context representation does not depend on the ordering of context points, satisfying permutation invariance.",
     "trap": "Using an RNN or concatenation for the context aggregator, which violates permutation invariance.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
@@ -116,9 +163,9 @@
     "level": 3,
     "topic": "permutation invariance in CNPs",
     "question": "Why is permutation invariance a strict mathematical requirement for the context encoder in Neural Processes?",
-    "answer": "A context set $C = \\{(x_1, y_1), \\dots, (x_N, y_N)\\}$ is an unordered set of spatial observations. Changing the index ordering of the sensor stations must not change the model's spatial prediction field: $P(y_T | x_T, \\pi(C)) = P(y_T | x_T, C)$ for any permutation $\\pi$.",
-    "explanation": "By De Finetti's theorem and DeepSets theory, any continuous permutation-invariant set function can be decomposed as $\\rho(\\sum_i \\phi(x_i))$.",
-    "trap": "Treating spatial observation sets as sequential time-series where order matters.",
+    "answer": "A context set is an unordered set of spatial observations. Changing the index ordering of the sensor stations must not change the model's spatial prediction field: P(y_target | x_target, permutation(Context)) must equal P(y_target | x_target, Context).",
+    "explanation": "By De Finetti's theorem and DeepSets theory, any continuous permutation-invariant set function can be decomposed as a transformation of the sum/average of encoded representations.",
+    "trap": "Treating spatial observation sets as sequential time-series where ordering matters.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
       "https://arxiv.org/abs/1703.06114"
@@ -132,7 +179,7 @@
     "level": 3,
     "topic": "CNP maximum likelihood objective",
     "question": "What is the training loss objective for a Conditional Neural Process?",
-    "answer": "The loss is the Negative Log-Likelihood of target observations conditioned on the context set, averaged over meta-tasks: $\\mathcal{L}(\\theta, \\phi) = - \\mathbb{E}_{C, T} \\left[ \\sum_{t \\in T} \\log \\mathcal{N}(y_t; \\mu_\\phi(x_t, r_C), \\sigma_\\phi^2(x_t, r_C)) \\right]$.",
+    "answer": "The loss is the Negative Log-Likelihood of target observations conditioned on the context set, averaged over meta-tasks. Because the decoder outputs Gaussian mean and variance parameters, the loss is computed via exact Gaussian log-likelihood on target points.",
     "explanation": "Because the objective is exact conditional log-likelihood, CNPs train via standard backpropagation and Adam without needing variational approximations or KL divergence terms.",
     "trap": "Confusing CNP deterministic training with variational autoencoder ELBO bounds (which are required for latent NPs, but not CNPs).",
     "sources": [
@@ -148,7 +195,7 @@
     "level": 4,
     "topic": "Attentive Neural Processes (ANP)",
     "question": "What limitation of plain CNPs does the Attentive Neural Process (ANP) solve, and how?",
-    "answer": "Plain CNPs use uniform mean-pooling $\\frac{1}{|C|}\\sum r_i$, which compresses the entire context into a single global vector, causing underfitting and inability to preserve localized spatial details. Attentive Neural Processes (ANP) replace uniform mean-pooling with Cross-Attention: target location $x_t$ acts as the Query, while context locations $x_C$ act as Keys and Values, dynamically retrieving relevant local observations.",
+    "answer": "Plain CNPs use uniform mean-pooling, which compresses the entire context into a single global vector, causing underfitting and inability to preserve localized spatial details. Attentive Neural Processes (ANP) replace uniform mean-pooling with Cross-Attention: target location x_target acts as the Query, while context locations act as Keys and Values, dynamically retrieving relevant local observations.",
     "explanation": "Cross-attention allows ANPs to preserve sharp local spatial variations and achieve exact context reconstruction at observed points.",
     "trap": "Believing self-attention is used instead of target-to-context cross-attention.",
     "sources": [
@@ -180,7 +227,7 @@
     "level": 5,
     "topic": "sparse station spatial reconstruction interview answer",
     "question": "Given three sparse air-quality monitoring stations in a city, walk me through how you would produce a continuous high-resolution pollutant concentration field with calibrated uncertainty bounds.",
-    "answer": "1. Problem Formulation: Formulate the spatial downscaling problem as a Conditional Neural Process task. The 3 stations provide context set $C = \\{(x_c, y_c)\\}_{c=1}^3$ where $x_c$ contains station coordinates, elevation, meteorology (wind, temperature), and land-use covariates (road density), and $y_c$ is measured pollutant concentration (e.g. $\\text{NO}_2$).\n2. Physics-ML Feature Grounding: Augment spatial query targets $x_t$ on a 100m grid with physical covariates: building height, distance to major roads, atmospheric boundary layer height, and low-resolution CTM background fields.\n3. Pre-trained Representation & Conditioning: Pass the 3 context pairs through the pre-trained permutation-invariant encoder $h_\\theta$ and aggregate via attentive cross-attention to form localized spatial context embeddings.\n4. Probabilistic Decoding: Pass each target grid point $x_t$ along with context representations through decoder $g_\\phi$ to output Gaussian parameters $(\\mu(x_t), \\sigma(x_t))$ in a single forward pass.\n5. Uncertainty Verification & Calibration: Verify that epistemic uncertainty $\\sigma(x_t)$ narrows near the 3 stations and correctly widens in unmonitored districts, evaluating calibration using Leave-One-Station-Out cross-validation and CRPS scoring.",
+    "answer": "1. Problem Formulation: Formulate the spatial downscaling problem as a Conditional Neural Process task. The 3 stations provide context set C = {(x_c, y_c)} for c=1..3 where x_c contains station coordinates, elevation, meteorology (wind, temperature), and land-use covariates (road density), and y_c is measured pollutant concentration (e.g. NO2).\n2. Physics-ML Feature Grounding: Augment spatial query targets x_target on a 100m grid with physical covariates: building height, distance to major roads, atmospheric boundary layer height, and low-resolution CTM background fields.\n3. Pre-trained Representation & Conditioning: Pass the 3 context pairs through the pre-trained permutation-invariant encoder and aggregate via attentive cross-attention to form localized spatial context embeddings.\n4. Probabilistic Decoding: Pass each target grid point along with context representations through decoder to output Gaussian parameters (mean mu and standard deviation sigma) in a single forward pass.\n5. Uncertainty Verification & Calibration: Verify that epistemic uncertainty narrows near the 3 stations and correctly widens in unmonitored districts, evaluating calibration using Leave-One-Station-Out cross-validation and CRPS scoring.",
     "explanation": "This approach bridges sparse observational monitoring with dense spatial covariates, delivering instant real-time probabilistic maps without cubic matrix inversion.",
     "trap": "Claiming you ran complex physical chemistry simulations inside the neural process itself rather than conditioning on observational contexts and static spatial covariates.",
     "sources": [

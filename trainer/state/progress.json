@@ -1,5 +1,5 @@
 {
-  "user_rating": 1143.17,
+  "user_rating": 1055.64,
   "cards": {
     "pyt-l1-001": {
       "rating": 978.24,
@@ -207,12 +207,12 @@
       ]
     },
     "pyt-l1-002": {
-      "rating": 1036.98,
-      "ease": 1.9,
+      "rating": 1041.8,
+      "ease": 1.7,
       "interval_days": 0,
       "reps": 0,
-      "last_seen": "2026-08-19T21:15:48.106207+00:00",
-      "due_date": "2026-08-19T21:15:48.106207+00:00",
+      "last_seen": "2026-08-19T21:48:45.490857+00:00",
+      "due_date": "2026-08-19T21:48:45.490857+00:00",
       "mastered": false,
       "history": [
         {
@@ -232,6 +232,114 @@
           "score": 0.0,
           "user_rating": 1143.17,
           "card_rating": 1036.98
+        },
+        {
+          "timestamp": "2026-08-19T21:48:45.490857+00:00",
+          "score": 0.0,
+          "user_rating": 1094.6,
+          "card_rating": 1041.8
+        }
+      ]
+    },
+    "np-l0-003": {
+      "rating": 807.03,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-19T21:32:10.705386+00:00",
+      "due_date": "2026-08-19T21:32:10.705386+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-19T21:32:10.705386+00:00",
+          "score": 0.0,
+          "user_rating": 1122.09,
+          "card_rating": 807.03
+        }
+      ]
+    },
+    "pyt-l0-002": {
+      "rating": 796.97,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-19T21:36:49.238514+00:00",
+      "due_date": "2026-08-19T21:36:49.238514+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-19T21:36:49.238514+00:00",
+          "score": 0.0,
+          "user_rating": 1101.18,
+          "card_rating": 796.97
+        }
+      ]
+    },
+    "pyt-l0-006": {
+      "rating": 828.61,
+      "ease": 2.6,
+      "interval_days": 1,
+      "reps": 1,
+      "last_seen": "2026-08-19T21:39:55.122603+00:00",
+      "due_date": "2026-08-20T21:39:55.122603+00:00",
+      "mastered": true,
+      "history": [
+        {
+          "timestamp": "2026-08-19T21:39:55.122603+00:00",
+          "score": 1.0,
+          "user_rating": 1105.34,
+          "card_rating": 828.61
+        }
+      ]
+    },
+    "pyt-l0-004": {
+      "rating": 808.76,
+      "ease": 2.6,
+      "interval_days": 1,
+      "reps": 1,
+      "last_seen": "2026-08-19T21:47:55.867717+00:00",
+      "due_date": "2026-08-20T21:47:55.867717+00:00",
+      "mastered": true,
+      "history": [
+        {
+          "timestamp": "2026-08-19T21:47:55.867717+00:00",
+          "score": 1.0,
+          "user_rating": 1109.05,
+          "card_rating": 808.76
+        }
+      ]
+    },
+    "pyt-l0-005": {
+      "rating": 826.63,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-19T21:50:20.179501+00:00",
+      "due_date": "2026-08-19T21:50:20.179501+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-19T21:50:20.179501+00:00",
+          "score": 0.0,
+          "user_rating": 1074.7,
+          "card_rating": 826.63
+        }
+      ]
+    },
+    "pyt-l0-007": {
+      "rating": 846.35,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-19T21:51:17.188928+00:00",
+      "due_date": "2026-08-19T21:51:17.188928+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-19T21:51:17.188928+00:00",
+          "score": 0.0,
+          "user_rating": 1055.64,
+          "card_rating": 846.35
         }
       ]
     }

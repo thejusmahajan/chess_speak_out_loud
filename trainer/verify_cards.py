@@ -22,6 +22,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Set, Tuple
 from urllib.error import HTTPError, URLError
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 TRAINER_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = TRAINER_DIR.parent
 LADDERS_DIR = TRAINER_DIR / "content" / "ladders"
@@ -230,8 +233,19 @@ def verify_all_cards(
                     errors.append(f"Card '{card_id}': Missing required field '{req_field}'.")
 
             level = card.get("level")
-            if not isinstance(level, int) or level < 1 or level > 5:
-                errors.append(f"Card '{card_id}': Level must be integer 1..5, got {level}.")
+            if not isinstance(level, int) or level < 0 or level > 5:
+                errors.append(f"Card '{card_id}': Level must be integer 0..5, got {level}.")
+
+            # Gate: Unrendered LaTeX check ($ followed by letter, backslash, or bracket)
+            for field in ("question", "answer", "explanation", "trap"):
+                val = card.get(field, "")
+                if isinstance(val, str) and val:
+                    match = re.search(r"\$[a-zA-Z\\{]", val)
+                    if match:
+                        errors.append(
+                            f"Card '{card_id}': Field '{field}' contains unrendered LaTeX notation '{match.group(0)}'. "
+                            f"Rewrite using plain English words and Unicode symbols (e.g. θ, σ², μ, P(move | pos))."
+                        )
 
             # Gate 1: Non-empty sources list & session log rule
             sources = card.get("sources", [])
@@ -294,6 +308,8 @@ def verify_all_cards(
         has_l5 = any(c.get("level") == 5 for c in cards)
         if not has_l5:
             errors.append(f"Ladder '{ladder_name}' has no level-5 card (must have at least one).")
+        l0_count = sum(1 for c in cards if c.get("level") == 0)
+        stats.setdefault("level_0_counts", {})[ladder_name] = l0_count
         stats["ladders"][ladder_name] = len(cards)
         stats["total_cards"] += len(cards)
 
@@ -345,8 +361,10 @@ def main():
         sys.exit(1)
     else:
         print("\n[PASS] All content, grounding, and constraint gates passed!\n")
+        print("Card Counts by Ladder:")
         for ladder, count in sorted(stats["ladders"].items()):
-            print(f"  - {ladder}: {count} cards")
+            l0 = stats.get("level_0_counts", {}).get(ladder, 0)
+            print(f"  - {ladder}: {count} cards (Level 0: {l0})")
         print(f"\nTotal verified cards: {stats['total_cards']}")
         print(f"Total repo citations: {stats['repo_sources_count']}")
         print(f"Total URL citations:  {stats['url_sources_count']}")

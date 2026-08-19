@@ -1,8 +1,8 @@
 """
 Unit Tests for Knowledge Trainer Engine & Verification Gate.
 
-Tests Elo dynamics, SM-2 scheduling, prerequisite gating, candidate selection,
-and verify_cards validation fixtures.
+Tests Elo dynamics, SM-2 scheduling, prerequisite gating (including Level 0),
+candidate selection, and verify_cards validation fixtures.
 """
 from __future__ import annotations
 
@@ -137,6 +137,60 @@ def test_prerequisite_gating():
     assert is_card_unlocked(card_l3["requires"], progress)
 
 
+def test_level_zero_prerequisite_gating():
+    """A level-1 card requiring level-0 is locked until level-0 is answered at 1.0."""
+    now = datetime.now(timezone.utc)
+    card_l0 = {
+        "id": "pyt-l0-001",
+        "ladder": "pytorch",
+        "level": 0,
+        "difficulty": 780,
+        "requires": [],
+    }
+    card_l1 = {
+        "id": "pyt-l1-001",
+        "ladder": "pytorch",
+        "level": 1,
+        "difficulty": 980,
+        "requires": ["pyt-l0-001"],
+    }
+    cards = [card_l0, card_l1]
+    
+    # Initial state: no cards answered
+    progress = {"user_rating": 800.0, "cards": {}}
+    
+    # Level-1 is locked; only Level-0 is selectable
+    selectable = filter_selectable_cards(cards, progress, now, cram_mode=True)
+    assert len(selectable) == 1
+    assert selectable[0]["id"] == "pyt-l0-001"
+    
+    # Answer Level-0 with partial 0.5: Level-1 remains locked
+    progress["cards"]["pyt-l0-001"] = {
+        "rating": 780.0,
+        "ease": 2.35,
+        "interval_days": 1,
+        "reps": 0,
+        "mastered": False,
+        "history": [{"score": 0.5}],
+    }
+    selectable = filter_selectable_cards(cards, progress, now, cram_mode=True)
+    assert len(selectable) == 1
+    assert selectable[0]["id"] == "pyt-l0-001"
+    
+    # Answer Level-0 with 1.0: Level-1 unlocks immediately
+    progress["cards"]["pyt-l0-001"] = {
+        "rating": 770.0,
+        "ease": 2.6,
+        "interval_days": 1,
+        "reps": 1,
+        "mastered": True,
+        "history": [{"score": 1.0}],
+    }
+    selectable = filter_selectable_cards(cards, progress, now, cram_mode=True)
+    assert len(selectable) == 2
+    assert any(c["id"] == "pyt-l1-001" for c in selectable)
+
+
 def test_selection_rating_window_widening():
     """Card selection stays in rating window when enough candidates exist, and widens when not."""
     now = datetime.now(timezone.utc)
@@ -221,3 +275,24 @@ def test_verify_cards_fails_on_level_inversion_or_cycle(tmp_path: Path):
     success, errors, _ = verify_all_cards(ladders_dir=tmp_path)
     assert not success
     assert any("requires must be lower level" in e for e in errors)
+
+
+def test_verify_cards_fails_on_unrendered_latex(tmp_path: Path):
+    """verify_all_cards fails on a card containing unrendered LaTeX notation ($...$)."""
+    ladder_file = tmp_path / "bad_latex.json"
+    card = {
+        "id": "bad-latex-01",
+        "ladder": "bad",
+        "level": 5,
+        "topic": "test",
+        "question": "What is the parameter $\\theta$ of this network?",
+        "answer": "The parameter is $\\sigma^2$.",
+        "sources": ["https://example.com"],
+        "difficulty": 1950,
+        "requires": [],
+    }
+    ladder_file.write_text(json.dumps([card]), encoding="utf-8")
+    
+    success, errors, _ = verify_all_cards(ladders_dir=tmp_path)
+    assert not success
+    assert any("contains unrendered LaTeX notation" in e for e in errors)
