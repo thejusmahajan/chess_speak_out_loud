@@ -32,11 +32,17 @@ latest" is unambiguous.
 
 The standing instruction, which is all that needs to be typed:
 
-> Read `agents/ACTIVE.md`, then execute the brief it marks **ACTIVE**. Follow it exactly.
+> Read `C:\Users\Admin\Documents\chess_speak_out_loud\agents\ACTIVE.md`, find the section
+> for the folder I have open, and execute its topmost brief marked **ACTIVE**. Follow it
+> exactly, and follow the standing contract in that folder's `README.md`.
 
-Unless told otherwise, that is the task. If more than one is marked ACTIVE, do the
-topmost. If a brief targets a different repository, its header says so — write there,
-not here.
+Unless told otherwise, that is the task.
+
+**ACTIVE.md is grouped by workspace, not by one global order**, because briefs target three
+different repositories and a worker can only act on the one it has open. Never just take
+the first `ACTIVE` in the file — take the first one under *your* repository's heading.
+Reports always go to `agents/reports/` in `chess_speak_out_loud`, whichever repo the work
+happened in.
 
 ### The standing contract — applies to EVERY brief, without being restated in it
 
