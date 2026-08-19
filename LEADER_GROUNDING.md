@@ -60,6 +60,16 @@ Run these. They are cheap; every one of them corresponds to a failure above.
    session. *(→ 6)*
 8. **Failure is expressible.** The brief tells the worker how to report that my spec is wrong, and
    says that doing so is a good outcome — not a boundary violation.
+9. **A multi-step change is verified as a whole, not per step.** Twice this session a patch script
+   died mid-way while the `git commit` chained after it ran regardless, shipping a half-applied
+   change: once leaving `README.md` telling the worker one thing and `ACTIVE.md` another, once
+   leaving a brief marked BLOCKED while the ledger said ACTIVE. **Never chain a commit behind an
+   edit with `&&` alone; re-read both ends and confirm they agree before committing.** The
+   recurring cause is Windows paths inside Python string literals (`C:\Users` → `\U` escape) —
+   use raw strings or the Edit tool.
+10. **`git add -A` is banned.** It swept 356k lines of generated caches and a duplicated copy of
+    `backend/` into a commit I had not inspected. Stage named paths, then read `git show --stat`
+    before believing the commit.
 
 ---
 
