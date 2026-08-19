@@ -1,3 +1,8 @@
+> **STATUS: PARTIALLY SUPERSEDED 2026-08-19.** §1-§5 (what salience *is*, the four shapes, why the
+> naive approaches fail) remain current and correct. **§6's strategy — "learn the ranking from
+> thousands of GM labels" — is dead**: measured yield is 19 labels over 2,284 facts, zero on gold.
+> Do not act on §6 or source trainer cards from it. Current strategy: `PLAN_SALIENCE_CNP.md`.
+
 # The Salience Problem — which of the many true facts is THE objective
 
 > Companion to `NORTH_STAR_decoding_lc0.md`. Extraction is (largely) solved — the relational-fact

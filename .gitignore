@@ -57,3 +57,8 @@ docs/design_session/**/*.png
 # LaTeX console captures (regenerable)
 docs/design_session/**/build*.txt
 docs/design_session/**/_probe.pdf
+
+# generated / large artifacts (added 2026-08-19)
+downloads/
+kaggle_files/
+profiles/

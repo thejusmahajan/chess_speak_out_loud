@@ -26,6 +26,7 @@ docs/study/
   START_HERE_PROMPT.md   the study-companion prompt — the only one; paste it verbatim
   STUDY_NOTES.md         your running Q&A log (earlier session, fully cited)
   STUDY_SESSION_LOG.md   your MCQ session — questions preserved, answers re-verified
+  STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md  Cross-Entropy loss in LC0 vs MSE, MLE, and PyTorch
   ANSWER_AUDIT.md        why that session's answers drifted, and what got fixed
   guide/                 the visual guide
     neural_mcts_visual_guide_v2.pdf      <- the document

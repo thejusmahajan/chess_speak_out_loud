@@ -82,6 +82,9 @@ This index routes questions to their definitive primary and secondary locations 
 | `Backend` / `BackendOptions` | `ENGINE_REFERENCE.md` §3 | `ch08` §"GPU execution" |
 | `RamLimitMb` / Memory Limits | `ENGINE_REFERENCE.md` §3 | `ch08` §"Memory allocation" |
 | `MoveOverheadMs` / Time Manager | `ENGINE_REFERENCE.md` §3 | `ch08` §"Time management" |
+| Cross-Entropy vs MSE in LC0 | `STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md` §2 | `ch12` §"Two Heads", `ch02` §"WDL" |
+| WDL 3-Class Loss vs AlphaZero MSE | `STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md` §2 | `ch02` §"WDL probabilities" |
+| PyTorch Training Loop & CE Optimization | `STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md` §3, §4 | `01_pytorch_fundamentals_and_headstart.md` |
 
 ---
 

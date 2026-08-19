@@ -112,7 +112,7 @@ Tal persona; research note `docs/research_learned_lookahead.md` — the
   evals or boards: trace the frame explicitly for BLACK to move.
 - **Vacuous-verification family**: parity tests that assert tautologies; "full
   suite" that ran a subset; batch-of-1 self-references. Demand the number match the
-  known baseline (backend full suite ≈ **200 passed + 5 skipped**, frontend **45**;
+  known baseline (run the suite for the current number — `python -m pytest backend/tests -q`;
   the diagnosis profile = **646 findings / 562 steer_findings** on 100 games).
 - **Metric-mislabel family** (the worst class — a metric that measures X but is
   named/used as Y): `had_tal_move` was a pure *complexity* differential with NO
@@ -143,7 +143,7 @@ Tal persona; research note `docs/research_learned_lookahead.md` — the
 
 - Branch `windows-dev`, everything **pushed to origin** (GitHub default `main` is STALE at an
   old commit — the whole project lives on `windows-dev`; switch the branch to see it). Backend
-  suite ≈ **239 passed / 5 skipped**, frontend 45. (The `test_ts2_orphan_future_cancellation_handled`
+  suite: run it, do not trust a number written here (it has been stale twice). (The `test_ts2_orphan_future_cancellation_handled`
   flake — a 10s load-sensitive `wait_for` that fails on clean HEAD too — deselect it; see §5.)
 
 - **THE PROJECT PIVOTED TO ITS NORTH STAR — read `docs/NORTH_STAR_decoding_lc0.md` + §1 THE FLAG'S
@@ -172,8 +172,14 @@ Tal persona; research note `docs/research_learned_lookahead.md` — the
   Picking the salient few is the open problem, and the answer is **learning from grandmaster annotations**
   (`GM_CURRICULUM_PLAN.md`): pair our facts with a master's comment — the comment IS the salience label.
   **Do NOT hand-code salience** (that repeats the `had_tal` mistake; emit true facts, let the learned
-  layer rank). Pilot validated the method: on Steinitz/Capablanca positions the extractor climbed from
-  1-of-4 to catching the master's core concept in every case (static AND plan).
+  layer rank). ~~Pilot validated the method: on Steinitz/Capablanca positions the extractor climbed from
+  1-of-4 to catching the master's core concept in every case (static AND plan).~~
+  > **SUPERSEDED 2026-08-19 — this claim was never measured and is false.** Running the pipeline over
+  > the corpus yields **19 salient labels out of 2,284 facts (0.8%)**, and **0 out of 35 on the gold
+  > (Capablanca) tier**. Three mechanical causes: book-parser sentence fragments, an algebraic-only
+  > square regex that cannot match descriptive notation (`P-B3`), and no `bishop_pair` fact for
+  > Capablanca's headline concept. The strikethrough stays so the reversal is visible.
+  > Current position: `PLAN_SALIENCE_CNP.md`.
   - **Knowledge is a modular, versioned, quality-tiered DATA artifact** (extractor / corpus / build /
     interface — rebuild-and-replace from a better corpus without touching the app). **Source-quality bar:**
     only GM / world-class-trainer annotations or **public-domain books** (`docs/public_domain_chess_library.md`);

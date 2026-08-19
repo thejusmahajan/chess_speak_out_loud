@@ -17,7 +17,7 @@ The React frontend calls the backend at a **hardcoded** `http://127.0.0.1:8000` 
 
 ## Prerequisites (already set up on this machine)
 
-- **Conda env `cszero`** at `C:\Users\Admin\miniconda3\envs\cszero` (Python 3.11). This is the *only* interpreter that can run the backend — it has `torch`, `lczerolens`, `onnx2torch`, `fastapi`, `python-chess`. The system/Store Python on PATH **cannot** install torch; do not use it. (`backend/requirements.txt` is intentionally empty — dependencies live in the conda env, not pip.)
+- **Conda env `cszero`** at `C:\Users\Admin\miniconda3\envs\cszero` (Python 3.11). This is the *only* interpreter that can run the backend — it has `torch`, `lczerolens`, `onnx2torch`, `fastapi`, `python-chess`. The system/Store Python on PATH **cannot** install torch; do not use it. (`backend/requirements.txt` lists the pinned dependencies for reference; they are installed in the conda env, not via pip into the system Python.)
 - **Engine files in `engine/`** — `lc0.exe` plus two neural nets:
   - `791556.pb.gz` — fast SE-ResNet, powers the **policy arrows** (energy/initiative) via LC0's `VerboseMoveStats`.
   - `bt3.onnx` — BT3 transformer, powers the **attention saliency** heatmap (structure/vision) via `lczerolens`.

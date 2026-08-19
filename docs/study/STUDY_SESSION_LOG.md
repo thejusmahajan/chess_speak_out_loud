@@ -322,3 +322,24 @@ Verified against Guide §1.2 / `FIG-1.2` and `simulate_search.py`.
 Also fixed outside this log: `guide/kb/GLOSSARY.md`'s **Virtual Loss** entry cited a
 `--virtual-loss` flag and an `ENGINE_REFERENCE.md (VirtualLoss)` option. Neither exists — the word
 "virtual" does not appear once in the 91-option dump. Corrected, with the real `ch08` line range.
+
+---
+
+## 8. Session Log: Cross-Entropy Loss, Optimization Dynamics & PyTorch Implementation (2026-08-18)
+
+- **Detailed Companion File:** [`docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md`](file:///c:/Users/Admin/Documents/chess_speak_out_loud/docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md)
+- **Key Focus Areas:**
+  1. **Cross-Entropy in LC0 (Policy & WDL Value Heads):**
+     - **Policy Head:** Categorical cross-entropy over ~1,858 moves against MCTS visit distribution `pi`. Avoids the `p * (1 - p)` vanishing gradient trap of MSE + Softmax, yielding a clean linear update signal `p - pi`.
+     - **Value Head (WDL vs Scalar MSE):** LC0 moved from AlphaZero's scalar `[-1, 1]` MSE to 3-way `[P(Win), P(Draw), P(Loss)]` categorical cross-entropy.
+     - **Disambiguating 0.00:** Scalar MSE cannot tell a fortress draw (`0% Win, 100% Draw, 0% Loss`) apart from a sharp tactical slugfest (`50% Win, 0% Draw, 50% Loss`). WDL cross-entropy retains the full distribution, enabling search contempt and volatility modeling.
+  2. **Optimization Surfaces & Maximum Likelihood Estimation (MLE):**
+     - Cross-entropy minimizes KL-divergence / maximizes likelihood of observed data.
+     - MSE loss surfaces in classification create flat loss regions and near-zero gradients when wrong, whereas cross-entropy provides continuous, non-zero gradient descent trajectories.
+  3. **PyTorch Training Loop Mechanics:**
+     - Clarified the canonical 4-step sequence:
+       - Step 1: **Forward Pass** (`predictions = model(inputs)`)
+       - Step 2: **Calculate Loss** (`loss = criterion(predictions, targets)`) — *where `nn.CrossEntropyLoss()` executes*
+       - Step 3: **Backward Pass** (`loss.backward()`) — *computes gradients*
+       - Step 4: **Optimizer Step** (`optimizer.step()`) — *updates parameter weights*
+

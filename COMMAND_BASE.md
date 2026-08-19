@@ -40,8 +40,9 @@ for the next topic rather than being reinvented each time.
 ### 3. APPLY — `docs/career/`
 Thin by design. The application artefacts themselves live in the `job_search`
 repo; what lives here is only the material that depends on *this* project:
-- `AEON_UP_BRIDGE.md` — what in this repo maps to that job, and how
-- `INTERVIEW_PREP.md` — the question bank, built from real work
+- The bridge and the question bank were **not** built here. They live in the application repo:
+  `job_search/applications/hereon_aeon_up/study_room/` (files `00`–`11`), with
+  `06_do_not_claim.md` as the binding constraint on anything he says or writes.
 
 ---
 
@@ -80,7 +81,7 @@ applied the evaluation methodology to my own model" true.
 
 ## Sequencing, and one warning
 
-The deadline is **3 September**. There are 17 days.
+The deadline is **3 September 2026**. (Do not write a day-count here; it rots. Subtract.)
 
 **Before 3 September — only these:**
 1. Send the AEON-UP application. Materials are finished.
@@ -118,5 +119,6 @@ against its own report — the last two both claimed checks they had not perform
 
 Every brief lives in **`agents/`** (added 2026-08-19) — `agents/ACTIVE.md` says what is
 live, `agents/briefs/` is the immutable archive, `agents/reports/` holds deliveries and
-audit verdicts. The worker is handed one instruction: *read `agents/ACTIVE.md` and execute
-the topmost ACTIVE brief.*
+audit verdicts. `ACTIVE.md` is grouped **by workspace** — a worker can only act on the repo it has open — so the
+instruction is: *read `agents/ACTIVE.md`, find the section for the folder you have open, and
+execute its topmost ACTIVE brief.*

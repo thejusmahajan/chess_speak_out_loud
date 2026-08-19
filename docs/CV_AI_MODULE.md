@@ -23,7 +23,7 @@ you must *not* claim — read it before using any of this.
 - Authored a **normative metrics module** (710 lines, pure functions, fully unit-tested) formalising policy divergence, attention engagement and saliency concentration as the project's single mathematical source of truth.
 - Built a **deterministic symbolic feature extractor** (787 lines) decoding board positions into grounded relational facts — absolute and relative pins, x-rays, outposts, pawn-structure weaknesses, colour-complex holes — used to ground model outputs in verifiable structure rather than generated prose.
 - Designed **async orchestration for neural engine inference**: UCI process management, raw policy-head extraction at a single node (priors before search), multi-PV search, and an `EnginePool` providing position-level parallelism behind an identical interface.
-- Delivered the whole system end to end: **~20,400 lines of Python** (FastAPI) and **~6,700 lines of TypeScript** (React 19), covered by **339 automated tests** (290 backend, 49 frontend).
+- Delivered the whole system end to end: **~20,400 lines of Python** (FastAPI) and **~6,700 lines of TypeScript** (React 19), covered by an automated suite (**302 backend** passing as of 2026-08-19, plus frontend; re-run before quoting).
 
 ### **CV Bullets (Projects):**
 

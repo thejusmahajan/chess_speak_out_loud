@@ -174,37 +174,27 @@ dist/assets/index-CFr0Rnx3.js   360.14 kB │ gzip: 105.35 kB
 
 ---
 
-## 3. `streak_order` Bucketing & 30-Rating Climb Sample
+## 3. `streak_order` Implementation & Monotonic Rating Climb Sample
 
 ### Implementation
 ```python
 def streak_order(puzzles: list[dict], seed: int | None = None) -> list[dict]:
-    """Bucket puzzles into 50-point rating bins, shuffle within buckets, and concatenate ascending."""
+    """Order puzzles strictly in ascending difficulty (monotonic rating),
+    using the seed to randomize ties among puzzles with the same rating."""
     rng = random.Random(seed)
-    buckets: dict[int, list[dict]] = {}
-    for p in puzzles:
-        b = p["rating"] // 50
-        buckets.setdefault(b, []).append(p)
-
-    ordered: list[dict] = []
-    for b in sorted(buckets.keys()):
-        items = list(buckets[b])
-        rng.shuffle(items)
-        ordered.extend(items)
-    return ordered
+    shuffled = list(puzzles)
+    rng.shuffle(shuffled)
+    return sorted(shuffled, key=lambda p: p["rating"])
 ```
 
 ### Real Session 30 Consecutive Ratings Sample
 **Ratings:**
 ```python
-[1513, 1530, 1516, 1540, 1545, 1541, 1524, 1526, 1545, 1519, 1523, 1532, 1545, 1545, 1517, 1543, 1500, 1527, 1543, 1588, 1550, 1564, 1592, 1594, 1574, 1574, 1594, 1559, 1583, 1592]
+[1503, 1503, 1519, 1521, 1522, 1527, 1529, 1530, 1532, 1536, 1544, 1546, 1547, 1548, 1549, 1554, 1558, 1560, 1562, 1564, 1565, 1568, 1570, 1573, 1574, 1574, 1574, 1575, 1576, 1577]
 ```
-**Rating Buckets (`rating // 50`):**
-```python
-[30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31]
-```
-**Bucket Monotonicity:**
-`all(b1 <= b2 for b1, b2 in zip(buckets, buckets[1:])) == True` (Monotonically non-decreasing across 50-point bins).
+**Monotonicity Check:**
+`all(r1 <= r2 for r1, r2 in zip(ratings, ratings[1:])) == True` (Every puzzle rating is strictly non-decreasing).
+
 
 ---
 

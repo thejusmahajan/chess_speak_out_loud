@@ -1,0 +1,132 @@
+# LEADER GROUNDING — the standard I failed, and the checks that would have caught it
+
+> Written 2026-08-19 by the leader (Opus 5), from this project's own record.
+> `WORKER_AGENT_COOKBOOK.md` is how to instruct a worker. **This file is about me.**
+> Read it before writing any brief and before signing off any delivery. It is deliberately
+> short so that re-reading it is cheap; a checklist nobody re-reads is decoration.
+
+---
+
+## 0. The asymmetry that caused every failure below
+
+I require of the worker: *never invent a number, paste real output, report what you could not
+verify.*
+
+I then write briefs containing numbers I did not measure, file claims I did not read, and scopes
+I did not check.
+
+**The standard I enforce on output must apply to my input.** Every rule in the cookbook has a
+mirror image pointing at me. That mirror is this document.
+
+---
+
+## 1. The record — seven failures, all mine, all in one session
+
+Not for self-flagellation. Each one names a check that would have prevented it.
+
+| # | What I did | Cost | The check I skipped |
+|---|---|---|---|
+| 1 | Pinned `history_ucis=None` in the attention-export brief | A full worker cycle; data that would have published the exact bug he'd already publicly corrected | **Ask what makes the output *valid*, not just what makes it run.** The model printed a warning saying 84 of 112 input planes were empty. I specified past it. |
+| 2 | Wrote "do not touch any `blog-*.html`" | 20 pages kept telling employers he wanted a different job, including his flagship ML post | **Scope by element, not by file.** Nav and footer are duplicated into every page; a file-level exclusion silently exempted site-wide chrome from a site-wide change. |
+| 3 | Pinned SAN strings `e4` and `Qd5` | Caught by luck, before handover | The moves were `Qe4` (a queen move) and `Qd5#` (mate). **Every pinned literal must be machine-verified before the brief ships.** |
+| 4 | Asserted `projects.html` had no marine-modelling card | Worker had to work around my error and delete a card I did not know existed | I had read the first 1,400 characters of the file. **Read the whole file before asserting what is in it.** |
+| 5 | Gate said "must be 20 pages"; the answer was 21 | Worker could have been induced to force my number | **Derive gate values, don't estimate them.** A wrong gate is worse than no gate: it tells the worker to make reality match. |
+| 6 | Repeated "the salutation is still `[PLATZHALTER]`" for several turns | Wasted attention on a solved problem; eroded trust in my briefing | It had been fixed. **Memory is a hypothesis, not evidence.** Also recorded 7 "gold" corpus records as an asset when they yield zero labels. |
+| 7 | Sent a workspace-scoped audit whose highest-consequence target was outside the workspace | The do-not-claim sweep ran against a paraphrase; a live violation in the submittable CV survived | **Confirm the worker can reach the scope before writing the brief.** |
+
+**The pattern:** I specify from memory and partial reads, scope by convenience, and verify the
+worker's output far harder than my own input.
+
+---
+
+## 2. PRE-FLIGHT — before any brief is handed over
+
+Run these. They are cheap; every one of them corresponds to a failure above.
+
+1. **Every literal is machine-verified.** Every FEN, SAN, path, line number, count, formula
+   constant, exact string. If I pinned it, I ran something that produced it. *(→ failures 3, 5)*
+2. **Every file I make a claim about, I have read in full** — not the head, not a grep hit.
+   *(→ 4)*
+3. **The scope sweep ran before the scope was chosen.** Grep for the thing being changed across
+   *all* candidate files, then decide what is in scope. Never the reverse. *(→ 2)*
+4. **The worker can physically reach everything the brief names.** Different repo? Outside the
+   workspace? Say which folder must be open. *(→ 7)*
+5. **Inputs that determine validity are justified, not defaulted.** If the brief pins a model
+   input, a seed, a corpus slice or a parameter, I can say *why that choice makes the output
+   correct* — not merely why it runs. *(→ 1)*
+6. **Gate values are derived, not estimated.** I ran the command and used its answer. If I cannot,
+   the gate says "report the number" instead of asserting one.
+7. **Nothing came from memory unchecked.** Anything I "remember" about state was re-measured this
+   session. *(→ 6)*
+8. **Failure is expressible.** The brief tells the worker how to report that my spec is wrong, and
+   says that doing so is a good outcome — not a boundary violation.
+
+---
+
+## 3. POST-FLIGHT — before any delivery is believed
+
+The cookbook's protocol, plus the part I keep having to add:
+
+1. `git status` — boundaries.
+2. Read the **diff**, never the report's account of the diff.
+3. Re-run the gate **myself**, in the real environment.
+4. **Mutation-test the key guard**: break the code it protects, confirm it fails, restore, confirm
+   byte-identical.
+5. Exercise the **real path on real data**.
+6. **Check what the worker could NOT do.** Read its "could not verify" section first, not last —
+   in this project that section has twice contained the most important finding.
+7. **Re-derive at least one number independently** rather than re-running their test. Their test
+   can encode their misunderstanding.
+8. **Ask what my brief got wrong.** A delivery that reveals a spec error is a success, and the
+   error is mine to record.
+
+---
+
+## 4. Rules earned the hard way
+
+- **Pinning an input is a scientific claim, not a configuration choice.**
+- **"Don't touch these files" ≠ "don't touch this content."** Decide which you mean, every time.
+- **A wrong gate is worse than no gate.** It instructs the worker to bend reality toward my error.
+- **A worker deviating from the brief to match reality is a GOOD sign.** First ask "is reality
+  different from what I said?", not "did it violate scope?"
+- **The worker's declared limitation is a lead, not a disclaimer.** Follow it personally.
+- **Do not bulk-fix doctrine.** Where a claim was reversed by measurement, keep the superseded
+  line visible beside the number that killed it. The reversal *is* the lesson; deleting it
+  destroys the evidence and invites the same mistake.
+- **Content is never delegated; labour always is.** Copy about a real person's career, definitions
+  that drive code, and metric semantics stay with me.
+
+---
+
+## 5. Staleness — the ambient hazard
+
+228 markdown files, written across months by several agents, with decisions since reversed by
+measurement. Stale text reads exactly like current doctrine. It has already misled me (the
+"validated pilot" that measured 0/35) and it will again.
+
+**Convention, from now on.** Every document that is not current carries a first line:
+
+```
+> **STATUS: SUPERSEDED 2026-08-19 by <file>.** Kept for the record; do not act on it.
+```
+
+`ACTIVE` / `SUPERSEDED` / `HISTORICAL` / `DRAFT`. No header means current, so an unmarked file is
+a claim of currency that I am responsible for.
+
+**Rules:**
+- Superseded files are **marked and archived**, never deleted — the reversal is evidence.
+- Anything under `archive/` is out of scope for briefs and for trainer sourcing unless named
+  explicitly.
+- A document asserting a **count, a path, or a "current state"** must either be re-derived when
+  cited, or replaced by the command that produces it. Numbers in prose rot; commands do not.
+
+---
+
+## 6. The one-line test
+
+Before handing over a brief:
+
+> **Would I accept this document from the worker, under the standard I apply to its output?**
+
+If any number in it is unmeasured, any file claim unread, any scope unchecked — the answer is no,
+and it is not ready.

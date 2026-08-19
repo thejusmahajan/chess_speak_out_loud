@@ -1,3 +1,10 @@
+> **STATUS: SUPERSEDED 2026-08-19 by `PLAN_SALIENCE_CNP.md`.** This plan's premise — that GM
+> annotations can supply salience labels *at scale* — was measured and is false (19 labels over
+> 2,284 facts; **zero** on the gold tier). Gold annotations will always be scarce, so the current
+> approach **conditions on** the small set rather than training on it. Kept for the record and for
+> its corpus-quality doctrine (tier = annotator authority), which remains correct.
+> **Do not source trainer cards from this file.**
+
 # GM-Annotation Curriculum — teaching the machine what's SALIENT (plan)
 
 The strategic unlock (user, 2026-07-28). We built the relational-fact extractor (the machine's eyes,
