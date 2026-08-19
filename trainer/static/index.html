@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Trainer — AEON-UP &amp; LC0</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-bright: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --green: #2ea043;
+      --green-hover: #3fb950;
+      --amber: #d29922;
+      --amber-hover: #e3b341;
+      --red: #f85149;
+      --red-hover: #ff7b72;
+      --level1: #388bfd;
+      --level2: #a371f7;
+      --level3: #d29922;
+      --level4: #f0883e;
+      --level5: #f85149;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-bright);
+    }
+
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stat-value {
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .controls-bar {
+      background: #12161c;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    select, input[type="text"] {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-bright);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    select:focus, input[type="text"]:focus {
+      border-color: var(--accent);
+    }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      user-select: none;
+    }
+
+    main {
+      flex: 1;
+      max-width: 860px;
+      width: 100%;
+      margin: 28px auto;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .meta-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ladder-tag {
+      font-weight: 600;
+      color: var(--text-bright);
+      font-size: 0.9rem;
+    }
+
+    .level-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .level-1 { background: rgba(56, 139, 253, 0.2); color: var(--level1); border: 1px solid var(--level1); }
+    .level-2 { background: rgba(163, 113, 247, 0.2); color: var(--level2); border: 1px solid var(--level2); }
+    .level-3 { background: rgba(210, 153, 34, 0.2); color: var(--level3); border: 1px solid var(--level3); }
+    .level-4 { background: rgba(240, 136, 62, 0.2); color: var(--level4); border: 1px solid var(--level4); }
+    .level-5 { background: rgba(248, 81, 73, 0.2); color: var(--level5); border: 1px solid var(--level5); }
+
+    .topic-pill {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: var(--bg);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .meta-right {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .question-section {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-bright);
+      line-height: 1.5;
+    }
+
+    .reveal-btn {
+      background: var(--accent);
+      color: #0d1117;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      align-self: flex-start;
+      transition: opacity 0.2s;
+    }
+
+    .reveal-btn:hover {
+      opacity: 0.9;
+    }
+
+    .answer-section {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .answer-block {
+      background: #0d1117;
+      border-left: 4px solid var(--accent);
+      padding: 14px 16px;
+      border-radius: 0 6px 6px 0;
+      color: var(--text-bright);
+      font-size: 1rem;
+      white-space: pre-line;
+    }
+
+    .explanation-block {
+      font-size: 0.95rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .trap-box {
+      background: rgba(248, 81, 73, 0.1);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      color: #ff7b72;
+    }
+
+    .trap-title {
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .sources-list {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .sources-list a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .sources-list a:hover {
+      text-decoration: underline;
+    }
+
+    .grade-bar {
+      display: none;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .grade-btn {
+      flex: 1;
+      min-width: 130px;
+      padding: 12px 18px;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .grade-btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-missed { background: var(--red); color: white; }
+    .btn-missed:hover { background: var(--red-hover); }
+
+    .btn-partial { background: var(--amber); color: #0d1117; }
+    .btn-partial:hover { background: var(--amber-hover); }
+
+    .btn-gotit { background: var(--green); color: white; }
+    .btn-gotit:hover { background: var(--green-hover); }
+
+    .shortcut-hint {
+      font-size: 0.75rem;
+      opacity: 0.8;
+      font-weight: 400;
+    }
+
+    /* Leader Comment Accordion */
+    .comment-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .comment-header {
+      padding: 12px 18px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .comment-header:hover {
+      background: rgba(88, 166, 255, 0.05);
+    }
+
+    .comment-body {
+      display: none;
+      padding: 16px 18px;
+      border-top: 1px solid var(--border);
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .comment-notice {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: #0d1117;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border-left: 3px solid var(--amber);
+    }
+
+    .radio-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .radio-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    textarea {
+      width: 100%;
+      height: 80px;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      color: var(--text-bright);
+      padding: 10px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .submit-comment-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-bright);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      align-self: flex-start;
+    }
+
+    .submit-comment-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .empty-state h2 {
+      color: var(--text-bright);
+      font-size: 1.25rem;
+    }
+
+    .notification {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--green);
+      color: var(--text-bright);
+      padding: 12px 20px;
+      border-radius: 6px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+      display: none;
+      z-index: 100;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span style="font-size: 1.4rem;">♟️</span>
+      <h1>Inside LC0 &amp; AEON-UP Spaced-Repetition Trainer</h1>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-pill">
+        <span>Elo Rating:</span>
+        <span class="stat-value" id="user-rating-val">1200.0</span>
+      </div>
+      <div class="stat-pill">
+        <span>Due Cards:</span>
+        <span class="stat-value" id="due-count-val">0</span>
+      </div>
+      <div class="stat-pill">
+        <span>Mastered:</span>
+        <span class="stat-value" id="mastered-count-val">0 / 60</span>
+      </div>
+      <div class="stat-pill">
+        <span>Session Answers:</span>
+        <span class="stat-value" id="session-count-val">0</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="controls-bar">
+    <div class="filter-group">
+      <label for="ladder-select">Ladder:</label>
+      <select id="ladder-select" onchange="loadNextCard()">
+        <option value="">All Ladders</option>
+        <option value="pytorch">PyTorch Foundations</option>
+        <option value="uncertainty">Uncertainty &amp; Calibration</option>
+        <option value="neural-processes">Neural Processes &amp; CNP</option>
+        <option value="air-quality">Urban Air Quality &amp; CTMs</option>
+        <option value="own-work">Own Interpretability Research</option>
+      </select>
+    </div>
+
+    <label class="toggle-label">
+      <input type="checkbox" id="cram-toggle" onchange="loadNextCard()">
+      <span>Cram Mode (ignore due dates)</span>
+    </label>
+  </div>
+
+  <main>
+    <div class="card-box" id="card-container">
+      <div class="card-meta">
+        <div class="meta-left">
+          <span class="ladder-tag" id="card-ladder">Ladder</span>
+          <span class="level-badge" id="card-level">Level 1</span>
+          <span class="topic-pill" id="card-topic">Topic</span>
+        </div>
+        <div class="meta-right">
+          <span>Card Rating: <strong id="card-rating" style="color: var(--accent);">1000</strong></span>
+          <span style="margin-left: 10px;">Reps: <strong id="card-reps">0</strong></span>
+        </div>
+      </div>
+
+      <div class="question-section" id="card-question">
+        Loading next card...
+      </div>
+
+      <button class="reveal-btn" id="reveal-btn" onclick="revealAnswer()">
+        Reveal Answer (Space)
+      </button>
+
+      <div class="answer-section" id="answer-section">
+        <div class="answer-block" id="card-answer"></div>
+        <div class="explanation-block" id="card-explanation"></div>
+        <div class="trap-box" id="card-trap-box" style="display: none;">
+          <div class="trap-title">⚠️ Common Trap &amp; Misconception:</div>
+          <div id="card-trap"></div>
+        </div>
+        <div class="sources-list" id="card-sources"></div>
+      </div>
+
+      <div class="grade-bar" id="grade-bar">
+        <button class="grade-btn btn-missed" onclick="gradeCard(0.0)">
+          <span>Missed</span>
+          <span class="shortcut-hint">0.0 (Key 1)</span>
+        </button>
+        <button class="grade-btn btn-partial" onclick="gradeCard(0.5)">
+          <span>Partial</span>
+          <span class="shortcut-hint">0.5 (Key 2)</span>
+        </button>
+        <button class="grade-btn btn-gotit" onclick="gradeCard(1.0)">
+          <span>Got it!</span>
+          <span class="shortcut-hint">1.0 (Key 3)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State Container -->
+    <div class="card-box empty-state" id="empty-state" style="display: none;">
+      <h2>🎉 All Due Cards Completed!</h2>
+      <p>You're completely caught up on your spaced-repetition queue.</p>
+      <button class="reveal-btn" onclick="toggleCramAndReload()">Enable Cram Mode to Keep Drilling</button>
+    </div>
+
+    <!-- Leader Feedback Box -->
+    <div class="comment-card">
+      <div class="comment-header" onclick="toggleCommentBox()">
+        <span>💬 Something wrong or unclear? Tell the leader.</span>
+        <span id="comment-arrow">▼</span>
+      </div>
+      <div class="comment-body" id="comment-body">
+        <div class="comment-notice">
+          <strong>Direct Feedback Channel:</strong> The leader reads <code>state/comments.jsonl</code> at every audit cycle to fix errors, clarify prerequisites, and refine card text.
+        </div>
+        <div class="radio-grid">
+          <label class="radio-item"><input type="radio" name="comment-cat" value="question unclear" checked> Question unclear</label>
+          <label class="radio-item"><input type="radio" name="comment-cat" value="missing prerequisite"> Missing prerequisite</label>
+          <label class="radio-item"><input type="radio" name="comment-cat" value="answer unclear"> Answer unclear</label>
+          <label class="radio-item"><input type="radio" name="comment-cat" value="I think this is wrong"> I think this is wrong</label>
+          <label class="radio-item"><input type="radio" name="comment-cat" value="too easy"> Too easy for level</label>
+          <label class="radio-item"><input type="radio" name="comment-cat" value="too hard"> Too hard for level</label>
+          <label class="radio-item"><input type="radio" name="comment-cat" value="other"> Other</label>
+        </div>
+        <textarea id="comment-text" placeholder="Explain what was confusing, inaccurate, or missing..."></textarea>
+        <button class="submit-comment-btn" onclick="submitComment()">Submit Feedback to Leader</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="notification" id="notification">Feedback submitted successfully!</div>
+
+  <script>
+    let currentCard = null;
+    let isRevealed = false;
+    let sessionAnswerCount = 0;
+
+    async function fetchState() {
+      try {
+        const res = await fetch('/api/state');
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('user-rating-val').textContent = Number(data.user_rating).toFixed(1);
+          document.getElementById('due-count-val').textContent = data.due_count;
+          document.getElementById('mastered-count-val').textContent = `${data.mastered_count} / ${data.total_cards}`;
+        }
+      } catch (err) {
+        console.error("Failed to fetch state:", err);
+      }
+    }
+
+    async function loadNextCard() {
+      isRevealed = false;
+      document.getElementById('answer-section').style.display = 'none';
+      document.getElementById('grade-bar').style.display = 'none';
+      document.getElementById('reveal-btn').style.display = 'inline-block';
+
+      const cram = document.getElementById('cram-toggle').checked;
+      const ladder = document.getElementById('ladder-select').value;
+      let url = `/api/next-card?cram=${cram}`;
+      if (ladder) url += `&ladder=${encodeURIComponent(ladder)}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (!data.card) {
+          document.getElementById('card-container').style.display = 'none';
+          document.getElementById('empty-state').style.display = 'flex';
+          currentCard = null;
+          return;
+        }
+
+        document.getElementById('card-container').style.display = 'flex';
+        document.getElementById('empty-state').style.display = 'none';
+
+        currentCard = data.card;
+        document.getElementById('card-ladder').textContent = currentCard.ladder.toUpperCase();
+        
+        const lvlBadge = document.getElementById('card-level');
+        lvlBadge.textContent = `Level ${currentCard.level}`;
+        lvlBadge.className = `level-badge level-${currentCard.level}`;
+        
+        document.getElementById('card-topic').textContent = currentCard.topic || '';
+        document.getElementById('card-rating').textContent = Math.round(data.current_rating);
+        document.getElementById('card-reps').textContent = data.reps || 0;
+        document.getElementById('card-question').textContent = currentCard.question;
+        
+        document.getElementById('card-answer').textContent = currentCard.answer;
+        document.getElementById('card-explanation').textContent = currentCard.explanation || '';
+        
+        if (currentCard.trap) {
+          document.getElementById('card-trap').textContent = currentCard.trap;
+          document.getElementById('card-trap-box').style.display = 'block';
+        } else {
+          document.getElementById('card-trap-box').style.display = 'none';
+        }
+
+        const sourcesContainer = document.getElementById('card-sources');
+        sourcesContainer.innerHTML = '<strong>Sources:</strong> ';
+        if (currentCard.sources && currentCard.sources.length) {
+          const links = currentCard.sources.map(src => {
+            if (src.startsWith('http://') || src.startsWith('https://')) {
+              return `<a href="${src}" target="_blank" rel="noopener">${src}</a>`;
+            }
+            return `<code>${src}</code>`;
+          });
+          sourcesContainer.innerHTML += links.join(' &bull; ');
+        } else {
+          sourcesContainer.innerHTML += 'None';
+        }
+
+        await fetchState();
+      } catch (err) {
+        console.error("Failed to load next card:", err);
+      }
+    }
+
+    function revealAnswer() {
+      if (!currentCard || isRevealed) return;
+      isRevealed = true;
+      document.getElementById('reveal-btn').style.display = 'none';
+      document.getElementById('answer-section').style.display = 'flex';
+      document.getElementById('grade-bar').style.display = 'flex';
+    }
+
+    async function gradeCard(score) {
+      if (!currentCard) return;
+      
+      try {
+        const res = await fetch('/api/grade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ card_id: currentCard.id, score: score })
+        });
+        
+        if (res.ok) {
+          sessionAnswerCount++;
+          document.getElementById('session-count-val').textContent = sessionAnswerCount;
+          await loadNextCard();
+        }
+      } catch (err) {
+        console.error("Failed to grade card:", err);
+      }
+    }
+
+    function toggleCramAndReload() {
+      document.getElementById('cram-toggle').checked = true;
+      loadNextCard();
+    }
+
+    function toggleCommentBox() {
+      const body = document.getElementById('comment-body');
+      const arrow = document.getElementById('comment-arrow');
+      if (body.style.display === 'flex') {
+        body.style.display = 'none';
+        arrow.textContent = '▼';
+      } else {
+        body.style.display = 'flex';
+        arrow.textContent = '▲';
+      }
+    }
+
+    async function submitComment() {
+      if (!currentCard) {
+        alert("No active card to comment on.");
+        return;
+      }
+      
+      const text = document.getElementById('comment-text').value.trim();
+      if (!text) {
+        alert("Please write a short note before submitting.");
+        return;
+      }
+
+      const selectedCat = document.querySelector('input[name="comment-cat"]:checked')?.value || 'other';
+      const userRating = parseFloat(document.getElementById('user-rating-val').textContent) || 1200.0;
+
+      try {
+        const res = await fetch('/api/comment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            card_id: currentCard.id,
+            ladder: currentCard.ladder,
+            level: currentCard.level,
+            category: selectedCat,
+            comment: text,
+            user_rating: userRating,
+            revealed: isRevealed
+          })
+        });
+
+        if (res.ok) {
+          document.getElementById('comment-text').value = '';
+          toggleCommentBox();
+          showNotification("Feedback submitted directly to the leader's audit log!");
+        }
+      } catch (err) {
+        console.error("Failed to submit comment:", err);
+      }
+    }
+
+    function showNotification(msg) {
+      const notif = document.getElementById('notification');
+      notif.textContent = msg;
+      notif.style.display = 'block';
+      setTimeout(() => { notif.style.display = 'none'; }, 4000);
+    }
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+        return;
+      }
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (!isRevealed) revealAnswer();
+      } else if (e.key === '1') {
+        if (isRevealed) gradeCard(0.0);
+      } else if (e.key === '2') {
+        if (isRevealed) gradeCard(0.5);
+      } else if (e.key === '3') {
+        if (isRevealed) gradeCard(1.0);
+      }
+    });
+
+    // Initial load
+    fetchState();
+    loadNextCard();
+  </script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+[
+  {
+    "id": "aq-l1-001",
+    "ladder": "air-quality",
+    "level": 1,
+    "topic": "Chemistry Transport Models (CTMs)",
+    "question": "What is a Chemistry Transport Model (CTM), and what physical and chemical processes does it solve?",
+    "answer": "A Chemistry Transport Model is an Eulerian or Lagrangian numerical model that simulates the atmospheric emission, advection, turbulent diffusion, chemical transformation, and wet/dry deposition of pollutants across spatial 3D grid cells.",
+    "explanation": "CTMs take meteorological inputs (wind fields, temperature from WRF) and emission inventories to solve advection-diffusion-reaction differential equations.",
+    "trap": "Confusing a statistical regression model with a deterministic physics-chemistry transport model.",
+    "sources": [
+      "https://doi.org/10.1175/JAM2536.1",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 990,
+    "requires": []
+  },
+  {
+    "id": "aq-l1-002",
+    "ladder": "air-quality",
+    "level": 1,
+    "topic": "primary vs secondary pollutants",
+    "question": "What is the difference between a primary pollutant and a secondary pollutant, and give an example of each?",
+    "answer": "Primary pollutants are emitted directly from sources (e.g., Nitric Oxide $\\text{NO}$ and primary particulate matter from tailpipes). Secondary pollutants are formed in the atmosphere through photochemical reactions among precursors (e.g., Ground-level Ozone $\\text{O}_3$ formed from $\\text{NO}_x$ and VOCs in sunlight).",
+    "explanation": "Non-linear photochemistry means reducing primary emissions does not always linearly reduce secondary pollutants (e.g., the $\\text{NO}_x$ titration effect where reducing $\\text{NO}$ locally increases $\\text{O}_3$).",
+    "trap": "Assuming Ozone is emitted directly from vehicle exhaust.",
+    "sources": [
+      "https://doi.org/10.1175/JAM2536.1",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1020,
+    "requires": []
+  },
+  {
+    "id": "aq-l1-003",
+    "ladder": "air-quality",
+    "level": 1,
+    "topic": "Air Quality Index (AQI)",
+    "question": "What is the Air Quality Index (AQI), and how is it calculated from multiple criteria pollutants?",
+    "answer": "The Air Quality Index (AQI) is a dimensionless standardized public communication metric mapping pollutant concentrations to a segmented health scale (0-500). For each criteria pollutant ($\\text{PM}_{2.5}$, $\\text{PM}_{10}$, $\\text{NO}_2$, $\\text{O}_3$, $\\text{SO}_2$, $\\text{CO}$), a sub-index is computed via linear piecewise interpolation; the overall AQI is the maximum of the individual sub-indices.",
+    "explanation": "The 'max-operator' formulation ensures the reported AQI reflects the single most hazardous pollutant at any given time.",
+    "trap": "Averaging individual pollutant sub-indices instead of taking the maximum.",
+    "sources": [
+      "https://doi.org/10.1175/JAM2536.1",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1050,
+    "requires": []
+  },
+  {
+    "id": "aq-l2-001",
+    "ladder": "air-quality",
+    "level": 2,
+    "topic": "Ultrafine Particles (UFP)",
+    "question": "What are Ultrafine Particles (UFP), and why are mass metrics like $\\text{PM}_{2.5}$ inadequate for measuring their health risk?",
+    "answer": "Ultrafine Particles (UFP) are airborne particles with an aerodynamic diameter $\\le 100\\,\\text{nm}$ (0.1 $\\mu\\text{m}$). Mass concentration metrics like $\\text{PM}_{2.5}$ are dominated by a few large particles and miss UFPs completely, even though UFPs dominate Particle Number Concentration (PNC), have massive surface area per unit mass, and penetrate deep into alveoli and the bloodstream.",
+    "explanation": "A clean mass reading ($\\,\\mu g/m^3$) can conceal dangerously high particle number concentrations (particles/$cm^3$) near major roads and airports.",
+    "trap": "Assuming $\\text{PM}_{2.5}$ and UFP measure the same physical phenomena or share the same regulatory limits.",
+    "sources": [
+      "https://doi.org/10.1016/j.envint.2019.04.013",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1210,
+    "requires": ["aq-l1-001"]
+  },
+  {
+    "id": "aq-l2-002",
+    "ladder": "air-quality",
+    "level": 2,
+    "topic": "emission inventories",
+    "question": "What is an emission inventory in urban air quality, and what are its primary source sectors?",
+    "answer": "An emission inventory is a spatial-temporal database quantifying mass emissions of specific pollutants per grid cell and hour. Major sectors include road transport (on-road vehicles), non-road mobile sources (shipping, aviation), residential heating (wood/gas combustion), industrial point sources, and biogenic emissions.",
+    "explanation": "Emission inventories are subject to high uncertainties in spatial distribution and temporal activity profiles (e.g., rush hour peaks, cold-start emissions).",
+    "trap": "Believing emission inventories measure actual air concentrations rather than emitted mass fluxes.",
+    "sources": [
+      "https://doi.org/10.5194/gmd-12-4857-2019",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1230,
+    "requires": ["aq-l1-001"]
+  },
+  {
+    "id": "aq-l2-003",
+    "ladder": "air-quality",
+    "level": 2,
+    "topic": "Land-Use Regression (LUR)",
+    "question": "What is Land-Use Regression (LUR) and what spatial covariates are typically used to predict urban exposure?",
+    "answer": "Land-Use Regression (LUR) is an empirical statistical technique that models spatial pollutant variations at monitoring stations using geographic GIS variables within circular buffer zones (e.g., 50m to 5000m). Typical covariates include road length, traffic volume, population density, land-use classifications (industrial, residential, green space), building height, and elevation.",
+    "explanation": "LUR captures fine-scale static spatial contrasts but traditionally lacks high-frequency temporal dynamics, making hybrid ML-LUR architectures essential.",
+    "trap": "Assuming static LUR models capture rapid hourly meteorological shifts.",
+    "sources": [
+      "https://doi.org/10.1016/j.envint.2019.04.013",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1250,
+    "requires": ["aq-l1-001", "aq-l1-003"]
+  },
+  {
+    "id": "aq-l3-001",
+    "ladder": "air-quality",
+    "level": 3,
+    "topic": "regional vs urban CTMs (CMAQ vs CityChem)",
+    "question": "What is the architectural and scale distinction between a regional model like CMAQ and an urban canopy model like EPISODE-CityChem?",
+    "answer": "CMAQ is a regional Chemistry Transport Model operating on grid resolutions of 1 km to 36 km, resolving synoptic transport and regional photochemistry. EPISODE-CityChem is an urban-scale dispersion model that embeds line-source traffic models and street-canyon parameterized sub-grid models to resolve building-level dispersion down to 100m or individual road links.",
+    "explanation": "Regional models provide boundary conditions (background concentrations at city borders), which CityChem ingests to simulate local street-level microphysics.",
+    "trap": "Claiming personal hands-on experience running CMAQ or CityChem in an interview rather than articulating their structural principles.",
+    "sources": [
+      "https://doi.org/10.5194/gmd-12-4857-2019",
+      "https://doi.org/10.1175/JAM2536.1",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1460,
+    "requires": ["aq-l2-002", "aq-l1-001"]
+  },
+  {
+    "id": "aq-l3-002",
+    "ladder": "air-quality",
+    "level": 3,
+    "topic": "street canyon dispersion dynamics",
+    "question": "What is a 'street canyon' effect, and why does standard Gaussian dispersion fail inside narrow urban streets?",
+    "answer": "A street canyon is a street flanked by continuous multi-story buildings on both sides. Perpendicular winds create a recirculating vortex (rotor) that traps tailpipe emissions at the leeward pedestrian sidewalk, creating localized pollution concentrations orders of magnitude higher than background levels, which open-terrain Gaussian plumes fail to model.",
+    "explanation": "Sub-grid street canyon parameterizations (like OSPM or CityChem's subgrid module) explicitly model building aspect ratio ($H/W$) and vortex circulation.",
+    "trap": "Applying simple 2D spatial smoothing across street canyons without accounting for building heights and wind direction relative to the street axis.",
+    "sources": [
+      "https://doi.org/10.5194/gmd-12-4857-2019",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1490,
+    "requires": ["aq-l2-002", "aq-l1-001"]
+  },
+  {
+    "id": "aq-l3-003",
+    "ladder": "air-quality",
+    "level": 3,
+    "topic": "temperature inversions & boundary layer dynamics",
+    "question": "What is an atmospheric temperature inversion, and why does it cause acute urban pollution accumulation episodes?",
+    "answer": "A temperature inversion occurs when warmer air overlays cooler air near the surface ($dT/dz > 0$), inverting the normal lapse rate. This caps vertical atmospheric mixing at the planetary boundary layer (PBL) height. Surface emissions (traffic, heating) are trapped in a shallow, stagnant volume of air, causing pollutant concentrations to skyrocket over consecutive days.",
+    "explanation": "Inversion episodes violate steady-state Gaussian dispersion assumptions, requiring models to incorporate time-varying boundary layer height.",
+    "trap": "Assuming high wind and turbulent vertical dispersion persist under strong winter radiation inversions.",
+    "sources": [
+      "https://doi.org/10.1175/JAM2536.1",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1510,
+    "requires": ["aq-l1-001", "aq-l2-002"]
+  },
+  {
+    "id": "aq-l4-001",
+    "ladder": "air-quality",
+    "level": 4,
+    "topic": "resolution gap & downscaling",
+    "question": "What is the 'resolution gap' in urban air quality modeling, and why can pure physical models not be run at 10m resolution in real time?",
+    "answer": "The resolution gap is the mismatch between the coarse grid of numerical models (e.g. 1 km - 10 km) and the fine spatial gradients of human exposure (e.g. 10m - 50m in street canyons). Physical models cannot run at 10m city-wide in real time because computational complexity scales cubically with spatial grid resolution and the Courant-Friedrichs-Lewy (CFL) numerical stability condition forces microscopic time steps.",
+    "explanation": "Solving full Navier-Stokes with chemical kinetics at 10m resolution for an entire metropolitan region exceeds available supercomputing budgets for real-time forecasting.",
+    "trap": "Assuming computing power alone will solve the real-time urban resolution gap without statistical/learned downscaling.",
+    "sources": [
+      "https://doi.org/10.5194/gmd-12-4857-2019",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1690,
+    "requires": ["aq-l3-001", "aq-l3-002"]
+  },
+  {
+    "id": "aq-l4-002",
+    "ladder": "air-quality",
+    "level": 4,
+    "topic": "physics-informed ML coupling paradigms",
+    "question": "What are the three primary paradigms for coupling numerical physical models (CTMs) with machine learning models?",
+    "answer": "1. Residual/Bias Correction: ML predicts the spatial error residual $\\Delta y = y_{\\text{obs}} - y_{\\text{physics}}$ given local covariates.\n2. Surrogate Emulation: ML replaces computationally expensive physical subroutines (e.g. non-linear chemical solver) with a fast neural surrogate.\n3. Multi-Fidelity Feature Conditioning: The coarse physical model output serves as a continuous spatial covariate conditioning a probabilistic neural process.",
+    "explanation": "Multi-fidelity conditioning preserves the physical conservation laws and boundary conditions from the CTM while allowing the neural process to model high-resolution localized sensor observations.",
+    "trap": "Replacing physical models entirely with pure black-box ML, which violates mass conservation and fails out of distribution.",
+    "sources": [
+      "docs/SESSION_LOG_2026-08.md",
+      "docs/career_strategy_conversation_aug2026.md"
+    ],
+    "difficulty": 1730,
+    "requires": ["aq-l3-001", "aq-l3-002"]
+  },
+  {
+    "id": "aq-l5-001",
+    "ladder": "air-quality",
+    "level": 5,
+    "topic": "physics-ML hybrid modeling interview answer",
+    "question": "How would you design an end-to-end hybrid architecture coupling a physics-based CTM like EPISODE-CityChem with a learned probabilistic neural process for real-time urban air quality?",
+    "answer": "1. Multi-Fidelity Architecture: Treat the physics-based CTM (EPISODE-CityChem) as the low-fidelity physical prior. Run the CTM on its standard regional/urban grid (e.g. 1 km) to enforce mass conservation, regional transport, and chemical stoichiometry.\n2. High-Resolution Covariate Fusion: Construct a 10m target query grid containing static high-resolution GIS covariates: building morphology (height, aspect ratio $H/W$), road traffic indices, distance to intersections, vegetation indices, and localized meteorology.\n3. Real-Time Observational Conditioning: Ingest live urban sensor stations as the context set $C = \\{(x_c, y_c)\\}$ inside a Convolutional Conditional Neural Process (ConvCNP).\n4. Probabilistic Residual & Concentration Estimation: Condition the ConvCNP decoder on both the local sensor context set and the interpolated CTM background field to predict high-resolution Gaussian concentrations $(\\mu(x_t), \\sigma(x_t))$.\n5. Regulatory Validation: Evaluate the hybrid model via Leave-One-Station-Out cross-validation and verify calibration on acute peak episodes (e.g. temperature inversions) to guarantee physical consistency and reliable uncertainty.",
+    "explanation": "This hybrid design combines the global physics and mass conservation of CTMs with the micro-scale flexibility and calibrated real-time inference of Neural Processes.",
+    "trap": "Claiming you personally developed or operated EPISODE-CityChem codebases rather than articulating the hybrid integration architecture.",
+    "sources": [
+      "docs/SESSION_LOG_2026-08.md",
+      "docs/career_strategy_conversation_aug2026.md",
+      "https://doi.org/10.5194/gmd-12-4857-2019"
+    ],
+    "difficulty": 1980,
+    "requires": ["aq-l4-001", "aq-l4-002"]
+  }
+]

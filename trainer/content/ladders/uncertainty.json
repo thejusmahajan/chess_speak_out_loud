@@ -1,0 +1,194 @@
+[
+  {
+    "id": "unc-l1-001",
+    "ladder": "uncertainty",
+    "level": 1,
+    "topic": "aleatoric vs epistemic uncertainty",
+    "question": "What is the difference between aleatoric uncertainty and epistemic uncertainty in machine learning?",
+    "answer": "Aleatoric uncertainty is irreducible stochastic noise inherent in the data-generating process (e.g., sensor noise, turbulence). Epistemic uncertainty is reducible model uncertainty caused by lack of knowledge or sparse training data in unobserved regions of the input space, which shrinks as more data is collected.",
+    "explanation": "In spatial environmental modelling, a sensor's measurement variance is aleatoric; uncertainty about pollutant concentrations 10 km away from any sensor is epistemic.",
+    "trap": "Believing collecting more data eliminates aleatoric noise.",
+    "sources": [
+      "https://arxiv.org/abs/1703.04977",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 990,
+    "requires": []
+  },
+  {
+    "id": "unc-l1-002",
+    "ladder": "uncertainty",
+    "level": 1,
+    "topic": "homoscedastic vs heteroscedastic noise",
+    "question": "What is heteroscedastic noise, and why is constant variance (homoscedasticity) an invalid assumption for urban air pollution?",
+    "answer": "Heteroscedastic noise means observation noise variance varies across input space or time. Constant variance is invalid for air pollution because variance spikes during peak traffic hours, near street canyons, and under strong atmospheric inversion layers compared to quiet rural background conditions.",
+    "explanation": "A model predicting constant $\\sigma$ everywhere underestimates risk at emission hotspots and overestimates uncertainty in stable background regimes.",
+    "trap": "Assuming MSE loss with constant variance is sufficient for multi-scale urban phenomena.",
+    "sources": [
+      "https://arxiv.org/abs/1703.04977",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1030,
+    "requires": []
+  },
+  {
+    "id": "unc-l1-003",
+    "ladder": "uncertainty",
+    "level": 1,
+    "topic": "ensembles & epistemic variance",
+    "question": "How do Deep Ensembles estimate epistemic uncertainty?",
+    "answer": "By training $M$ identical neural architectures from different random weight initializations and mini-batch shuffles. The total predictive variance decomposes via the Law of Total Variance into expected aleatoric variance (mean of predicted $\\sigma_m^2(x)$) plus epistemic variance (variance among ensemble mean predictions $\\mu_m(x)$).",
+    "explanation": "In well-sampled regions, all models in the ensemble converge to the same mean (low epistemic variance); in unobserved regions, their predictions diverge widely.",
+    "trap": "Believing ensemble variance captures sensor noise rather than model parameter uncertainty.",
+    "sources": [
+      "https://arxiv.org/abs/1703.04977",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1050,
+    "requires": []
+  },
+  {
+    "id": "unc-l2-001",
+    "ladder": "uncertainty",
+    "level": 2,
+    "topic": "proper scoring rules",
+    "question": "What is a 'proper scoring rule', and why must probabilistic forecasts be evaluated with them rather than Mean Squared Error (MSE)?",
+    "answer": "A scoring rule $S(P, y)$ assigns a numerical penalty to a predicted probability distribution $P$ given true outcome $y$. It is 'strictly proper' if and only if the expected penalty is uniquely minimized when the forecaster reports their true belief $P = Q$. MSE evaluates only the mean point forecast and ignores variance, shape, and calibration.",
+    "explanation": "Evaluating probabilistic forecasts with improper metrics allows models to game scores by reporting overconfident or underconfident distributions.",
+    "trap": "Using MSE or MAE on the predicted mean $\\mu$ to evaluate the quality of a probabilistic distribution forecast.",
+    "sources": [
+      "https://doi.org/10.1198/016214506000001437",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1210,
+    "requires": ["unc-l1-001"]
+  },
+  {
+    "id": "unc-l2-002",
+    "ladder": "uncertainty",
+    "level": 2,
+    "topic": "negative log-likelihood",
+    "question": "What is Negative Log-Likelihood (NLL) for a Gaussian predictive distribution $\\mathcal{N}(\\mu, \\sigma^2)$, and how does it balance accuracy and uncertainty?",
+    "answer": "NLL is $\\frac{1}{2}\\ln(2\\pi\\sigma^2) + \\frac{(y - \\mu)^2}{2\\sigma^2}$. The first term penalizes large uncertainty (penalizes high $\\sigma$), while the second term penalizes prediction errors scaled inversely by variance (heavily penalizes errors if $\\sigma$ is small).",
+    "explanation": "NLL forces the model to balance calibration and sharpness: underestimating $\\sigma$ explodes the residual term, while overestimating $\\sigma$ inflates the log-variance term.",
+    "trap": "Believing NLL only measures variance without penalizing mean accuracy errors $(y - \\mu)^2$.",
+    "sources": [
+      "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1240,
+    "requires": ["unc-l1-001", "unc-l1-002"]
+  },
+  {
+    "id": "unc-l2-003",
+    "ladder": "uncertainty",
+    "level": 2,
+    "topic": "Brier score for threshold exceedance",
+    "question": "What is the Brier Score, and how is it used to evaluate regulatory air-quality threshold warnings?",
+    "answer": "The Brier score measures the mean squared difference between predicted exceedance probabilities $p_i = P(y_i > \\tau)$ and binary observed outcomes $o_i \\in \\{0, 1\\}$: $\\text{BS} = \\frac{1}{N} \\sum_{i=1}^N (p_i - o_i)^2$. It is a strictly proper scoring rule for binary threshold verification.",
+    "explanation": "Decomposing the Brier score yields Reliability (calibration), Resolution (sharpness), and Uncertainty terms, auditing public health alarm accuracy.",
+    "trap": "Evaluating binary threshold classification using ROC-AUC alone without checking Brier probability calibration.",
+    "sources": [
+      "https://doi.org/10.1198/016214506000001437",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1260,
+    "requires": ["unc-l1-001"]
+  },
+  {
+    "id": "unc-l3-001",
+    "ladder": "uncertainty",
+    "level": 3,
+    "topic": "Continuous Ranked Probability Score (CRPS)",
+    "question": "What is the Continuous Ranked Probability Score (CRPS), and why is it preferred over NLL for continuous physical observations?",
+    "answer": "CRPS measures the integrated squared difference between the predicted cumulative distribution function $F(z)$ and the empirical Heaviside step function $H(z - y)$: $\\text{CRPS}(F, y) = \\int_{-\\infty}^{\\infty} (F(z) - \\mathbf{1}_{z \\ge y})^2 dz$. It is preferred over NLL because it is measured in the physical units of the observation (e.g. $\\mu g/m^3$), generalizes MAE for deterministic forecasts, and is less sensitive to extreme outlier penalties than log-likelihood.",
+    "explanation": "For a deterministic point forecast, CRPS reduces exactly to Absolute Error $|y - \\hat{y}|$. For Gaussian distributions, it has an analytical closed-form expression.",
+    "trap": "Thinking CRPS only applies to binary classification rather than continuous density forecasts.",
+    "sources": [
+      "https://doi.org/10.1198/016214506000001437",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1460,
+    "requires": ["unc-l2-001", "unc-l2-002"]
+  },
+  {
+    "id": "unc-l3-002",
+    "ladder": "uncertainty",
+    "level": 3,
+    "topic": "calibration vs sharpness",
+    "question": "Explain the tension between 'calibration' (reliability) and 'sharpness' (resolution) in probabilistic forecasting.",
+    "answer": "'Calibration' means the statistical consistency between predicted probabilities and observed frequencies (e.g., an 80% prediction interval contains the ground truth exactly 80% of the time). 'Sharpness' refers to the concentration of the predictive distribution (narrow prediction intervals). Maximizing sharpness subject to calibration is the goal of probabilistic modelling.",
+    "explanation": "A climatological forecast (predicting historical long-term mean and variance) is perfectly calibrated but unsharp (uninformative). A model predicting zero-width intervals is sharp but uncalibrated.",
+    "trap": "Assuming narrow confidence intervals alone indicate a superior model without testing calibration coverage.",
+    "sources": [
+      "https://doi.org/10.1198/016214506000001437",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1490,
+    "requires": ["unc-l2-001"]
+  },
+  {
+    "id": "unc-l4-001",
+    "ladder": "uncertainty",
+    "level": 4,
+    "topic": "reliability diagrams & ECE",
+    "question": "What is a reliability diagram, and how is Expected Calibration Error (ECE) calculated?",
+    "answer": "A reliability diagram plots observed empirical frequency against predicted probability bins (e.g., nominal coverage levels vs empirical coverage). Expected Calibration Error (ECE) is the weighted average of the absolute difference between predicted confidence and empirical accuracy across $M$ bins: $\\text{ECE} = \\sum_{m=1}^M \\frac{|B_m|}{N} |\\text{acc}(B_m) - \\text{conf}(B_m)|$.",
+    "explanation": "In regression, coverage calibration plots check if nominal $p$-intervals (e.g., 50%, 90%, 95%) match empirical inclusion rates across validation samples.",
+    "trap": "Believing a low validation loss guarantees a low Expected Calibration Error.",
+    "sources": [
+      "https://arxiv.org/abs/1706.04599",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1690,
+    "requires": ["unc-l3-002", "unc-l2-001"]
+  },
+  {
+    "id": "unc-l4-002",
+    "ladder": "uncertainty",
+    "level": 4,
+    "topic": "Probability Integral Transform (PIT)",
+    "question": "How is the Probability Integral Transform (PIT) used to diagnose calibration errors in continuous regression?",
+    "answer": "For each observation $y_i$ with continuous predictive CDF $F_i$, the PIT value is $u_i = F_i(y_i)$. If the forecast is ideal and well-calibrated, $u_i \\sim \\text{Uniform}(0, 1)$. A U-shaped PIT histogram indicates underdispersed forecasts (too narrow / overconfident); a humped/inverse-U histogram indicates overdispersed forecasts (too wide); an asymmetric slope indicates bias.",
+    "explanation": "PIT histograms expose the exact failure mode of probabilistic predictions across the full distribution spectrum.",
+    "trap": "Assuming Gaussian normality tests on residuals are equivalent to uniform PIT calibration checks.",
+    "sources": [
+      "https://doi.org/10.1198/016214506000001437",
+      "docs/SESSION_LOG_2026-08.md"
+    ],
+    "difficulty": 1730,
+    "requires": ["unc-l3-001", "unc-l3-002"]
+  },
+  {
+    "id": "unc-l4-003",
+    "ladder": "uncertainty",
+    "level": 4,
+    "topic": "spatial cross-validation & data leakage",
+    "question": "Why is random K-fold cross-validation invalid for spatial environmental models, and why must Leave-One-Station-Out (LOSO) be used?",
+    "answer": "Random K-fold randomly splits individual measurement records, placing measurements from the same station at neighboring timestamps in both train and validation folds. Due to spatial and temporal autocorrelation, the model memorizes station-specific biases, causing severe data leakage and artificially inflated performance. Leave-One-Station-Out (LOSO) cross-validation isolates entire spatial monitoring stations, testing genuine spatial generalisation.",
+    "explanation": "In urban air quality, predicting at an already-sampled location is trivial interpolation; predicting at an unmonitored location is the true spatial task.",
+    "trap": "Reporting 98% $R^2$ using random K-fold on spatial time-series without spatial block splitting.",
+    "sources": [
+      "docs/SESSION_LOG_2026-08.md",
+      "docs/career_strategy_conversation_aug2026.md"
+    ],
+    "difficulty": 1760,
+    "requires": ["unc-l3-002", "unc-l1-001"]
+  },
+  {
+    "id": "unc-l5-001",
+    "ladder": "uncertainty",
+    "level": 5,
+    "topic": "agency trust & calibration interview answer",
+    "question": "How would you convince a city environmental agency that your model's uncertainty estimates are meaningful, physically grounded, and calibrated rather than arbitrary spread?",
+    "answer": "1. Quantitative Calibration Audit: Present reliability diagrams and PIT histograms evaluated strictly under Leave-One-Station-Out (LOSO) spatial cross-validation. Demonstrate that nominal 90% prediction intervals contain true sensor observations exactly 90% of the time at unobserved stations (low ECE).\n2. Proper Scoring Metric Validation: Report Continuous Ranked Probability Score (CRPS) in physical units ($\\mu g/m^3$), showing that probabilistic forecasts outperform deterministic baselines on both sharpness and calibration.\n3. Spatial Uncertainty Mapping: Show that epistemic uncertainty correctly widens in areas far from sensors or complex topography, while narrowing near dense observation networks.\n4. Physics & Regulatory Threshold Grounding: Demonstrate probabilistic threshold exceedance curves (e.g., probability of exceeding EU limit values $P(\\text{NO}_2 > 40\\,\\mu g/m^3)$) and verify that false-alarm and missed-detection rates match nominal decision-risk probabilities under cost-loss matrices.",
+    "explanation": "City regulators care about compliance decisions and public health liability. Grounding uncertainty in strict spatial cross-validation, physical units (CRPS), and threshold exceedance probabilities provides actionable, auditable evidence.",
+    "trap": "Focusing purely on raw RMSE or claiming uncertainty is 'certain' without showing empirical coverage on holdout monitoring stations.",
+    "sources": [
+      "docs/SESSION_LOG_2026-08.md",
+      "https://doi.org/10.1198/016214506000001437"
+    ],
+    "difficulty": 1970,
+    "requires": ["unc-l4-001", "unc-l4-002", "unc-l4-003"]
+  }
+]

@@ -1,0 +1,90 @@
+{
+  "user_rating": 1269.79,
+  "cards": {
+    "pyt-l1-001": {
+      "rating": 978.24,
+      "ease": 2.6,
+      "interval_days": 1,
+      "reps": 1,
+      "last_seen": "2026-08-19T19:50:44.141461+00:00",
+      "due_date": "2026-08-20T19:50:44.141461+00:00",
+      "mastered": true,
+      "history": [
+        {
+          "timestamp": "2026-08-19T19:50:44.141461+00:00",
+          "score": 1.0,
+          "user_rating": 1205.28,
+          "card_rating": 978.24
+        }
+      ]
+    },
+    "pyt-l2-001": {
+      "rating": 1176.29,
+      "ease": 2.6,
+      "interval_days": 1,
+      "reps": 1,
+      "last_seen": "2026-08-19T19:50:44.166521+00:00",
+      "due_date": "2026-08-20T19:50:44.166521+00:00",
+      "mastered": true,
+      "history": [
+        {
+          "timestamp": "2026-08-19T19:50:44.166521+00:00",
+          "score": 1.0,
+          "user_rating": 1216.41,
+          "card_rating": 1176.29
+        }
+      ]
+    },
+    "unc-l3-001": {
+      "rating": 1457.58,
+      "ease": 2.35,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-08-19T19:50:44.217739+00:00",
+      "due_date": "2026-08-20T19:50:44.217739+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-19T19:50:44.217739+00:00",
+          "score": 0.5,
+          "user_rating": 1223.67,
+          "card_rating": 1457.58
+        }
+      ]
+    },
+    "np-l4-001": {
+      "rating": 1682.51,
+      "ease": 2.6,
+      "interval_days": 1,
+      "reps": 1,
+      "last_seen": "2026-08-19T19:50:44.251235+00:00",
+      "due_date": "2026-08-20T19:50:44.251235+00:00",
+      "mastered": true,
+      "history": [
+        {
+          "timestamp": "2026-08-19T19:50:44.251235+00:00",
+          "score": 1.0,
+          "user_rating": 1246.14,
+          "card_rating": 1682.51
+        }
+      ]
+    },
+    "own-l5-001": {
+      "rating": 1972.12,
+      "ease": 2.6,
+      "interval_days": 1,
+      "reps": 1,
+      "last_seen": "2026-08-19T19:50:44.299252+00:00",
+      "due_date": "2026-08-20T19:50:44.299252+00:00",
+      "mastered": true,
+      "history": [
+        {
+          "timestamp": "2026-08-19T19:50:44.299252+00:00",
+          "score": 1.0,
+          "user_rating": 1269.79,
+          "card_rating": 1972.12
+        }
+      ]
+    }
+  }
+}

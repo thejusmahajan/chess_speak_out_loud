@@ -1,0 +1,196 @@
+[
+  {
+    "id": "own-l1-001",
+    "ladder": "own-work",
+    "level": 1,
+    "topic": "BT3 transformer architecture",
+    "question": "What is the architecture of Leela Chess Zero's BT3 neural network, and how are chess positions tokenized?",
+    "answer": "BT3 is a 15-layer Transformer encoder with 24 attention heads per layer. It tokenizes the 8x8 chessboard as 64 discrete spatial tokens (one per square), producing a 64x64 attention weight matrix for each attention head at each encoder layer.",
+    "explanation": "Because every square is a token, attention maps directly back to the physical chessboard, showing pairwise square-to-square attention relationships.",
+    "trap": "Thinking LC0 BT3 is a convolutional ResNet or that tokens represent individual piece types rather than board squares.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "backend/neural_vision.py"
+    ],
+    "difficulty": 990,
+    "requires": []
+  },
+  {
+    "id": "own-l1-002",
+    "ladder": "own-work",
+    "level": 1,
+    "topic": "side-to-move input perspective",
+    "question": "How does Leela Chess Zero represent positions with respect to the side to move?",
+    "answer": "LC0 always encodes the board from the perspective of the side whose turn it is to move. When Black is to move, the board is vertically mirrored (rank 1 becomes rank 8, preserving file orientation) so that the moving side is always treated as playing from the bottom ranks.",
+    "explanation": "This canonical perspective sharing cuts the state space in half, allowing the network to learn unified attacking and defensive representations regardless of piece color.",
+    "trap": "Assuming White and Black positions are fed into the network with fixed rank coordinates a1-h8 without perspective flipping.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "backend/neural_vision.py"
+    ],
+    "difficulty": 1030,
+    "requires": []
+  },
+  {
+    "id": "own-l1-003",
+    "ladder": "own-work",
+    "level": 1,
+    "topic": "Policy Head vs Value Head",
+    "question": "What is the architectural and functional difference between LC0's Policy Head and Value Head?",
+    "answer": "The Policy Head outputs a categorical distribution over all legal chess moves (logits mapping to ~1858 move channels), representing the raw prior probability distribution $P(a|s)$. The Value Head outputs a 3-element categorical probability vector representing Win, Draw, and Loss (WDL) probabilities from the perspective of the side to move.",
+    "explanation": "Both heads branch off the final encoder layer embeddings, producing dual outputs for MCTS search guidance.",
+    "trap": "Confusing the 3-class WDL value head with a single scalar scalar score in $[-1, 1]$.",
+    "sources": [
+      "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 1050,
+    "requires": []
+  },
+  {
+    "id": "own-l2-001",
+    "ladder": "own-work",
+    "level": 2,
+    "topic": "mechanistic attention extraction via hooks",
+    "question": "How did you extract post-softmax attention tensors from BT3 without modifying the engine binary or model code?",
+    "answer": "Converted the ONNX model into a PyTorch module tree (`onnx2torch`), located each encoder layer's Query-Key softmax operation (`module.encoder{i}/mha/QK/softmax`), registered PyTorch forward hooks, and captured the raw `[batch, 24, 64, 64]` tensors during inference passes under `torch.no_grad()`.",
+    "explanation": "PyTorch forward hooks provide non-invasive activation capture, separating model execution from interpretability extraction.",
+    "trap": "Claiming you computed gradient saliency (backward pass) or modified the Leela C++ source code.",
+    "sources": [
+      "backend/neural_vision.py",
+      "docs/CV_AI_MODULE.md",
+      "docs/writeup_attention_frame_bug.md"
+    ],
+    "difficulty": 1220,
+    "requires": ["own-l1-001"]
+  },
+  {
+    "id": "own-l2-002",
+    "ladder": "own-work",
+    "level": 2,
+    "topic": "policy prior extraction (nodes=1)",
+    "question": "How do you extract the neural network's raw policy prior before MCTS search in LC0?",
+    "answer": "By querying the engine with `nodes=1` and `VerboseMoveStats=true`. At 1 node, the engine performs exactly one forward pass without expanding child nodes or executing tree rollouts, outputting the network's raw policy distribution $P(a|s)$ representing pure learned intuition.",
+    "explanation": "Comparing the raw policy prior (intuition) against post-search visit counts $N(s, a)$ (calculation) separates what the network immediately sees from what it calculates.",
+    "sources": [
+      "backend/engine_manager.py",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 1250,
+    "requires": ["own-l1-001", "own-l1-003"]
+  },
+  {
+    "id": "own-l2-003",
+    "ladder": "own-work",
+    "level": 2,
+    "topic": "activation capture vs causal intervention",
+    "question": "What is the boundary between activation capture (what this project does) and causal intervention (what it does not do)?",
+    "answer": "Activation capture reads internal model activations (attention weights, feature maps) during an unmodified forward pass, showing what the model attends to. Causal intervention actively modifies or ablates intermediate activations (e.g. activation patching, zeroing attention heads) to prove whether specific internal features are causally load-bearing for output predictions.",
+    "explanation": "Extracting heatmaps is observational; establishing causality requires ablation or patching interventions (the planned next phase).",
+    "trap": "Claiming that observing an attention weight proves the attended square was causally responsible for the engine's move selection.",
+    "sources": [
+      "docs/CV_AI_MODULE.md",
+      "docs/writeup_attention_frame_bug.md"
+    ],
+    "difficulty": 1270,
+    "requires": ["own-l1-001"]
+  },
+  {
+    "id": "own-l3-001",
+    "ladder": "own-work",
+    "level": 3,
+    "topic": "the coordinate-frame bug diagnosis",
+    "question": "What was the coordinate-frame bug in your initial attention pipeline, and why did it silently pass initial visual inspections?",
+    "answer": "Because LC0 encodes from the side-to-move's perspective, Black-to-move positions are vertically flipped. The initial extraction mapped internal index 0 to a1 unconditionally, causing every Black-to-move attention heatmap to be vertically mirrored across the horizontal midline (a1↔a8, e4↔e5). It passed visual inspection because the heatmaps were smooth, continuous, and plausible, and tests on White-to-move positions were 100% correct.",
+    "explanation": "Silent coordinate frame errors look plausible: attention still clustered in coherent blobs, but on Black-to-move positions it landed on empty squares opposite the true tactical pieces.",
+    "trap": "Believing unit tests comparing output shapes or tensor bounds will catch coordinate-frame reflections.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "backend/neural_vision.py",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 1470,
+    "requires": ["own-l1-002", "own-l2-001"]
+  },
+  {
+    "id": "own-l3-002",
+    "ladder": "own-work",
+    "level": 3,
+    "topic": "correcting the vertical reflection frame",
+    "question": "What is the exact mathematical transformation to map internal LC0 tokens back to absolute board squares for Black to move?",
+    "answer": "The transformation is a vertical reflection flipping rank while preserving file: $i \\mapsto i \\oplus 56$, or $(f, r) \\mapsto (f, 7-r)$ in 0-indexed coordinates. Internal index 0 (a1 in the network frame) corresponds to absolute square a8 (56).",
+    "explanation": "Rank flipping: rank 1 (0) becomes rank 8 (7), rank 2 (1) becomes rank 7 (6), etc. File bits ($i \\& 7$) remain unchanged.",
+    "trap": "Stating that internal index 0 for Black is h8 (which would be a 180-degree rotation flipping both rank and file, placing White's king on d8).",
+    "sources": [
+      "backend/neural_vision.py",
+      "docs/writeup_attention_frame_bug.md"
+    ],
+    "difficulty": 1500,
+    "requires": ["own-l2-001", "own-l1-002"]
+  },
+  {
+    "id": "own-l3-003",
+    "ladder": "own-work",
+    "level": 3,
+    "topic": "quantitative residual of the frame defect",
+    "question": "What was the quantitative residual between the buggy mirrored attention map and the rank-flipped corrected map across 40 test positions?",
+    "answer": "Across 40 Black-to-move midgame positions, the mean per-square residual between the buggy map and the rank-flipped corrected map was 0.0003 on a [0, 1] normalized scale (median 0.0002, max 0.0007), proving that the two maps were mathematically identical up to horizontal midline reflection.",
+    "explanation": "This residual metric provided definitive empirical proof of the exact geometric nature of the defect.",
+    "trap": "Assuming the bug was caused by stochastic noise rather than an exact deterministic coordinate reflection.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 1520,
+    "requires": ["own-l2-001", "own-l1-002"]
+  },
+  {
+    "id": "own-l4-001",
+    "ladder": "own-work",
+    "level": 4,
+    "topic": "the 112-plane history distribution bug",
+    "question": "What was the second bug discovered while writing up the coordinate-frame fix, and what was its mathematical signature?",
+    "answer": "BT3's input representation requires 112 binary planes, of which ~84 encode the previous 7-8 half-moves of game history. The initial extraction built input tensors from a bare FEN with all history planes zeroed out. The mathematical signature was that the value head returned an out-of-distribution certain-loss verdict ($WDL = [0, 0, 1]$) on 20/20 standard midgame positions.",
+    "explanation": "Feeding empty history planes forced the transformer completely out of distribution. Reconstructing true move history restored sharp value evaluations and raised top-1 policy agreement from 1/6 to 5/6.",
+    "trap": "Concealing the error or blaming the engine weights rather than verifying input tensor distribution fidelity.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 1710,
+    "requires": ["own-l3-001", "own-l3-002"]
+  },
+  {
+    "id": "own-l4-002",
+    "ladder": "own-work",
+    "level": 4,
+    "topic": "public correction & verification discipline",
+    "question": "Why is publicly correcting a published machine learning finding preferable to silently deleting or leaving it uncorrected?",
+    "answer": "Publicly correcting a published write-up demonstrates empirical integrity, thorough verification discipline, and deep mechanistic understanding. It shows an engineer who does not accept plausible-looking numbers at face value and turns verification rigor upon their own findings.",
+    "explanation": "The pair of bugs (coordinate-frame reflection and empty history planes) provides strong interview evidence of catching silent failures through domain reasoning and distribution auditing.",
+    "trap": "Claiming perfect first-time results without acknowledging verification corrections.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 1740,
+    "requires": ["own-l3-001", "own-l2-001"]
+  },
+  {
+    "id": "own-l5-001",
+    "ladder": "own-work",
+    "level": 5,
+    "topic": "silent pipeline errors interview answer",
+    "question": "Tell me about a time you found a serious silent error in your own machine-learning pipeline, how you diagnosed it, and what you did.",
+    "answer": "1. The Incident: While extracting internal attention from Leela Chess Zero's 15-layer transformer, I noticed attention heatmaps looked visually plausible but failed tactical grounding on Black-to-move positions.\n2. Root-Cause Diagnosis: I realized the engine encodes boards from the side-to-move's perspective, vertically flipping Black positions. My extraction code mapped index 0 to a1 unconditionally, so 50% of all attention maps were mirrored across the horizontal midline (a1↔a8, e4↔e5), landing peak attention on empty squares.\n3. The Second Silent Bug: While writing up the fix, I audited input tensor representations and discovered BT3 expects 112 input planes (~84 for move history), whereas my code fed bare FENs. This out-of-distribution input caused the value head to predict [0, 0, 1] (certain loss) on 20/20 midgame positions.\n4. Remediation & Public Correction: I rebuilt input tensor generation to encode true move history (raising top-1 policy agreement from 1/6 to 5/6), engineered an absolute-frame API with regression tests, and published a public correction of the earlier write-up explaining both mechanisms.",
+    "explanation": "This demonstrates deep understanding of neural representations, relentless verification discipline, and scientific honesty.",
+    "trap": "Claiming you performed causal interventions (ablation/patching) or claiming internal index 0 is h8.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "docs/CV_AI_MODULE.md",
+      "backend/neural_vision.py"
+    ],
+    "difficulty": 1980,
+    "requires": ["own-l4-001", "own-l4-002"]
+  }
+]

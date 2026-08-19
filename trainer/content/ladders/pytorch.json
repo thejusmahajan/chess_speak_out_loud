@@ -1,0 +1,194 @@
+[
+  {
+    "id": "pyt-l1-001",
+    "ladder": "pytorch",
+    "level": 1,
+    "topic": "tensors & shapes",
+    "question": "What is a PyTorch Tensor, and how does it differ from a standard NumPy ndarray?",
+    "answer": "A PyTorch Tensor is a multi-dimensional array containing elements of a uniform data type (dtype). Unlike a NumPy ndarray, a PyTorch Tensor can be allocated on hardware accelerators like GPUs (via CUDA/MPS) and can automatically track mathematical operations to compute gradients via Autograd.",
+    "explanation": "Tensors are the fundamental data abstraction in deep learning. While they share memory layout semantics and slicing with NumPy, their GPU residency and automatic differentiation engine (autograd) enable backpropagation.",
+    "trap": "Thinking tensors are only 2D matrices or that NumPy arrays can execute GPU kernels natively.",
+    "sources": [
+      "https://pytorch.org/docs/stable/tensors.html",
+      "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md"
+    ],
+    "difficulty": 980,
+    "requires": []
+  },
+  {
+    "id": "pyt-l1-002",
+    "ladder": "pytorch",
+    "level": 1,
+    "topic": "dtypes & devices",
+    "question": "How do you specify a tensor's data type and memory device, and why does device placement matter for performance?",
+    "answer": "You specify dtype (e.g., torch.float32, torch.long) and device (e.g., 'cpu', 'cuda:0') during tensor construction or via `.to(device, dtype)`. Device placement matters because operations between tensors on different devices fail outright, and moving tensors across the PCIe bus between CPU and GPU incurs high latency.",
+    "explanation": "A forward pass must execute entirely on one device (CPU or GPU). Pushing inputs to the GPU batch-by-batch rather than element-by-element hides transfer latency.",
+    "trap": "Attempting binary arithmetic between a CPU tensor and a CUDA tensor without `.to(device)` first.",
+    "sources": [
+      "https://pytorch.org/docs/stable/tensor_attributes.html",
+      "backend/neural_vision.py"
+    ],
+    "difficulty": 1020,
+    "requires": []
+  },
+  {
+    "id": "pyt-l1-003",
+    "ladder": "pytorch",
+    "level": 1,
+    "topic": "broadcasting",
+    "question": "What are the NumPy/PyTorch broadcasting rules, and what condition allows two tensors of shapes (B, 1, D) and (1, H, D) to be added?",
+    "answer": "Two tensors are broadcastable if, starting from trailing dimensions, each dimension either matches or is equal to 1 (or is missing). For shapes (B, 1, D) and (1, H, D), dimension D matches, while B and H broadcast against 1, producing a resulting tensor of shape (B, H, D).",
+    "explanation": "Broadcasting avoids copying memory: singleton dimensions are virtually expanded by setting their memory stride to 0.",
+    "trap": "Assuming broadcasting copies data in memory, or confusing leading versus trailing dimension alignment.",
+    "sources": [
+      "https://pytorch.org/docs/stable/notes/broadcasting.html"
+    ],
+    "difficulty": 1050,
+    "requires": []
+  },
+  {
+    "id": "pyt-l2-001",
+    "ladder": "pytorch",
+    "level": 2,
+    "topic": "autograd & computation graph",
+    "question": "What does 'define-by-run' (dynamic computation graph) mean in PyTorch Autograd?",
+    "answer": "'Define-by-run' means the computational graph is constructed dynamically in memory during the forward pass execution as operations are performed. Each operator creates a Node with backward functions (`grad_fn`), and calling `.backward()` traverses this exact dynamic graph in reverse to compute gradients.",
+    "explanation": "In static graph frameworks (like early TensorFlow), you defined the graph structure before feeding data. In PyTorch, control flow like Python `if` statements and `for` loops dynamically alter graph topology per iteration.",
+    "trap": "Believing PyTorch compiles the full graph upfront before execution begins.",
+    "sources": [
+      "https://pytorch.org/docs/stable/autograd.html",
+      "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md"
+    ],
+    "difficulty": 1180,
+    "requires": ["pyt-l1-001"]
+  },
+  {
+    "id": "pyt-l2-002",
+    "ladder": "pytorch",
+    "level": 2,
+    "topic": "no_grad vs inference_mode",
+    "question": "Why should inference code always execute inside `with torch.no_grad():` or `with torch.inference_mode():`?",
+    "answer": "Executing under `torch.no_grad()` or `torch.inference_mode()` disables tracking of operations by autograd. This prevents storing intermediate activation tensors needed for the backward pass, dramatically reducing VRAM memory consumption and improving execution speed.",
+    "explanation": "During inference, backward passes never happen. Without disabling gradient tracking, every forward pass leaks memory into the computational graph until VRAM runs out.",
+    "trap": "Calling `model.eval()` and assuming it disables autograd. `model.eval()` only switches layers like Dropout and BatchNorm; `torch.no_grad()` is still strictly required.",
+    "sources": [
+      "https://pytorch.org/docs/stable/generated/torch.no_grad.html",
+      "backend/neural_vision.py"
+    ],
+    "difficulty": 1220,
+    "requires": ["pyt-l1-001", "pyt-l1-002"]
+  },
+  {
+    "id": "pyt-l2-003",
+    "ladder": "pytorch",
+    "level": 2,
+    "topic": "autograd gradient accumulation",
+    "question": "Why does PyTorch require calling `optimizer.zero_grad()` before `loss.backward()` in a training loop?",
+    "answer": "PyTorch accumulates gradients into `.grad` attributes by default (`+=` instead of `=`). If `optimizer.zero_grad()` is omitted, gradients from the current batch are added to gradients from all previous batches, causing invalid updates.",
+    "explanation": "Gradient accumulation is a deliberate design choice: it allows simulating a large effective batch size across multiple small forward-backward passes on limited-memory GPUs.",
+    "trap": "Forgetting that `zero_grad()` must be called before `backward()`, or assuming PyTorch clears `.grad` automatically on every step.",
+    "sources": [
+      "https://pytorch.org/docs/stable/optim.html",
+      "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md"
+    ],
+    "difficulty": 1250,
+    "requires": ["pyt-l1-001"]
+  },
+  {
+    "id": "pyt-l3-001",
+    "ladder": "pytorch",
+    "level": 3,
+    "topic": "nn.Module architecture",
+    "question": "What is the role of `nn.Module`, and how does it distinguish between Parameters, Buffers, and Submodules?",
+    "answer": "`nn.Module` is the base class for neural network architectures. `nn.Parameter` represents learnable weights updated by optimizers. Buffers (`register_buffer`) represent persistent state not updated by gradients (e.g., BatchNorm running mean). Submodules are nested child `nn.Module`s whose parameters and buffers are recursively tracked and moved when `.to(device)` is called.",
+    "explanation": "Assigning an `nn.Parameter` or child `nn.Module` as an attribute of an `nn.Module` automatically registers it in internal dictionaries (`_parameters`, `_modules`), enabling `.state_dict()` serialization and batch device transfers.",
+    "trap": "Storing raw tensors in a list instead of `nn.ModuleList` or `nn.ParameterList`, causing their parameters to be invisible to `.parameters()` and `.to(device)`.",
+    "sources": [
+      "https://pytorch.org/docs/stable/generated/torch.nn.Module.html"
+    ],
+    "difficulty": 1420,
+    "requires": ["pyt-l2-001", "pyt-l1-002"]
+  },
+  {
+    "id": "pyt-l3-002",
+    "ladder": "pytorch",
+    "level": 3,
+    "topic": "training loop mechanics",
+    "question": "What are the four canonical steps of a PyTorch training iteration?",
+    "answer": "1. `optimizer.zero_grad()`: Reset gradient buffers to zero.\n2. `outputs = model(inputs)`: Compute forward pass predictions.\n3. `loss = criterion(outputs, targets)`: Evaluate scalar loss.\n4. `loss.backward()`: Compute gradients via backpropagation.\n5. `optimizer.step()`: Update model parameters using computed gradients.",
+    "explanation": "These four steps form the core optimization loop. In reinforcement learning and supervised training, loss is scalarized and backpropagated into the leaf parameters.",
+    "trap": "Executing `optimizer.step()` before `loss.backward()`, resulting in parameter updates using zero or stale gradients.",
+    "sources": [
+      "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md",
+      "https://pytorch.org/docs/stable/optim.html"
+    ],
+    "difficulty": 1450,
+    "requires": ["pyt-l2-003", "pyt-l2-001"]
+  },
+  {
+    "id": "pyt-l4-001",
+    "ladder": "pytorch",
+    "level": 4,
+    "topic": "PyTorch forward hooks",
+    "question": "What is a PyTorch forward hook (`register_forward_hook`), and how does it enable non-invasive activation extraction?",
+    "answer": "A forward hook is a callback registered on an `nn.Module` that executes automatically every time the module's `forward()` finishes. It receives `(module, input, output)` as arguments, allowing users to capture and save intermediate activation tensors or attention matrices without modifying the model's source code or forward method.",
+    "explanation": "Forward hooks allow read-only mechanistic inspection. The hook stores the tensor into a dictionary or list during `model(x)` under `torch.no_grad()`, after which the hook handle can be removed with `handle.remove()`.",
+    "trap": "Modifying the `output` inside a hook in-place unless intentionally changing model computation.",
+    "sources": [
+      "https://pytorch.org/docs/stable/generated/torch.nn.modules.module.register_module_forward_hook.html",
+      "backend/neural_vision.py",
+      "docs/writeup_attention_frame_bug.md"
+    ],
+    "difficulty": 1680,
+    "requires": ["pyt-l3-001", "pyt-l2-002"]
+  },
+  {
+    "id": "pyt-l4-002",
+    "ladder": "pytorch",
+    "level": 4,
+    "topic": "batched transformer inference",
+    "question": "How do you structure batched inference across N input positions for a transformer encoder, and what determines throughput?",
+    "answer": "You stack N input tensors along dimension 0 into shape `[N, channels, H, W]` or `[N, seq_len, embed_dim]`. Throughput on GPUs is determined by saturating tensor cores through parallel matrix multiplications while avoiding VRAM out-of-memory (OOM) by capping batch size.",
+    "explanation": "Running individual positions sequentially leaves GPU compute pipelines underutilized. Stacking positions into batches amortizes kernel launch overhead and maximizes CUDA thread occupancy.",
+    "trap": "Iterating over positions in a Python loop and doing N separate model forward passes instead of a single batched pass `model(batch_tensor)`.",
+    "sources": [
+      "backend/neural_vision.py",
+      "backend/training/attention_export.py"
+    ],
+    "difficulty": 1720,
+    "requires": ["pyt-l3-001", "pyt-l2-002", "pyt-l1-003"]
+  },
+  {
+    "id": "pyt-l4-003",
+    "ladder": "pytorch",
+    "level": 4,
+    "topic": "ONNX to PyTorch conversion",
+    "question": "What is the workflow for converting an ONNX model graph into a live PyTorch module tree (e.g. via `onnx2torch`), and what are the limitations?",
+    "answer": "You load the `.onnx` computational graph using `onnx.load()`, parse its static nodes, and translate them into equivalent PyTorch `nn.Module` layers using `onnx2torch.convert()`. The limitation is that non-standard or custom ONNX ops may lack PyTorch mappings, and the resulting module tree uses synthesized operator names.",
+    "explanation": "In Leela Chess Zero (BT3), weights are distributed as ONNX. Converting to PyTorch yields named submodules like `module.encoder{i}/mha/QK/softmax` on which hooks can be placed.",
+    "trap": "Expecting variable-length dynamic axes to convert smoothly without specifying dynamic batch dimension handling.",
+    "sources": [
+      "backend/neural_vision.py",
+      "backend/training/attention_export.py"
+    ],
+    "difficulty": 1750,
+    "requires": ["pyt-l3-001", "pyt-l2-002"]
+  },
+  {
+    "id": "pyt-l5-001",
+    "ladder": "pytorch",
+    "level": 5,
+    "topic": "end-to-end attention extraction interview answer",
+    "question": "Walk me through how you extract and process internal attention tensors from a 15-layer transformer without modifying the underlying model source code.",
+    "answer": "1. Model Conversion & Inspection: Convert the ONNX weights into a live PyTorch module tree via `onnx2torch`. Inspect named submodules to locate each layer's Query-Key softmax operation (`module.encoder{i}/mha/QK/softmax` for i=0..14).\n2. Non-invasive Hook Registration: For all 15 layers, register PyTorch forward hooks (`register_forward_hook`) that capture the post-softmax attention tensor `[batch, heads, 64, 64]` into an in-memory dictionary during execution.\n3. Batched Inference under No-Grad: Prepare input tensors (handling coordinate frames and history planes), and execute a single forward pass inside `torch.no_grad()` to compute predictions and populate hook buffers with zero backward overhead.\n4. Spatial Aggregation: Average the captured tensors across layers, attention heads, and query tokens to produce a normalized 64-element per-square attention vector.\n5. Cleanup: Deregister hooks with `handle.remove()` to prevent memory leaks and restore clean model state.",
+    "explanation": "This architecture enables pure activation capture without forking or maintaining custom forward methods. It separates model execution from mechanistic interpretability probing.",
+    "trap": "Claiming you performed causal ablation or fine-tuned the model when you strictly extracted activations via read-only hooks.",
+    "sources": [
+      "backend/neural_vision.py",
+      "backend/training/attention_export.py",
+      "docs/writeup_attention_frame_bug.md"
+    ],
+    "difficulty": 1960,
+    "requires": ["pyt-l4-001", "pyt-l4-002", "pyt-l4-003"]
+  }
+]
