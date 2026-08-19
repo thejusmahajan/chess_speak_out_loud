@@ -156,6 +156,10 @@ content-producing task ships with a verifier that *fails the build* on unsourced
 > ship a machine gate that fails on unsourced items.
 > **ADOPT — F2.** **Canary sources** — a nonexistent citation and a planted false fact — in tasks
 > that summarise or synthesise. Removable, never published.
+> **CORRECTED 2026-08-19 (Brandt):** a canary described in a brief the worker reads is a test
+> that expires on documentation. Canaries are injected by the leader into the **inputs**, are
+> never mentioned in any instruction, and are rotated. Their existence is recorded outside the
+> worker-readable tree.
 > **ADOPT — F3.** Verbatim-provenance checking (the `provenance_check.py` pattern) is the standard
 > for anything claiming to quote a human source.
 
@@ -339,6 +343,13 @@ worker standing to refuse a bad constraint, which is otherwise a boundary violat
 **A.** It also converts a whole class of my errors from silent to loud. An instruction that
 contradicts a stated intent is *visible*; one that contradicts an unstated intent is not.
 
+> **CORRECTED 2026-08-19 (Brandt).** "State the reason" is theatre: a plausible reason attached
+> to a wrong constraint makes it *harder* to challenge, not easier — it armours the error.
+> Replace with a **falsification condition**: *what would be observable if this constraint were
+> wrong?* "Pass no move history — if this is wrong, the model runs on mostly empty input planes
+> and may emit a warning." A justification invites agreement; a falsification condition invites
+> a test.
+>
 > **ADOPT — I1.** Mandatory `## INTENT` section in every brief.
 > **ADOPT — I2.** Standing rule, stated in `agents/README.md`: **INTENT outranks instructions.**
 > Conflict → stop and report, and that is a success, not a violation.

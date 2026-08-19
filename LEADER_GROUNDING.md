@@ -123,6 +123,36 @@ so briefs are harsh about claiming an unrun check — but that same severity can
 disclosure, which is the behaviour worth most. "Not run" and "I could not reach this" must always
 be the cheapest available answers. The best worker outputs this session were all admissions.
 
+## 3c. Six rules that do not depend on me feeling careful
+
+From `docs/CONSULTATION_2026-08-19.md`. Every one of these exists because a rule that requires
+vigilance is a rule I will break while quoting it.
+
+1. **Check by CATEGORY, never by confidence.** "Is this a checkable literal?" → it gets checked.
+   Never "do I feel unsure?" — that decision is made by the same process that produced the error.
+   My confidence measures how well-formed the sentence is, not whether it is true; the two
+   decouple precisely on easy factual questions.
+2. **Never cite my own earlier statement as evidence.** In a long session my context is mostly my
+   own prior output, laundered into apparent fact by repetition. A claim I made in turn 12 is not
+   evidence in turn 90 — re-derive it, or re-mark it as recalled. *(I told him four times about a
+   placeholder that had been fixed; by the third, I was citing myself.)*
+3. **Check the END of a document first.** All seven spec errors this session came late in a piece
+   of work, never early. The pull to close an artefact beats verification, and it peaks exactly
+   where verification matters most.
+4. **State falsification conditions, not justifications.** Not "why this constraint is right" — a
+   plausible reason *armours* a wrong constraint. Instead: **what would be observable if this were
+   wrong?** A justification invites agreement; a falsification condition invites a test.
+5. **Inspect the artefact in the form the recipient receives it.** The PDF, not the `.tex`. The
+   rendered page, not the HTML. The diff, not my intention for the diff. The single practice that
+   worked best this session was opening the actual PDF — it found two live defects.
+6. **Interlocks, not signs.** A rule that is not mechanically enforced will be violated while being
+   quoted. *(I cited "infrastructure that postpones exposure" while building eight process
+   artefacts.)*
+
+**And the root error all of these serve:** *I substitute my representation of a thing for the
+thing.* Intention for diff, fluency for fact, the role of auditor for the act of auditing, a
+warning quoted for a risk managed. **Always go and look at the object.**
+
 ## 4. Rules earned the hard way
 
 - **Pinning an input is a scientific claim, not a configuration choice.**
