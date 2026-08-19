@@ -106,6 +106,41 @@ def is_card_unlocked(card_requires: List[str], progress: Dict[str, Any]) -> bool
     return True
 
 
+def _is_card_mastered(card_id: str, progress: Dict[str, Any]) -> bool:
+    """
+    A card is mastered if it has been answered with score 1.0 at least once.
+    """
+    cards_progress = progress.get("cards", {})
+    req_prog = cards_progress.get(card_id)
+    if not req_prog:
+        return False
+    if req_prog.get("mastered", False) or req_prog.get("reps", 0) >= 1:
+        return True
+    return any(entry.get("score") == 1.0 for entry in req_prog.get("history", []))
+
+
+def get_ladder_active_level(ladder_cards: List[Dict[str, Any]], progress: Dict[str, Any]) -> int:
+    """
+    Compute the active eligible level for a ladder.
+    Returns the lowest level L where < 80% of cards are mastered.
+    If all levels are >= 80% mastered, returns the highest level in the ladder.
+    """
+    levels = sorted({c.get("level", 0) for c in ladder_cards})
+    if not levels:
+        return 0
+    
+    for lvl in levels:
+        lvl_cards = [c for c in ladder_cards if c.get("level", 0) == lvl]
+        if not lvl_cards:
+            continue
+        n_mastered = sum(1 for c in lvl_cards if _is_card_mastered(c["id"], progress))
+        mastery_rate = n_mastered / len(lvl_cards)
+        if mastery_rate < 0.80:
+            return lvl
+            
+    return levels[-1]
+
+
 def filter_selectable_cards(
     cards: List[Dict[str, Any]],
     progress: Dict[str, Any],
@@ -113,19 +148,45 @@ def filter_selectable_cards(
     cram_mode: bool = False,
 ) -> List[Dict[str, Any]]:
     """
-    Filter cards that are unlocked (prerequisites met) and due (if not in cram mode).
+    Filter cards that are unlocked (prerequisites met), level-eligible, and due (if not in cram mode).
     """
     selectable = []
     cards_progress = progress.get("cards", {})
     
+    if cram_mode:
+        for card in cards:
+            card_id = card["id"]
+            reqs = card.get("requires", [])
+            if is_card_unlocked(reqs, progress):
+                selectable.append(card)
+        return selectable
+
+    # Level gating: compute active level per ladder
+    ladder_groups: Dict[str, List[Dict[str, Any]]] = {}
+    for card in cards:
+        ladder = card.get("ladder", "default")
+        ladder_groups.setdefault(ladder, []).append(card)
+        
+    active_levels: Dict[str, int] = {
+        ladder: get_ladder_active_level(l_cards, progress)
+        for ladder, l_cards in ladder_groups.items()
+    }
+    
     for card in cards:
         card_id = card["id"]
+        ladder = card.get("ladder", "default")
+        card_level = card.get("level", 0)
+        
+        # A ladder is eligible at level L only. Cards above L are not served.
+        if card_level > active_levels.get(ladder, 0):
+            continue
+            
         reqs = card.get("requires", [])
         if not is_card_unlocked(reqs, progress):
             continue
         
         card_prog = cards_progress.get(card_id)
-        if cram_mode or is_card_due(card_prog, now):
+        if is_card_due(card_prog, now):
             selectable.append(card)
             
     return selectable

@@ -5,7 +5,7 @@
     "level": 0,
     "topic": "policy vs value concept",
     "question": "What is a 'policy' and what is a 'value' in a game-playing neural network like Leela Chess Zero?",
-    "answer": "The policy is the network's intuition about what move to play (a probability distribution over all legal chess moves). The value is the network's evaluation of the board position (the probability of winning, drawing, or losing from that state).",
+    "answer": "The policy is the network's intuition about what move to play (a probability distribution $P(a|s)$ over all legal chess moves $a$ from state $s$). The value is the network's evaluation of the board position ($V(s) \\in [0, 1]$, the probability of winning, drawing, or losing from that state).",
     "explanation": "During game search (MCTS), the policy guides which move branches to explore first, while the value estimates the strength of the resulting board positions.",
     "trap": "Confusing policy (move selection) with value (position evaluation).",
     "sources": [
@@ -21,7 +21,7 @@
     "level": 0,
     "topic": "win-draw-loss (WDL) distribution",
     "question": "What is a Win/Draw/Loss (WDL) probability distribution, and why is it preferred over a single scalar evaluation score?",
-    "answer": "A WDL evaluation is a 3-number probability vector [P(win), P(draw), P(loss)] where all three numbers are positive and sum to 1.0 (100%). It is preferred over a single scalar score (like +1.5 or -0.8) because it explicitly separates drawish, sterile positions from volatile, sharp tactical positions that have equal average scores.",
+    "answer": "A WDL evaluation is a 3-number probability vector $[P(\\text{win}), P(\\text{draw}), P(\\text{loss})]$ where all three numbers are positive and sum to 1.0 ($100\\%$). It is preferred over a single scalar score (like $+1.5$ or $-0.8$) because it explicitly separates drawish, sterile positions from volatile, sharp tactical positions that have equal average scores.",
     "explanation": "For example, [0.50, 0.00, 0.50] (a wild tactical gamble) has the same expected score as [0.00, 1.00, 0.00] (a dead draw), but completely different risk profiles.",
     "trap": "Assuming modern neural chess engines only output a single scalar centipawn score.",
     "sources": [
@@ -69,15 +69,18 @@
     "level": 1,
     "topic": "Policy Head vs Value Head",
     "question": "What is the architectural and functional difference between LC0's Policy Head and Value Head?",
-    "answer": "The Policy Head outputs raw unnormalized scores (logits) across all 1858 possible move channels, which become move probabilities P(move | position) after Softmax. The Value Head outputs a 3-element probability vector [P(win), P(draw), P(loss)] representing the outcome distribution from the perspective of the side to move.",
+    "answer": "The Policy Head outputs a categorical distribution over all legal chess moves (logits mapping to ~1858 move channels), representing the raw prior probability distribution $P(a|s)$. The Value Head outputs a 3-element categorical probability vector representing Win, Draw, and Loss $[P(\\text{win}), P(\\text{draw}), P(\\text{loss})]$ from the perspective of the side to move.",
     "explanation": "Both heads branch off the final encoder layer embeddings, producing dual outputs for MCTS search guidance.",
-    "trap": "Confusing the 3-class WDL value head with a single scalar score in [-1, 1].",
+    "trap": "Confusing the 3-class WDL value head with a single scalar score in $[-1, 1]$.",
     "sources": [
       "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md",
       "docs/CV_AI_MODULE.md"
     ],
     "difficulty": 1050,
-    "requires": ["own-l0-001", "own-l0-002"]
+    "requires": [
+      "own-l0-001",
+      "own-l0-002"
+    ]
   },
   {
     "id": "own-l2-001",
@@ -94,7 +97,9 @@
       "docs/writeup_attention_frame_bug.md"
     ],
     "difficulty": 1220,
-    "requires": ["own-l1-001"]
+    "requires": [
+      "own-l1-001"
+    ]
   },
   {
     "id": "own-l2-002",
@@ -102,14 +107,17 @@
     "level": 2,
     "topic": "policy prior extraction (nodes=1)",
     "question": "How do you extract the neural network's raw policy prior before MCTS search in LC0?",
-    "answer": "By querying the engine with nodes=1 and VerboseMoveStats=true. At 1 node, the engine performs exactly one forward pass without expanding child nodes or executing tree rollouts, outputting the network's raw policy distribution P(move | position) representing pure learned intuition.",
-    "explanation": "Comparing the raw policy prior (intuition) against post-search visit counts (calculation) separates what the network immediately sees from what it calculates.",
+    "answer": "By querying the engine with `nodes=1` and `VerboseMoveStats=true`. At 1 node, the engine performs exactly one forward pass without expanding child nodes or executing tree rollouts, outputting the network's raw policy distribution $P(a|s)$ representing pure learned intuition.",
+    "explanation": "Comparing the raw policy prior $P(a|s)$ (intuition) against post-search visit counts $N(s, a)$ (calculation) separates what the network immediately sees from what it calculates.",
     "sources": [
       "backend/engine_manager.py",
       "docs/CV_AI_MODULE.md"
     ],
     "difficulty": 1250,
-    "requires": ["own-l1-001", "own-l1-003"]
+    "requires": [
+      "own-l1-001",
+      "own-l1-003"
+    ]
   },
   {
     "id": "own-l2-003",
@@ -125,7 +133,9 @@
       "docs/writeup_attention_frame_bug.md"
     ],
     "difficulty": 1270,
-    "requires": ["own-l1-001"]
+    "requires": [
+      "own-l1-001"
+    ]
   },
   {
     "id": "own-l3-001",
@@ -142,7 +152,10 @@
       "docs/CV_AI_MODULE.md"
     ],
     "difficulty": 1470,
-    "requires": ["own-l1-002", "own-l2-001"]
+    "requires": [
+      "own-l1-002",
+      "own-l2-001"
+    ]
   },
   {
     "id": "own-l3-002",
@@ -150,15 +163,18 @@
     "level": 3,
     "topic": "correcting the vertical reflection frame",
     "question": "What is the exact mathematical transformation to map internal LC0 tokens back to absolute board squares for Black to move?",
-    "answer": "The transformation is a vertical reflection flipping rank while preserving file: square_index mapped via i XOR 56, or (file, rank) to (file, 7 - rank) in 0-indexed coordinates. Internal index 0 (a1 in the network frame) corresponds to absolute square a8 (square index 56).",
-    "explanation": "Rank flipping: rank 1 (0) becomes rank 8 (7), rank 2 (1) becomes rank 7 (6), etc. File bits remain unchanged.",
+    "answer": "The transformation is a vertical reflection flipping rank while preserving file: $i \\mapsto i \\oplus 56$, or $(f, r) \\mapsto (f, 7-r)$ in 0-indexed coordinates. Internal index 0 (a1 in the network frame) corresponds to absolute square a8 (square index 56).",
+    "explanation": "Rank flipping: rank 1 (0) becomes rank 8 (7), rank 2 (1) becomes rank 7 (6), etc. File bits ($i \\& 7$) remain unchanged.",
     "trap": "Stating that internal index 0 for Black is h8 (which would be a 180-degree rotation flipping both rank and file, placing White's king on d8).",
     "sources": [
       "backend/neural_vision.py",
       "docs/writeup_attention_frame_bug.md"
     ],
     "difficulty": 1500,
-    "requires": ["own-l2-001", "own-l1-002"]
+    "requires": [
+      "own-l2-001",
+      "own-l1-002"
+    ]
   },
   {
     "id": "own-l3-003",
@@ -174,7 +190,10 @@
       "docs/CV_AI_MODULE.md"
     ],
     "difficulty": 1520,
-    "requires": ["own-l2-001", "own-l1-002"]
+    "requires": [
+      "own-l2-001",
+      "own-l1-002"
+    ]
   },
   {
     "id": "own-l4-001",
@@ -182,7 +201,7 @@
     "level": 4,
     "topic": "the 112-plane history distribution bug",
     "question": "What was the second bug discovered while writing up the coordinate-frame fix, and what was its mathematical signature?",
-    "answer": "BT3's input representation requires 112 binary planes, of which ~84 encode the previous 7-8 half-moves of game history. The initial extraction built input tensors from a bare FEN with all history planes zeroed out. The mathematical signature was that the value head returned an out-of-distribution certain-loss verdict (WDL = [0, 0, 1]) on 20/20 standard midgame positions.",
+    "answer": "BT3's input representation requires 112 binary planes, of which ~84 encode the previous 7-8 half-moves of game history. The initial extraction built input tensors from a bare FEN with all history planes zeroed out. The mathematical signature was that the value head returned an out-of-distribution certain-loss verdict ($\\text{WDL} = [0, 0, 1]$) on 20/20 standard midgame positions.",
     "explanation": "Feeding empty history planes forced the transformer completely out of distribution. Reconstructing true move history restored sharp value evaluations and raised top-1 policy agreement from 1/6 to 5/6.",
     "trap": "Concealing the error or blaming the engine weights rather than verifying input tensor distribution fidelity.",
     "sources": [
@@ -190,7 +209,10 @@
       "docs/CV_AI_MODULE.md"
     ],
     "difficulty": 1710,
-    "requires": ["own-l3-001", "own-l3-002"]
+    "requires": [
+      "own-l3-001",
+      "own-l3-002"
+    ]
   },
   {
     "id": "own-l4-002",
@@ -206,7 +228,10 @@
       "docs/CV_AI_MODULE.md"
     ],
     "difficulty": 1740,
-    "requires": ["own-l3-001", "own-l2-001"]
+    "requires": [
+      "own-l3-001",
+      "own-l2-001"
+    ]
   },
   {
     "id": "own-l5-001",
@@ -223,6 +248,9 @@
       "backend/neural_vision.py"
     ],
     "difficulty": 1980,
-    "requires": ["own-l4-001", "own-l4-002"]
+    "requires": [
+      "own-l4-001",
+      "own-l4-002"
+    ]
   }
 ]

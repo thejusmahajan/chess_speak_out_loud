@@ -36,7 +36,7 @@
     "level": 0,
     "topic": "broadcasting mechanics",
     "question": "What is 'broadcasting' in tensor arithmetic, and what happens when adding a (3, 1) tensor to a (1, 4) tensor?",
-    "answer": "Broadcasting is the rule PyTorch uses to do arithmetic between tensors of different shapes without copying data in memory. Singleton dimensions (dimensions of size 1) are virtually stretched to match the other tensor, so adding shape (3, 1) and shape (1, 4) produces an output matrix of shape (3, 4).",
+    "answer": "Broadcasting is the rule PyTorch uses to do arithmetic between tensors of different shapes without copying data in memory. Singleton dimensions (dimensions of size 1) are virtually stretched to match the other tensor, so adding shape $(3, 1)$ and shape $(1, 4)$ produces an output matrix of shape $(3, 4)$.",
     "explanation": "For example, if you add a column vector of 3 numbers to a row vector of 4 numbers, broadcasting evaluates all 3x4 = 12 pairwise sums.",
     "trap": "Believing broadcasting physically copies and duplicates numbers in memory, which would waste RAM.",
     "sources": [
@@ -67,7 +67,7 @@
     "level": 0,
     "topic": "gradient concept",
     "question": "What is a 'gradient' in a neural network, in one sentence?",
-    "answer": "A gradient is the vector of partial derivatives showing how much the network's prediction error (loss) will increase or decrease if you nudge each individual weight in the model.",
+    "answer": "A gradient $\\nabla_\\theta \\mathcal{L} = \\frac{\\partial \\mathcal{L}}{\\partial \\theta}$ is the vector of partial derivatives showing how much the network's prediction error (loss $\\mathcal{L}$) will increase or decrease if you nudge each individual weight $\\theta$ in the model.",
     "explanation": "If a weight has a positive gradient, increasing that weight increases the error; training subtracts a fraction of the gradient to step downhill towards lower error.",
     "trap": "Confusing the loss (a single scalar error score) with the gradient (a vector of derivatives for every parameter).",
     "sources": [
@@ -83,7 +83,7 @@
     "level": 0,
     "topic": "zero_grad mechanics",
     "question": "What does optimizer.zero_grad() zero, and why must it be called in a training loop?",
-    "answer": "It resets the gradient buffers (.grad) on all model parameters to zero. PyTorch accumulates (adds) gradients by default on every backward pass, so without zero_grad(), new gradients would add onto stale gradients from previous batches and corrupt the update step.",
+    "answer": "It resets the gradient buffers ($\\nabla_\\theta \\mathcal{L} \\leftarrow 0$) on all model parameters to zero. PyTorch accumulates (adds) gradients by default on every backward pass ($+=$), so without `optimizer.zero_grad()`, new gradients would add onto stale gradients from previous batches and corrupt the update step.",
     "explanation": "Gradient accumulation is useful when you want to simulate a batch of 128 items by running four batches of 32 on a small GPU, but between normal training steps you must clear the buffer.",
     "trap": "Assuming PyTorch clears parameter gradients automatically after optimizer.step().",
     "sources": [
@@ -99,7 +99,7 @@
     "level": 0,
     "topic": "logits vs probabilities",
     "question": "What are 'logits' in neural network outputs, and are they probabilities in percent?",
-    "answer": "Logits are raw, unnormalized real-valued scores output by the model's final linear layer before any probability function is applied. They can be positive, zero, or negative and do NOT sum to 1 or 100%; passing logits through a Softmax function converts them into positive probabilities that sum to 1.0.",
+    "answer": "Logits $z \\in \\mathbb{R}^K$ are raw, unnormalized real-valued scores output by the model's final linear layer before any probability function is applied. They can be positive, zero, or negative and do NOT sum to 1 or 100%; passing logits through Softmax ($P(y=k) = \\frac{e^{z_k}}{\\sum_j e^{z_j}}$) converts them into positive probabilities that sum to 1.0.",
     "explanation": "For example, logits [-2.1, 0.5, 3.4] indicate the third option is most favored, but they only become probabilities (e.g. 0.004, 0.051, 0.945) after Softmax exponentiation and normalization.",
     "trap": "Treating logits as percentages or assuming logits cannot be negative numbers.",
     "sources": [
@@ -151,8 +151,8 @@
     "ladder": "pytorch",
     "level": 1,
     "topic": "broadcasting",
-    "question": "What are the PyTorch broadcasting rules, and what condition allows two tensors of shapes (B, 1, D) and (1, H, D) to be added?",
-    "answer": "Two tensors are broadcastable if, starting from trailing dimensions, each dimension either matches or is equal to 1 (or is missing). For shapes (B, 1, D) and (1, H, D), dimension D matches, while B and H broadcast against 1, producing a resulting tensor of shape (B, H, D).",
+    "question": "What are the PyTorch broadcasting rules, and what condition allows two tensors of shapes $(B, 1, D)$ and $(1, H, D)$ to be added?",
+    "answer": "Two tensors are broadcastable if, starting from trailing dimensions, each dimension either matches or is equal to 1 (or is missing). For shapes $(B, 1, D)$ and $(1, H, D)$, dimension $D$ matches, while $B$ and $H$ broadcast against 1, producing a resulting tensor of shape $(B, H, D)$.",
     "explanation": "Broadcasting avoids copying memory: singleton dimensions are virtually expanded by setting their memory stride to 0.",
     "trap": "Assuming broadcasting copies data in memory, or confusing leading versus trailing dimension alignment.",
     "sources": [
@@ -263,7 +263,7 @@
     "level": 4,
     "topic": "PyTorch forward hooks",
     "question": "What is a PyTorch forward hook (register_forward_hook), and how does it enable non-invasive activation extraction?",
-    "answer": "A forward hook is a callback registered on an nn.Module that executes automatically every time the module's forward() finishes. It receives (module, input, output) as arguments, allowing users to capture and save intermediate activation tensors or attention matrices without modifying the model's source code or forward method.",
+    "answer": "A forward hook is a callback registered on an `nn.Module` that executes automatically every time the module's `forward()` finishes. It receives `(module, input, output)` as arguments, allowing users to capture and save intermediate activation tensors or attention matrices without modifying the model's source code or forward method.",
     "explanation": "Forward hooks allow read-only mechanistic inspection. The hook stores the tensor into a dictionary or list during model(x) under torch.no_grad(), after which the hook handle can be removed with handle.remove().",
     "trap": "Modifying the output inside a hook in-place unless intentionally changing model computation.",
     "sources": [
@@ -282,8 +282,8 @@
     "ladder": "pytorch",
     "level": 4,
     "topic": "batched transformer inference",
-    "question": "How do you structure batched inference across N input positions for a transformer encoder, and what determines throughput?",
-    "answer": "You stack N input tensors along dimension 0 into shape [N, channels, H, W] or [N, seq_len, embed_dim]. Throughput on GPUs is determined by saturating tensor cores through parallel matrix multiplications while avoiding VRAM out-of-memory (OOM) by capping batch size.",
+    "question": "How do you structure batched inference across $N$ input positions for a transformer encoder, and what determines throughput?",
+    "answer": "You stack $N$ input tensors along dimension 0 into shape $[N, \\text{channels}, H, W]$ or $[N, \\text{seq\\_len}, \\text{embed\\_dim}]$. Throughput on GPUs is determined by saturating tensor cores through parallel matrix multiplications while avoiding VRAM out-of-memory (OOM) by capping batch size.",
     "explanation": "Running individual positions sequentially leaves GPU compute pipelines underutilized. Stacking positions into batches amortizes kernel launch overhead and maximizes CUDA thread occupancy.",
     "trap": "Iterating over positions in a Python loop and doing N separate model forward passes instead of a single batched pass model(batch_tensor).",
     "sources": [
@@ -322,7 +322,7 @@
     "level": 5,
     "topic": "end-to-end attention extraction interview answer",
     "question": "Walk me through how you extract and process internal attention tensors from a 15-layer transformer without modifying the underlying model source code.",
-    "answer": "1. Model Conversion & Inspection: Convert the ONNX weights into a live PyTorch module tree via onnx2torch. Inspect named submodules to locate each layer's Query-Key softmax operation (module.encoder{i}/mha/QK/softmax for i=0..14).\n2. Non-invasive Hook Registration: For all 15 layers, register PyTorch forward hooks (register_forward_hook) that capture the post-softmax attention tensor [batch, heads, 64, 64] into an in-memory dictionary during execution.\n3. Batched Inference under No-Grad: Prepare input tensors (handling coordinate frames and history planes), and execute a single forward pass inside torch.no_grad() to compute predictions and populate hook buffers with zero backward overhead.\n4. Spatial Aggregation: Average the captured tensors across layers, attention heads, and query tokens to produce a normalized 64-element per-square attention vector.\n5. Cleanup: Deregister hooks with handle.remove() to prevent memory leaks and restore clean model state.",
+    "answer": "1. Model Conversion & Inspection: Convert the ONNX weights into a live PyTorch module tree via onnx2torch. Inspect named submodules to locate each layer's Query-Key softmax operation (`module.encoder{i}/mha/QK/softmax` for $i=0..14$).\n2. Non-invasive Hook Registration: For all 15 layers, register PyTorch forward hooks (`register_forward_hook`) that capture the post-softmax attention tensor $[B, 24, 64, 64]$ into an in-memory dictionary during execution.\n3. Batched Inference under No-Grad: Prepare input tensors (handling coordinate frames and history planes), and execute a single forward pass inside `torch.no_grad()` to compute predictions and populate hook buffers with zero backward overhead.\n4. Spatial Aggregation: Average the captured tensors across layers, attention heads, and query tokens to produce a normalized 64-element per-square attention vector.\n5. Cleanup: Deregister hooks with `handle.remove()` to prevent memory leaks and restore clean model state.",
     "explanation": "This architecture enables pure activation capture without forking or maintaining custom forward methods. It separates model execution from mechanistic interpretability probing.",
     "trap": "Claiming you performed causal ablation or fine-tuned the model when you strictly extracted activations via read-only hooks.",
     "sources": [

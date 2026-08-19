@@ -236,15 +236,35 @@ def verify_all_cards(
             if not isinstance(level, int) or level < 0 or level > 5:
                 errors.append(f"Card '{card_id}': Level must be integer 0..5, got {level}.")
 
-            # Gate: Unrendered LaTeX check ($ followed by letter, backslash, or bracket)
+            # Gate: Math LaTeX Delimiters and KaTeX Macro validation
+            UNSUPPORTED_KATEX_MACROS = re.compile(
+                r"\\(label|ref|eqref|cite|pageref|nameref|autoref|input|include)\b"
+            )
             for field in ("question", "answer", "explanation", "trap"):
                 val = card.get(field, "")
                 if isinstance(val, str) and val:
-                    match = re.search(r"\$[a-zA-Z\\{]", val)
-                    if match:
+                    # 1. Check balanced display delimiters ($$)
+                    display_count = val.count("$$")
+                    if display_count % 2 != 0:
                         errors.append(
-                            f"Card '{card_id}': Field '{field}' contains unrendered LaTeX notation '{match.group(0)}'. "
-                            f"Rewrite using plain English words and Unicode symbols (e.g. θ, σ², μ, P(move | pos))."
+                            f"Card '{card_id}': Field '{field}' has unbalanced display math delimiters ($$). Count is {display_count}."
+                        )
+                    
+                    # Strip out display math to check inline math delimiters ($)
+                    clean_inline = re.sub(r"\$\$.*?\$\$", "", val, flags=re.DOTALL)
+                    # Ignore escaped dollar signs \$
+                    clean_inline = clean_inline.replace(r"\$", "")
+                    inline_count = clean_inline.count("$")
+                    if inline_count % 2 != 0:
+                        errors.append(
+                            f"Card '{card_id}': Field '{field}' has unbalanced inline math delimiters ($). Count is {inline_count}."
+                        )
+
+                    # 2. Check for unsupported KaTeX macros across field content
+                    macro_match = UNSUPPORTED_KATEX_MACROS.search(val)
+                    if macro_match:
+                        errors.append(
+                            f"Card '{card_id}': Field '{field}' contains unsupported KaTeX macro '\\{macro_match.group(1)}'."
                         )
 
             # Gate 1: Non-empty sources list & session log rule

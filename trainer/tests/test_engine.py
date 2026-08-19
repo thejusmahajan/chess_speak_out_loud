@@ -191,6 +191,157 @@ def test_level_zero_prerequisite_gating():
     assert any(c["id"] == "pyt-l1-001" for c in selectable)
 
 
+def test_new_user_is_served_level_zero():
+    """Empty progress (and inherited ratings), 200 draws, every card served is level 0."""
+    now = datetime.now(timezone.utc)
+    ladders_dir = Path("trainer/content/ladders")
+    all_cards = []
+    for jf in ladders_dir.glob("*.json"):
+        with open(jf, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            all_cards.extend(data if isinstance(data, list) else data.get("cards", []))
+            
+    # Test completely empty progress (defaults to 1200 rating)
+    progress_empty = {"cards": {}}
+    levels_served_empty = set()
+    for i in range(200):
+        card = select_next_card(all_cards, progress_empty, now, cram_mode=False, random_seed=i)
+        assert card is not None
+        levels_served_empty.add(card.get("level"))
+    assert levels_served_empty == {0}
+
+    # Test inherited user rating 1055.6
+    progress_inherited = {"user_rating": 1055.6, "cards": {}}
+    levels_served_inherited = set()
+    for i in range(200):
+        card = select_next_card(all_cards, progress_inherited, now, cram_mode=False, random_seed=i)
+        assert card is not None
+        levels_served_inherited.add(card.get("level"))
+    assert levels_served_inherited == {0}
+
+
+def test_level_one_unreachable_until_level_zero_mastered():
+    """Master 50% of a ladder's level-0 cards; assert no level-1 card from that ladder is served. Then master 80%; assert level-1 cards appear."""
+    now = datetime.now(timezone.utc)
+    future = now + timedelta(days=1)
+    # 10 Level 0 cards and 5 Level 1 cards
+    cards = [
+        {"id": f"l0-{i}", "ladder": "test_ladder", "level": 0, "difficulty": 800, "requires": []}
+        for i in range(10)
+    ] + [
+        {"id": f"l1-{i}", "ladder": "test_ladder", "level": 1, "difficulty": 1000, "requires": []}
+        for i in range(5)
+    ]
+    
+    progress = {"user_rating": 800.0, "cards": {}}
+    # Master 50% of Level 0 cards (5 / 10)
+    for i in range(5):
+        progress["cards"][f"l0-{i}"] = {
+            "mastered": True,
+            "reps": 1,
+            "interval_days": 1,
+            "last_seen": now.isoformat(),
+            "due_date": future.isoformat(),
+            "history": [{"score": 1.0}],
+        }
+        
+    for i in range(50):
+        card = select_next_card(cards, progress, now, cram_mode=False, random_seed=i)
+        assert card is not None
+        assert card["level"] == 0
+        
+    # Master 80% of Level 0 cards (8 / 10)
+    for i in range(5, 8):
+        progress["cards"][f"l0-{i}"] = {
+            "mastered": True,
+            "reps": 1,
+            "interval_days": 1,
+            "last_seen": now.isoformat(),
+            "due_date": future.isoformat(),
+            "history": [{"score": 1.0}],
+        }
+        
+    level_1_served = False
+    for i in range(50):
+        card = select_next_card(cards, progress, now, cram_mode=False, random_seed=i)
+        if card and card["level"] == 1:
+            level_1_served = True
+            break
+    assert level_1_served
+
+
+def test_ladders_advance_independently():
+    """Master all of pytorch level 0 and none of air_quality level 0; assert pytorch level-1 cards are served and air_quality level-1 cards are not."""
+    now = datetime.now(timezone.utc)
+    future = now + timedelta(days=1)
+    pyt_cards = [
+        {"id": f"pyt-0-{i}", "ladder": "pytorch", "level": 0, "difficulty": 800, "requires": []} for i in range(5)
+    ] + [
+        {"id": f"pyt-1-{i}", "ladder": "pytorch", "level": 1, "difficulty": 1000, "requires": []} for i in range(5)
+    ]
+    aq_cards = [
+        {"id": f"aq-0-{i}", "ladder": "air_quality", "level": 0, "difficulty": 800, "requires": []} for i in range(5)
+    ] + [
+        {"id": f"aq-1-{i}", "ladder": "air_quality", "level": 1, "difficulty": 1000, "requires": []} for i in range(5)
+    ]
+    all_cards = pyt_cards + aq_cards
+    
+    # Rating has climbed to 950 after answering PyTorch cards
+    progress = {"user_rating": 950.0, "cards": {}}
+    # Master all pytorch level 0 cards
+    for i in range(5):
+        progress["cards"][f"pyt-0-{i}"] = {
+            "mastered": True,
+            "reps": 1,
+            "interval_days": 1,
+            "last_seen": now.isoformat(),
+            "due_date": future.isoformat(),
+            "history": [{"score": 1.0}],
+        }
+        
+    # Sample 100 draws
+    served_cards = [select_next_card(all_cards, progress, now, cram_mode=False, random_seed=i) for i in range(100)]
+    assert any(c["ladder"] == "pytorch" and c["level"] == 1 for c in served_cards if c)
+    assert not any(c["ladder"] == "air_quality" and c["level"] == 1 for c in served_cards if c)
+
+
+def test_elo_still_orders_within_a_level():
+    """With several level-0 cards of differing difficulty and a fixed user rating, the selector prefers those nearest the rating."""
+    now = datetime.now(timezone.utc)
+    cards = [
+        {"id": "c_close_1", "ladder": "test", "level": 0, "difficulty": 800, "requires": []},
+        {"id": "c_close_2", "ladder": "test", "level": 0, "difficulty": 820, "requires": []},
+        {"id": "c_close_3", "ladder": "test", "level": 0, "difficulty": 840, "requires": []},
+        {"id": "c_far", "ladder": "test", "level": 0, "difficulty": 1200, "requires": []},
+    ]
+    progress = {"user_rating": 800.0, "cards": {}}
+    
+    # 50 draws: c_far (difficulty 1200, delta 400 > window 150) should never be chosen because 3 candidates exist within window
+    for i in range(50):
+        selected = select_next_card(cards, progress, now, cram_mode=False, random_seed=i)
+        assert selected is not None
+        assert selected["id"] != "c_far"
+
+
+def test_cram_mode_ignores_level_gating():
+    """Cram mode still reaches any unlocked card regardless of ladder active level."""
+    now = datetime.now(timezone.utc)
+    cards = [
+        {"id": "c_l0", "ladder": "test", "level": 0, "difficulty": 800, "requires": []},
+        {"id": "c_l5", "ladder": "test", "level": 5, "difficulty": 1950, "requires": []},
+    ]
+    progress = {"user_rating": 800.0, "cards": {}}
+    
+    # Non-cram mode only serves level 0
+    selected_normal = select_next_card(cards, progress, now, cram_mode=False, random_seed=42)
+    assert selected_normal is not None
+    assert selected_normal["id"] == "c_l0"
+    
+    # Cram mode can select level 5
+    selectable_cram = filter_selectable_cards(cards, progress, now, cram_mode=True)
+    assert any(c["id"] == "c_l5" for c in selectable_cram)
+
+
 def test_selection_rating_window_widening():
     """Card selection stays in rating window when enough candidates exist, and widens when not."""
     now = datetime.now(timezone.utc)
@@ -277,16 +428,16 @@ def test_verify_cards_fails_on_level_inversion_or_cycle(tmp_path: Path):
     assert any("requires must be lower level" in e for e in errors)
 
 
-def test_verify_cards_fails_on_unrendered_latex(tmp_path: Path):
-    """verify_all_cards fails on a card containing unrendered LaTeX notation ($...$)."""
-    ladder_file = tmp_path / "bad_latex.json"
+def test_verify_cards_fails_on_unbalanced_math_delimiters(tmp_path: Path):
+    """verify_all_cards fails on a card containing unbalanced math delimiters."""
+    ladder_file = tmp_path / "bad_delim.json"
     card = {
-        "id": "bad-latex-01",
+        "id": "bad-delim-01",
         "ladder": "bad",
         "level": 5,
         "topic": "test",
-        "question": "What is the parameter $\\theta$ of this network?",
-        "answer": "The parameter is $\\sigma^2$.",
+        "question": "What is $x + y for this model?",  # Unbalanced single dollar sign!
+        "answer": "The answer is 42.",
         "sources": ["https://example.com"],
         "difficulty": 1950,
         "requires": [],
@@ -295,4 +446,25 @@ def test_verify_cards_fails_on_unrendered_latex(tmp_path: Path):
     
     success, errors, _ = verify_all_cards(ladders_dir=tmp_path)
     assert not success
-    assert any("contains unrendered LaTeX notation" in e for e in errors)
+    assert any("unbalanced inline math delimiters" in e for e in errors)
+
+
+def test_verify_cards_fails_on_unsupported_latex_macro(tmp_path: Path):
+    """verify_all_cards fails on a card containing unsupported macros like \\ref."""
+    ladder_file = tmp_path / "bad_macro.json"
+    card = {
+        "id": "bad-macro-01",
+        "ladder": "bad",
+        "level": 5,
+        "topic": "test",
+        "question": "What is the variance $\\sigma^2$ as defined in Equation~\\ref{eq1}?",
+        "answer": "The answer is given by $\\text{Var}(y)$.",
+        "sources": ["https://example.com"],
+        "difficulty": 1950,
+        "requires": [],
+    }
+    ladder_file.write_text(json.dumps([card]), encoding="utf-8")
+    
+    success, errors, _ = verify_all_cards(ladders_dir=tmp_path)
+    assert not success
+    assert any("unsupported KaTeX macro '\\ref'" in e for e in errors)

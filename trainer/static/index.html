@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knowledge Trainer — AEON-UP &amp; LC0</title>
+  <link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
+  <script defer src="/static/vendor/katex/katex.min.js"></script>
+  <script defer src="/static/vendor/katex/contrib/auto-render.min.js"></script>
   <style>
     :root {
       --bg: #0d1117;
@@ -584,6 +587,19 @@
     let isRevealed = false;
     let sessionAnswerCount = 0;
 
+    function renderMath() {
+      const cardEl = document.getElementById('card-container');
+      if (cardEl && typeof renderMathInElement === 'function') {
+        renderMathInElement(cardEl, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$",  right: "$",  display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
     async function fetchState() {
       try {
         const res = await fetch('/api/state');
@@ -660,6 +676,7 @@
         }
 
         await fetchState();
+        renderMath();
       } catch (err) {
         console.error("Failed to load next card:", err);
       }
@@ -671,6 +688,7 @@
       document.getElementById('reveal-btn').style.display = 'none';
       document.getElementById('answer-section').style.display = 'flex';
       document.getElementById('grade-bar').style.display = 'flex';
+      renderMath();
     }
 
     async function gradeCard(score) {
