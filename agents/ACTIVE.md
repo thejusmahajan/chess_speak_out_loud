@@ -1,32 +1,51 @@
 # ACTIVE — what the worker should do now
 
-**Worker: execute the topmost brief marked `ACTIVE`.** Follow it exactly, and follow the
-standing contract in `agents/README.md` (scope limits, never invent a number, paste real
-output, report deviations, stop and ask when the brief doesn't cover a decision).
+**Worker: find the section below matching the folder you have open, then execute its topmost
+brief marked `ACTIVE`.** Briefs target three different repositories, so which one you can do
+depends on your workspace — do **not** simply take the first `ACTIVE` in the file.
+
+Follow the chosen brief exactly, and follow the standing contract in `agents/README.md` (scope
+limits, never invent a number, paste real output, report deviations, stop and ask when the brief
+doesn't cover a decision).
+
+Every brief and report path below is relative to
+`C:\Users\Admin\Documents\chess_speak_out_loud\agents\`, wherever your workspace is rooted.
+**All reports go there**, even for work done in another repo.
 
 ---
 
-## Live now
+## Live now, by workspace
 
-### 1. `briefs/2026-08-19_website-repoint-part2.md` — **ACTIVE** ← start here
-Finishes the site repoint. The clinical-seeking contact paragraph is duplicated into **20**
-pages (part 1's brief wrongly excluded blog files wholesale); plus the meta description, two
-facts lost in a card swap, and a malformed `&`. **Open the `thejusmahajan.github.io` folder
-as the workspace.** Article text stays untouched — footer chrome only.
+### If your workspace is `chess_speak_out_loud`
 
-### 2. `briefs/2026-08-19_attention-export-json.md` — **ACTIVE** (run in THIS repo)
+**1. `briefs/2026-08-19_attention-export-json.md` — ACTIVE**
 Export real BT3 attention as JSON for the public demo. Correctness-critical: the frame must
 match the audited `saliency_absolute`, including for the black-to-move position. Blocks the
-demo page below.
+demo page.
 
-### 3. `briefs/2026-08-19_attention-demo-page.md` — **BLOCKED**
-The interactive attention page. Do not start until the export above is delivered **and the
-leader has audited it**. Website repo.
+### If your workspace is `thejusmahajan.github.io`
 
-### 4. `briefs/2026-08-18_cnp-synthetic-build.md` — **ACTIVE** (queued)
-Implementation, in the **separate** `cnp_synthetic` repo. Build a conditional neural process
-on synthetic data with an honest uncertainty evaluation. Self-contained; the canonical copy
-sits in that repo. Handed over 2026-08-18 but never run — the worker was unavailable.
+**1. `briefs/2026-08-19_website-repoint-part2.md` — ACTIVE**
+Finishes the site repoint. The clinical-seeking contact paragraph is duplicated into **20**
+pages (part 1's brief wrongly excluded blog files wholesale); plus the meta description, two
+facts lost in a card swap, and a malformed `&`. Article text stays untouched — footer chrome only.
+
+**2. `briefs/2026-08-19_attention-demo-page.md` — BLOCKED**
+The interactive attention page. Do **not** start until the export above is delivered **and the
+leader has audited it**.
+
+### If your workspace is `cnp_synthetic`
+
+**1. `briefs/2026-08-18_cnp-synthetic-build.md` — ACTIVE (queued)**
+Build a conditional neural process on synthetic data with an honest uncertainty evaluation.
+Self-contained; the canonical copy sits in that repo. Handed over 2026-08-18 but never run —
+the worker was unavailable.
+
+---
+
+**Leader's priority, if asked:** `website-repoint-part2` first (it removes text that is actively
+harming the AEON-UP application today), then `attention-export-json`. They are independent and
+can be done in either order.
 
 ---
 
