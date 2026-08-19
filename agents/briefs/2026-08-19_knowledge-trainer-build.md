@@ -4,8 +4,8 @@ Written:      2026-08-19
 Target repo:  chess_speak_out_loud (this one)
 Route:        Antigravity (full workspace)
 Type:         implementation + content authoring
-Status:       BLOCKED until 2026-08-19_knowledge-base-audit is delivered AND audited
-Depends on:   2026-08-19_knowledge-base-audit
+Status:       ACTIVE (unblocked 2026-08-19, after the audit and the doctrine corrections)
+Depends on:   2026-08-19_knowledge-base-audit (delivered, audited, corrections applied)
 ```
 
 # Build the knowledge trainer
@@ -13,11 +13,37 @@ Depends on:   2026-08-19_knowledge-base-audit
 A spaced-repetition trainer, in the spirit of the Lichess puzzle trainer, that takes Thejus from
 vocabulary up to a complete interview answer. It must **work**; it does not need to be pretty.
 
-**Why it is blocked:** the content comes from this repository's documents, and those are being
-audited right now because several are known stale or wrong. Drilling a wrong fact into someone
-before an interview is worse than not training at all. If the audit is delayed, you may build
-the engine (§3–§6) first and author content (§7) afterwards — but **never author a card from a
-document the audit has flagged.**
+## 0. UNBLOCKED — and three constraints that now bind
+
+The knowledge-base audit was delivered, reviewed, and its corrections applied. Three rules follow
+from it, and they exist because each one already caused a real failure.
+
+**(a) Load the REAL do-not-claim file.** `job_search` is now in the workspace:
+
+    C:\Users\Admin\Documents\job_search\applications\hereon_aeon_up\study_room\06_do_not_claim.md
+
+Not an in-repo paraphrase of it. That exact substitution is how a forbidden claim — "mechanistic
+interpretability" — survived in the CV about to be submitted until the leader caught it. The
+whole `study_room/00`–`11` set is readable now and is **preferred source material** for the
+`uncertainty`, `neural-processes` and `air-quality` ladders.
+
+**(b) FORBIDDEN SOURCES — no card may cite any of these:**
+- any file whose first line begins `> **STATUS: SUPERSEDED` or `> **STATUS: PARTIALLY SUPERSEDED`
+  — currently `GM_CURRICULUM_PLAN.md`, and **§6 of `docs/SALIENCE_PROBLEM.md`** (§1–§5 of that
+  file are current and genuinely good on what salience *is*);
+- anything under `archive/`;
+- the struck-through "pilot validated the method" passage in `LEADER_BIBLE.md`;
+- `docs/study/guide/kb/CONCEPT_INDEX.md` entries pointing at stub chapters (`ch17`–`ch19`,
+  `appA`–`appF`) — placeholder text only.
+
+**Check the first line of every file before citing it.** An unmarked file is current; a marked one
+is evidence, not instruction.
+
+**(c) The `own-work` ladder must teach the CORRECTED frame.** For a black-to-move position, BT3's
+internal square index 0 is **a8**, not h8 — the transform is `i ^ 56`, a vertical reflection that
+flips rank and preserves file (a1↔a8, e4↔e5). `docs/CV_AI_MODULE.md` said h8; it is fixed, but if
+you find that error anywhere else, **report it — do not teach it.** A card drilling `h8` would
+train the mistake in rather than out.
 
 ---
 
