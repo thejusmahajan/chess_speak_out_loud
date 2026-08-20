@@ -38,7 +38,13 @@ Every brief and report path below is relative to
 
 **1. `briefs/2026-08-19_knowledge-base-audit.md` — DONE, AUDITED, ACCEPTED.** Nothing to do.
 
-**2. TRAINER — DELIVERED, AUDITED, ACCEPTED (both runs).** Level 0 is now served (400/400 draws
+**2. `briefs/2026-08-20_trainer-german-b2.md` — ACTIVE ← do this one**
+German B2 (Goethe) ladders in the same trainer. **Part A first and blocking:** `user_rating` is a
+single global scalar, so German mastery would inflate one number and start serving harder ML cards.
+Per-ladder ratings, then the content. German content is the highest-fabrication-risk material this
+trainer has carried — a learner cannot tell invented German from real German.
+
+**3. TRAINER (ML side) — DELIVERED, AUDITED, ACCEPTED (both runs).** Level 0 is now served (400/400 draws
 at rating 820) and the mathematics is restored and wired to render. **One open item needs Thejus,
 not a worker:** open `http://127.0.0.1:8010`, reveal an `uncertainty` card, and confirm the
 equations appear typeset rather than as raw `$$`. Nobody has seen the rendered output — the
@@ -100,6 +106,7 @@ passed it are all findable from here.
 |---|---|---|---|---|---|
 | `2026-08-19_attention-demo-page` | thejusmahajan.github.io | implementation | **BLOCKED** | — | — |
 | `2026-08-19_knowledge-base-audit` | chess_speak_out_loud | design/audit | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT** — best worker design deliverable to date. Every spot-check held: **CV_AI_MODULE said black-to-move index 0 = h8, actually a8** (code does `^56`, rank-flip only) in the *lead-with-this* interview story; `INFERENCE_PRIORS` violates the Bible's own no-hand-coded-salience rule; "pilot validated the method" is false (measured 0/35); `HOW_TO_RUN` claims requirements.txt is empty (36 lines); Bible states 200 AND 239 tests (actual 302). Honestly declared it could not reach `job_search` — **that gap hid a live do-not-claim violation in the submittable CV ("mechanistic interpretability"), found and fixed by the leader.** See `…_AUDIT.md` |
+| `2026-08-20_trainer-german-b2` | chess_speak_out_loud | engine + content | **ACTIVE** | — | — |
 | `2026-08-20_trainer-render-math` | chess_speak_out_loud | implementation | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT.** KaTeX 0.18.4 vendored locally (60 font files incl. woff2), served with no runtime external fetch. Restoration verified against `1560992`: **382 `$` delimiters vs 234 pre-strip, and ZERO cards that had maths then have none now** — merged per card, so Level 0 and the re-levelling survive. `unc-l3-003` carries the full Law of Total Variance; `pyt-l0-007` kept the plain-English misconception fix **and** gained the softmax formula. Both new gates mutation-verified (unbalanced `$` → exit 1; `\label` → exit 1). `renderMath()` fires on card load **and inside `revealAnswer`**. **NOT verified: actual typeset output** — Playwright 404'd; honestly disclosed. See `…_AUDIT.md` |
 | `2026-08-20_trainer-level-progression` | chess_speak_out_loud | implementation | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT.** Re-measured independently against the real `progress.json`: rating 1055.6 → **820**, and **400/400 draws now serve Level 0** (was `{1: 400}`), spread across all five ladders. Suite 11 → **17 passed**. |
 | `2026-08-20_trainer-level-zero` | chess_speak_out_loud | content | **AUDITED** | `reports/…_REPORT.md` | **CONTENT ACCEPT / FEATURE UNREACHABLE.** 18 Level-0 cards (780–840), genuinely elementary and matched to his verbatim comments — the logits card literally answers "are they probabilities in percent?" with "they do NOT sum to 1 or 100%". **All LaTeX gone** (0 of 78 cards contain `$`), which was his actual complaint. Deep-Ensembles card correctly promoted L1→L3. Prerequisite gating verified **behaviourally**: locked for a new user, unlocked after a 1.0, still locked after only a 0.5. **BLOCKING: the selector never serves Level 0** — his rating 1055.6 gives a 905–1205 window, Level 0 is 780–840, and 400/400 simulated draws returned Level 1. Leader spec error (Elo band across the pool competes with the ladder). Fixed by `…_level-progression`. See `…_AUDIT.md` |
