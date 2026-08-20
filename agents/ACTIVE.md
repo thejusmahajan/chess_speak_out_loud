@@ -36,7 +36,11 @@ Every brief and report path below is relative to
 
 ### If your workspace is `chess_speak_out_loud`
 
-**Nothing is ACTIVE.** All trainer work is delivered and audited.
+**1. `briefs/2026-08-21_trainer-atomic-cards.md` — ACTIVE ← do this one**
+The trainer recycles the same cards: only **16 of 123** are selectable (82 locked behind
+unmastered prerequisites), a missed card is due again immediately, and the selector has no
+recency memory and no preference for unseen cards. Part A fixes selection; Part B splits dense
+cards into atomic ones with examples and fills the sub-prerequisites his comments named.
 
 - The trainer holds **123 cards across 8 ladders** — 5 machine-learning, 3 German B2. Per-ladder
   ratings work, so German progress no longer moves the ML rating.
