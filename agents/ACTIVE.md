@@ -36,41 +36,20 @@ Every brief and report path below is relative to
 
 ### If your workspace is `chess_speak_out_loud`
 
-**1. `briefs/2026-08-19_knowledge-base-audit.md` — DONE, AUDITED, ACCEPTED.** Nothing to do.
+**Nothing is ACTIVE.** All trainer work is delivered and audited.
 
-**2. `briefs/2026-08-20_trainer-german-b2.md` — DELIVERED (Report: `reports/2026-08-20_trainer-german-b2_REPORT.md`)**
-German B2 (Goethe) ladders in the trainer with per-ladder decoupled Elo ratings (`ladder_ratings`).
-45 cards authored across `de-konnektoren`, `de-grammatik`, and `de-wortschatz` (Levels 0-5), strictly grounded
-in Goethe B2 exam specifications and DWDS lemmas. All 22 tests and 77 URLs verified.
+- The trainer holds **123 cards across 8 ladders** — 5 machine-learning, 3 German B2. Per-ladder
+  ratings work, so German progress no longer moves the ML rating.
+- Two open items need **Thejus, not a worker**:
+  1. Confirm the equations render — open `http://127.0.0.1:8010`, reveal an `uncertainty` card,
+     and check for typeset maths rather than raw `$$`. Nobody has seen the rendered output.
+  2. Flag any German that is grammatically correct but **not idiomatic**, via the comment box
+     category *"I think this is wrong"*. That class of error is invisible to every gate and to me.
 
-**3. TRAINER (ML side) — DELIVERED, AUDITED, ACCEPTED (both runs).** Level 0 is now served (400/400 draws
-at rating 820) and the mathematics is restored and wired to render. **One open item needs Thejus,
-not a worker:** open `http://127.0.0.1:8010`, reveal an `uncertainty` card, and confirm the
-equations appear typeset rather than as raw `$$`. Nobody has seen the rendered output — the
-worker's browser automation could not start.
-
-**4. `briefs/2026-08-20_trainer-level-zero.md` — DELIVERED, AUDITED: content ACCEPTED, delivery blocked by the selector**
-
-**3. `briefs/2026-08-19_trainer-content-repair.md` — DONE, AUDITED, ACCEPTED**
-Repair the trainer's content. The engine passed audit; the content did not. A **fabricated DOI**
-is cited 5 times (`gmd-12-4857-2019` does not exist; the real EPISODE-CityChem paper is
-`gmd-12-3357-2019`, **by Matthias Karl — one of the hiring PIs**), and the do-not-claim gate
-extracts **zero** patterns from the real file because it cannot parse a markdown table.
-
-**3. `briefs/2026-08-19_knowledge-trainer-build.md` — DELIVERED, AUDITED: engine ACCEPTED,
-content REJECTED.** Do not re-run; see brief 2.
-The spaced-repetition interview trainer. **Unblocked**: the audit landed and its doctrine
-corrections are applied. Read the brief's opening — three binding constraints (the real
-do-not-claim file, the forbidden-source list, the corrected a8 frame). `job_search` is in the
-workspace now, so the study room is readable and is preferred source material.
-
-**3. `briefs/2026-08-19_attention-export-with-history.md` — QUEUED (WIP limit; the trainer is in flight)
-Regenerate the attention JSON using **real move histories**. The previous export ran BT3 with
-84 of its 112 input planes empty; the code was audited and accepted, only the data is wrong.
-Three real master-game positions with full histories are pinned in the brief.
-
-**4. `briefs/2026-08-19_attention-export-json.md` — SUPERSEDED (data) / AUDITED (code)**
-Do not run. Its code is accepted and is reused by brief 3; only its output was rejected.
+**Standing lesson for any future trainer brief:** three times now, correct content has been
+authored and left unreachable (Level 0, then German). Every trainer brief must gate on a
+**400-draw distribution** proving the new content is actually served. It is the only check that
+has ever caught it.
 
 ### If your workspace is `thejusmahajan.github.io`
 
