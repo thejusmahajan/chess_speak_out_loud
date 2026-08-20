@@ -122,16 +122,17 @@ def load_additional_cv_patterns(file_path: Path = ADDITIONAL_CV_PATH) -> List[st
 
 
 def check_single_url(url: str) -> Tuple[str, int, str, Optional[str]]:
-    """
-    Resolve an external URL with retry logic. Returns (url, status_code, final_url, error_msg).
-    Treats HTTP 200, 301, 302, 403 (paywalls) as resolved; 404/permanent errors as failed.
-    """
+    """Worker function to resolve a single URL in thread pool."""
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
 
+    parsed = urllib.parse.urlsplit(url)
+    quoted_path = urllib.parse.quote(parsed.path)
+    encoded_url = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, quoted_path, parsed.query, parsed.fragment))
+
     req = urllib.request.Request(
-        url,
+        encoded_url,
         headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
     )
     for attempt in range(2):
@@ -266,6 +267,26 @@ def verify_all_cards(
                         errors.append(
                             f"Card '{card_id}': Field '{field}' contains unsupported KaTeX macro '\\{macro_match.group(1)}'."
                         )
+
+            # Gate: German B2 UTF-8 Orthography & Umlaut validation
+            if ladder_name.startswith("de-") or card.get("ladder", "").startswith("de-"):
+                BANNED_GERMAN_TRANSLITERATIONS = re.compile(
+                    r"\b(fuer|koennen|koennte|koennten|muesste|muessten|schliessen|gross|grosse|grossen|grosser|waehrend|aendern|ausserdem|ueberhaupt|massnahme|massnahmen|schliesslich|spaeter|waere|waeren|moechte|moechten|wuensche|gebaeude|ausdruecken|begruendung|gruende|uebung|uebungen|ueberzeugung|gefaehrden|ausser|fuss|schliessung|ueber)\b",
+                    re.IGNORECASE
+                )
+                for field in ("question", "answer", "explanation", "trap", "rubric"):
+                    val = card.get(field, "")
+                    if isinstance(val, str) and val:
+                        t_match = BANNED_GERMAN_TRANSLITERATIONS.search(val)
+                        if t_match:
+                            errors.append(
+                                f"Card '{card_id}': Field '{field}' contains unallowed transliteration '{t_match.group(0)}'. "
+                                f"Use standard German characters (ä, ö, ü, ß)."
+                            )
+                        if " ue " in val.lower():
+                            errors.append(
+                                f"Card '{card_id}': Field '{field}' contains ' ue '. Use 'ü'."
+                            )
 
             # Gate 1: Non-empty sources list & session log rule
             sources = card.get("sources", [])

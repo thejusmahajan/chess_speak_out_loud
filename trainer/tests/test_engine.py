@@ -18,6 +18,10 @@ from trainer.engine import (
     is_card_unlocked,
     filter_selectable_cards,
     select_next_card,
+    get_ladder_rating,
+    get_default_ladder_rating,
+    migrate_progress,
+    DEFAULT_LADDER_RATINGS,
 )
 from trainer.verify_cards import verify_all_cards
 
@@ -468,3 +472,143 @@ def test_verify_cards_fails_on_unsupported_latex_macro(tmp_path: Path):
     success, errors, _ = verify_all_cards(ladders_dir=tmp_path)
     assert not success
     assert any("unsupported KaTeX macro '\\ref'" in e for e in errors)
+
+
+# =====================================================================
+# 6. Per-Ladder Rating Tests (Part A)
+# =====================================================================
+
+def test_ladder_ratings_are_independent():
+    """Answering a PyTorch card increases PyTorch rating while keeping de-grammatik rating unchanged."""
+    progress = {
+        "ladder_ratings": {
+            "pytorch": 820.0,
+            "de-grammatik": 1200.0,
+        },
+        "cards": {}
+    }
+    
+    pytorch_ru = get_ladder_rating(progress, "pytorch")
+    german_ru = get_ladder_rating(progress, "de-grammatik")
+    assert pytorch_ru == 820.0
+    assert german_ru == 1200.0
+    
+    # User answers a PyTorch card (Rc=800.0) with score 1.0
+    new_pyt_ru, new_card_rc = calculate_elo(pytorch_ru, 800.0, 1.0)
+    progress["ladder_ratings"]["pytorch"] = new_pyt_ru
+    
+    assert progress["ladder_ratings"]["pytorch"] > 820.0
+    assert progress["ladder_ratings"]["de-grammatik"] == 1200.0  # Strictly unchanged!
+
+
+def test_migration_seeds_all_ladders_from_legacy_rating():
+    """
+    The legacy global rating described progress in the ladders that existed while it was the only
+    rating -- the ML ones. Ladders introduced afterwards (German) must start at their CONFIGURED
+    DEFAULT, not at the legacy value: seeding German at an ML rating puts every German card outside
+    the selection window, and 400 draws returned zero German cards before this was fixed.
+    Card history must survive either way.
+    """
+    legacy_progress = {
+        "user_rating": 911.48,
+        "cards": {
+            "card-001": {
+                "rating": 1050.0,
+                "reps": 3,
+                "mastered": True,
+                "history": [{"timestamp": "2026-08-20T00:00:00Z", "score": 1.0}]
+            }
+        }
+    }
+    
+    migrated = migrate_progress(legacy_progress)
+    assert "ladder_ratings" in migrated
+    # ladders that existed under the legacy global rating keep it
+    assert migrated["ladder_ratings"]["pytorch"] == 911.48
+    assert migrated["ladder_ratings"]["uncertainty"] == 911.48
+    # ladders introduced later take their configured default, NOT the legacy value
+    assert migrated["ladder_ratings"]["de-konnektoren"] == 1200.0
+    assert migrated["ladder_ratings"]["de-grammatik"] == 1200.0
+    assert migrated["ladder_ratings"]["de-wortschatz"] == 1200.0
+    assert migrated["ladder_ratings"]["air-quality"] == 911.48
+    
+    # Assert card history is completely intact
+    assert "card-001" in migrated["cards"]
+    assert migrated["cards"]["card-001"]["reps"] == 3
+    assert migrated["cards"]["card-001"]["mastered"] is True
+    assert len(migrated["cards"]["card-001"]["history"]) == 1
+
+
+def test_selection_uses_the_ladder_rating():
+    """With pytorch at 820 and de-grammatik at 1400, selections match each ladder's own rating."""
+    now = datetime.now(timezone.utc)
+    cards = [
+        # PyTorch cards (Level 0)
+        {"id": "pyt-01", "ladder": "pytorch", "level": 0, "difficulty": 800, "requires": []},
+        {"id": "pyt-02", "ladder": "pytorch", "level": 0, "difficulty": 820, "requires": []},
+        {"id": "pyt-03", "ladder": "pytorch", "level": 0, "difficulty": 840, "requires": []},
+        {"id": "pyt-far", "ladder": "pytorch", "level": 0, "difficulty": 1400, "requires": []},
+        # German cards (Level 0)
+        {"id": "de-far", "ladder": "de-grammatik", "level": 0, "difficulty": 800, "requires": []},
+        {"id": "de-01", "ladder": "de-grammatik", "level": 0, "difficulty": 1380, "requires": []},
+        {"id": "de-02", "ladder": "de-grammatik", "level": 0, "difficulty": 1400, "requires": []},
+        {"id": "de-03", "ladder": "de-grammatik", "level": 0, "difficulty": 1420, "requires": []},
+    ]
+    progress = {
+        "ladder_ratings": {
+            "pytorch": 820.0,
+            "de-grammatik": 1400.0,
+        },
+        "cards": {}
+    }
+    
+    # 30 draws from PyTorch: should only draw near 820 (never pyt-far at 1400)
+    for i in range(30):
+        pyt_card = select_next_card(cards, progress, now, cram_mode=False, ladder_filter="pytorch", random_seed=i)
+        assert pyt_card is not None
+        assert pyt_card["ladder"] == "pytorch"
+        assert pyt_card["difficulty"] in (800, 820, 840)
+        assert pyt_card["id"] != "pyt-far"
+    
+    # 30 draws from German: should only draw near 1400 (never de-far at 800)
+    for i in range(30):
+        de_card = select_next_card(cards, progress, now, cram_mode=False, ladder_filter="de-grammatik", random_seed=i)
+        assert de_card is not None
+        assert de_card["ladder"] == "de-grammatik"
+        assert de_card["difficulty"] in (1380, 1400, 1420)
+        assert de_card["id"] != "de-far"
+
+
+def test_new_ladder_uses_its_configured_default():
+    """An unseeded German ladder defaults to 1200, while an unseeded ML ladder defaults to 820."""
+    empty_progress = {"ladder_ratings": {}}
+    
+    assert get_ladder_rating(empty_progress, "de-konnektoren") == 1200.0
+    assert get_ladder_rating(empty_progress, "de-grammatik") == 1200.0
+    assert get_ladder_rating(empty_progress, "de-wortschatz") == 1200.0
+    assert get_ladder_rating(empty_progress, "pytorch") == 820.0
+    assert get_ladder_rating(empty_progress, "neural-processes") == 820.0
+    assert get_ladder_rating(empty_progress, "uncertainty") == 820.0
+
+
+def test_verify_cards_fails_on_german_transliteration(tmp_path: Path):
+    """verify_all_cards fails on German cards containing unallowed transliterations like 'fuer'."""
+    ladder_file = tmp_path / "de-test.json"
+    card = {
+        "id": "de-test-01",
+        "ladder": "de-test",
+        "level": 1,
+        "topic": "test",
+        "question": "Was ist das Wort fuer dieses Phaenomen?",  # Contains 'fuer' instead of 'für'
+        "answer": "Die Erklaerung ist einfach.",
+        "sources": ["https://www.dwds.de/wb/Wort"],
+        "difficulty": 1200,
+        "requires": [],
+    }
+    ladder_file.write_text(json.dumps([card]), encoding="utf-8")
+    
+    success, errors, _ = verify_all_cards(ladders_dir=tmp_path)
+    assert not success
+    assert any("contains unallowed transliteration" in e for e in errors)
+
+

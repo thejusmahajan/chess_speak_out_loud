@@ -1,0 +1,257 @@
+[
+  {
+    "id": "de-gra-l0-001",
+    "ladder": "de-grammatik",
+    "level": 0,
+    "topic": "Genitiv-Präpositionen",
+    "question": "Which four frequent prepositions strictly govern the Genitive case in formal German (B2 level)?",
+    "answer": "The four most frequent formal Genitive prepositions are: 'aufgrund' (due to / on the basis of), 'trotz' (in spite of), 'während' (during), and 'wegen' (because of). They are followed by nouns and articles in the Genitive case (des/der/des/der).",
+    "trap": "Using the colloquial Dativ in formal writing (e.g. '*wegen dem Wetter*' is non-standard; in Goethe B2 writing, always write 'wegen des Wetters').",
+    "sources": [
+      "https://www.dwds.de/wb/aufgrund",
+      "https://www.dwds.de/wb/trotz"
+    ],
+    "difficulty": 1100,
+    "requires": []
+  },
+  {
+    "id": "de-gra-l0-002",
+    "ladder": "de-grammatik",
+    "level": 0,
+    "topic": "Konjunktiv II Grundlagen",
+    "question": "When and how is Konjunktiv II formed for expressing polite requests, hypothetical situations, or unreal conditions?",
+    "answer": "Konjunktiv II expresses unreality, counterfactual situations, wishes, and polite requests. For most verbs, it is formed periphrastically with 'würde + Infinitiv' (e.g. 'Ich würde gerne wissen...'). For high-frequency auxiliary and modal verbs, the synthetic root form with Umlaut is used: 'hätte' (haben), 'wäre' (sein), 'könnte' (können), 'müsste' (müssen), 'dürfte' (dürfen), 'sollte' (sollen).",
+    "explanation": "Example: 'Könnten Sie mir bitte die Unterlagen bis morgen zusenden?'",
+    "trap": "Using 'würde haben' or 'würde sein' instead of the standard synthetic forms 'hätte' and 'wäre'.",
+    "sources": [
+      "https://www.dwds.de/wb/Konjunktiv"
+    ],
+    "difficulty": 1120,
+    "requires": []
+  },
+  {
+    "id": "de-gra-l0-003",
+    "ladder": "de-grammatik",
+    "level": 0,
+    "topic": "n-Deklination (Schwache Nomen)",
+    "question": "What is the 'n-Deklination' (weak masculine nouns) and which common noun endings signal it?",
+    "answer": "N-Deklination refers to a group of masculine nouns that add '-n' or '-en' in all grammatical cases (Akkusativ, Dativ, Genitiv) except the singular Nominativ. Key patterns include: masculine nouns ending in '-e' denoting people/animals (der Kunde, der Kollege, der Experte, der Löwe), foreign words on '-ant', '-ent', '-ist', '-at' (der Praktikant, der Student, der Polizist, der Demokrat), and the irregular noun 'der Name' (Genitiv: des Namens).",
+    "explanation": "Example: 'Der Abteilungsleiter sprach mit dem neuen Kunden (Dativ).' / 'Die Meinung des Experten (Genitiv) ist eindeutig.'",
+    "trap": "Omitting the '-n' in object cases (e.g. saying '*Ich frage den Kollege*' instead of 'Ich frage den Kollegen').",
+    "sources": [
+      "https://www.dwds.de/wb/Kunde"
+    ],
+    "difficulty": 1140,
+    "requires": []
+  },
+  {
+    "id": "de-gra-l1-001",
+    "ladder": "de-grammatik",
+    "level": 1,
+    "topic": "Passivformen: Vorgang vs Zustand",
+    "question": "What is the difference between Vorgangspassiv and Zustandspassiv, and how is each formed?",
+    "answer": "Vorgangspassiv focuses on an ongoing action or process, formed with 'werden + Partizip II' (e.g. 'Das Gebäude wird renoviert' = The building is being renovated). Zustandspassiv focuses on the resulting state or completed condition after an action has finished, formed with 'sein + Partizip II' (e.g. 'Das Gebäude ist renoviert' = The building is renovated).",
+    "explanation": "Example in past tense: Vorgangspassiv Präteritum: 'Die Straße wurde gesperrt.' / Zustandspassiv: 'Die Straße war gesperrt.'",
+    "trap": "Confusing the auxiliary verbs: using 'sein' when an ongoing process or action is being described.",
+    "sources": [
+      "https://www.dwds.de/wb/Passiv"
+    ],
+    "difficulty": 1200,
+    "requires": [
+      "de-gra-l0-001"
+    ]
+  },
+  {
+    "id": "de-gra-l1-002",
+    "ladder": "de-grammatik",
+    "level": 1,
+    "topic": "Pronominaladverbien",
+    "question": "How are prepositional adverbs (Pronominaladverbien like 'darauf', 'worüber', 'womit') formed and distinguished from personal prepositional phrases?",
+    "answer": "When referring to objects, facts, concepts, or subordinate clauses, prepositions combine with 'da(r)-' (for statements) or 'wo(r)-' (for questions/relatives): 'da + von = davon', 'da + r + auf = darauf', 'wo + r + über = worüber'. When referring to human beings, the preposition remains separate and governs a personal pronoun (e.g., 'Ich warte auf ihn', not '*Ich warte darauf*').",
+    "explanation": "Example: 'Worüber ärgerst du dich?' – 'Ich ärgere mich darüber, dass der Zug Verspätung hat.' vs. 'Über wen ärgerst du dich?' – 'Über meinen Nachbarn.'",
+    "trap": "Using 'da(r)-' for people (e.g. '*Ich denke daran*' when referring to a friend; it must be 'Ich denke an ihn/sie').",
+    "sources": [
+      "https://www.dwds.de/wb/darauf",
+      "https://www.dwds.de/wb/Pronominaladverb"
+    ],
+    "difficulty": 1220,
+    "requires": [
+      "de-gra-l0-001"
+    ]
+  },
+  {
+    "id": "de-gra-l1-003",
+    "ladder": "de-grammatik",
+    "level": 1,
+    "topic": "Relativsätze mit Genitiv",
+    "question": "Which relative pronouns are used to indicate possession (Genitive) in German relative clauses for masculine, neuter, feminine, and plural referents?",
+    "answer": "Masculine and Neuter singular referents take 'dessen' (whose). Feminine singular and all Plural referents take 'deren' (whose). The following noun in the relative clause never takes an article.",
+    "explanation": "Examples:\n- Maskulin: 'Der Wissenschaftler, dessen Studie viel Beachtung fand, hielt einen Vortrag.'\n- Feminin: 'Die Forscherin, deren Dissertation ausgezeichnet wurde, leitet das Institut.'\n- Plural: 'Die Mitarbeiter, deren Verträge verlängert wurden, freuen sich.'",
+    "trap": "Adding an article after 'dessen' or 'deren' (e.g. '*dessen das Buch*' is incorrect; say 'dessen Buch').",
+    "sources": [
+      "https://www.dwds.de/wb/dessen"
+    ],
+    "difficulty": 1240,
+    "requires": [
+      "de-gra-l0-001"
+    ]
+  },
+  {
+    "id": "de-gra-l2-001",
+    "ladder": "de-grammatik",
+    "level": 2,
+    "topic": "Passiversatzformen: sich lassen & -bar",
+    "question": "Wie wird das Vorgangspassiv mit Modalverb „Das Problem kann gelöst werden“ durch eine Passiversatzform mit „sich lassen“ oder einem Adjektiv auf „-bar“ ausgedrückt?",
+    "answer": "1. Mit „sich lassen + Infinitiv“: „Das Problem lässt sich lösen.“\n2. Mit Adjektiv auf „-bar / -lich“ und „sein“: „Das Problem ist lösbar.“\nBeide Konstruktionen haben passive Bedeutung mit modaler Nuance der Möglichkeit (können).",
+    "explanation": "Diese Passiversatzformen sind typisch für das gehobene B2/C1-Sprachniveau und vermeiden eine übermäßige Häufung von 'werden'-Passivformen.",
+    "trap": "Das Reflexivpronomen 'sich' bei 'sich lassen' vergessen (z.B. '*Das Problem lässt lösen*' ist grammatisch falsch).",
+    "sources": [
+      "https://www.dwds.de/wb/lassen"
+    ],
+    "difficulty": 1300,
+    "requires": [
+      "de-gra-l1-001"
+    ]
+  },
+  {
+    "id": "de-gra-l2-002",
+    "ladder": "de-grammatik",
+    "level": 2,
+    "topic": "Passiversatzformen: sein + zu + Infinitiv",
+    "question": "Welche Bedeutung drückt die Konstruktion „sein + zu + Infinitiv“ aus (z.B. „Die Richtlinien sind strikt einzuhalten“)?",
+    "answer": "„Sein + zu + Infinitiv“ drückt je nach Kontext eine Notwendigkeit / Verpflichtung (müssen / sollen) oder eine Möglichkeit (können) im Passiv aus:\n1. Notwendigkeit: „Die Richtlinien sind einzuhalten“ = „Die Richtlinien müssen eingehalten werden.“\n2. Möglichkeit: „Das Phänomen ist überall zu beobachten“ = „Das Phänomen kann überall beobachtet werden.“",
+    "explanation": "In behördlichen und wissenschaftlichen Texten ist 'sein + zu + Infinitiv' die bevorzugte elegante Struktur zur Formulierung von Vorgaben.",
+    "trap": "„Sein + zu + Infinitiv“ (Passiv) mit „haben + zu + Infinitiv“ (Aktiv: 'Er hat die Richtlinien einzuhalten') verwechseln.",
+    "sources": [
+      "https://www.dwds.de/wb/sein"
+    ],
+    "difficulty": 1320,
+    "requires": [
+      "de-gra-l1-001"
+    ]
+  },
+  {
+    "id": "de-gra-l2-003",
+    "ladder": "de-grammatik",
+    "level": 2,
+    "topic": "Konjunktiv I in der indirekten Rede",
+    "question": "Wie wird die indirekte Rede in offiziellen Berichten (z.B. Nachrichten, Zeitungsartikeln) im Deutschen formal gebildet?",
+    "answer": "Die indirekte Rede wird primär mit Konjunktiv I gebildet (Präsensstamm + Konjunktiv-Endungen: -e, -est, -e, -en, -et, -en). Wenn die Konjunktiv-I-Form mit dem Indikativ identisch ist (insbesondere in der 1. Person Singular und 1./3. Person Plural), weicht man auf den Konjunktiv II aus.",
+    "explanation": "Beispiel: Direkte Rede: „Die Ministerin sagt: ‚Wir prüfen alle Optionen.‘“ → Indirekte Rede: „Die Ministerin sagte, sie prüfe alle Optionen (Konjunktiv I) / sie prüften alle Optionen (Konjunktiv II bei Plural-Gleichheit).“",
+    "trap": "Immer nur Konjunktiv II verwenden; im gehobenen B2-Leseverstehen signalisiert Konjunktiv I formale Distanz und neutrale Wiedergabe.",
+    "sources": [
+      "https://www.dwds.de/wb/Konjunktiv"
+    ],
+    "difficulty": 1340,
+    "requires": [
+      "de-gra-l0-002"
+    ]
+  },
+  {
+    "id": "de-gra-l3-001",
+    "ladder": "de-grammatik",
+    "level": 3,
+    "topic": "Nominalisierung & Kausaladverbiale",
+    "question": "Formen Sie den Satz „Weil die Temperaturen drastisch anstiegen, stieg die Ozonbelastung“ in den Nominalstil um.",
+    "answer": "„Aufgrund des drastischen Anstiegs der Temperaturen stieg die Ozonbelastung.“ (Oder: „Wegen des drastischen Temperaturanstiegs stieg die Ozonbelastung.“ / „Infolge des drastischen Temperaturanstiegs...“)",
+    "explanation": "Der Nebensatz 'Weil die Temperaturen drastisch anstiegen' wird in ein Genitiv-Präpositionalgefüge umgewandelt: 'aufgrund' + Genitivattribut 'des drastischen Anstiegs' + Genitivattribut 'der Temperaturen'.",
+    "rubric": "Score 1.0 only if: (a) correct genitive preposition ('aufgrund', 'wegen', or 'infolge') is used, (b) verbal clause converted to noun phrase ('Anstieg der Temperaturen' or 'Temperaturanstieg'), (c) correct case and adjective declension endings ('des drastischen Anstiegs'). Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/Anstieg",
+      "https://www.dwds.de/wb/aufgrund"
+    ],
+    "difficulty": 1400,
+    "requires": [
+      "de-gra-l0-001",
+      "de-gra-l2-001"
+    ]
+  },
+  {
+    "id": "de-gra-l3-002",
+    "ladder": "de-grammatik",
+    "level": 3,
+    "topic": "Verbalisierung temporaler Ausdrücke",
+    "question": "Formen Sie die nominale Wendung „Beim Betreten des Labors müssen Schutzbrillen getragen werden“ in einen temporalen Nebensatz um.",
+    "answer": "„Wenn man das Labor betritt, müssen Schutzbrillen getragen werden.“ (Oder: „Sobald man das Labor betritt, müssen Schutzbrillen getragen werden.“ / „Während man das Labor betritt...“)",
+    "explanation": "Die Präpositionalphrase 'Beim Betreten des Labors' wird durch eine temporale Subjunktion ('Wenn/Sobald') und das konjugierte Verb 'betritt' mit passendem Subjekt ('man' oder 'die Mitarbeiter') aufgelöst.",
+    "rubric": "Score 1.0 only if: (a) correct temporal conjunction ('wenn', 'sobald', 'während'), (b) accurate verb placement at end of subclause ('betritt'), (c) correct main clause word order. Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/betreten"
+    ],
+    "difficulty": 1420,
+    "requires": [
+      "de-gra-l2-001"
+    ]
+  },
+  {
+    "id": "de-gra-l3-003",
+    "ladder": "de-grammatik",
+    "level": 3,
+    "topic": "Konjunktiv II der Vergangenheit",
+    "question": "Bilden Sie einen irrealen Bedingungssatz der Vergangenheit aus: „Wir haben die Warnungen ignoriert. Deshalb ist der Schaden entstanden.“",
+    "answer": "„Wenn wir die Warnungen nicht ignoriert hätten, wäre der Schaden nicht entstanden.“ (Oder ohne wenn: „Hätten wir die Warnungen nicht ignoriert, wäre der Schaden nicht entstanden.“)",
+    "explanation": "Irreale Bedingungen der Vergangenheit werden mit 'hätte / wäre + Partizip II' gebildet: 'hätten ignoriert' und 'wäre entstanden'.",
+    "rubric": "Score 1.0 only if: (a) correct Konjunktiv II past forms ('hätten ignoriert', 'wäre entstanden'), (b) logical insertion of negation ('nicht'), (c) correct word order in both clauses. Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/ignorieren"
+    ],
+    "difficulty": 1440,
+    "requires": [
+      "de-gra-l0-002"
+    ]
+  },
+  {
+    "id": "de-gra-l4-001",
+    "ladder": "de-grammatik",
+    "level": 4,
+    "topic": "Erweiterte Partizipialattribute I (Gerundiv)",
+    "question": "Lösen Sie das erweiterte Partizipialattribut in einen Relativsatz auf: „Die von den Forschern zu beachtenden Sicherheitsvorschriften sind verbindlich.“",
+    "answer": "„Die Sicherheitsvorschriften, die von den Forschern beachtet werden müssen (oder: die von den Forschern zu beachten sind), sind verbindlich.“",
+    "explanation": "Partizip I mit 'zu' (Gerundiv) vor einem Nomen hat immer passive modale Bedeutung (müssen/können + Passiv).",
+    "rubric": "Score 1.0 only if: (a) converted to relative clause expressing obligation/modal passive ('beachtet werden müssen' or 'zu beachten sind'), (b) correct relative pronoun ('die'), (c) correct case agreement. Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/Vorschrift"
+    ],
+    "difficulty": 1500,
+    "requires": [
+      "de-gra-l1-001",
+      "de-gra-l3-001"
+    ]
+  },
+  {
+    "id": "de-gra-l4-002",
+    "ladder": "de-grammatik",
+    "level": 4,
+    "topic": "Erweiterte Partizipialattribute II (Partizip II)",
+    "question": "Formen Sie den Relativsatz in ein erweitertes Partizipialattribut um: „Die Messstationen, die an stark befahrenen Straßenkreuzungen errichtet wurden, liefern präzise Daten.“",
+    "answer": "„Die an stark befahrenen Straßenkreuzungen errichteten Messstationen liefern präzise Daten.“",
+    "explanation": "Das Partizip II 'errichtet' wird mit seinen Erweiterungen als deklinierbares Adjektivattribut direkt vor das Bezugsnomen 'Messstationen' gestellt (Plural, Nominativ: Endung '-en').",
+    "rubric": "Score 1.0 only if: (a) accurate participial phrase placed between article and noun, (b) correct adjective declension ending ('errichteten'), (c) prepositional extensions correctly nested. Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/errichten"
+    ],
+    "difficulty": 1540,
+    "requires": [
+      "de-gra-l3-001"
+    ]
+  },
+  {
+    "id": "de-gra-l5-001",
+    "ladder": "de-grammatik",
+    "level": 5,
+    "topic": "Fehleranalyse & B2-Textredaktion",
+    "question": "Finden und korrigieren Sie die drei typischen Grammatikfehler im folgenden B2-Textabschnitt: „*Trotz dem schlechten Wetter, der Abteilungsleiter hat entschieden, dass alle Mitarbeitern an der Konferenz teilnehmen.*“",
+    "answer": "1. Rektionsfehler bei 'trotz': Falscher Dativ 'Trotz dem schlechten Wetter' → Richtig im Genitiv: „Trotz des schlechten Wetters“.\n2. Wortstellungsfehler im Hauptsatz (fehlende Inversion nach Vorfeld): 'der Abteilungsleiter hat entschieden' → Richtig mit Verb in Position 2: „hat der Abteilungsleiter entschieden“.\n3. Deklinationsfehler im Nebensatz: 'alle Mitarbeitern' → Richtig im Nominativ Plural: „alle Mitarbeiter“.\n\nVollständig korrigierter Satz: „Trotz des schlechten Wetters hat der Abteilungsleiter entschieden, dass alle Mitarbeiter an der Konferenz teilnehmen.“",
+    "explanation": "In Goethe-B2-Schreibprüfungen führen Fehler bei Genitiv-Präpositionen, Inversion nach Konnektoren und falsche Pluralendungen zu empfindlichen Punktabzügen.",
+    "rubric": "Score 1.0 only if all 3 errors are explicitly identified and corrected: (1) Genitive 'Trotz des schlechten Wetters', (2) Inversion 'hat der Abteilungsleiter entschieden', (3) Nominative plural 'alle Mitarbeiter'. Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/trotz",
+      "https://www.dwds.de/wb/Mitarbeiter"
+    ],
+    "difficulty": 1650,
+    "requires": [
+      "de-gra-l4-001",
+      "de-gra-l4-002"
+    ]
+  }
+]

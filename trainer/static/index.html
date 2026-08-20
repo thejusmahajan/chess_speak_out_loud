@@ -463,8 +463,8 @@
     </div>
     <div class="stats-bar">
       <div class="stat-pill">
-        <span>Elo Rating:</span>
-        <span class="stat-value" id="user-rating-val">1200.0</span>
+        <span id="user-rating-label">Rating:</span>
+        <span class="stat-value" id="user-rating-val">820.0</span>
       </div>
       <div class="stat-pill">
         <span>Due Cards:</span>
@@ -486,6 +486,9 @@
       <label for="ladder-select">Ladder:</label>
       <select id="ladder-select" onchange="loadNextCard()">
         <option value="">All Ladders</option>
+        <option value="de-konnektoren">DE: Konnektoren &amp; Redemittel</option>
+        <option value="de-grammatik">DE: Grammatik B2</option>
+        <option value="de-wortschatz">DE: Wortschatz &amp; NVV</option>
         <option value="pytorch">PyTorch Foundations</option>
         <option value="uncertainty">Uncertainty &amp; Calibration</option>
         <option value="neural-processes">Neural Processes &amp; CNP</option>
@@ -641,6 +644,12 @@
 
         currentCard = data.card;
         document.getElementById('card-ladder').textContent = currentCard.ladder.toUpperCase();
+        
+        if (data.ladder_rating !== undefined || data.user_rating !== undefined) {
+          const r = data.ladder_rating !== undefined ? data.ladder_rating : data.user_rating;
+          document.getElementById('user-rating-val').textContent = Number(r).toFixed(1);
+          document.getElementById('user-rating-label').textContent = `${(currentCard.ladder || 'User').toUpperCase()} Rating:`;
+        }
         
         const lvlBadge = document.getElementById('card-level');
         lvlBadge.textContent = `Level ${currentCard.level}`;

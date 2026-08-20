@@ -1,0 +1,267 @@
+[
+  {
+    "id": "de-kon-l0-001",
+    "ladder": "de-konnektoren",
+    "level": 0,
+    "topic": "Bedeutung von Konnektoren",
+    "question": "What is the fundamental difference in meaning and sentence role between 'obwohl' and 'trotzdem'?",
+    "answer": "'Obwohl' is a subordinating conjunction (Subjunktion) introducing a subordinate clause of concession (Verb placed at the end), meaning 'although/even though'. 'Trotzdem' is a concessive adverb (Konjunktionaladverb) connecting two independent clauses (placed in Position 1 with Subject-Verb inversion), meaning 'nevertheless/in spite of that'.",
+    "explanation": "Example with obwohl: 'Obwohl das Wetter schlecht war, ging er spazieren.' Example with trotzdem: 'Das Wetter war schlecht. Trotzdem ging er spazieren.'",
+    "trap": "Putting the finite verb at the end after 'trotzdem' (e.g. '*Trotzdem er müde war, arbeitete er*' is incorrect in standard German; it must be '*Trotzdem arbeitete er*').",
+    "sources": [
+      "https://www.dwds.de/wb/obwohl",
+      "https://www.dwds.de/wb/trotzdem"
+    ],
+    "difficulty": 1100,
+    "requires": []
+  },
+  {
+    "id": "de-kon-l0-002",
+    "ladder": "de-konnektoren",
+    "level": 0,
+    "topic": "Zweiteilige Konnektoren",
+    "question": "How does the two-part connector 'zwar ... aber' function to express concession followed by restriction?",
+    "answer": "'Zwar' introduces an admission or concessive point in the first clause, while 'aber' introduces the limiting or contrasting fact that outweighs it. 'Zwar' can occupy Position 1 or the Mittelfeld, while 'aber' links the coordinate contrasting clause in Position 0.",
+    "explanation": "Example: 'Die Fortbildung ist zwar zeitintensiv, aber sie eröffnet exzellente berufliche Perspektiven.'",
+    "trap": "Omitting the comma before 'aber' or confusing 'zwar...aber' with 'nicht nur...sondern auch'.",
+    "sources": [
+      "https://www.dwds.de/wb/zwar",
+      "https://www.dwds.de/wb/aber"
+    ],
+    "difficulty": 1120,
+    "requires": []
+  },
+  {
+    "id": "de-kon-l0-003",
+    "ladder": "de-konnektoren",
+    "level": 0,
+    "topic": "Konsekutivkonnektoren",
+    "question": "What logical relationship do the connectors 'folglich', 'demnach', and 'infolgedessen' express?",
+    "answer": "They express a consequence or direct logical result (konsekutives Verhältnis / Folge) stemming from the preceding statement, translated as 'consequently', 'therefore', or 'as a result'. As adverbial connectors, they trigger Subject-Verb inversion when placed in Position 1.",
+    "explanation": "Example: 'Die Messergebnisse waren fehlerhaft; folglich mussten die Berechnungen wiederholt werden.'",
+    "trap": "Treating 'folglich' as a subordinating conjunction with verb-final position.",
+    "sources": [
+      "https://www.dwds.de/wb/folglich",
+      "https://www.dwds.de/wb/infolgedessen"
+    ],
+    "difficulty": 1140,
+    "requires": []
+  },
+  {
+    "id": "de-kon-l1-001",
+    "ladder": "de-konnektoren",
+    "level": 1,
+    "topic": "Subjunktionen & Verbletztstellung",
+    "question": "Which word order is strictly required in clauses introduced by subordinating conjunctions like 'weil', 'da', 'obwohl', 'sodass', 'während', 'indem', and 'sofern'?",
+    "answer": "Subordinating conjunctions (Subjunktionen) send the conjugated (finite) verb to the very end of the subordinate clause (Verbletztstellung). If compound tenses or modal verbs are used, the conjugated auxiliary or modal verb sits in the ultimate position (e.g., '... weil er die Prüfung bestehen wollte').",
+    "explanation": "Example: 'Sofern alle Beteiligten zustimmen, wird das Projekt sofort gestartet.'",
+    "trap": "Placing the verb in second position in spoken-style 'weil' clauses (e.g. '*weil er kommt morgen*' is strictly penalized in Goethe B2 writing).",
+    "sources": [
+      "https://www.dwds.de/wb/Subjunktion",
+      "https://www.dwds.de/wb/sofern"
+    ],
+    "difficulty": 1200,
+    "requires": [
+      "de-kon-l0-001"
+    ]
+  },
+  {
+    "id": "de-kon-l1-002",
+    "ladder": "de-konnektoren",
+    "level": 1,
+    "topic": "Konjunktionaladverbien & Inversion",
+    "question": "What sentence structure occurs when an adverbial connector like 'deshalb', 'dennoch', 'allerdings', or 'hingegen' occupies Position 1 in a main clause?",
+    "answer": "Adverbial connectors occupy Position 1 in the sentence topology. In accordance with the German Verb-Second (V2) rule for main clauses, the conjugated verb immediately follows in Position 2, and the subject is inverted to Position 3 (Inversion: Konnektor + finites Verb + Subjekt).",
+    "explanation": "Example: 'Allerdings (Pos 1) muss (Pos 2) man (Pos 3) die langfristigen Kosten berücksichtigen.'",
+    "trap": "Writing Subject before Verb after an adverbial connector (e.g. '*Dennoch ich glaube*' instead of 'Dennoch glaube ich').",
+    "sources": [
+      "https://www.dwds.de/wb/Konjunktionaladverb",
+      "https://www.dwds.de/wb/allerdings"
+    ],
+    "difficulty": 1220,
+    "requires": [
+      "de-kon-l0-001",
+      "de-kon-l0-003"
+    ]
+  },
+  {
+    "id": "de-kon-l1-003",
+    "ladder": "de-konnektoren",
+    "level": 1,
+    "topic": "Koordinierende Konjunktionen (ADUSO)",
+    "question": "What position do coordinating conjunctions ('aber', 'denn', 'und', 'sondern', 'oder' - ADUSO) occupy in sentence structure?",
+    "answer": "Coordinating conjunctions occupy Position 0 (Nullposition). They connect two main clauses without altering the standard word order of the following clause: Position 0 (Konnektor) + Position 1 (Subjekt) + Position 2 (Finites Verb).",
+    "explanation": "Example: 'Er blieb nicht zu Hause, sondern (Pos 0) er (Pos 1) fuhr (Pos 2) direkt ins Büro.'",
+    "trap": "Inverting Subject and Verb after 'denn' or 'sondern' (e.g. '*denn kann er nicht*' instead of 'denn er kann nicht').",
+    "sources": [
+      "https://www.dwds.de/wb/Konjunktion",
+      "https://www.dwds.de/wb/sondern"
+    ],
+    "difficulty": 1240,
+    "requires": [
+      "de-kon-l0-002"
+    ]
+  },
+  {
+    "id": "de-kon-l2-001",
+    "ladder": "de-konnektoren",
+    "level": 2,
+    "topic": "Adversative Konnektoren",
+    "question": "Wie unterscheiden sich die Konnektoren „während“ (adversative Subjunktion) und „hingegen“ (Adverb) in Bedeutung und Satzbau?",
+    "answer": "„Während“ leitet als Subjunktion einen Nebensatz ein, stellt zwei Sachverhalte kontrastierend gegenüber und erfordert das finite Verb am Satzende (Verbletztstellung). „Hingegen“ ist ein Adverb, das im Hauptsatz in Position 1 (mit Inversion: finite Verb an Position 2) oder im Mittelfeld stehen kann.",
+    "explanation": "Beispiel: „Während die Nachfrage nach Elektrofahrzeugen steigt, geht der Absatz von Dieselfahrzeugen zurück.“ vs. „Die Nachfrage nach Elektrofahrzeugen steigt. Der Absatz von Dieselfahrzeugen hingegen geht zurück.“",
+    "trap": "„Während“ fälschlicherweise nur temporal verstehen; im B2-Niveau drückt es häufig einen formalen logischen Gegensatz aus.",
+    "sources": [
+      "https://www.dwds.de/wb/während",
+      "https://www.dwds.de/wb/hingegen"
+    ],
+    "difficulty": 1300,
+    "requires": [
+      "de-kon-l1-001",
+      "de-kon-l1-002"
+    ]
+  },
+  {
+    "id": "de-kon-l2-002",
+    "ladder": "de-konnektoren",
+    "level": 2,
+    "topic": "Kausale Nuancen: zumal",
+    "question": "Welche spezifische Funktion erfüllt die Subjunktion „zumal“ im Vergleich zu einem einfachen „weil“ oder „da“?",
+    "answer": "„Zumal“ leitet einen kausalen Nebensatz ein, der ein besonders gewichtiges, verstärkendes Zusatzargument anführt (im Sinne von „besonders weil“ oder „vor allem da“). Es steht typischerweise nachgestellt nach einem Hauptsatz mit finitem Verb am Satzende.",
+    "explanation": "Beispiel: „Wir sollten diese Maßnahme zügig umsetzen, zumal die finanziellen Mittel bereits bewilligt worden sind.“",
+    "trap": "„Zumal“ als Konjunktionaladverb in Position 1 mit Inversion verwenden (es ist eine Subjunktion mit Verbletztstellung).",
+    "sources": [
+      "https://www.dwds.de/wb/zumal"
+    ],
+    "difficulty": 1320,
+    "requires": [
+      "de-kon-l1-001"
+    ]
+  },
+  {
+    "id": "de-kon-l2-003",
+    "ladder": "de-konnektoren",
+    "level": 2,
+    "topic": "Instrumentale Konnektoren: indem",
+    "question": "Wie drückt man mit „indem“ oder „dadurch, dass“ eine modale bzw. instrumentale Beziehung (Mittel zum Zweck) aus?",
+    "answer": "„Indem“ und „dadurch, dass“ beantworten die Frage „Wie? / Auf welche Art und Weise?“ und beschreiben das Instrument oder die Handlungsweise zur Erreichung eines Ziels. Beide leiten Nebensätze mit Verbletztstellung ein.",
+    "explanation": "Beispiel: „Unternehmen können Kosten senken, indem sie ihre internen Arbeitsabläufe konsequent digitalisieren.“",
+    "trap": "„Indem“ mit der temporalen Bedeutung von „während“ verwechseln (im modernen Hochdeutsch ist „indem“ rein modal/instrumental).",
+    "sources": [
+      "https://www.dwds.de/wb/indem"
+    ],
+    "difficulty": 1340,
+    "requires": [
+      "de-kon-l1-001"
+    ]
+  },
+  {
+    "id": "de-kon-l3-001",
+    "ladder": "de-konnektoren",
+    "level": 3,
+    "topic": "Zweiteilige Satzverbindung: weder...noch",
+    "question": "Verbinden Sie die beiden Aussagen zu einem einzigen Satz unter Verwendung von „weder … noch“: „Das Projekt wurde nicht pünktlich abgeschlossen. Es blieb auch nicht innerhalb des vorgegebenen Budgets.“",
+    "answer": "„Das Projekt wurde weder pünktlich abgeschlossen noch blieb es innerhalb des vorgegebenen Budgets.“ (Oder: „Das Projekt blieb weder innerhalb des Budgets noch wurde es pünktlich abgeschlossen.“)",
+    "explanation": "„Weder … noch“ verbindet zwei verneinte Satzglieder oder Sätze und ersetzt die Einzelnegationen 'nicht' und 'kein'.",
+    "rubric": "Score 1.0 only if: (a) correct two-part connector 'weder ... noch' is used, (b) correct word order with finite verbs, (c) accurate negation transfer without double negation ('nicht'). Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/weder"
+    ],
+    "difficulty": 1400,
+    "requires": [
+      "de-kon-l2-001"
+    ]
+  },
+  {
+    "id": "de-kon-l3-002",
+    "ladder": "de-konnektoren",
+    "level": 3,
+    "topic": "Satzumformung: Präpositionalphrase zu Nebensatz",
+    "question": "Formen Sie die präpositionale Angabe „Trotz der widrigen Wetterbedingungen“ in einen vollständigen Nebensatz mit „obwohl“ um: „Trotz der widrigen Wetterbedingungen erreichten die Wanderer den Gipfel.“",
+    "answer": "„Obwohl die Wetterbedingungen widrig waren, erreichten die Wanderer den Gipfel.“ (Oder: „Die Wanderer erreichten den Gipfel, obwohl die Wetterbedingungen widrig waren.“)",
+    "explanation": "Die Genitivpräposition 'trotz' wird durch die Subjunktion 'obwohl' ersetzt, das Nomen 'Wetterbedingungen' wird zum Subjekt und das Adjektiv 'widrig' bildet mit 'waren' das Prädikat im Nebensatz.",
+    "rubric": "Score 1.0 only if: (a) 'obwohl' initiates subclause with verb in final position ('waren'), (b) main clause maintains correct Verb-Second word order ('erreichten die Wanderer'). Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/obwohl",
+      "https://www.dwds.de/wb/trotz"
+    ],
+    "difficulty": 1420,
+    "requires": [
+      "de-kon-l1-001",
+      "de-kon-l2-001"
+    ]
+  },
+  {
+    "id": "de-kon-l3-003",
+    "ladder": "de-konnektoren",
+    "level": 3,
+    "topic": "Kopulative Konnektoren: nicht nur...sondern auch",
+    "question": "Verbinden Sie die folgenden Sätze mit „nicht nur … sondern auch“: „Die Digitalisierung spart Zeit. Sie verbessert auch die Datenqualität.“",
+    "answer": "„Die Digitalisierung spart nicht nur Zeit, sondern sie verbessert auch die Datenqualität.“ (Oder: „Die Digitalisierung spart nicht nur Zeit, sondern verbessert auch die Datenqualität.“)",
+    "explanation": "„Nicht nur … sondern auch“ betont eine Steigerung oder Reihung zweier positiver oder relevanter Aspekte.",
+    "rubric": "Score 1.0 only if: (a) 'nicht nur ... sondern auch' correctly placed, (b) correct comma before 'sondern', (c) correct verb positions in both coordinated elements. Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/sondern"
+    ],
+    "difficulty": 1440,
+    "requires": [
+      "de-kon-l1-003"
+    ]
+  },
+  {
+    "id": "de-kon-l4-001",
+    "ladder": "de-konnektoren",
+    "level": 4,
+    "topic": "Argumentationsgefüge: einerseits...andererseits & dennoch",
+    "question": "Formulieren Sie für eine Diskussion über Telearbeit (Homeoffice) ein vollständiges Argumentationspaar mit einer Einschränkung: Nutzen Sie „einerseits … andererseits“ und ergänzen Sie einen Folgesatz mit „dennoch“.",
+    "answer": "„Einerseits ermöglicht Telearbeit eine flexiblere Zeiteinteilung und erspart den täglichen Arbeitsweg, andererseits kann die ständige Erreichbarkeit zu einer Verschmelzung von Berufs- und Privatleben führen. Dennoch überwiegen für viele Beschäftigte die Vorteile einer selbstbestimmten Arbeitsorganisation.“",
+    "explanation": "Der erste Satz wiegt Vor- und Nachteile formal ab, während der Folgesatz mit 'dennoch' eine begründete Schlussfolgerung zieht.",
+    "rubric": "Score 1.0 only if: (a) balanced advantage/disadvantage presented, (b) 'einerseits/andererseits' correctly placed with inversion or proper coordination, (c) 'dennoch' sentence correctly structured in Position 1 with Inversion, (d) grammatically sound B2 register. Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/einerseits",
+      "https://www.dwds.de/wb/dennoch"
+    ],
+    "difficulty": 1500,
+    "requires": [
+      "de-kon-l3-001",
+      "de-kon-l3-002"
+    ]
+  },
+  {
+    "id": "de-kon-l4-002",
+    "ladder": "de-konnektoren",
+    "level": 4,
+    "topic": "Konzessive Redemittel & Gegenargumentation",
+    "question": "Formulieren Sie ein differenziertes Gegenargument zum Thema „Abschaffung von Schulnoten“ unter Verwendung der Redemittel „Zwar lässt sich einwenden, dass … allerdings sollte man bedenken, dass …“.",
+    "answer": "„Zwar lässt sich einwenden, dass Schulnoten eine klare und vergleichbare Leistungsbewertung ermöglichen, allerdings sollte man bedenken, dass sie bei Schülern häufig erheblichen Leistungsdruck erzeugen und individuelle Lernfortschritte nur unzureichend abbilden.“",
+    "explanation": "Diese Struktur entspricht dem standardisierten Goethe-B2-Schreibkriterium für differenzierte Argumentation (Kohärenz und Kohäsion).",
+    "rubric": "Score 1.0 only if: (a) both Redemittel correctly integrated, (b) verb positions correct (final verb in dass-clause, verb in position 2 in main clause), (c) logically coherent B2 argumentation with counter-argument and concession. Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/allerdings",
+      "https://www.goethe.de/pro/relaunch/prf/de/Pruefungsziele_Testbeschreibung_B2.pdf"
+    ],
+    "difficulty": 1540,
+    "requires": [
+      "de-kon-l3-001",
+      "de-kon-l3-002"
+    ]
+  },
+  {
+    "id": "de-kon-l5-001",
+    "ladder": "de-konnektoren",
+    "level": 5,
+    "topic": "Schreiben Teil 1 Master-Struktur",
+    "question": "Skizzieren Sie die vollständige argumentative Struktur eines Goethe-B2-Forenbeitrags (Schreiben Teil 1, ca. 150 Wörter) zum Thema „Nutzung öffentlicher Verkehrsmittel“ mit den 4 Pflichtelementen: Einleitung, eigene Haltung mit Begründung, Argument mit Beispiel und Gegenvorschlag/Schluss.",
+    "answer": "1. Einleitung & Thema: „In der heutigen Diskussion über nachhaltige Mobilität wird häufig die Frage aufgeworfen, wie der öffentliche Personennahverkehr attraktiver gestaltet werden kann.“\n2. Eigene Haltung & Begründung: „Meines Erachtens stellt ein gut ausgebautes Bus- und Bahnnetz die wichtigste Säule des innerstädtischen Klimaschutzes dar, da dadurch der Individualverkehr spürbar entlastet wird.“\n3. Argument & konkretes Beispiel: „Zwar entstehen durch den Ausbau hohe kommunale Kosten, allerdings amortisieren sich diese Investitionen langfristig, wie das erfolgreiche Modell des 365-Euro-Jahrestickets in Wien verdeutlicht.“\n4. Gegenvorschlag & Schluss: „Anstatt den Autoverkehr lediglich mit Verboten zu belegen, sollten Städte vielmehr in die Taktverdichtung und moderne Park-and-Ride-Anlagen investieren. Zusammenfassend lässt sich festhalten, dass Mobilität bezahlbar und verlässlich bleiben muss.“",
+    "explanation": "Der Goethe-B2-Forenbeitrag bewertet vier Kriterien: Aufgabenerfüllung (alle 4 Inhaltspunkte), Kohärenz/Kohäsion (logische Konnektoren), Wortschatzspektrum und grammatische Korrektheit.",
+    "rubric": "Score 1.0 only if: (a) all 4 mandatory Goethe B2 rubric components are clearly distinguished, (b) contains advanced B2 connectors (z.B. Meines Erachtens, Zwar...aber, Allerdings, Anstatt...zu, Zusammenfassend), (c) clear formal register suitable for a public forum. Otherwise 0.5.",
+    "sources": [
+      "https://www.goethe.de/pro/relaunch/prf/de/Pruefungsziele_Testbeschreibung_B2.pdf"
+    ],
+    "difficulty": 1650,
+    "requires": [
+      "de-kon-l4-001",
+      "de-kon-l4-002"
+    ]
+  }
+]

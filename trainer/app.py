@@ -24,6 +24,9 @@ from trainer.engine import (
     is_card_unlocked,
     filter_selectable_cards,
     select_next_card,
+    get_ladder_rating,
+    migrate_progress,
+    DEFAULT_LADDER_RATINGS,
 )
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -60,14 +63,15 @@ def load_all_cards() -> List[Dict[str, Any]]:
 
 
 def load_progress() -> Dict[str, Any]:
-    """Load persistent progress state."""
+    """Load persistent progress state, migrating legacy ratings on load."""
     if PROGRESS_FILE.exists():
         try:
             with open(PROGRESS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                return migrate_progress(data)
         except Exception:
             pass
-    return {"user_rating": 1200.0, "cards": {}}
+    return {"ladder_ratings": dict(DEFAULT_LADDER_RATINGS), "user_rating": 820.0, "cards": {}}
 
 
 def save_progress(progress: Dict[str, Any]) -> None:
@@ -109,7 +113,8 @@ def get_state():
     now = datetime.now(timezone.utc)
     
     cards_progress = progress.get("cards", {})
-    user_rating = progress.get("user_rating", 1200.0)
+    ladder_ratings = progress.get("ladder_ratings", {})
+    user_rating = progress.get("user_rating", 820.0)
     
     due_count = 0
     mastered_count = 0
@@ -133,6 +138,7 @@ def get_state():
     
     return {
         "user_rating": user_rating,
+        "ladder_ratings": ladder_ratings,
         "due_count": due_count,
         "total_cards": len(cards),
         "mastered_count": mastered_count,
@@ -152,15 +158,19 @@ def get_next_card(cram: bool = False, ladder: Optional[str] = None):
         return {"card": None, "message": "No cards currently due. Switch to Cram Mode to keep drilling!"}
     
     card_id = card["id"]
+    card_ladder = card.get("ladder", "default")
     card_prog = progress.get("cards", {}).get(card_id, {})
     current_rc = card_prog.get("rating", card.get("difficulty", 1200.0))
     reps = card_prog.get("reps", 0)
+    user_ladder_rating = get_ladder_rating(progress, card_ladder)
     
     return {
         "card": card,
         "current_rating": current_rc,
         "reps": reps,
-        "user_rating": progress.get("user_rating", 1200.0),
+        "user_rating": user_ladder_rating,
+        "ladder_rating": user_ladder_rating,
+        "ladder_ratings": progress.get("ladder_ratings", {}),
     }
 
 
@@ -174,10 +184,11 @@ def post_grade(req: GradeRequest):
         raise HTTPException(status_code=404, detail=f"Card '{req.card_id}' not found")
         
     card = cards[req.card_id]
+    card_ladder = card.get("ladder", "default")
     progress = load_progress()
     now = datetime.now(timezone.utc)
     
-    user_rating = progress.get("user_rating", 1200.0)
+    old_ru = get_ladder_rating(progress, card_ladder)
     card_prog = progress.get("cards", {}).get(req.card_id, {
         "rating": float(card.get("difficulty", 1200)),
         "ease": 2.5,
@@ -190,12 +201,11 @@ def post_grade(req: GradeRequest):
     })
     
     old_rc = float(card_prog.get("rating", card.get("difficulty", 1200)))
-    old_ru = float(user_rating)
     ease = float(card_prog.get("ease", 2.5))
     interval_days = int(card_prog.get("interval_days", 0))
     reps = int(card_prog.get("reps", 0))
     
-    # 1. Elo update
+    # 1. Elo update for this specific ladder
     new_ru, new_rc = calculate_elo(old_ru, old_rc, req.score)
     
     # 2. SM-2 update
@@ -220,6 +230,8 @@ def post_grade(req: GradeRequest):
         "card_rating": new_rc,
     })
     
+    # Update ladder_ratings dict and legacy user_rating
+    progress.setdefault("ladder_ratings", {})[card_ladder] = new_ru
     progress["user_rating"] = new_ru
     progress.setdefault("cards", {})[req.card_id] = card_prog
     save_progress(progress)
@@ -228,6 +240,7 @@ def post_grade(req: GradeRequest):
     log_entry = {
         "timestamp": now.isoformat(),
         "card_id": req.card_id,
+        "ladder": card_ladder,
         "score": req.score,
         "old_user_rating": old_ru,
         "new_user_rating": new_ru,
@@ -242,6 +255,7 @@ def post_grade(req: GradeRequest):
         
     return {
         "success": True,
+        "ladder": card_ladder,
         "new_user_rating": new_ru,
         "new_card_rating": new_rc,
         "new_interval_days": new_interval_days,

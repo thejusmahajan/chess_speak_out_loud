@@ -38,11 +38,10 @@ Every brief and report path below is relative to
 
 **1. `briefs/2026-08-19_knowledge-base-audit.md` — DONE, AUDITED, ACCEPTED.** Nothing to do.
 
-**2. `briefs/2026-08-20_trainer-german-b2.md` — ACTIVE ← do this one**
-German B2 (Goethe) ladders in the same trainer. **Part A first and blocking:** `user_rating` is a
-single global scalar, so German mastery would inflate one number and start serving harder ML cards.
-Per-ladder ratings, then the content. German content is the highest-fabrication-risk material this
-trainer has carried — a learner cannot tell invented German from real German.
+**2. `briefs/2026-08-20_trainer-german-b2.md` — DELIVERED (Report: `reports/2026-08-20_trainer-german-b2_REPORT.md`)**
+German B2 (Goethe) ladders in the trainer with per-ladder decoupled Elo ratings (`ladder_ratings`).
+45 cards authored across `de-konnektoren`, `de-grammatik`, and `de-wortschatz` (Levels 0-5), strictly grounded
+in Goethe B2 exam specifications and DWDS lemmas. All 22 tests and 77 URLs verified.
 
 **3. TRAINER (ML side) — DELIVERED, AUDITED, ACCEPTED (both runs).** Level 0 is now served (400/400 draws
 at rating 820) and the mathematics is restored and wired to render. **One open item needs Thejus,

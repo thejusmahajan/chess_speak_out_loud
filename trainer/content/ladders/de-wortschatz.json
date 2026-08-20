@@ -1,0 +1,262 @@
+[
+  {
+    "id": "de-wor-l0-001",
+    "ladder": "de-wortschatz",
+    "level": 0,
+    "topic": "Wortbildung: Suffixe & Genera",
+    "question": "Which grammatical gender (Artikel) do German nouns ending in -ung, -heit, -keit, -schaft, and -tät always take?",
+    "answer": "They are invariably feminine (die). All nouns derived with the suffixes '-ung' (die Entscheidung), '-heit' (die Freiheit), '-keit' (die Möglichkeit), '-schaft' (die Wissenschaft), and '-tät' (die Universität) take the feminine article 'die' and form their plural with '-en'.",
+    "explanation": "Example: 'Die Genauigkeit (Feminin) der Messung ist für die Verlässlichkeit (Feminin) der Prognose entscheidend.'",
+    "trap": "Guessing 'das' or 'der' for abstract nouns ending in '-keit' or '-ung'.",
+    "sources": [
+      "https://www.dwds.de/wb/-ung"
+    ],
+    "difficulty": 1100,
+    "requires": []
+  },
+  {
+    "id": "de-wor-l0-002",
+    "ladder": "de-wortschatz",
+    "level": 0,
+    "topic": "Untrennbare Präfixe",
+    "question": "Which seven verb prefixes in German are strictly untransportable and untrennbar (never separate and never take 'ge-' in Partizip II)?",
+    "answer": "The untrennbar (inseparable) prefixes are: 'be-', 'ent-', 'er-', 'ge-', 'ver-', 'zer-', and 'miss-'. These prefixes are unstressed, never separate from the verb root in any tense, and their Partizip II forms directly with '-t' or '-en' without an inserted 'ge-' (e.g. verstehen → verstanden, zerstören → zerstört, entstehen → entstanden).",
+    "explanation": "Mnemonic: 'be-ent-er-ge-ver-zer-miss' are always inseparable. Example: 'Er verstand (nicht '*stand ver*') das Problem.'",
+    "trap": "Adding 'ge-' to inseparable verbs in the past participle (e.g. '*geverstanden*' is incorrect; say 'verstanden').",
+    "sources": [
+      "https://www.dwds.de/wb/verstehen"
+    ],
+    "difficulty": 1120,
+    "requires": []
+  },
+  {
+    "id": "de-wor-l0-003",
+    "ladder": "de-wortschatz",
+    "level": 0,
+    "topic": "Funktionsverbgefüge Grundlagen",
+    "question": "What is a 'Nomen-Verb-Verbindung' (Funktionsverbgefüge), and why is it essential for formal B2 German?",
+    "answer": "A Nomen-Verb-Verbindung (NVV) is a fixed idiomatic collocation consisting of an abstract noun and a semantically bleached functional verb (e.g. 'eine Entscheidung treffen' = entscheiden; 'in Betracht ziehen' = erwägen). In formal and academic German (B2/C1), NVVs replace simple verbs to express precise aspect, formality, and passive nuances.",
+    "explanation": "Example: 'Das Team traf eine Entscheidung' sounds significantly more professional than 'Das Team entschied'.",
+    "trap": "Translating verbs literally word-for-word from English (e.g. '*eine Entscheidung machen*' instead of 'eine Entscheidung treffen').",
+    "sources": [
+      "https://www.dwds.de/wb/Entscheidung"
+    ],
+    "difficulty": 1140,
+    "requires": []
+  },
+  {
+    "id": "de-wor-l1-001",
+    "ladder": "de-wortschatz",
+    "level": 1,
+    "topic": "Feste Nomen-Verb-Verbindungen",
+    "question": "Match the core verbs 'treffen', 'ziehen', 'stellen', and 'nehmen' to their standard B2 idiomatic nouns and state their meaning.",
+    "answer": "1. 'eine Entscheidung treffen' = sich entscheiden (to make a decision)\n2. 'in Betracht ziehen' = berücksichtigen / erwägen (to take into consideration)\n3. 'zur Verfügung stellen' = bereitstellen / überlassen (to make available / provide)\n4. 'in Kauf nehmen' = Nachteile akzeptieren (to accept drawbacks / risks)",
+    "explanation": "Example: 'Wir müssen eventuelle Verzögerungen in Kauf nehmen, um die Qualität zu sichern.'",
+    "trap": "Using the wrong verb with the noun (e.g. '*in Betracht nehmen*' instead of 'in Betracht ziehen').",
+    "sources": [
+      "https://www.dwds.de/wb/Entscheidung",
+      "https://www.dwds.de/wb/Betracht"
+    ],
+    "difficulty": 1200,
+    "requires": [
+      "de-wor-l0-003"
+    ]
+  },
+  {
+    "id": "de-wor-l1-002",
+    "ladder": "de-wortschatz",
+    "level": 1,
+    "topic": "Präfix-Familie: stehen",
+    "question": "How do the meanings of the prefix verbs 'bestehen', 'entstehen', 'gestehen', and 'verstehen' diverge from their root verb 'stehen'?",
+    "answer": "1. 'bestehen': to exist / persist ('bestehen bleiben') or to pass an exam ('eine Prüfung bestehen') or to insist on ('bestehen auf + Dat')\n2. 'entstehen': to emerge, arise, or come into being\n3. 'gestehen' (oder eingestehen): to confess or admit (a mistake or truth)\n4. 'verstehen': to comprehend, understand, or interpret",
+    "explanation": "Example: 'Aus dieser Kooperation entstehen neue Synergien, die den langfristigen Bestand sichern.'",
+    "trap": "Confusing 'bestehen aus' (consist of) with 'bestehen auf' (insist upon).",
+    "sources": [
+      "https://www.dwds.de/wb/bestehen",
+      "https://www.dwds.de/wb/entstehen"
+    ],
+    "difficulty": 1220,
+    "requires": [
+      "de-wor-l0-002"
+    ]
+  },
+  {
+    "id": "de-wor-l1-003",
+    "ladder": "de-wortschatz",
+    "level": 1,
+    "topic": "Falsche Freunde (False Friends)",
+    "question": "What do the German false friends 'bekommen', 'eventuell', 'sensibel', and 'aktuell' actually mean compared to their English lookalikes?",
+    "answer": "1. 'bekommen' = to receive / get (NOT 'to become', which is 'werden')\n2. 'eventuell' = possibly / perhaps (NOT 'eventually', which is 'schließlich / letztendlich')\n3. 'sensibel' = sensitive / delicate (NOT 'sensible', which is 'vernünftig')\n4. 'aktuell' = current / up-to-date (NOT 'actual', which is 'tatsächlich / eigentlich')",
+    "explanation": "Example: 'Ich habe gestern eine Nachricht bekommen (received). Eventuell (possibly) treffen wir uns morgen.'",
+    "trap": "Writing '*Ich will ein Lehrer bekommen*' (meaning 'I want to receive a teacher') instead of 'Ich will Lehrer werden'.",
+    "sources": [
+      "https://www.dwds.de/wb/bekommen",
+      "https://www.dwds.de/wb/eventuell"
+    ],
+    "difficulty": 1240,
+    "requires": [
+      "de-wor-l0-001"
+    ]
+  },
+  {
+    "id": "de-wor-l2-001",
+    "ladder": "de-wortschatz",
+    "level": 2,
+    "topic": "Synonyme & Sprachregister",
+    "question": "Wie unterscheiden sich die Verben „benutzen“, „anwenden“ und „einsetzen“ hinsichtlich Sprachregister und Kontext?",
+    "answer": "1. „benutzen“: Alltägliches Register für physische Gegenstände oder Werkzeuge (z.B. ein Telefon, ein Wörterbuch benutzen).\n2. „anwenden“: Gehobenes/fachsprachliches Register für Methoden, Theorien, Regeln oder Verfahren (z.B. eine mathematische Formel, ein Gesetz anwenden).\n3. „einsetzen“: Formales Register für Ressourcen, Technologie, Personal oder finanzielle Mittel (z.B. moderne Software einsetzen, Fördermittel einsetzen).",
+    "explanation": "Im B2-Schreiben und -Sprechen signalisiert die Wahl von 'anwenden' oder 'einsetzen' anstelle des einfachen 'benutzen' ein höheres Sprachregister.",
+    "trap": "„Benutzen“ für abstrakte Methoden in wissenschaftlichen oder behördlichen Texten verwenden.",
+    "sources": [
+      "https://www.dwds.de/wb/anwenden",
+      "https://www.dwds.de/wb/einsetzen"
+    ],
+    "difficulty": 1300,
+    "requires": [
+      "de-wor-l1-001"
+    ]
+  },
+  {
+    "id": "de-wor-l2-002",
+    "ladder": "de-wortschatz",
+    "level": 2,
+    "topic": "Wortschatz Arbeitswelt: Kündigung",
+    "question": "Erläutern Sie den semantischen und rechtlichen Unterschied zwischen „jemandem kündigen“, „einen Mitarbeiter entlassen“ und „einen Mitarbeiter freistellen“.",
+    "answer": "1. „jemandem kündigen“: Die formale Beendigung eines Arbeitsvertrags unter Einhaltung der Kündigungsfrist (kann arbeitgeber- oder arbeitnehmerseitig erfolgen).\n2. „einen Mitarbeiter entlassen“: Die arbeitgeberseitige Beendigung des Beschäftigungsverhältnisses, oft aus betriebsbedingten oder verhaltensbedingten Gründen.\n3. „einen Mitarbeiter freistellen“: Die Entbindung von der Arbeitspflicht bei fortlaufender Gehaltszahlung bis zum offiziellen Vertragsende.",
+    "explanation": "Beispiel: „Nach der Umstrukturierung wurden mehrere Angestellte freigestellt, bevor das Arbeitsverhältnis endete.“",
+    "trap": "„Kündigen“ immer als Dativkonstruktion verwenden ('Der Chef kündigt *dem Mitarbeiter*') oder als Reflexivverb ('Der Mitarbeiter kündigt').",
+    "sources": [
+      "https://www.dwds.de/wb/kündigen",
+      "https://www.dwds.de/wb/entlassen"
+    ],
+    "difficulty": 1320,
+    "requires": [
+      "de-wor-l1-001"
+    ]
+  },
+  {
+    "id": "de-wor-l2-003",
+    "ladder": "de-wortschatz",
+    "level": 2,
+    "topic": "Präpositionale Rektion bei Verben",
+    "question": "Welche festen Präpositionen und grammatischen Fälle fordern die Verben „beitragen“, „hinweisen“ und „sich beziehen“?",
+    "answer": "1. „beitragen zu + Dativ“: einen Beitrag zu etwas leisten (z.B. „zur Lösung beitragen“)\n2. „hinweisen auf + Akkusativ“: jemandes Aufmerksamkeit auf etwas lenken (z.B. „auf ein Risiko hinweisen“)\n3. „sich beziehen auf + Akkusativ“: auf etwas Bezug nehmen (z.B. „sich auf die Vereinbarung beziehen“)",
+    "explanation": "Beispiel: „Der Experte wies auf die Gefahren hin (Akkusativ) und betonte, dass jeder Einzelne zum Klimaschutz beitragen muss (Dativ).“",
+    "trap": "Falsche Präposition verwenden (z.B. '*beitragen für*' statt 'beitragen zu').",
+    "sources": [
+      "https://www.dwds.de/wb/beitragen",
+      "https://www.dwds.de/wb/hinweisen"
+    ],
+    "difficulty": 1340,
+    "requires": [
+      "de-wor-l1-001"
+    ]
+  },
+  {
+    "id": "de-wor-l3-001",
+    "ladder": "de-wortschatz",
+    "level": 3,
+    "topic": "Funktionsverbgefüge: Kritik üben an",
+    "question": "Formen Sie den Satz „Die Medien kritisierten die getroffenen Maßnahmen heftig“ unter Verwendung der Nomen-Verb-Verbindung „Kritik üben an (+ Dativ)“ um.",
+    "answer": "„Die Medien übten heftige Kritik an den getroffenen Maßnahmen.“ (Oder im Perfekt: „Die Medien haben heftige Kritik an den getroffenen Maßnahmen geübt.“)",
+    "explanation": "Das Adverb 'heftig' wird bei der Nominalisierung zum Adjektivattribut 'heftige Kritik', das Verb 'üben' wird im Präteritum 'übten' konjugiert und die Präposition 'an' fordert den Dativ Plural 'den getroffenen Maßnahmen'.",
+    "rubric": "Score 1.0 only if: (a) correct NVV 'Kritik üben an', (b) correct case (Dativ: 'an den getroffenen Maßnahmen'), (c) correct tense consistency (Präteritum: 'übten'). Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/Kritik"
+    ],
+    "difficulty": 1400,
+    "requires": [
+      "de-wor-l1-001",
+      "de-wor-l2-001"
+    ]
+  },
+  {
+    "id": "de-wor-l3-002",
+    "ladder": "de-wortschatz",
+    "level": 3,
+    "topic": "Aktiv vs Passiv NVV: zur Sprache bringen/kommen",
+    "question": "Wie unterscheiden sich die Funktionsverbgefüge „ein Thema zur Sprache bringen“ und „ein Thema kommt zur Sprache“ in ihrer Perspektive (Aktiv vs. Passiv/Inchoativ)?",
+    "answer": "„Ein Thema zur Sprache bringen“ ist aktiv/kausativ: Das Subjekt ergreift die Initiative und spricht ein Thema an (z.B. „Die Abgeordnete brachte die Umweltproblematik zur Sprache“).\n„Ein Thema kommt zur Sprache“ ist passivisch/inchoativ: Das Thema wird im Laufe einer Debatte thematisiert, ohne dass ein konkreter Urheber im Vordergrund steht (z.B. „Während der Konferenz kam auch der Etat zur Sprache“).",
+    "explanation": "Paare wie 'bringen / kommen' oder 'stellen / stehen' erlauben im gehobenen Deutsch den eleganten Wechsel zwischen Aktiv- und Passivperspektive.",
+    "rubric": "Score 1.0 only if: (a) clearly explains active (bringen) vs passive/inchoative (kommen) perspective, (b) accurate contextual explanations. Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/Sprache"
+    ],
+    "difficulty": 1420,
+    "requires": [
+      "de-wor-l2-001"
+    ]
+  },
+  {
+    "id": "de-wor-l3-003",
+    "ladder": "de-wortschatz",
+    "level": 3,
+    "topic": "NVV-Kontrast: in Erwägung ziehen vs außer Acht lassen",
+    "question": "Formen Sie einen Satz zum Thema städtische Verkehrsplanung, der die beiden Nomen-Verb-Verbindungen „in Erwägung ziehen“ und „außer Acht lassen“ sinnvoll gegenüberstellt.",
+    "answer": "„Bei der Planung neuer Verkehrswege sollte die Stadtverwaltung den Ausbau des Radverkehrsnetzes ernsthaft in Erwägung ziehen, anstatt ausschließlich die Interessen des Autoverkehrs zu berücksichtigen und den Fußgängerschutz außer Acht zu lassen.“",
+    "explanation": "„In Erwägung ziehen“ bedeutet 'etwas gründlich prüfen/erwägen', während „außer Acht lassen“ bedeutet 'etwas vernachlässigen/nicht beachten'.",
+    "rubric": "Score 1.0 only if: (a) both NVVs used accurately with correct syntax, (b) coherent professional B2 register on urban planning. Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/Erwägung",
+      "https://www.dwds.de/wb/Acht"
+    ],
+    "difficulty": 1440,
+    "requires": [
+      "de-wor-l2-001"
+    ]
+  },
+  {
+    "id": "de-wor-l4-001",
+    "ladder": "de-wortschatz",
+    "level": 4,
+    "topic": "Präfixsemantik: ver-",
+    "question": "Welche unterschiedlichen semantischen Funktionen kann das Präfix „ver-“ bei Verben haben? Erläutern Sie die Bedeutungsnuancen an den Beispielen „sich verrechnen“, „verbessern“ und „verbrauchen“.",
+    "answer": "1. Fehlleistung / irrtümliche Handlung (oft reflexiv): „sich verrechnen“ = einen Fehler bei der Berechnung machen (analog zu 'sich verlaufen', 'sich verschreiben').\n2. Zustandsveränderung / Optimierung: „verbessern“ = in einen besseren Zustand überführen (analog zu 'verändern', 'verschönern').\n3. Verbrauch / Aufzehrung bis zum Ende: „verbrauchen“ = Ressourcen durch Nutzung aufbrauchen (analog zu 'verschwenden', 'verarbeiten').",
+    "explanation": "Das Präfix 'ver-' gehört zu den produktivsten Präfixen im Deutschen mit stark kontextabhängiger Bedeutung.",
+    "rubric": "Score 1.0 only if: (a) identifies reflexive error meaning (Fehlhandlung bei sich verrechnen), (b) qualitative change/improvement (verbessern), (c) consumption/exhaustion (verbrauchen). Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/verrechnen",
+      "https://www.dwds.de/wb/verbrauchen"
+    ],
+    "difficulty": 1500,
+    "requires": [
+      "de-wor-l1-002"
+    ]
+  },
+  {
+    "id": "de-wor-l4-002",
+    "ladder": "de-wortschatz",
+    "level": 4,
+    "topic": "Präfixsemantik: ent- vs zer-",
+    "question": "Erläutern Sie die Bedeutungen der Präfixe „ent-“ und „zer-“ anhand von „entkräften“, „entgleisen“ und „zerstreuen“, „zerlegen“.",
+    "answer": "1. Präfix „ent-“: Drückt eine Beseitigung / Privation (Aufhebung eines Zustands) oder ein Abweichen/Entfernen aus:\n- „ein Argument entkräften“ = einem Argument die Kraft/Gültigkeit nehmen (widerlegen)\n- „entgleisen“ = von den Gleisen abkommen\n\n2. Präfix „zer-“: Drückt Zerstörung, Auflösung, Zerteilung oder Trennung in Einzelteile aus:\n- „zerlegen“ = ein Ganzes in seine Einzelteile zerlegen/auseinandernehmen\n- „zerstreuen“ = Zweifel oder Bedenken auflösen / vertreiben",
+    "explanation": "Im B2/C1-Sprachgebrauch sind Verben mit 'ent-' und 'zer-' unverzichtbar für präzise argumentative Analysen.",
+    "rubric": "Score 1.0 only if: (a) accurately explains Privation/Entfernung for ent- and Destruktion/Teilung for zer-, (b) accurate contextual explanations for the examples. Otherwise 0.5.",
+    "sources": [
+      "https://www.dwds.de/wb/entkräften",
+      "https://www.dwds.de/wb/zerlegen"
+    ],
+    "difficulty": 1540,
+    "requires": [
+      "de-wor-l3-001"
+    ]
+  },
+  {
+    "id": "de-wor-l5-001",
+    "ladder": "de-wortschatz",
+    "level": 5,
+    "topic": "Sprechen Teil 1 Master-Redemittel",
+    "question": "Formulieren Sie für eine Goethe-B2-Präsentation (Thema: „Einkaufen im Internet“) die 5 formalen Redeabschnitte mit je einer hochsprachlichen Redewendung: (1) Thema vorstellen & Struktur ankündigen, (2) Eigene Erfahrung schildern, (3) Vor- und Nachteile abwägen, (4) Situation im Heimatland beschreiben, (5) Abschluss & Dank.",
+    "answer": "1. Thema & Struktur: „Im Rahmen meiner heutigen Präsentation möchte ich mich mit dem Thema ‚Einkaufen im Internet‘ auseinandersetzen. Dazu werde ich zunächst meine persönlichen Erfahrungen schildern, anschließend die Vor- und Nachteile abwägen, kurz auf die Situation in meinem Heimatland eingehen und schließlich ein Fazit ziehen.“\n2. Eigene Erfahrung: „Aus eigener Erfahrung kann ich berichten, dass der Online-Handel eine enorme Zeitersparnis bietet, wenngleich ich bei Kleidung nach wie vor den stationären Einkauf bevorzuge.“\n3. Vor- und Nachteile: „Ein wesentlicher Vorteil besteht zweifelsohne in der ständigen Verfügbarkeit und der transparenten Preisübersicht. Demgegenüber muss jedoch angeführt werden, dass der lokale Einzelhandel unter der Abwanderung der Kundschaft leidet und der Verpackungsmüll ein ökologisches Problem darstellt.“\n4. Heimatland: „In meinem Heimatland Indien gewinnt der E-Commerce rasant an Bedeutung, insbesondere in den Metropolen, während in ländlichen Regionen weiterhin traditionelle Märkte dominieren.“\n5. Abschluss & Dank: „Zusammenfassend lässt sich sagen, dass der Online-Einkauf den Konsum nachhaltig verändert hat. Damit bin ich am Ende meines Vortrags angelangt. Ich bedanke mich herzlich für Ihre Aufmerksamkeit und stehe für Fragen gerne zur Verfügung.“",
+    "explanation": "Diese 5 Phasen bilden die exakte Bewertungsstruktur der mündlichen Goethe-Zertifikat B2 Prüfung (Sprechen Teil 1: Vortrag halten).",
+    "rubric": "Score 1.0 only if: (a) all 5 mandatory presentation phases from Goethe B2 Sprechen Teil 1 rubric are provided, (b) uses idiomatic high-register phrases suitable for an academic presentation, (c) includes topic intro, personal experience, pros/cons, home country, and conclusion with thanks. Otherwise 0.5.",
+    "sources": [
+      "https://www.goethe.de/pro/relaunch/prf/de/Pruefungsziele_Testbeschreibung_B2.pdf"
+    ],
+    "difficulty": 1650,
+    "requires": [
+      "de-wor-l4-001",
+      "de-wor-l4-002"
+    ]
+  }
+]

@@ -10,6 +10,81 @@ import random
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
+DEFAULT_LADDER_RATINGS: Dict[str, float] = {
+    # German B2 ladders (advanced learner baseline)
+    "de-konnektoren": 1200.0,
+    "de-grammatik": 1200.0,
+    "de-wortschatz": 1200.0,
+    # Machine Learning ladders (foundational baseline)
+    "air-quality": 820.0,
+    "neural-processes": 820.0,
+    "own-work": 820.0,
+    "pytorch": 820.0,
+    "uncertainty": 820.0,
+}
+
+
+def get_default_ladder_rating(ladder: str) -> float:
+    """Get the configured default starting rating for a ladder."""
+    if ladder in DEFAULT_LADDER_RATINGS:
+        return DEFAULT_LADDER_RATINGS[ladder]
+    norm = ladder.replace("_", "-")
+    if norm in DEFAULT_LADDER_RATINGS:
+        return DEFAULT_LADDER_RATINGS[norm]
+    if ladder.startswith("de-") or ladder.startswith("de_"):
+        return 1200.0
+    return 820.0
+
+
+def get_ladder_rating(progress: Dict[str, Any], ladder: str) -> float:
+    """
+    Get user rating for a specific ladder.
+    If ladder_ratings dict exists, look up ladder (falling back to configured default).
+    If legacy user_rating exists without ladder_ratings, return legacy rating.
+    """
+    ladder_ratings = progress.get("ladder_ratings")
+    if isinstance(ladder_ratings, dict):
+        if ladder in ladder_ratings:
+            return float(ladder_ratings[ladder])
+        norm = ladder.replace("_", "-")
+        if norm in ladder_ratings:
+            return float(ladder_ratings[norm])
+        return get_default_ladder_rating(ladder)
+    
+    # Fallback to legacy user_rating if present
+    if "user_rating" in progress:
+        return float(progress["user_rating"])
+        
+    return get_default_ladder_rating(ladder)
+
+
+LEGACY_GLOBAL_RATING_LADDERS = frozenset({
+    "pytorch", "uncertainty", "neural-processes", "air-quality", "own-work",
+})
+
+
+def migrate_progress(progress: Dict[str, Any], known_ladders: Optional[List[str]] = None) -> Dict[str, Any]:
+    """
+    Migrate progress dict from legacy global user_rating to per-ladder ladder_ratings.
+    Seeds every existing ladder with the legacy user_rating if ladder_ratings is absent.
+    Preserves all card histories and attributes.
+    """
+    if "ladder_ratings" not in progress or not isinstance(progress["ladder_ratings"], dict):
+        legacy_rating = float(progress.get("user_rating", 820.0))
+        ladders_to_seed = set(DEFAULT_LADDER_RATINGS.keys())
+        if known_ladders:
+            ladders_to_seed.update(known_ladders)
+        # The legacy global rating described progress in the ladders that existed when it was
+        # the only rating -- the ML ones. Ladders introduced later (German) must start at their
+        # configured default, or their cards fall outside the selection window and are never
+        # served. A migration is a historical fact, so the list is explicit rather than inferred.
+        progress["ladder_ratings"] = {
+            l: (legacy_rating if l in LEGACY_GLOBAL_RATING_LADDERS
+                else get_default_ladder_rating(l))
+            for l in ladders_to_seed
+        }
+    return progress
+
 
 def calculate_elo(ru: float, rc: float, score: float) -> Tuple[float, float]:
     """
@@ -201,16 +276,20 @@ def select_next_card(
     random_seed: Optional[int] = None,
 ) -> Optional[Dict[str, Any]]:
     """
-    Select the next card for the user using Elo windowing (|Rc - Ru| <= window, starting at 150).
+    Select the next card for the user using Elo windowing (|Rc - Ru_ladder| <= window, starting at 150).
+    Uses the user's rating for the specific ladder of each candidate card.
     """
     if ladder_filter:
-        cards = [c for c in cards if c.get("ladder") == ladder_filter]
+        norm_filter = ladder_filter.replace("_", "-")
+        cards = [
+            c for c in cards
+            if c.get("ladder") == ladder_filter or c.get("ladder", "").replace("_", "-") == norm_filter
+        ]
         
     candidates = filter_selectable_cards(cards, progress, now, cram_mode=cram_mode)
     if not candidates:
         return None
     
-    user_rating = progress.get("user_rating", 1200.0)
     cards_progress = progress.get("cards", {})
     
     # Helper to get effective card rating
@@ -223,7 +302,10 @@ def select_next_card(
     window = 150.0
     matched = []
     while window <= 2000.0:
-        matched = [c for c in candidates if abs(get_card_rating(c) - user_rating) <= window]
+        matched = [
+            c for c in candidates
+            if abs(get_card_rating(c) - get_ladder_rating(progress, c.get("ladder", "default"))) <= window
+        ]
         if len(matched) >= 3 or len(matched) == len(candidates):
             break
         window += 50.0
