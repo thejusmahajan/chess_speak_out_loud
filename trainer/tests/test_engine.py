@@ -612,3 +612,139 @@ def test_verify_cards_fails_on_german_transliteration(tmp_path: Path):
     assert any("contains unallowed transliteration" in e for e in errors)
 
 
+# =====================================================================
+# 7. Atomic Card Selection & Anti-Repetition Tests (Part A)
+# =====================================================================
+
+def test_no_card_repeats_within_recency_window():
+    """Serve 20 cards from a pool of 30; assert no id appears twice within any window of 8."""
+    now = datetime.now(timezone.utc)
+    cards = [
+        {"id": f"card-{i:02d}", "ladder": "test", "level": 0, "difficulty": 800 + i * 5, "requires": []}
+        for i in range(30)
+    ]
+    progress = {"ladder_ratings": {"test": 850.0}, "cards": {}, "recent": []}
+    
+    served_ids = []
+    for i in range(20):
+        selected = select_next_card(cards, progress, now, cram_mode=False, random_seed=i)
+        assert selected is not None
+        served_ids.append(selected["id"])
+        
+    # Check that in every window of 8 cards, all 8 IDs are unique
+    for start in range(len(served_ids) - 8 + 1):
+        window_ids = served_ids[start:start + 8]
+        assert len(window_ids) == len(set(window_ids)), f"Duplicate found in window: {window_ids}"
+
+
+def test_unseen_cards_are_preferred():
+    """A pool with 5 unseen and 5 reviewed; the next 5 served are all unseen."""
+    now = datetime.now(timezone.utc)
+    unseen_cards = [
+        {"id": f"unseen-{i}", "ladder": "test", "level": 0, "difficulty": 820, "requires": []}
+        for i in range(5)
+    ]
+    reviewed_cards = [
+        {"id": f"reviewed-{i}", "ladder": "test", "level": 0, "difficulty": 820, "requires": []}
+        for i in range(5)
+    ]
+    cards = unseen_cards + reviewed_cards
+    
+    progress = {
+        "ladder_ratings": {"test": 820.0},
+        "cards": {
+            f"reviewed-{i}": {
+                "rating": 820.0,
+                "reps": 1,
+                "interval_days": 0,  # due immediately
+                "last_seen": now.isoformat(),
+                "history": [{"score": 1.0}]
+            }
+            for i in range(5)
+        },
+        "recent": []
+    }
+    
+    served_unseen = []
+    for i in range(5):
+        selected = select_next_card(cards, progress, now, cram_mode=False, random_seed=i)
+        assert selected is not None
+        assert selected["id"].startswith("unseen-")
+        served_unseen.append(selected["id"])
+        
+    assert len(set(served_unseen)) == 5
+
+
+def test_failed_card_returns_after_five_others():
+    """Score a card 0.0; assert it is not among the next 5 served, and does reappear afterwards."""
+    now = datetime.now(timezone.utc)
+    failed_card = {"id": "failed-card", "ladder": "test", "level": 0, "difficulty": 820, "requires": []}
+    other_cards = [
+        {"id": f"other-{i}", "ladder": "test", "level": 0, "difficulty": 820, "requires": []}
+        for i in range(10)
+    ]
+    cards = [failed_card] + other_cards
+    
+    # Progress where 'failed-card' just failed (score 0.0, interval 0 -> due immediately)
+    progress = {
+        "ladder_ratings": {"test": 820.0},
+        "cards": {
+            "failed-card": {
+                "rating": 820.0,
+                "reps": 0,
+                "interval_days": 0,
+                "last_seen": now.isoformat(),
+                "history": [{"score": 0.0}]
+            },
+            **{
+                f"other-{i}": {
+                    "rating": 820.0,
+                    "reps": 1,
+                    "interval_days": 0,
+                    "last_seen": now.isoformat(),
+                    "history": [{"score": 1.0}]
+                }
+                for i in range(10)
+            }
+        },
+        "recent": ["failed-card"]
+    }
+    
+    # Next 5 draws must NOT be 'failed-card'
+    for i in range(5):
+        selected = select_next_card(cards, progress, now, cram_mode=False, random_seed=i)
+        assert selected is not None
+        assert selected["id"] != "failed-card", f"Failed card served prematurely at draw {i+1}"
+        
+    # After 5 other cards are served, failed-card is eligible to reappear
+    found_failed = False
+    for i in range(5, 20):
+        selected = select_next_card(cards, progress, now, cram_mode=False, random_seed=i)
+        if selected and selected["id"] == "failed-card":
+            found_failed = True
+            break
+            
+    assert found_failed, "Failed card never returned after 5 other cards were served"
+
+
+def test_selector_never_starves():
+    """With only 2 selectable cards and a recency window of 8, the selector still returns a card rather than None."""
+    now = datetime.now(timezone.utc)
+    cards = [
+        {"id": "card-A", "ladder": "test", "level": 0, "difficulty": 800, "requires": []},
+        {"id": "card-B", "ladder": "test", "level": 0, "difficulty": 820, "requires": []},
+    ]
+    progress = {
+        "ladder_ratings": {"test": 800.0},
+        "cards": {},
+        "recent": ["card-A", "card-B", "card-A", "card-B", "card-A", "card-B", "card-A", "card-B"]
+    }
+    
+    # Even though recent contains both cards in the last 8 entries, selector relaxes and returns a card
+    for i in range(10):
+        selected = select_next_card(cards, progress, now, cram_mode=False, random_seed=i)
+        assert selected is not None
+        assert selected["id"] in ("card-A", "card-B")
+
+
+

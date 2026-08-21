@@ -32,16 +32,45 @@
     "requires": []
   },
   {
-    "id": "de-kon-l0-003",
+    "id": "de-kon-l0-003a",
     "ladder": "de-konnektoren",
     "level": 0,
-    "topic": "Konsekutivkonnektoren",
-    "question": "What logical relationship do the connectors 'folglich', 'demnach', and 'infolgedessen' express?",
-    "answer": "They express a consequence or direct logical result (konsekutives Verhältnis / Folge) stemming from the preceding statement, translated as 'consequently', 'therefore', or 'as a result'. As adverbial connectors, they trigger Subject-Verb inversion when placed in Position 1.",
-    "explanation": "Example: 'Die Messergebnisse waren fehlerhaft; folglich mussten die Berechnungen wiederholt werden.'",
-    "trap": "Treating 'folglich' as a subordinating conjunction with verb-final position.",
+    "topic": "Konsekutivkonnektor: folglich",
+    "question": "What does the connector 'folglich' mean, what position does it take in a sentence, and how is it used in a German example sentence?",
+    "answer": "'Folglich' means 'consequently / as a result' and functions as an adverbial connector (Konjunktionaladverb). When placed in Position 1 of a main clause, it triggers Subject-Verb inversion (Verb in Position 2, Subject in Position 3).",
+    "explanation": "Example: „Die Messergebnisse waren unvollständig; folglich (Pos 1) mussten (Pos 2) die Forscher (Pos 3) das Experiment wiederholen.“ (DWDS)",
+    "trap": "Treating 'folglich' as a subordinating conjunction with verb-final word order.",
     "sources": [
-      "https://www.dwds.de/wb/folglich",
+      "https://www.dwds.de/wb/folglich"
+    ],
+    "difficulty": 1130,
+    "requires": []
+  },
+  {
+    "id": "de-kon-l0-003b",
+    "ladder": "de-konnektoren",
+    "level": 0,
+    "topic": "Konsekutivkonnektor: demnach",
+    "question": "What does the connector 'demnach' mean, what sentence structure does it force, and how is it used in a German example sentence?",
+    "answer": "'Demnach' means 'accordingly / hence / according to that' and occupies Position 1 as an adverbial connector, triggering Subject-Verb inversion (Verb in Position 2).",
+    "explanation": "Example: „Der Zug hat erhebliche Verspätung; demnach (Pos 1) erreichen (Pos 2) wir (Pos 3) den Anschlussflug nicht mehr.“ (DWDS)",
+    "trap": "Placing the subject before the verb after 'demnach' in Position 1 (e.g. '*demnach wir erreichen*' is incorrect).",
+    "sources": [
+      "https://www.dwds.de/wb/demnach"
+    ],
+    "difficulty": 1135,
+    "requires": []
+  },
+  {
+    "id": "de-kon-l0-003c",
+    "ladder": "de-konnektoren",
+    "level": 0,
+    "topic": "Konsekutivkonnektor: infolgedessen",
+    "question": "What does the connector 'infolgedessen' mean, what sentence structure does it force, and how is it used in a German example sentence?",
+    "answer": "'Infolgedessen' means 'as a consequence of this / subsequently' (formal B2 register) and occupies Position 1 with Subject-Verb inversion (Verb in Position 2).",
+    "explanation": "Example: „Die Firma stellte die Produktion ein; infolgedessen (Pos 1) verloren (Pos 2) viele Beschäftigte (Pos 3) ihre Arbeit.“ (DWDS)",
+    "trap": "Confusing 'infolgedessen' (adverb in Position 1 with inversion) with 'infolge von' (preposition governing Genitive).",
+    "sources": [
       "https://www.dwds.de/wb/infolgedessen"
     ],
     "difficulty": 1140,
@@ -81,7 +110,7 @@
     "difficulty": 1220,
     "requires": [
       "de-kon-l0-001",
-      "de-kon-l0-003"
+      "de-kon-l0-003a"
     ]
   },
   {

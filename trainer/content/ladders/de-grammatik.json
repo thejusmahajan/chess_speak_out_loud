@@ -1,17 +1,77 @@
 [
   {
-    "id": "de-gra-l0-001",
+    "id": "de-gra-l0-gen",
     "ladder": "de-grammatik",
     "level": 0,
-    "topic": "Genitiv-Präpositionen",
-    "question": "Which four frequent prepositions strictly govern the Genitive case in formal German (B2 level)?",
-    "answer": "The four most frequent formal Genitive prepositions are: 'aufgrund' (due to / on the basis of), 'trotz' (in spite of), 'während' (during), and 'wegen' (because of). They are followed by nouns and articles in the Genitive case (des/der/des/der).",
-    "trap": "Using the colloquial Dativ in formal writing (e.g. '*wegen dem Wetter*' is non-standard; in Goethe B2 writing, always write 'wegen des Wetters').",
+    "topic": "Genitiv Grundlagen & Artikeldeklination",
+    "question": "What does the Genitive case (Genitiv) express in German, and how do definite articles and noun endings change in the Genitive?",
+    "answer": "The Genitive case answers the question 'Wessen?' (Whose?) and expresses possession, origin, or association. Masculine and neuter nouns take the definite article 'des' and add '-(e)s' to the noun (e.g. 'des Lehrers', 'des Jahres'); feminine and plural nouns take the definite article 'der' with no added ending (e.g. 'der Frau', 'der Kollegen').",
+    "explanation": "Examples: 'Das Auto des Direktors (maskulin)' / 'Die Entscheidung der Ministerin (feminin)' / 'Die Berichte der Experten (plural)'.",
+    "trap": "Adding an '-(e)s' ending to feminine nouns in the Genitive (e.g. '*der Fraus*' is incorrect; say 'der Frau').",
     "sources": [
-      "https://www.dwds.de/wb/aufgrund",
-      "https://www.dwds.de/wb/trotz"
+      "https://www.dwds.de/wb/Genitiv"
+    ],
+    "difficulty": 1080,
+    "requires": []
+  },
+  {
+    "id": "de-gra-l0-001a",
+    "ladder": "de-grammatik",
+    "level": 0,
+    "topic": "Genitiv-Präposition: aufgrund",
+    "question": "What does the preposition 'aufgrund' mean, what grammatical case does it govern in formal German, and how is it used in a sentence?",
+    "answer": "'Aufgrund' means 'due to / on the basis of / because of' and strictly governs the Genitive case in standard and formal German.",
+    "explanation": "Example: „Aufgrund des starken Schneefalls wurde der Flugverkehr vorübergehend eingestellt.“ (DWDS)",
+    "trap": "Using Dative in formal writing (e.g. '*aufgrund dem Wetter*' is non-standard; in Goethe B2 writing, always use Genitive: 'aufgrund des Wetters').",
+    "sources": [
+      "https://www.dwds.de/wb/aufgrund"
     ],
     "difficulty": 1100,
+    "requires": []
+  },
+  {
+    "id": "de-gra-l0-001b",
+    "ladder": "de-grammatik",
+    "level": 0,
+    "topic": "Genitiv-Präposition: trotz",
+    "question": "What does the preposition 'trotz' mean, what grammatical case does it govern in formal German, and how is it used in a sentence?",
+    "answer": "'Trotz' expresses concession ('in spite of / despite') and strictly governs the Genitive case in standard and formal German.",
+    "explanation": "Example: „Trotz aller Bemühungen konnte keine Einigung erzielt werden.“ (DWDS)",
+    "trap": "Using Dative in Goethe B2 writing (e.g. '*trotz dem Regen*' is colloquial; write 'trotz des Regens').",
+    "sources": [
+      "https://www.dwds.de/wb/trotz"
+    ],
+    "difficulty": 1105,
+    "requires": []
+  },
+  {
+    "id": "de-gra-l0-001c",
+    "ladder": "de-grammatik",
+    "level": 0,
+    "topic": "Genitiv-Präposition: während",
+    "question": "What does the preposition 'während' mean when used as a preposition, what grammatical case does it govern, and how is it used in a sentence?",
+    "answer": "When used as a preposition, 'während' indicates a time span ('during') and strictly governs the Genitive case in formal German.",
+    "explanation": "Example: „Während der gesamten Vorlesung herrschte absolute Stille im Hörsaal.“ (DWDS)",
+    "trap": "Confusing prepositional 'während' (+ Genitive noun phrase) with the subordinating conjunction 'während' (+ subordinate clause with verb at end).",
+    "sources": [
+      "https://www.dwds.de/wb/während"
+    ],
+    "difficulty": 1110,
+    "requires": []
+  },
+  {
+    "id": "de-gra-l0-001d",
+    "ladder": "de-grammatik",
+    "level": 0,
+    "topic": "Genitiv-Präposition: wegen",
+    "question": "What does the preposition 'wegen' mean, what grammatical case does it govern in formal German, and how is it used in a sentence?",
+    "answer": "'Wegen' means 'because of / on account of' and strictly governs the Genitive case in standard and written German.",
+    "explanation": "Example: „Wegen eines technischen Defekts verzögerte sich die Abfahrt des Zuges.“ (DWDS)",
+    "trap": "Writing colloquial Dative (e.g. '*wegen dem Stau*'; always write 'wegen des Staus' in B2 exams).",
+    "sources": [
+      "https://www.dwds.de/wb/wegen"
+    ],
+    "difficulty": 1115,
     "requires": []
   },
   {
@@ -30,18 +90,33 @@
     "requires": []
   },
   {
-    "id": "de-gra-l0-003",
+    "id": "de-gra-l0-003a",
     "ladder": "de-grammatik",
     "level": 0,
-    "topic": "n-Deklination (Schwache Nomen)",
-    "question": "What is the 'n-Deklination' (weak masculine nouns) and which common noun endings signal it?",
-    "answer": "N-Deklination refers to a group of masculine nouns that add '-n' or '-en' in all grammatical cases (Akkusativ, Dativ, Genitiv) except the singular Nominativ. Key patterns include: masculine nouns ending in '-e' denoting people/animals (der Kunde, der Kollege, der Experte, der Löwe), foreign words on '-ant', '-ent', '-ist', '-at' (der Praktikant, der Student, der Polizist, der Demokrat), and the irregular noun 'der Name' (Genitiv: des Namens).",
-    "explanation": "Example: 'Der Abteilungsleiter sprach mit dem neuen Kunden (Dativ).' / 'Die Meinung des Experten (Genitiv) ist eindeutig.'",
-    "trap": "Omitting the '-n' in object cases (e.g. saying '*Ich frage den Kollege*' instead of 'Ich frage den Kollegen').",
+    "topic": "n-Deklination: Maskuline Personen auf -e",
+    "question": "How does the n-Deklination work for masculine nouns ending in '-e' denoting male persons (like 'der Kunde', 'der Kollege', 'der Experte')?",
+    "answer": "These masculine nouns add '-n' in all grammatical cases (Akkusativ: 'den Kunden', Dativ: 'dem Kunden', Genitiv: 'des Kunden') except the singular Nominativ ('der Kunde').",
+    "explanation": "Example: „Der Abteilungsleiter sprach gestern ausführlich mit dem neuen Kunden (Dativ).“ (DWDS)",
+    "trap": "Omitting '-n' in object cases (e.g. saying '*Ich habe den Kollege gesehen*' instead of 'den Kollegen').",
     "sources": [
       "https://www.dwds.de/wb/Kunde"
     ],
     "difficulty": 1140,
+    "requires": []
+  },
+  {
+    "id": "de-gra-l0-003b",
+    "ladder": "de-grammatik",
+    "level": 0,
+    "topic": "n-Deklination: Fremdwörter auf -ant, -ent, -ist",
+    "question": "How does the n-Deklination apply to masculine loanwords with foreign suffixes like '-ant', '-ent', and '-ist' (like 'der Praktikant', 'der Student', 'der Polizist')?",
+    "answer": "Masculine nouns ending in foreign suffixes like '-ant', '-ent', '-ist', and '-at' add '-en' in all cases except the singular Nominativ (e.g. 'der Student' → Akkusativ: 'den Studenten', Dativ: 'dem Studenten', Genitiv: 'des Studenten').",
+    "explanation": "Example: „Die Universität vergibt Stipendien an besonders engagierte Studenten (Dativ Plural) und Praktikanten.“ (DWDS)",
+    "trap": "Omitting '-en' in object cases (e.g. '*Ich frage den Student*' is incorrect; say 'den Studenten').",
+    "sources": [
+      "https://www.dwds.de/wb/Student"
+    ],
+    "difficulty": 1145,
     "requires": []
   },
   {
@@ -58,7 +133,7 @@
     ],
     "difficulty": 1200,
     "requires": [
-      "de-gra-l0-001"
+      "de-gra-l0-001a"
     ]
   },
   {
@@ -76,7 +151,7 @@
     ],
     "difficulty": 1220,
     "requires": [
-      "de-gra-l0-001"
+      "de-gra-l0-001a"
     ]
   },
   {
@@ -93,7 +168,7 @@
     ],
     "difficulty": 1240,
     "requires": [
-      "de-gra-l0-001"
+      "de-gra-l0-001a"
     ]
   },
   {
@@ -162,7 +237,7 @@
     ],
     "difficulty": 1400,
     "requires": [
-      "de-gra-l0-001",
+      "de-gra-l0-001a",
       "de-gra-l2-001"
     ]
   },

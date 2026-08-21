@@ -278,6 +278,7 @@ def select_next_card(
     """
     Select the next card for the user using Elo windowing (|Rc - Ru_ladder| <= window, starting at 150).
     Uses the user's rating for the specific ladder of each candidate card.
+    Enforces recency buffer (last 8), unseen preference, and failed card return delay (>= 5 cards).
     """
     if ladder_filter:
         norm_filter = ladder_filter.replace("_", "-")
@@ -291,6 +292,7 @@ def select_next_card(
         return None
     
     cards_progress = progress.get("cards", {})
+    recent_list: List[str] = progress.get("recent", [])
     
     # Helper to get effective card rating
     def get_card_rating(c: Dict[str, Any]) -> float:
@@ -299,19 +301,60 @@ def select_next_card(
             return float(cards_progress[c_id]["rating"])
         return float(c.get("difficulty", 1200))
     
+    # 1. Elo window matching (|Rc - Ru_ladder| <= window, starting at 150)
     window = 150.0
-    matched = []
+    elo_matched = []
     while window <= 2000.0:
-        matched = [
+        elo_matched = [
             c for c in candidates
             if abs(get_card_rating(c) - get_ladder_rating(progress, c.get("ladder", "default"))) <= window
         ]
-        if len(matched) >= 3 or len(matched) == len(candidates):
+        if len(elo_matched) >= 3 or len(elo_matched) == len(candidates):
             break
         window += 50.0
         
-    if not matched:
-        matched = candidates
+    if not elo_matched:
+        elo_matched = candidates
+        
+    # 2. Prefer unseen cards within the Elo-matched pool
+    unseen = [c for c in elo_matched if c["id"] not in cards_progress]
+    working_pool = unseen if unseen else elo_matched
+    
+    # 3. Identify cards whose last attempt failed (score 0.0) that occurred within the last 5 served cards
+    recent_5 = set(recent_list[-5:]) if len(recent_list) >= 1 else set()
+    failed_recent_5 = set()
+    for c_id in recent_5:
+        c_prog = cards_progress.get(c_id)
+        if c_prog and c_prog.get("history"):
+            if c_prog["history"][-1].get("score") == 0.0:
+                failed_recent_5.add(c_id)
+                
+    # 4. Recency buffer filtering on working_pool
+    # Exclude last 8 and failed in last 5
+    excluded_8 = set(recent_list[-8:]) | failed_recent_5
+    pool = [c for c in working_pool if c["id"] not in excluded_8]
+    
+    # If pool is empty, relax to last 3 (still excluding failed in last 5 if possible)
+    if not pool:
+        excluded_3 = set(recent_list[-3:]) | failed_recent_5
+        pool = [c for c in working_pool if c["id"] not in excluded_3]
+        
+    # If still empty, relax failed filter on last 3
+    if not pool:
+        excluded_3_only = set(recent_list[-3:])
+        pool = [c for c in working_pool if c["id"] not in excluded_3_only]
+        
+    # If still empty, allow all working_pool candidates (never starve)
+    if not pool:
+        pool = working_pool
         
     rng = random.Random(random_seed)
-    return rng.choice(matched)
+    chosen = rng.choice(pool)
+    
+    # Record to recency list (capped at 20)
+    if "recent" not in progress:
+        progress["recent"] = []
+    progress["recent"].append(chosen["id"])
+    progress["recent"] = progress["recent"][-20:]
+    
+    return chosen

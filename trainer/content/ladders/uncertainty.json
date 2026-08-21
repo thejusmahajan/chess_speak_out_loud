@@ -16,6 +16,21 @@
     "requires": []
   },
   {
+    "id": "unc-l0-005",
+    "ladder": "uncertainty",
+    "level": 0,
+    "topic": "variance sigma^2 vs standard deviation sigma",
+    "question": "Why is variance written as $\\sigma^2$ (squared) instead of just $\\sigma$, and what does standard deviation $\\sigma$ give you back?",
+    "answer": "Variance $\\sigma^2 = \\mathbb{E}[(X - \\mu)^2]$ squares deviations from the mean so positive and negative errors do not cancel out, and because variances of independent variables add directly ($\\text{Var}(A+B) = \\text{Var}(A) + \\text{Var}(B)$). Because squaring changes the physical units to $(\\text{units})^2$, the standard deviation $\\sigma = \\sqrt{\\sigma^2}$ takes the square root to restore the original physical measurement units.",
+    "explanation": "Example: If an air quality model predicts $\\text{NO}_2$ mean $\\mu = 40\\,\\mu\\text{g}/\\text{m}^3$ with variance $\\sigma^2 = 25\\,(\\mu\\text{g}/\\text{m}^3)^2$, the standard deviation is $\\sigma = 5\\,\\mu\\text{g}/\\text{m}^3$, directly giving the confidence range $40 \\pm 5\\,\\mu\\text{g}/\\text{m}^3$.",
+    "trap": "Thinking variance has the same physical units as the mean prediction without taking the square root.",
+    "sources": [
+      "https://arxiv.org/abs/1703.04977"
+    ],
+    "difficulty": 785,
+    "requires": []
+  },
+  {
     "id": "unc-l0-002",
     "ladder": "uncertainty",
     "level": 0,

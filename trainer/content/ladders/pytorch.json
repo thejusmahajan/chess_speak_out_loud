@@ -4,10 +4,10 @@
     "ladder": "pytorch",
     "level": 0,
     "topic": "tensors vs numpy arrays",
-    "question": "What is a PyTorch Tensor, and how is it different from a standard NumPy ndarray?",
-    "answer": "A PyTorch Tensor is a multi-dimensional array of numbers (like a vector, matrix, or 3D volume). Unlike a standard NumPy array, a PyTorch Tensor can run on GPU hardware accelerators and automatically tracks mathematical operations to calculate derivatives (gradients).",
-    "explanation": "Tensors look and slice just like NumPy arrays, but they have two extra capabilities: GPU acceleration via CUDA and automatic differentiation for training models.",
-    "trap": "Assuming tensors are restricted to 2D matrices or that NumPy arrays can execute GPU code natively.",
+    "question": "What is a PyTorch Tensor, and why can't a standard NumPy ndarray run on a GPU if both are 'just numbers'?",
+    "answer": "While both hold numeric arrays, a NumPy array allocates memory only in CPU host RAM via standard C malloc(), has no GPU memory pointers, cannot dispatch compiled CUDA GPU kernels, and has no autograd computation graph. A PyTorch Tensor wraps a device pointer (CPU or CUDA VRAM) and executes compiled CUDA C++ kernels across thousands of parallel GPU cores.",
+    "explanation": "Example: torch.tensor([1.0, 2.0], device='cuda') allocates memory directly in NVIDIA VRAM, whereas np.array([1.0, 2.0]) can only be read by CPU threads.",
+    "trap": "Thinking numbers can execute on GPU without a CUDA device driver pointer and compiled GPU kernel instructions.",
     "sources": [
       "https://pytorch.org/docs/stable/tensors.html"
     ],
@@ -35,10 +35,10 @@
     "ladder": "pytorch",
     "level": 0,
     "topic": "broadcasting mechanics",
-    "question": "What is 'broadcasting' in tensor arithmetic, and what happens when adding a (3, 1) tensor to a (1, 4) tensor?",
-    "answer": "Broadcasting is the rule PyTorch uses to do arithmetic between tensors of different shapes without copying data in memory. Singleton dimensions (dimensions of size 1) are virtually stretched to match the other tensor, so adding shape $(3, 1)$ and shape $(1, 4)$ produces an output matrix of shape $(3, 4)$.",
-    "explanation": "For example, if you add a column vector of 3 numbers to a row vector of 4 numbers, broadcasting evaluates all 3x4 = 12 pairwise sums.",
-    "trap": "Believing broadcasting physically copies and duplicates numbers in memory, which would waste RAM.",
+    "question": "What is 'broadcasting' in tensor arithmetic, and does it pad missing dimensions with zeros?",
+    "answer": "Broadcasting repeats (virtually stretches) values along singleton dimensions of size 1 so shapes match for element-wise arithmetic; it NEVER pads with zeros (zero-padding would corrupt arithmetic). When adding shape (3, 1) to (1, 4), the column values are repeated across all 4 columns, and the row values are repeated down all 3 rows, yielding a (3, 4) matrix.",
+    "explanation": "Concrete worked example: Adding A = [[10], [20], [30]] (shape 3,1) and B = [[1, 2, 3, 4]] (shape 1,4) evaluates: Row 1: [11, 12, 13, 14], Row 2: [21, 22, 23, 24], Row 3: [31, 32, 33, 34]. No values are set to zero.",
+    "trap": "Believing that broadcasting fills missing dimension entries with zeros.",
     "sources": [
       "https://pytorch.org/docs/stable/notes/broadcasting.html"
     ],
@@ -66,10 +66,10 @@
     "ladder": "pytorch",
     "level": 0,
     "topic": "gradient concept",
-    "question": "What is a 'gradient' in a neural network, in one sentence?",
-    "answer": "A gradient $\\nabla_\\theta \\mathcal{L} = \\frac{\\partial \\mathcal{L}}{\\partial \\theta}$ is the vector of partial derivatives showing how much the network's prediction error (loss $\\mathcal{L}$) will increase or decrease if you nudge each individual weight $\\theta$ in the model.",
-    "explanation": "If a weight has a positive gradient, increasing that weight increases the error; training subtracts a fraction of the gradient to step downhill towards lower error.",
-    "trap": "Confusing the loss (a single scalar error score) with the gradient (a vector of derivatives for every parameter).",
+    "question": "What is a 'gradient' on the loss surface, and why does optimization step in the opposite direction?",
+    "answer": "The gradient $\\nabla_\\theta \\mathcal{L}$ is the vector of partial derivatives pointing in the direction of steepest increase (maximum ascent) on the loss surface. Because model training aims to minimize prediction error (loss), optimization steps in the opposite direction (steepest descent) by subtracting the gradient: $\\theta \\leftarrow \\theta - \\eta \\nabla_\\theta \\mathcal{L}$.",
+    "explanation": "Example: If parameter $\\theta$ has gradient $+2.5$, increasing $\\theta$ increases loss; subtracting $\\eta \\times 2.5$ lowers $\\theta$ to reduce the loss.",
+    "trap": "Adding the gradient during gradient descent, which would maximize rather than minimize loss.",
     "sources": [
       "https://pytorch.org/docs/stable/autograd.html",
       "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md"
@@ -98,10 +98,10 @@
     "ladder": "pytorch",
     "level": 0,
     "topic": "logits vs probabilities",
-    "question": "What are 'logits' in neural network outputs, and are they probabilities in percent?",
-    "answer": "Logits $z \\in \\mathbb{R}^K$ are raw, unnormalized real-valued scores output by the model's final linear layer before any probability function is applied. They can be positive, zero, or negative and do NOT sum to 1 or 100%; passing logits through Softmax ($P(y=k) = \\frac{e^{z_k}}{\\sum_j e^{z_j}}$) converts them into positive probabilities that sum to 1.0.",
-    "explanation": "For example, logits [-2.1, 0.5, 3.4] indicate the third option is most favored, but they only become probabilities (e.g. 0.004, 0.051, 0.945) after Softmax exponentiation and normalization.",
-    "trap": "Treating logits as percentages or assuming logits cannot be negative numbers.",
+    "question": "What is the Softmax function, and how does it convert raw logits into probabilities?",
+    "answer": "Softmax exponentiates raw logits $z_i$ and divides by their sum ($\\text{Softmax}(z_i) = \\frac{e^{z_i}}{\\sum_j e^{z_j}}$) to guarantee all outputs are strictly positive ($> 0$) and sum to exactly 1.0 (a valid probability distribution).",
+    "explanation": "Concrete worked example: For 3 logits $z = [1.0, 2.0, 3.0]$, exponentials are $e^1 \\approx 2.718, e^2 \\approx 7.389, e^3 \\approx 20.086$ (sum = 30.193). Probabilities are $[2.718/30.193, 7.389/30.193, 20.086/30.193] = [0.090, 0.245, 0.665]$.",
+    "trap": "Assuming logits are already percentages or that Softmax allows negative outputs.",
     "sources": [
       "https://pytorch.org/docs/stable/generated/torch.nn.Module.html",
       "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md"

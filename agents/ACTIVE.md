@@ -36,11 +36,10 @@ Every brief and report path below is relative to
 
 ### If your workspace is `chess_speak_out_loud`
 
-**1. `briefs/2026-08-21_trainer-atomic-cards.md` — ACTIVE ← do this one**
-The trainer recycles the same cards: only **16 of 123** are selectable (82 locked behind
-unmastered prerequisites), a missed card is due again immediately, and the selector has no
-recency memory and no preference for unseen cards. Part A fixes selection; Part B splits dense
-cards into atomic ones with examples and fills the sub-prerequisites his comments named.
+**1. `briefs/2026-08-21_trainer-atomic-cards.md` — DELIVERED (Report: `reports/2026-08-21_trainer-atomic-cards_REPORT.md`)**
+The trainer's card recycling issue is resolved: recency buffer (last 8), preference for unseen cards, and 5-card
+delay on failed cards. Dense cards split into atomic cards with concrete examples across all ladders (137 total cards,
+41 at Level 0). 26 tests and 81 URLs verified. Live selectable cards jumped from 16 to 29 (24 unseen).
 
 - The trainer holds **123 cards across 8 ladders** — 5 machine-learning, 3 German B2. Per-ladder
   ratings work, so German progress no longer moves the ML rating.

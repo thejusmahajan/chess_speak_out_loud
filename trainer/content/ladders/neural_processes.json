@@ -20,10 +20,10 @@
     "ladder": "neural-processes",
     "level": 0,
     "topic": "kernel & kernel matrix concept",
-    "question": "What is a 'kernel' and a 'kernel matrix' in spatial and Gaussian Process modeling?",
-    "answer": "A kernel is a similarity function $k(x, x')$ that outputs a high number when two points $x$ and $x'$ are close together in space, and decays toward zero as they move farther apart. A kernel matrix $K \\in \\mathbb{R}^{N \\times N}$ is the $N$-by-$N$ grid of pairwise similarity scores between all $N$ observation points.",
-    "explanation": "For example, in spatial air quality, a sensor at location A shares high kernel covariance with a point 100 meters away, but nearly zero covariance with a point 50 km away.",
-    "trap": "Confusing an operating system kernel with a mathematical covariance kernel.",
+    "question": "What does statistical covariance mean, and how does a spatial 'kernel covariance' function use it?",
+    "answer": "Covariance measures how two variables vary together: positive covariance means when one is above its mean, the other tends to be above its mean too. A spatial kernel covariance function $k(x, x')$ calculates expected covariance based on physical distance: locations close together share high covariance ($k \\approx 1$), meaning their measurements agree, while distant locations have near-zero covariance ($k \\approx 0$).",
+    "explanation": "Example: Two pollution sensors 50 meters apart have high covariance ($k=0.95$), so knowing sensor A reads $50\\,\\mu\\text{g}/\\text{m}^3$ strongly informs sensor B. Sensors 100 km apart have $k=0.01$ (independent).",
+    "trap": "Thinking covariance is an operating system process or that distant points automatically have negative covariance.",
     "sources": [
       "https://arxiv.org/abs/1807.01613"
     ],
@@ -35,10 +35,10 @@
     "ladder": "neural-processes",
     "level": 0,
     "topic": "parametric vs non-parametric intuition",
-    "question": "What is the difference between a parametric model and a non-parametric model?",
-    "answer": "A parametric model summarizes all training data into a fixed, finite number of weights $\\theta$ (which does not grow when you collect more data, like a standard neural network). A non-parametric model retains the actual data points directly in its formulation (so its capacity grows dynamically with dataset size $N$, like a Gaussian Process).",
-    "explanation": "Neural Processes combine the best of both worlds: they use fixed neural network weights to learn how to ingest arbitrary collections of data points at test time.",
-    "trap": "Thinking 'non-parametric' means a model has no parameters or variables at all.",
+    "question": "What does it mean for a non-parametric model to 'retain data in its formulation' compared to a parametric model?",
+    "answer": "A parametric model (like an MLP) compresses all training experience into a fixed set of weight matrices $W$ during training and completely discards raw training points at test time. A non-parametric model (like a Gaussian Process) literally keeps the training data points $(x_i, y_i)$ in memory, because making a new prediction at location $x_*$ requires computing kernel distances against every stored training point.",
+    "explanation": "Example: To predict pollution at a new point, a GP evaluates kernel similarities against all 500 stored sensor stations in memory. A neural net just multiplies the input coordinates by its fixed layer weights.",
+    "trap": "Assuming non-parametric models have no parameters at all, or that parametric neural networks store training samples during inference.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
       "PLAN_SALIENCE_CNP.md"

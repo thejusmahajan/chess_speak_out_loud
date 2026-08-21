@@ -1,5 +1,5 @@
 {
-  "user_rating": 1190.23,
+  "user_rating": 895.14,
   "cards": {
     "pyt-l1-001": {
       "rating": 978.24,
@@ -607,12 +607,12 @@
       ]
     },
     "de-gra-l0-002": {
-      "rating": 1121.6,
-      "ease": 2.4,
+      "rating": 1122.21,
+      "ease": 2.25,
       "interval_days": 1,
       "reps": 1,
-      "last_seen": "2026-08-20T22:06:42.400966+00:00",
-      "due_date": "2026-08-21T22:06:42.400966+00:00",
+      "last_seen": "2026-08-20T22:30:08.312744+00:00",
+      "due_date": "2026-08-21T22:30:08.312744+00:00",
       "mastered": true,
       "history": [
         {
@@ -626,16 +626,22 @@
           "score": 1.0,
           "user_rating": 1195.22,
           "card_rating": 1121.6
+        },
+        {
+          "timestamp": "2026-08-20T22:30:08.312744+00:00",
+          "score": 0.5,
+          "user_rating": 1173.38,
+          "card_rating": 1122.21
         }
       ]
     },
     "de-gra-l0-001": {
-      "rating": 1101.07,
-      "ease": 2.35,
-      "interval_days": 1,
+      "rating": 1110.84,
+      "ease": 1.95,
+      "interval_days": 0,
       "reps": 0,
-      "last_seen": "2026-08-20T22:07:55.135007+00:00",
-      "due_date": "2026-08-21T22:07:55.135007+00:00",
+      "last_seen": "2026-08-20T22:30:20.935139+00:00",
+      "due_date": "2026-08-20T22:30:20.935139+00:00",
       "mastered": false,
       "history": [
         {
@@ -643,35 +649,272 @@
           "score": 0.5,
           "user_rating": 1192.01,
           "card_rating": 1101.07
+        },
+        {
+          "timestamp": "2026-08-20T22:29:35.350512+00:00",
+          "score": 0.0,
+          "user_rating": 1175.22,
+          "card_rating": 1106.07
+        },
+        {
+          "timestamp": "2026-08-20T22:30:20.935139+00:00",
+          "score": 0.0,
+          "user_rating": 1159.08,
+          "card_rating": 1110.84
         }
       ]
     },
     "de-gra-l0-003": {
-      "rating": 1140.59,
-      "ease": 2.35,
+      "rating": 1136.8,
+      "ease": 2.45,
       "interval_days": 1,
-      "reps": 0,
-      "last_seen": "2026-08-20T22:09:41.153348+00:00",
-      "due_date": "2026-08-21T22:09:41.153348+00:00",
-      "mastered": false,
+      "reps": 1,
+      "last_seen": "2026-08-20T22:31:20.172627+00:00",
+      "due_date": "2026-08-21T22:31:20.172627+00:00",
+      "mastered": true,
       "history": [
         {
           "timestamp": "2026-08-20T22:09:41.153348+00:00",
           "score": 0.5,
           "user_rating": 1190.23,
           "card_rating": 1140.59
+        },
+        {
+          "timestamp": "2026-08-20T22:31:20.172627+00:00",
+          "score": 1.0,
+          "user_rating": 1170.44,
+          "card_rating": 1136.8
+        }
+      ]
+    },
+    "de-kon-l0-003c": {
+      "rating": 1136.68,
+      "ease": 2.6,
+      "interval_days": 1,
+      "reps": 1,
+      "last_seen": "2026-08-20T22:46:48.315961+00:00",
+      "due_date": "2026-08-21T22:46:48.315961+00:00",
+      "mastered": true,
+      "history": [
+        {
+          "timestamp": "2026-08-20T22:46:48.315961+00:00",
+          "score": 1.0,
+          "user_rating": 1209.95,
+          "card_rating": 1136.68
+        }
+      ]
+    },
+    "de-wor-l0-002": {
+      "rating": 1124.91,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-20T22:52:03.310039+00:00",
+      "due_date": "2026-08-20T22:52:03.310039+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-20T22:52:03.310039+00:00",
+          "score": 0.0,
+          "user_rating": 1185.28,
+          "card_rating": 1124.91
+        }
+      ]
+    },
+    "de-wor-l0-001": {
+      "rating": 1104.96,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-20T22:53:21.857838+00:00",
+      "due_date": "2026-08-20T22:53:21.857838+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-20T22:53:21.857838+00:00",
+          "score": 0.0,
+          "user_rating": 1170.39,
+          "card_rating": 1104.96
+        }
+      ]
+    },
+    "aq-l0-001": {
+      "rating": 785.45,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-20T22:53:48.567869+00:00",
+      "due_date": "2026-08-20T22:53:48.567869+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-20T22:53:48.567869+00:00",
+          "score": 0.0,
+          "user_rating": 895.14,
+          "card_rating": 785.45
+        }
+      ]
+    },
+    "de-kon-l0-003a": {
+      "rating": 1134.9,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-20T22:55:03.716558+00:00",
+      "due_date": "2026-08-20T22:55:03.716558+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-20T22:55:03.716558+00:00",
+          "score": 0.0,
+          "user_rating": 1195.24,
+          "card_rating": 1134.9
+        }
+      ]
+    },
+    "de-gra-l0-001d": {
+      "rating": 1119.63,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-20T22:58:12.652213+00:00",
+      "due_date": "2026-08-20T22:58:12.652213+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-20T22:58:12.652213+00:00",
+          "score": 0.0,
+          "user_rating": 1156.54,
+          "card_rating": 1119.63
+        }
+      ]
+    },
+    "de-gra-l0-001b": {
+      "rating": 1105.59,
+      "ease": 2.35,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-08-20T22:58:19.490080+00:00",
+      "due_date": "2026-08-21T22:58:19.490080+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-20T22:58:19.490080+00:00",
+          "score": 0.5,
+          "user_rating": 1154.77,
+          "card_rating": 1105.59
+        }
+      ]
+    },
+    "own-l0-005": {
+      "rating": 800.29,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-20T22:59:34.491476+00:00",
+      "due_date": "2026-08-20T22:59:34.491476+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-20T22:59:34.491476+00:00",
+          "score": 0.0,
+          "user_rating": 895.6,
+          "card_rating": 800.29
+        }
+      ]
+    },
+    "de-gra-l0-003a": {
+      "rating": 1144.17,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-20T23:01:12.191906+00:00",
+      "due_date": "2026-08-20T23:01:12.191906+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-20T23:01:12.191906+00:00",
+          "score": 0.0,
+          "user_rating": 1142.26,
+          "card_rating": 1144.17
+        }
+      ]
+    },
+    "own-l0-008": {
+      "rating": 829.8,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-20T23:01:44.517436+00:00",
+      "due_date": "2026-08-20T23:01:44.517436+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-20T23:01:44.517436+00:00",
+          "score": 0.0,
+          "user_rating": 881.19,
+          "card_rating": 829.8
+        }
+      ]
+    },
+    "own-l0-003": {
+      "rating": 790.08,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-20T23:02:08.308101+00:00",
+      "due_date": "2026-08-20T23:02:08.308101+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-20T23:02:08.308101+00:00",
+          "score": 0.0,
+          "user_rating": 865.95,
+          "card_rating": 790.08
+        }
+      ]
+    },
+    "np-l0-001": {
+      "rating": 785.45,
+      "ease": 2.3,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-20T23:03:13.724231+00:00",
+      "due_date": "2026-08-20T23:03:13.724231+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-08-20T23:03:13.724231+00:00",
+          "score": 0.0,
+          "user_rating": 895.14,
+          "card_rating": 785.45
         }
       ]
     }
   },
   "ladder_ratings": {
-    "own-work": 911.48,
+    "own-work": 865.95,
     "uncertainty": 911.48,
-    "neural-processes": 911.48,
-    "de-grammatik": 1190.23,
-    "de-wortschatz": 1200.0,
-    "air-quality": 911.48,
+    "neural-processes": 895.14,
+    "de-grammatik": 1142.26,
+    "de-wortschatz": 1170.39,
+    "air-quality": 895.14,
     "pytorch": 911.48,
-    "de-konnektoren": 1200.0
-  }
+    "de-konnektoren": 1195.24
+  },
+  "recent": [
+    "de-kon-l0-003c",
+    "de-wor-l0-002",
+    "de-wor-l0-001",
+    "aq-l0-001",
+    "de-kon-l0-003a",
+    "de-gra-l0-001d",
+    "de-gra-l0-001b",
+    "own-l0-005",
+    "de-gra-l0-003a",
+    "own-l0-008",
+    "own-l0-003",
+    "np-l0-001",
+    "own-l0-006"
+  ]
 }

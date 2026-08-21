@@ -32,6 +32,102 @@
     "requires": []
   },
   {
+    "id": "own-l0-003",
+    "ladder": "own-work",
+    "level": 0,
+    "topic": "transformer tokenization of chessboard",
+    "question": "What is a 'token' in a transformer neural network, and what is a token in the LC0 chess transformer?",
+    "answer": "In language models, a token is a word fragment or character. In the Leela Chess Zero transformer (BT3), the $8 \\times 8$ chessboard is tokenized spatially into exactly 64 discrete tokens—one token per board square (from a1=0 to h8=63).",
+    "explanation": "Example: Square e4 occupied by a White Knight is treated as a single token containing the Knight's identity, color, and board coordinates.",
+    "trap": "Thinking tokens represent individual chess pieces (which would vary in number) rather than fixed 64 board squares.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "backend/neural_vision.py"
+    ],
+    "difficulty": 785,
+    "requires": []
+  },
+  {
+    "id": "own-l0-004",
+    "ladder": "own-work",
+    "level": 0,
+    "topic": "square embeddings",
+    "question": "What is an 'embedding' in a transformer, and what information does it store for each board square?",
+    "answer": "An embedding is a continuous numeric vector (e.g. 256 numbers) representing a token's identity and properties in high-dimensional feature space. For each square, the initial embedding encodes the piece type (Pawn, Knight, Queen, or Empty), piece color, castling/en-passant rights, and spatial square coordinates.",
+    "explanation": "Example: Instead of raw text 'White Queen on d1', the model represents square d1 as a vector $[0.82, -0.14, \\dots, 1.45] \\in \\mathbb{R}^{256}$.",
+    "trap": "Confusing a discrete piece label with a dense continuous embedding vector.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "backend/neural_vision.py"
+    ],
+    "difficulty": 790,
+    "requires": []
+  },
+  {
+    "id": "own-l0-005",
+    "ladder": "own-work",
+    "level": 0,
+    "topic": "attention intuition in one sentence",
+    "question": "What is 'attention' in a transformer, in one plain sentence without mathematical matrices?",
+    "answer": "Attention is a mechanism that allows every square on the board to look across all other 63 squares, calculate which squares are relevant to its tactical and positional role, and gather information from them weighted by relevance.",
+    "explanation": "Example: A Black King on g8 pays high attention to a White Bishop on c4 and a White Queen on f7 creating checkmate threats, but nearly zero attention to a passive pawn on a2.",
+    "trap": "Assuming attention is a fixed hardcoded rule rather than dynamically learned weights computed on the fly for each position.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "backend/neural_vision.py"
+    ],
+    "difficulty": 795,
+    "requires": []
+  },
+  {
+    "id": "own-l0-006",
+    "ladder": "own-work",
+    "level": 0,
+    "topic": "Query, Key, Value intuition",
+    "question": "In a transformer's self-attention layer, what do the Query, Key, and Value vectors represent in plain words?",
+    "answer": "The Query (Q) is the question a square asks ('What pieces threaten or support me?'), the Key (K) is the label each square advertises ('I am a dark-squared bishop controlling the long diagonal'), and the Value (V) is the actual content transferred ('My attack line, piece value, and defense role').",
+    "explanation": "Example: When square e4 (Query: 'Who defends me?') matches square f3 (Key: 'Knight defending e4 and d4'), their dot product produces high attention, transferring f3's tactical Value into e4's representation.",
+    "trap": "Thinking Query, Key, and Value are database SQL tables rather than linear projections of token embeddings.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md"
+    ],
+    "difficulty": 805,
+    "requires": []
+  },
+  {
+    "id": "own-l0-007",
+    "ladder": "own-work",
+    "level": 0,
+    "topic": "multi-head attention",
+    "question": "What is an 'attention head' in a multi-head transformer, and why does LC0 use 24 heads per layer?",
+    "answer": "An attention head is an independent attention mechanism focusing on a specific type of geometric or tactical relationship. Having 24 heads allows the network to track 24 distinct concepts simultaneously in parallel across the board.",
+    "explanation": "Example: In a single position, Head 1 tracks diagonal bishop pin lines, Head 2 tracks open file control for rooks, Head 3 tracks knight outpost coverage, and Head 4 tracks king escape squares.",
+    "trap": "Assuming all 24 heads compute the same attention weights; each head projects into a different linear subspace.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "backend/neural_vision.py"
+    ],
+    "difficulty": 815,
+    "requires": []
+  },
+  {
+    "id": "own-l0-008",
+    "ladder": "own-work",
+    "level": 0,
+    "topic": "stacking 15 transformer layers",
+    "question": "What happens as board representations pass through all 15 stacked transformer layers in LC0's BT3 network?",
+    "answer": "Early layers (Layers 1–4) compute immediate, local board geometry (direct attacks, defenses, and open files). Middle layers (Layers 5–10) combine these into complex tactical patterns (pins, forks, skewers, and king attacks). Deep layers (Layers 11–15) synthesize global strategic evaluation (long-term piece coordination, pawn structure, and winning plans).",
+    "explanation": "Example: Layer 2 sees a bishop attacking d5; Layer 7 recognizes an absolute pin against the Queen; Layer 14 evaluates White's long-term positional advantage.",
+    "trap": "Assuming every layer performs the same level of abstract reasoning; depth creates a hierarchy from local features to global strategy.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 825,
+    "requires": []
+  },
+  {
     "id": "own-l1-001",
     "ladder": "own-work",
     "level": 1,

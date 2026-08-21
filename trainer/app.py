@@ -157,6 +157,8 @@ def get_next_card(cram: bool = False, ladder: Optional[str] = None):
     if not card:
         return {"card": None, "message": "No cards currently due. Switch to Cram Mode to keep drilling!"}
     
+    save_progress(progress)
+    
     card_id = card["id"]
     card_ladder = card.get("ladder", "default")
     card_prog = progress.get("cards", {}).get(card_id, {})
