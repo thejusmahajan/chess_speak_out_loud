@@ -36,13 +36,14 @@ Every brief and report path below is relative to
 
 ### If your workspace is `chess_speak_out_loud`
 
-**1. `briefs/2026-08-21_trainer-atomic-cards.md` — DELIVERED (Report: `reports/2026-08-21_trainer-atomic-cards_REPORT.md`)**
-The trainer's card recycling issue is resolved: recency buffer (last 8), preference for unseen cards, and 5-card
-delay on failed cards. Dense cards split into atomic cards with concrete examples across all ladders (137 total cards,
-41 at Level 0). 26 tests and 81 URLs verified. Live selectable cards jumped from 16 to 29 (24 unseen).
+**Nothing is ACTIVE.** The trainer is delivered and audited.
 
-- The trainer holds **123 cards across 8 ladders** — 5 machine-learning, 3 German B2. Per-ladder
-  ratings work, so German progress no longer moves the ML rating.
+- **137 cards across 8 ladders** (5 machine-learning, 3 German B2), 41 of them Level 0.
+- Repetition fixed: under the app's real loop, 30 draws give **27 distinct cards**, no repeat
+  inside any window of 8. Per-ladder ratings keep German and ML progress independent.
+- Content now includes a step-by-step transformer sub-ladder and a Genitiv refresher, both
+  authored from Thejus's own comments.
+
 - Two open items need **Thejus, not a worker**:
   1. Confirm the equations render — open `http://127.0.0.1:8010`, reveal an `uncertainty` card,
      and check for typeset maths rather than raw `$$`. Nobody has seen the rendered output.

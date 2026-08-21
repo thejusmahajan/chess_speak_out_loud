@@ -87,12 +87,3 @@ already immunised by an earlier repair, and I did not connect the two until I ra
 **Revised prediction:** the most likely remaining error is now a content one — a Level-0 card whose
 answer still introduces a second unexplained term, in `de-wortschatz` or `air-quality`, the two
 ladders his comments have never touched and which therefore had the weakest specification.
-
-~~If exactly one thing here is still wrong, I predict it is that German Level 0 falls out of the
-selection window before it is mastered.~~ The German ladder rating is 1200 and the German L0 cards
-sit at 1080–1100 — inside the ±150 window now, but only by 20–30 points. A short run of correct
-answers pushes the ladder rating above ~1250 and those foundational cards stop being served, while
-the L1 cards above them unlock. That is the identical failure mode to the two already fixed
-(Level 0 unreachable, then German unreachable), one step further along, and no gate would catch it
-because everything would still pass. I checked the current margin; I did not simulate the rating
-trajectory forward, which is what would actually settle it.
