@@ -105,7 +105,22 @@ has ever caught it.
 
 ### If your workspace is `thejusmahajan.github.io`
 
-**1. `briefs/2026-08-19_website-repoint-part2.md` — AUDITED, ACCEPTED, ⚠ NEVER PUBLISHED.**
+**1. `briefs/2026-08-27_public-surface-honesty-sweep.md` — ACTIVE. Execute this one.**
+
+Kill the last **HAMOCC** on the site — a residual filename in a code block in
+`blog-ggplot2-timeseries.html`, missed when `eb8ecdc` scrubbed the prose on 2026-08-22 — then
+prove the other four names (ICON-O, EERIE, Levante, DKRZ) are gone, verify the M.Sc./B.Sc. dates
+still agree with the CV, and audit the **LinkedIn** profile text against the CV. *Why this before
+the interview: a panel reads the site and the profile.*
+
+**Gates that matter:** Step 1's diff must be **exactly one line**; Step 4 **stops** unless
+`job_search\linkedin_profile.txt` exists — Thejus must paste his profile text in himself, and
+LinkedIn is edited by hand, never by the worker. Every quoted string needs the `grep` that
+produced it, pasted. Leave both repos uncommitted.
+
+---
+
+**2. `briefs/2026-08-19_website-repoint-part2.md` — AUDITED, ACCEPTED, ⚠ NEVER PUBLISHED.**
 
 > **CORRECTED 2026-08-22.** This entry said "Nothing to do." That was wrong, and it is the most
 > expensive kind of wrong this project produces. On 2026-08-22, `git status` in

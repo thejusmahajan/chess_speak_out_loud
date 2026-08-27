@@ -38,21 +38,33 @@ on 2026-08-26.** The problem is priority, not volume — do not add more reading
 
 | # | hole | why it matters |
 |---|---|---|
-| **H1** | **The publication gap has ZERO coverage.** The CV lists five publications, all 2018–2020 astrochemistry, and nothing from the 2021–2025 marine post-doc. Nothing anywhere prepares an answer. | A hiring PI checks output first. A four-year post-doc with no listed publication reads as failure rather than as timing. **This is the single most likely hard question.** Chase the real status of the phytoplankton / cyanobacteria manuscript with Kai Wirtz — a date and a journal beats any rehearsed line. |
+| **H1** | **The publication gap has ZERO coverage.** The CV lists five publications, all 2018–2020 astrochemistry, and nothing from the 2021–2025 marine post-doc. Nothing anywhere prepares an answer. | A hiring PI checks output first. A four-year post-doc with no listed publication reads as failure rather than as timing. **This is the single most likely hard question.** **Decided 2026-08-27: Wirtz will NOT be emailed** — so the answer is built from what is already in hand (the CV's "manuscript in preparation" line, the Hereon guest stay that "prepared the simulation data for peer-reviewed publication", and the modelling actually done), not from a chased-down journal name. |
 | **H2** | **No talk artefact.** No slides, no 10–15 min presentation anywhere. | Helmholtz interviews usually ask for one, often at short notice. |
 | **H3** | **Salary / TVöD E13.** Appears only inside the doc that was found fabricated. His stated expectation is €75,000; AEON-UP is E13. | It will be asked, and an unconsidered answer is expensive. |
 | **H4** | **Questions for the panel** barely exist — named in files 00 and 08, with no content. | The closing question of nearly every interview. |
 | **H5** | **Karl's side is unaddressed.** The letter is addressed to both PIs but engages only Ramacher's Code4Earth work. **Ultrafine particles** — Karl's specific area, named in the advert — appear nowhere in it. | Half the panel was not written to. Prepare that half in the room instead. |
 | **H6** | **"Batched GPU inference"** on the CV, and **"GPU/TPU execution"** — confirm the TPU claim is real, or be ready to drop it verbally. | Both are on the submitted CV; a probe on either is fair game. |
 
-**Two honesty items that were site risks and are now INTERVIEW risks** (a panel reads the
-website). Unchanged, and only Thejus can answer them:
+**Q2 and Q3 are CLOSED on the website — they were fixed on 2026-08-22 and this file was stale
+for five days.** Commit `eb8ecdc` ("Remove unverified specifics from the blog; align M.Sc. date
+with the CV") removed **five** names that appeared in first-person experience claims while
+appearing in the CV zero times — **ICON-O, HAMOCC, EERIE, Levante, DKRZ** — across four pages,
+and set the M.Sc. to `2012 – 2014`. Pushed; `origin/main` is level.
 
-- **Q2 — ICON-O/HAMOCC.** Three blog posts carry a first-person claim of postdoc experience with
-  it; the CV mentions it **zero** times. Either it is true and belongs on the CV, or it comes off
-  the site — before anyone reads both.
-- **Q3 — NIT Calicut M.Sc. end date.** Live site says `2012 – 2015`; `cv_hereon_aeon_up.tex` says
-  `07/2012 - 12/2014`. Completion and convocation commonly differ; he must say which is right.
+- **Q2 — HAMOCC.** Prose is clean. **One residual survived, in a code block, not prose:**
+  `blog-ggplot2-timeseries.html:83` still loads `hamocc_plankton_output.csv`. One-line fix, in the
+  brief below. *Lesson: a scrub of prose is not a scrub of the page — grep the code blocks too.*
+- **Q3 — dates.** Settled and consistent: site `2012 – 2014` / CV `07/2012 - 12/2014` for the
+  M.Sc., site `2009 – 2012` / CV `06/2009 - 04/2012` for the B.Sc. **Nothing to decide.**
+- **⚠ LinkedIn has never been checked** and is the one public surface still unaudited. The same
+  five names may sit on the profile. Thejus must paste his profile text into
+  `job_search\linkedin_profile.txt` before anyone can audit it; **LinkedIn is edited by hand, by
+  him.**
+
+Working both of these: `agents/briefs/2026-08-27_public-surface-honesty-sweep.md` (ACTIVE).
+
+**Decided 2026-08-27: no email to Kai Wirtz.** So H1 is answered from what is already in hand —
+the manuscript status will not be chased. Prepare the publication-gap answer without it.
 
 **The strongest asset, and it must be defended cold — see §3.**
 
