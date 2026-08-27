@@ -32,18 +32,22 @@ re-litigate the cover letter. Those are decided and out of his hands.
 
 ## 2. Interview preparation — what is actually missing
 
-Study room: `C:\Users\Admin\Documents\job_search\applications\hereon_aeon_up\study_room\`
-(14 files, ~3,400 lines). **Coverage is broad; the holes are specific and were measured by grep
-on 2026-08-26.** The problem is priority, not volume — do not add more reading.
+**⚠ THE STUDY ROOM MOVED 2026-08-28. The canonical path is now:**
+`C:\Users\Admin\Documents\bioinformatics_project\job_search\applications\hereon_aeon_up\study_room\`
+— see §5. **`Documents\job_search` is RETIRED**; an edit made there is invisible to GitHub.
+
+**18 files.** H1–H5 are all now written; **the deck is BUILT** (`../talk/aeon_up_talk.pdf`).
+**Nothing here is rehearsed.** The remaining work is his voice, out loud, with a timer — not more
+documents. *The problem was always priority, not volume; do not add more reading.*
 
 | # | hole | why it matters |
 |---|---|---|
 | ~~**H1**~~ | **DRAFTED 2026-08-27 — `study_room/05_interview_questions.md`, Band G, Question 20.** The gap had zero coverage in 3,400 lines; Q15 answers *"no **ML** publications"*, a different question whose answer **invites** this one. Q20 gives the arithmetic (3.5 years on paper − 12 months parental leave − a change of field ⇒ ~2.5 years of research), what exists (Lagrangian IBM, GOTM-FABM, the Fortran/OpenMP→JAX port, manuscript in final preparation), and the strongest fact: **six months back at Hereon as a guest scientist, unpaid, to finish the framework.** The lesson is *publish incrementally* — the JAX port was a model-description paper he did not split out. The **follow-ups** are prepared too, since that is where it fails. **Hard rules: never criticise a former supervisor; never invent a submission date.** ⚠ **Still needs him:** confirm the manuscript is genuinely still in final preparation, and that the JAX port really was publishable standalone — the reflection only works if it is his. **REHEARSE ALOUD; it is drafted, not rehearsed.** |
 | ~~**H2**~~ | **SCRIPTED 2026-08-27 — `study_room/14_talk_script.md`.** Thirteen slides + seven backups, ~14:00, with a marked 10-minute cut. Thesis: *“I build environmental models, I have moved into machine learning, and what I am actually good at is finding the errors that do not announce themselves.”* Centrepiece is slide 7 — the two silent bugs, with the mirrored/corrected attention figures side by side and the admission that one was already published. Slide 9 is the CNP evidence; slide 11 volunteers what he does not know, which is what makes the rest credible. **Deck build delegated:** `agents/briefs/2026-08-27_aeon-up-talk-deck.md` (content copied verbatim; Gemini does LaTeX only). ⚠ **Ask the panel the format first** — length and emphasis — and rehearse aloud with a timer standing up. |
-| **H3** | **Salary / TVöD E13.** Appears only inside the doc that was found fabricated. His stated expectation is €75,000; AEON-UP is E13. | It will be asked, and an unconsidered answer is expensive. |
-| **H4** | **Questions for the panel** barely exist — named in files 00 and 08, with no content. | The closing question of nearly every interview. |
-| **H5** | **Karl's side is unaddressed.** The letter is addressed to both PIs but engages only Ramacher's Code4Earth work. **Ultrafine particles** — Karl's specific area, named in the advert — appear nowhere in it. | Half the panel was not written to. Prepare that half in the room instead. |
-| **H6** | **"Batched GPU inference"** on the CV, and **"GPU/TPU execution"** — confirm the TPU claim is real, or be ready to drop it verbally. | Both are on the submitted CV; a probe on either is fair game. |
+| ~~**H3**~~ | **WRITTEN 2026-08-28 — `study_room/17_salary_and_conditions.md`.** The reframe: **TVöD E13 is not negotiable; the *Stufe* within it is**, and that is the entire conversation. **No figures are quoted anywhere** — he checks the current TVöD Bund table himself, in advance. ⚠ **The €75,000 expectation probably needs recalibrating before the interview**, not during it. Step case tabulated from the CV; two things to ask HR rather than assert (how the 65% Teilzeit counts, whether the unpaid Hereon guest period counts). Flags the missing **Arbeitszeugnis** from Universität Hamburg — step assignment runs on documents, and that is the one major CV entry with none. |
+| ~~**H4**~~ | **WRITTEN 2026-08-28 — `study_room/16_questions_for_the_panel.md`.** Eight to choose from, **bring four on paper**, at least one addressed to **Karl by name** — that is the correction for the letter engaging only Ramacher. Strongest is *"where do you expect EPISODE-CityChem to be weakest?"* — it invites the model's author to discuss his own model's limits and frames the ML as serving the physics. Includes what **not** to ask (salary first, permanency, anything answerable from the advert, a disguised statement about himself). |
+| ~~**H5**~~ | **WRITTEN 2026-08-28 — `study_room/15_karl_and_ufp.md`.** ⚑ **Contains the argument the cover letter should have made.** UFP has **no binding limit value** (revised AAQD 2024 mandates monitoring only) and almost **no monitoring** — so an AEON-UP model produces exposure estimates *nobody can check*, which is exactly where a confidently wrong model does real damage. That makes UFP the strongest possible case for his own uncertainty thesis. **The honest technical bridge:** the CNP's Task B — smooth regional background **plus a sharp road ridge**, leave-one-station-out — is the UFP geometry exactly. He must say unprompted that it is synthetic and has no microphysics. Also: coagulation is second-order in N, so **UFP is not a passive tracer** — raise that limitation on his own approach before Karl does. ⚠ **Verify the exact title of Karl's UFP paper before naming it to its author.** |
+| **H6** | **"Batched GPU inference"** on the CV, and **"GPU/TPU execution"** — confirm the TPU claim is real, or be ready to drop it verbally. | **Handled in the deck** (it says GPU only) but **not** on the submitted CV. Still open. |
 
 **Q2 and Q3 are CLOSED on the website — they were fixed on 2026-08-22 and this file was stale
 for five days.** Commit `eb8ecdc` ("Remove unverified specifics from the blog; align M.Sc. date
@@ -130,8 +134,24 @@ Boards, not search results: HIDA board + Helmholtz Job Letter. Hereon was the wa
 |---|---|---|
 | `chess_speak_out_loud` | `windows-dev` | pushed and verified; see the session-close block in `CLAUDE.md` |
 | `cnp_synthetic` | (own git) | **DIRTY — 5 modified + 1 untracked at `db3eb90`.** Commit them (§3) |
-| `job_search` | `master` | at **`039c2ba`** (Band G added). ⚠ **THIS REPO HAS NO REMOTE — `git remote -v` is empty.** Every interview answer, the study room, the CV sources and the LinkedIn draft exist on **one Windows machine with no backup**. Committing is not backing up. **Give it a remote.** Real working copy: `Documents\job_search\` (the earlier note pointing at `bioinformatics_project\job_search` is stale for the study room, which lives here and is tracked) |
+| `job_search` | `master` | **FIXED AND PUSHED 2026-08-28**, at `7619193`, `0 0` against `github.com/thejusmahajan/job_search` (private). **Canonical clone: `Documents\bioinformatics_project\job_search\`.** See the note below — this was not a missing remote but a fork. |
 | `thejusmahajan.github.io` | `main` | published 2026-08-22 (`c09496c`, `ac70a00`), verified live |
+
+**⚠ The `job_search` fork, and what it cost — worth remembering.** There were **two clones with
+unrelated root commits**: `Documents\job_search` (2 commits, no remote, but holding the whole study
+room) and `bioinformatics_project\job_search` (15 commits, the real remote, **no study room**). A
+plain push would have been rejected; forcing it would have destroyed twelve commits of AEON-UP
+history that the remote already had. Resolved by fast-forwarding to origin and laying the newer
+files on top, after verifying the incoming copy was a superset and deleted nothing.
+
+**A silent regression was caught doing it.** The orphan's `09_operational_script.md` still carried
+**two fabricated citations that the remote had already corrected** in `9de009a` — Cabaneros (the
+real paper is in *Environmental Modelling & Software* 119, not *Environmental Pollution* 254) and
+Andersson (arXiv:**2211.10381**, not 2305.15340). Overlaying blindly would have reintroduced both.
+Restored from the remote before committing. **Lesson: when reconciling two copies, diff the content,
+never assume the copy with more files is newer in every line.**
+`Documents\job_search\RETIRED_READ_THIS_FIRST.md` marks the dead copy; a full backup including its
+`.git` is in the session scratchpad.
 
 **GitHub's `main` on the chess repo is STALE by design.** The whole project is on `windows-dev`.
 

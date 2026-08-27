@@ -41,18 +41,20 @@ Every brief and report path below is relative to
 
 ### If your workspace is `chess_speak_out_loud`
 
-**1. `briefs/2026-08-27_aeon-up-talk-deck.md` — ACTIVE. Execute this one first.**
+**1. `briefs/2026-08-27_aeon-up-talk-deck.md` — ⚑ SUPERSEDED. Do NOT execute it.**
 
-Build the AEON-UP interview deck in Beamer. **The content is already written and is not yours to
-change** — copy it verbatim from `study_room/14_talk_script.md` §3; the `**Say:**` lines become
-`\note{}`, never slide text. Figures are named exactly; the two attention SVGs need vector
-conversion. Three gates: **A** the build (20 pages, no errors), **B** all twelve numbers in the
-slide-9 table matching the script character for character, **C** zero hits on the do-not-claim
-list. *Why this before anything else: it is the interview.*
+**The leader built the deck directly on 2026-08-28**, at Thejus's instruction. It exists:
+`bioinformatics_project/job_search/applications/hereon_aeon_up/talk/aeon_up_talk.pdf` — 20 pages,
+13 content frames and 7 backups, with `aeon_up_talk_notes.pdf` carrying the spoken script and
+timings as beamer notes. All three gates in that brief were run and passed: 20 pages with no
+errors; all twelve CNP numbers present in both the PDF text and `14_talk_script.md`; and the
+do-not-claim grep returning only speaker notes forbidding those terms, the substring inside
+"output", and the honest no-hands-on line. **Rebuild from `aeon_up_talk.tex`; never re-author the
+content — it comes from the script.**
 
 ---
 
-**2. `briefs/2026-08-27_llm-seam-removal.md` — ACTIVE.**
+**2. `briefs/2026-08-27_llm-seam-removal.md` — ACTIVE. Execute this one.**
 
 Close the live LLM seam. `backend/app.py:658` calls `explanations.enrich_tree_explanations`
 unconditionally, that function has no `LLM_ENABLED` guard, and it reaches

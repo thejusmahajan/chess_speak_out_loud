@@ -16,6 +16,55 @@ Template:
 
 ---
 
+## 2026-08-28 — the job_search fork resolved; H1–H5 written; the deck is built
+
+**Did:**
+- **Reconciled the two `job_search` repos and pushed.** Fast-forwarded the remote-backed clone to
+  `origin/master`, laid the newer working copy on top, verified superset and zero deletions, and
+  pushed. Canonical clone is now `Documents\bioinformatics_project\job_search\`;
+  `Documents\job_search` carries a `RETIRED_READ_THIS_FIRST.md`.
+- **Wrote H5, H4, H3** as study room files 15, 16, 17, and **built the interview deck** —
+  `talk/aeon_up_talk.pdf` (20 pages) plus `aeon_up_talk_notes.pdf`, from `14_talk_script.md`.
+
+**Found:**
+- **It was never a missing remote — it was a fork.** Two clones with **unrelated root commits**:
+  the one holding the entire study room had no remote and 2 commits; the one with the remote had
+  15 commits and **no study room at all**. A plain push was rejected; forcing would have destroyed
+  twelve commits of AEON-UP history the remote already had.
+- **⚠ A silent regression, caught only by diffing content.** The orphan's
+  `09_operational_script.md` still contained **two fabricated citations the remote had already
+  corrected** in `9de009a`: Cabaneros (the real paper is *Environmental Modelling & Software* 119,
+  285–304 — not *Environmental Pollution* 254) and Andersson (arXiv:**2211.10381**, not
+  2305.15340). The orphan had *more files*, so it looked newer; on those two lines it was older.
+  Both restored from the remote before committing. Files 10 and 11 were checked the same way and
+  differ only in maths notation.
+- **The strongest thing found for H5** was already on disk and unused: UFP has **no binding limit
+  value** and almost **no monitoring**, so an AEON-UP model produces exposure estimates nobody can
+  check. That makes ultrafine particles the best possible case for his own uncertainty thesis —
+  and the CNP's Task B (smooth background + sharp road ridge, leave-one-station-out) is that
+  geometry exactly. Honest, provided he volunteers that it is synthetic.
+
+**Decided:**
+- **The deck was built by the leader, not delegated.** `2026-08-27_aeon-up-talk-deck.md` is marked
+  SUPERSEDED. All three of its gates were still run — build, the twelve-number check, and the
+  boundary grep — because the gates were the point, not who typed the LaTeX.
+- **No figures quoted for TVöD.** File 17 refuses to name a salary number and sends him to the
+  current table instead. Never invent a number applies to his pay as much as to a benchmark.
+- Content stays leader-authored; only mechanics are delegable. Reaffirmed by the citation
+  regression above.
+
+**Open:**
+- **Nothing is rehearsed.** Five files and a deck exist; not one has been said out loud.
+- **H6** — the "GPU/TPU" claim on the *submitted* CV. The deck says GPU only; the CV still says both.
+- Verify the exact title of Karl's UFP paper before naming it to its author.
+- Confirm the manuscript is still "in final preparation" (Band G) and that the JAX port was
+  publishable standalone.
+- `cnp_synthetic` is still dirty; the LinkedIn edits are still his to make by hand.
+
+**Repo:** `job_search` at `7619193`, pushed, `0 0`. Chess repo pushed and verified.
+
+---
+
 ## 2026-08-27b — AEON-UP is SENT; the interview is now the live item; the CNP exists
 
 **Did:**
