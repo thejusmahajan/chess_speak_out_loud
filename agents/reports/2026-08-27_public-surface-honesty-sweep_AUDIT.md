@@ -77,6 +77,29 @@ the two that cost him the most.
 
 1. **Ship the website fix** — one line, uncommitted in `thejusmahajan.github.io`.
 2. **L1 and L5 are factual corrections** and should go first; the rest is rewriting.
-3. `agents/briefs/linkedin_profile.txt` is an *input*, not a brief, and `agents/briefs/` is the
-   immutable brief store. Move it or drop it once LinkedIn is updated. (Its contents are the
-   public profile, so there is no disclosure concern in this repo.)
+3. **DONE 2026-08-27** — the profile snapshot was an *input*, not a brief. Moved to
+   `agents/inputs/linkedin_profile_2026-08-27.txt`, with `agents/inputs/README.md` recording what
+   that directory is for. `agents/briefs/` stays the immutable brief store.
+4. **Headline and About drafted 2026-08-27** from the submitted CV, at
+   `Documents\job_search\linkedin_rewrite_2026-08-27.md`. Two headline options, an
+   1,847-character About, and an explicit list of what was **not** claimed and why — no Bayesian
+   expertise, GPU only (not TPU), no model or cluster names beyond GOTM-FABM and JAX.
+
+---
+
+## 4. L13 — the Languages section contradicts the CV in four of six entries
+
+Found while drafting the About, so it is not in the table above. It is on the same profile and it
+is checkable.
+
+| language | LinkedIn | CV | |
+|---|---|---|---|
+| German | Professional working proficiency | **B1 (Goethe), B2 in preparation** | **overstated — and this is Germany** |
+| Hindi | Professional working proficiency | **Basic knowledge** | **overstated** |
+| English | Native or bilingual | Fluent (C1) | overstated against his own CV |
+| Tamil | Limited working proficiency | **Fluent** | **understated** |
+| French | Limited working proficiency | Basic knowledge | roughly consistent |
+| Malayalam | Native or bilingual | Native | ✅ |
+
+The German row is the one that matters: an interviewer here may simply switch languages. The rest
+is his call, but a profile that disagrees with the CV in the same application is avoidable.
