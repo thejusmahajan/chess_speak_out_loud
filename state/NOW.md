@@ -93,7 +93,7 @@ evidence is on disk.**
 
 | repo | branch | state at 2026-08-27 session close |
 |---|---|---|
-| `chess_speak_out_loud` | `windows-dev` | see `state/JOURNAL.md` latest entry |
+| `chess_speak_out_loud` | `windows-dev` | **clean and pushed** at `a6af34a`; `git rev-list --left-right --count HEAD...origin/windows-dev` returns `0	0` |
 | `job_search` | `master` | clean at `aeeb6c9` |
 | `thejusmahajan.github.io` | `main` | published 2026-08-22 (`c09496c`, `ac70a00`), verified live |
 
@@ -101,7 +101,13 @@ evidence is on disk.**
 
 At the start of this session the chess repo was **35 commits ahead of origin and never pushed**,
 with 11 uncommitted paths. That is the same failure that left the website repoint sitting
-uncommitted for three days after being audited ACCEPT. **Check the push state every session.**
+uncommitted for three days after being audited ACCEPT. Resolved this session in two commits
+(`ea902ca` backlog, `a6af34a` spine), pushed and verified. **Check the push state every session.**
+
+**One deliberate exception, left untracked:** `applications/hereon_aeon_up/other_documents/
+registration_confirmation_hlrs_email.pdf` sits in *this* repo but belongs in `job_search`, which
+already holds `certificates/HLRS_Registration_Confirmation.pdf`. Not committed here and not
+deleted — Thejus should move or drop it.
 
 ---
 
