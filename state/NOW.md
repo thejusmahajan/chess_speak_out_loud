@@ -38,7 +38,7 @@ on 2026-08-26.** The problem is priority, not volume — do not add more reading
 
 | # | hole | why it matters |
 |---|---|---|
-| **H1** | **The publication gap has ZERO coverage.** The CV lists five publications, all 2018–2020 astrochemistry, and nothing from the 2021–2025 marine post-doc. Nothing anywhere prepares an answer. | A hiring PI checks output first. A four-year post-doc with no listed publication reads as failure rather than as timing. **This is the single most likely hard question.** **Decided 2026-08-27: Wirtz will NOT be emailed** — so the answer is built from what is already in hand (the CV's "manuscript in preparation" line, the Hereon guest stay that "prepared the simulation data for peer-reviewed publication", and the modelling actually done), not from a chased-down journal name. |
+| ~~**H1**~~ | **DRAFTED 2026-08-27 — `study_room/05_interview_questions.md`, Band G, Question 20.** The gap had zero coverage in 3,400 lines; Q15 answers *"no **ML** publications"*, a different question whose answer **invites** this one. Q20 gives the arithmetic (3.5 years on paper − 12 months parental leave − a change of field ⇒ ~2.5 years of research), what exists (Lagrangian IBM, GOTM-FABM, the Fortran/OpenMP→JAX port, manuscript in final preparation), and the strongest fact: **six months back at Hereon as a guest scientist, unpaid, to finish the framework.** The lesson is *publish incrementally* — the JAX port was a model-description paper he did not split out. The **follow-ups** are prepared too, since that is where it fails. **Hard rules: never criticise a former supervisor; never invent a submission date.** ⚠ **Still needs him:** confirm the manuscript is genuinely still in final preparation, and that the JAX port really was publishable standalone — the reflection only works if it is his. **REHEARSE ALOUD; it is drafted, not rehearsed.** |
 | **H2** | **No talk artefact.** No slides, no 10–15 min presentation anywhere. | Helmholtz interviews usually ask for one, often at short notice. |
 | **H3** | **Salary / TVöD E13.** Appears only inside the doc that was found fabricated. His stated expectation is €75,000; AEON-UP is E13. | It will be asked, and an unconsidered answer is expensive. |
 | **H4** | **Questions for the panel** barely exist — named in files 00 and 08, with no content. | The closing question of nearly every interview. |
@@ -126,7 +126,7 @@ Boards, not search results: HIDA board + Helmholtz Job Letter. Hereon was the wa
 |---|---|---|
 | `chess_speak_out_loud` | `windows-dev` | pushed and verified; see the session-close block in `CLAUDE.md` |
 | `cnp_synthetic` | (own git) | **DIRTY — 5 modified + 1 untracked at `db3eb90`.** Commit them (§3) |
-| `job_search` | `master` | clean at `aeeb6c9`. Real working copy: `Documents\bioinformatics_project\job_search\`; the `Documents\job_search` folder holds the hereon working dir + `study_room` |
+| `job_search` | `master` | at **`039c2ba`** (Band G added). ⚠ **THIS REPO HAS NO REMOTE — `git remote -v` is empty.** Every interview answer, the study room, the CV sources and the LinkedIn draft exist on **one Windows machine with no backup**. Committing is not backing up. **Give it a remote.** Real working copy: `Documents\job_search\` (the earlier note pointing at `bioinformatics_project\job_search` is stale for the study room, which lives here and is tracked) |
 | `thejusmahajan.github.io` | `main` | published 2026-08-22 (`c09496c`, `ac70a00`), verified live |
 
 **GitHub's `main` on the chess repo is STALE by design.** The whole project is on `windows-dev`.
