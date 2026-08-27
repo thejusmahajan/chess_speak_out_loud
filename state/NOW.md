@@ -39,7 +39,7 @@ on 2026-08-26.** The problem is priority, not volume — do not add more reading
 | # | hole | why it matters |
 |---|---|---|
 | ~~**H1**~~ | **DRAFTED 2026-08-27 — `study_room/05_interview_questions.md`, Band G, Question 20.** The gap had zero coverage in 3,400 lines; Q15 answers *"no **ML** publications"*, a different question whose answer **invites** this one. Q20 gives the arithmetic (3.5 years on paper − 12 months parental leave − a change of field ⇒ ~2.5 years of research), what exists (Lagrangian IBM, GOTM-FABM, the Fortran/OpenMP→JAX port, manuscript in final preparation), and the strongest fact: **six months back at Hereon as a guest scientist, unpaid, to finish the framework.** The lesson is *publish incrementally* — the JAX port was a model-description paper he did not split out. The **follow-ups** are prepared too, since that is where it fails. **Hard rules: never criticise a former supervisor; never invent a submission date.** ⚠ **Still needs him:** confirm the manuscript is genuinely still in final preparation, and that the JAX port really was publishable standalone — the reflection only works if it is his. **REHEARSE ALOUD; it is drafted, not rehearsed.** |
-| **H2** | **No talk artefact.** No slides, no 10–15 min presentation anywhere. | Helmholtz interviews usually ask for one, often at short notice. |
+| ~~**H2**~~ | **SCRIPTED 2026-08-27 — `study_room/14_talk_script.md`.** Thirteen slides + seven backups, ~14:00, with a marked 10-minute cut. Thesis: *“I build environmental models, I have moved into machine learning, and what I am actually good at is finding the errors that do not announce themselves.”* Centrepiece is slide 7 — the two silent bugs, with the mirrored/corrected attention figures side by side and the admission that one was already published. Slide 9 is the CNP evidence; slide 11 volunteers what he does not know, which is what makes the rest credible. **Deck build delegated:** `agents/briefs/2026-08-27_aeon-up-talk-deck.md` (content copied verbatim; Gemini does LaTeX only). ⚠ **Ask the panel the format first** — length and emphasis — and rehearse aloud with a timer standing up. |
 | **H3** | **Salary / TVöD E13.** Appears only inside the doc that was found fabricated. His stated expectation is €75,000; AEON-UP is E13. | It will be asked, and an unconsidered answer is expensive. |
 | **H4** | **Questions for the panel** barely exist — named in files 00 and 08, with no content. | The closing question of nearly every interview. |
 | **H5** | **Karl's side is unaddressed.** The letter is addressed to both PIs but engages only Ramacher's Code4Earth work. **Ultrafine particles** — Karl's specific area, named in the advert — appear nowhere in it. | Half the panel was not written to. Prepare that half in the room instead. |
@@ -51,20 +51,24 @@ with the CV") removed **five** names that appeared in first-person experience cl
 appearing in the CV zero times — **ICON-O, HAMOCC, EERIE, Levante, DKRZ** — across four pages,
 and set the M.Sc. to `2012 – 2014`. Pushed; `origin/main` is level.
 
-- **Q2 — HAMOCC.** Prose is clean. **One residual survived, in a code block, not prose:**
-  `blog-ggplot2-timeseries.html:83` still loads `hamocc_plankton_output.csv`. One-line fix, in the
-  brief below. *Lesson: a scrub of prose is not a scrub of the page — grep the code blocks too.*
+- **Q2 — HAMOCC. CLOSED and SHIPPED.** The one residual — `hamocc_plankton_output.csv` inside a
+  code block in `blog-ggplot2-timeseries.html` — is gone, pushed as `909237a`.
+  *Lesson: a scrub of prose is not a scrub of the page — grep the code blocks too.*
 - **Q3 — dates.** Settled and consistent: site `2012 – 2014` / CV `07/2012 - 12/2014` for the
   M.Sc., site `2009 – 2012` / CV `06/2009 - 04/2012` for the B.Sc. **Nothing to decide.**
-- **⚠ LinkedIn has never been checked** and is the one public surface still unaudited. The same
-  five names may sit on the profile. Thejus must paste his profile text into
-  `job_search\linkedin_profile.txt` before anyone can audit it; **LinkedIn is edited by hand, by
-  him.**
-
-Working both of these: `agents/briefs/2026-08-27_public-surface-honesty-sweep.md` (ACTIVE).
+- **LinkedIn: AUDITED 2026-08-27** (leader; brief `…_public-surface-honesty-sweep.md` is DELIVERED,
+  AUDITED, ACCEPTED). **The five names are NOT on LinkedIn — nothing to remove for honesty.** What
+  the audit found is a profile that stops in Oct 2025: **L1** CQ shown as *Present* though it ended
+  02/2026, **L5** PhD field given as *Astrophysics* not Astrochemistry, plus the B.Sc., the
+  HealthTwiSt Praxisphase and the current LC0 work all missing, no ML in the headline, and **L13**
+  a Languages section that contradicts the CV in four of six entries (German claims *professional
+  working proficiency* against a B1 certificate). Twelve items, L1–L13, in
+  `agents/reports/2026-08-27_public-surface-honesty-sweep_AUDIT.md`.
+  **Headline and About drafted** from the CV: `job_search\linkedin_rewrite_2026-08-27.md`.
+  **LinkedIn is edited by hand, by him** — nothing here is automated.
 
 **Decided 2026-08-27: no email to Kai Wirtz.** So H1 is answered from what is already in hand —
-the manuscript status will not be chased. Prepare the publication-gap answer without it.
+the manuscript status will not be chased.
 
 **The strongest asset, and it must be defended cold — see §3.**
 

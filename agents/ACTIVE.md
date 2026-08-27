@@ -41,7 +41,18 @@ Every brief and report path below is relative to
 
 ### If your workspace is `chess_speak_out_loud`
 
-**1. `briefs/2026-08-27_llm-seam-removal.md` — ACTIVE. Execute this one.**
+**1. `briefs/2026-08-27_aeon-up-talk-deck.md` — ACTIVE. Execute this one first.**
+
+Build the AEON-UP interview deck in Beamer. **The content is already written and is not yours to
+change** — copy it verbatim from `study_room/14_talk_script.md` §3; the `**Say:**` lines become
+`\note{}`, never slide text. Figures are named exactly; the two attention SVGs need vector
+conversion. Three gates: **A** the build (20 pages, no errors), **B** all twelve numbers in the
+slide-9 table matching the script character for character, **C** zero hits on the do-not-claim
+list. *Why this before anything else: it is the interview.*
+
+---
+
+**2. `briefs/2026-08-27_llm-seam-removal.md` — ACTIVE.**
 
 Close the live LLM seam. `backend/app.py:658` calls `explanations.enrich_tree_explanations`
 unconditionally, that function has no `LLM_ENABLED` guard, and it reaches
