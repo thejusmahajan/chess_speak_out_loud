@@ -1,0 +1,33 @@
+Stable Drill IDs + SRS-Aware Usual Suspects Deck Ordering Complete
+The implementation is complete, verified, and 100% green.
+
+Summary of Changes
+Deterministic Finding-Drill IDs (
+
+drills.py
+):
+Updated build_drill_from_finding to generate stable drill IDs ("d-" + sha1(finding_id)[:12] or "d-" + sha1(epd)[:12]) instead of random UUIDs.
+Ensures SRS SM-2 state tracks findings deterministically across deck rebuilds.
+SRS-Aware Deck Ordering (
+
+usual_suspects.py
+):
+build_suspects_deck now queries attempts.load_srs() and orders the severity-blended deck into:
+UNSEEN: never attempted (drill_id not in srs).
+DUE: due for review (due <= now_iso).
+NOT-DUE: solved and scheduled for later (due > now_iso).
+Retains severity-blended order within each group and places NOT-DUE drills at the end of the deck (deprioritized, not dropped).
+Unit Tests & Report (
+
+test_suspects_deck.py
+ / 
+
+SRS_AWARE_DECK_REPORT.md
+):
+Extended test suite with test_deterministic_drill_ids and test_srs_aware_deck_ordering verifying all required mutation checks.
+Verification Results
+test_suspects_deck.py: 9 / 9 PASSED
+Full Backend Suite: 189 / 189 PASSED (5 skipped as expected)
+metrics.py untouched.
+No Git push performed.
+STOPPING for Leader Review.

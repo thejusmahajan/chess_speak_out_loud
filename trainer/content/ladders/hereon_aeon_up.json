@@ -1,0 +1,302 @@
+[
+  {
+    "id": "her-l0-001",
+    "ladder": "hereon-aeon-up",
+    "level": 0,
+    "topic": "who is hiring you",
+    "question": "What is Helmholtz-Zentrum Hereon, where is it, and which institute is advertising this post?",
+    "answer": "Hereon is a German federal research centre within the Helmholtz Association, based in Geesthacht just south-east of Hamburg. The AEON-UP post is at the Institute of Coastal Environmental Chemistry — not the ecosystem-modelling group where you were a guest scientist.",
+    "explanation": "Hereon is organised into institutes that work fairly independently. Knowing which one is hiring you, by name, is the minimum entry fee for the conversation, and getting it wrong would be a bad first impression with people who identify strongly with their institute.",
+    "trap": "Saying 'I already worked at Hereon' as though it were the same group. You were in Ecosystem Modelling in 2025; this post is in Coastal Environmental Chemistry. Same centre, different institute — say it that way and the familiarity reads as honest rather than inflated.",
+    "sources": [
+      "https://www.hereon.de/institutes/coastal_environmental_chemistry/index.php.en",
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 785,
+    "requires": []
+  },
+  {
+    "id": "her-l0-002",
+    "ladder": "hereon-aeon-up",
+    "level": 0,
+    "topic": "what AEON-UP is",
+    "question": "In one plain sentence, what is the AEON-UP project about?",
+    "answer": "Using probabilistic deep learning to produce calibrated, high-resolution urban air-quality fields — combining physics-based chemistry transport model output with machine learning that reports how uncertain each prediction is.",
+    "explanation": "Two halves. The physics half already exists in the group and is world-class. The learned half — the probabilistic model and its uncertainty estimates — is the half they are hiring for. That framing is the whole reason you are a plausible candidate.",
+    "trap": "Describing it as 'AI for air quality' and stopping there. The distinguishing word is probabilistic: a prediction without a calibrated uncertainty is not what this project wants.",
+    "sources": [
+      "https://www.hereon.de/institutes/coastal_environmental_chemistry/index.php.en",
+      "../job_search/applications/hereon_aeon_up/study_room/00_START_HERE.md"
+    ],
+    "difficulty": 795,
+    "requires": []
+  },
+  {
+    "id": "her-l0-003",
+    "ladder": "hereon-aeon-up",
+    "level": 0,
+    "topic": "the two PIs",
+    "question": "Who are the two principal investigators, and what is each one known for?",
+    "answer": "Dr. Matthias Karl — author and maintainer of the EPISODE-CityChem urban dispersion and chemistry model; aerosol dynamics, chemistry, dispersion, exposure. Dr. Martin Ramacher — regional and urban emission inventories (UrbEm, CMAQ) and exposure modelling; he co-mentored an ECMWF Code for Earth project on urban air-quality downscaling.",
+    "explanation": "Both are physics-based atmospheric modellers. Ramacher is the one with a foot already in the machine-learning direction, so he is the more likely reader of the ML content in your letter; Karl is the one who will notice any loose claim about his model.",
+    "trap": "Mixing up which one wrote EPISODE-CityChem. Karl wrote it. Saying otherwise in front of him would be memorable for the wrong reason.",
+    "sources": [
+      "https://doi.org/10.5194/gmd-12-3357-2019",
+      "https://doi.org/10.3390/atmos12111404",
+      "../job_search/applications/hereon_aeon_up/study_room/00_START_HERE.md"
+    ],
+    "difficulty": 805,
+    "requires": []
+  },
+  {
+    "id": "her-l0-004",
+    "ladder": "hereon-aeon-up",
+    "level": 0,
+    "topic": "the vocabulary trap",
+    "question": "What is the single most dangerous vocabulary mistake you could make in this interview?",
+    "answer": "Treating 'Neural Processes' as though it had something to do with neural-network interpretability, attention analysis, or looking inside a model. It does not. A Neural Process is a probabilistic model that learns to map a set of observed points to a predictive distribution over a field — the deep-learning cousin of a Gaussian Process.",
+    "explanation": "Your own recent work is transformer activation capture, and the word 'neural' sits in both phrases. That is exactly why the confusion is available to you and to nobody else in the room. Say 'Neural Process' only when you mean the probabilistic model.",
+    "trap": "Drifting from 'Neural Process' into 'interpreting the network's internals' inside the same answer. To Karl or Ramacher that signals you have misread what the job is.",
+    "sources": [
+      "https://arxiv.org/abs/1807.01613",
+      "../job_search/applications/hereon_aeon_up/study_room/00_START_HERE.md"
+    ],
+    "difficulty": 815,
+    "requires": []
+  },
+  {
+    "id": "her-l0-005",
+    "ladder": "hereon-aeon-up",
+    "level": 0,
+    "topic": "your prior contact with Hereon",
+    "question": "Have you been inside Hereon before, and how should you say so?",
+    "answer": "Yes — Guest Scientist at Helmholtz-Zentrum Hereon, Ecosystem Modelling, Geesthacht, May to October 2025. Say it as: 'I worked as a guest scientist in Hereon's ecosystem modelling group in 2025, so I already know how the centre runs day to day.'",
+    "explanation": "This is the line that most reduces their hiring risk, and it is the one asset no competing candidate can copy. It answers the unspoken question of whether you will settle in, get access sorted, and understand the institutional rhythm.",
+    "trap": "Over-reading it. It buys you onboarding credibility and nothing scientific — the ecosystem-modelling group is not the air-quality group, and pretending otherwise is a claim they can check in one email.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex",
+      "../job_search/applications/hereon_aeon_up/study_room/04_the_bridge.md"
+    ],
+    "difficulty": 825,
+    "requires": []
+  },
+  {
+    "id": "her-l1-001",
+    "ladder": "hereon-aeon-up",
+    "level": 1,
+    "topic": "EPISODE-CityChem",
+    "question": "What is EPISODE-CityChem, who wrote it, and where is it published?",
+    "answer": "A Eulerian urban dispersion model extended with photochemistry, for city-scale air quality. Published as Karl, Walker, Solberg and Ramacher, 'The Eulerian urban dispersion model EPISODE — Part 2', Geoscientific Model Development 12, 3357 (2019), describing v1.2 and its application to Hamburg.",
+    "explanation": "Both of your PIs are authors on this paper. It is the single most useful thing you can have read: it tells you what their model produces, at what resolution, and what its known limitations are — which is where a learned component would attach.",
+    "trap": "Calling it a global or regional model. It is an urban-scale model; the regional context comes from something like CMAQ feeding its boundaries.",
+    "sources": [
+      "https://doi.org/10.5194/gmd-12-3357-2019"
+    ],
+    "difficulty": 990,
+    "requires": [
+      "her-l0-003"
+    ]
+  },
+  {
+    "id": "her-l1-002",
+    "ladder": "hereon-aeon-up",
+    "level": 1,
+    "topic": "UrbEm",
+    "question": "What is UrbEm, and who developed it?",
+    "answer": "A hybrid method for downscaling coarse regional emission inventories into the high-resolution emission fields a city-scale model needs. Ramacher, Kakouri, Speyer and Feldner, 'The UrbEm Hybrid Method to Derive High-Resolution Emissions for City-Scale Air Quality Modeling', Atmosphere 12, 1404 (2021).",
+    "explanation": "Ramacher is first author. Emissions are the input side of the whole chain: without high-resolution emissions, an urban model has nothing to disperse. Knowing UrbEm shows you understand that the group's problem is not only the physics but the data feeding it.",
+    "trap": "Thinking of emissions and concentrations as the same thing. UrbEm produces emissions — what goes into the air per unit time and area — not the concentrations people breathe.",
+    "sources": [
+      "https://doi.org/10.3390/atmos12111404"
+    ],
+    "difficulty": 1020,
+    "requires": [
+      "her-l0-003"
+    ]
+  },
+  {
+    "id": "her-l1-003",
+    "ladder": "hereon-aeon-up",
+    "level": 1,
+    "topic": "why they are hiring",
+    "question": "Why would a group of physics-based atmospheric modellers hire a machine-learning postdoc at all?",
+    "answer": "Because they are hiring a capability they do not have in depth. Both PIs are physics and atmospheric-chemistry modellers with no substantial machine-learning publication record; the probabilistic deep-learning half of AEON-UP is the part of their own project they cannot staff internally.",
+    "explanation": "This reframes the competition. You are not trying to out-publish a theoretical ML researcher. You are offering to be the person who can build and validate the learned half inside a physics group — and who will not mishandle their grids while doing it.",
+    "trap": "Concluding that the ML bar is therefore low. It is the opposite: because they cannot check your ML work in detail, they will weight rigour, calibration and honesty about limits far more heavily than novelty.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/study_room/00_START_HERE.md",
+      "https://doi.org/10.5194/gmd-12-3357-2019"
+    ],
+    "difficulty": 1050,
+    "requires": [
+      "her-l0-002"
+    ]
+  },
+  {
+    "id": "her-l2-001",
+    "ladder": "hereon-aeon-up",
+    "level": 2,
+    "topic": "the Hamburg connection",
+    "question": "Which city was EPISODE-CityChem v1.2 applied to in the 2019 paper, and why is that worth mentioning?",
+    "answer": "Hamburg. You live in Hamburg, and their flagship urban modelling application is the city you are writing from.",
+    "explanation": "It is a small thing that does real work: it lets you talk about their results as a resident rather than as an applicant reciting a citation, and it quietly reinforces that you are local, already authorised to work, and not a relocation risk.",
+    "trap": "Using it as small talk only. Attach it to something technical — the street-level resolution, the monitoring network density, where a learned model would help most — or it reads as filler.",
+    "sources": [
+      "https://doi.org/10.5194/gmd-12-3357-2019",
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1200,
+    "requires": [
+      "her-l1-001"
+    ]
+  },
+  {
+    "id": "her-l2-002",
+    "ladder": "hereon-aeon-up",
+    "level": 2,
+    "topic": "regional to urban chain",
+    "question": "In this group's workflow, what is the division of labour between a regional model such as CMAQ and an urban model such as EPISODE-CityChem?",
+    "answer": "The regional model provides the large-scale chemical background and the boundary conditions — what is already in the air arriving over the city. The urban model resolves what happens inside the city: local emissions, street-scale dispersion, and the chemistry that acts on those short timescales.",
+    "explanation": "This nesting is the standard structure of the field and it is where the resolution gap lives. The regional model is too coarse to see a street; running the urban model everywhere at street resolution is computationally out of reach. That gap is the opening for a learned component.",
+    "trap": "Describing them as competitors or alternatives. They are nested stages of one chain, and each supplies something the other cannot.",
+    "sources": [
+      "https://doi.org/10.5194/gmd-12-3357-2019",
+      "https://doi.org/10.3390/atmos12111404"
+    ],
+    "difficulty": 1230,
+    "requires": [
+      "her-l1-001",
+      "her-l1-002"
+    ]
+  },
+  {
+    "id": "her-l2-003",
+    "ladder": "hereon-aeon-up",
+    "level": 2,
+    "topic": "the five boundaries",
+    "question": "Name the five things you must never claim in this interview.",
+    "answer": "1. Published papers in Bayesian deep learning or Neural Processes. 2. Causal interventions, activation patching, or circuit-level analysis of a network. 3. Having run EPISODE-CityChem, CMAQ or WRF-Chem yourself. 4. Formal domain expertise in air-quality regulation or atmospheric science. 5. Anything resting on the chess project's 'sacrifice/Tal' metric, which is documented internally as unsound.",
+    "explanation": "Each boundary exists because the claim is checkable in under a minute by the person sitting opposite you — Google Scholar, a question about namelists, a request for the metric's definition. The distinction between what you did and what the field calls it is where an interview is won or lost.",
+    "trap": "Treating these as things to avoid saying rather than things to have a prepared honest answer for. Every one of the five has a strong true version; rehearse the true version, not silence.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/study_room/06_do_not_claim.md"
+    ],
+    "difficulty": 1260,
+    "requires": [
+      "her-l0-004"
+    ]
+  },
+  {
+    "id": "her-l3-001",
+    "ladder": "hereon-aeon-up",
+    "level": 3,
+    "topic": "talking about Karl's model",
+    "question": "Karl wrote EPISODE-CityChem. How do you talk about his model without overclaiming?",
+    "answer": "Say plainly what you have and have not done: 'I have not run EPISODE-CityChem. I have read the 2019 GMD paper, and I have several years of environmental modelling on Linux HPC - GOTM-FABM water columns, gridded NetCDF, and a Lagrangian individual-based model I wrote and ported to GPU. I would expect to learn your namelists and chemical mechanisms from your team, and I would not expect the workflow to feel unfamiliar.'",
+    "explanation": "This is strong because it concedes the exact thing he could expose in one question, and then offers the transferable skill that is genuinely yours. Conceding first is what makes the second half believable.",
+    "trap": "Reaching for familiarity you do not have — configuration flags, turbulence schemes, chemical mechanism names. In front of the model's author this fails immediately, and the do-not-claim list exists precisely for this case.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/study_room/06_do_not_claim.md",
+      "https://doi.org/10.5194/gmd-12-3357-2019"
+    ],
+    "difficulty": 1420,
+    "requires": [
+      "her-l2-003",
+      "her-l1-001"
+    ]
+  },
+  {
+    "id": "her-l3-002",
+    "ladder": "hereon-aeon-up",
+    "level": 3,
+    "topic": "the learned half, concretely",
+    "question": "What would the learned half of AEON-UP concretely be, if you had to sketch it in an interview?",
+    "answer": "A conditional neural process family model: encode the sparse monitoring-station observations as a context set, take physics-based fields as covariates on the grid — chemistry transport model output, high-resolution emissions, meteorology, land use — and output a predictive distribution, mean and variance, at every target location. Convolutional variants are the natural choice because they impose translation equivariance on gridded spatial data.",
+    "explanation": "The point of this architecture for their problem is that it conditions on new observations at inference time without retraining, and it returns a calibrated uncertainty rather than a bare number. Both properties are what an agency actually needs from a street-level map.",
+    "trap": "Presenting it as replacing the chemistry transport model. It consumes the model's output as prior information — the physics stays, and saying so is what makes the proposal palatable to the people who wrote the physics.",
+    "sources": [
+      "https://arxiv.org/abs/1807.01613",
+      "https://arxiv.org/abs/1910.13556"
+    ],
+    "difficulty": 1450,
+    "requires": [
+      "her-l2-002"
+    ]
+  },
+  {
+    "id": "her-l3-003",
+    "ladder": "hereon-aeon-up",
+    "level": 3,
+    "topic": "UrbEm as model input",
+    "question": "In machine-learning terms, what does UrbEm give a Neural Process?",
+    "answer": "High-resolution spatial covariates. UrbEm turns a coarse regional emission inventory into gridded emission fields at city scale, and those fields become input channels the model conditions on — the strongest available predictor of where concentrations will be high, independent of where the monitoring stations happen to sit.",
+    "explanation": "This matters for generalisation. A model conditioned only on station observations interpolates between stations; a model that also sees emissions and land use can predict sensibly in a street with no station, which is the whole point of the exercise.",
+    "trap": "Assuming more input channels are always better. Each one has to be available at prediction time and at the resolution you claim, or the model silently learns from something it will not have in deployment.",
+    "sources": [
+      "https://doi.org/10.3390/atmos12111404",
+      "https://arxiv.org/abs/1910.13556"
+    ],
+    "difficulty": 1470,
+    "requires": [
+      "her-l2-002",
+      "her-l1-002"
+    ]
+  },
+  {
+    "id": "her-l4-001",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "first six months",
+    "question": "They ask what you would do in your first six months. What is the answer?",
+    "answer": "Reproduce before you build. Months one and two: get the existing model output and station data, and rebuild a baseline the group already trusts — ordinary kriging or land-use regression — so there is an honest number to beat. Months three and four: a conditional neural process on the same data, evaluated with CRPS and leave-one-station-out validation, not random k-fold. Months five and six: report calibration honestly, including where it fails, and decide from evidence whether the physics coupling should be as covariates or as a residual correction.",
+    "explanation": "The structure of this answer is the argument. Reproducing a baseline first tells a physics group you will not arrive and declare their methods obsolete, and leave-one-station-out says you already know why random cross-validation lies about spatial models.",
+    "trap": "Promising a novel architecture in month one. In a group that cannot referee your ML choices, credibility comes from the validation plan, not the model choice.",
+    "sources": [
+      "https://arxiv.org/abs/1910.13556",
+      "../job_search/applications/hereon_aeon_up/study_room/05_interview_questions.md"
+    ],
+    "difficulty": 1520,
+    "requires": [
+      "her-l3-002",
+      "her-l3-003"
+    ]
+  },
+  {
+    "id": "her-l4-002",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "questions you ask them",
+    "question": "What should you ask them, and what does each question signal?",
+    "answer": "What is the station density and record length you would give me, and are there campaign data beyond the regulatory network? — signals you think about data before models. How is EPISODE-CityChem output archived, and at what resolution and cadence? — signals you have handled large gridded archives. Is the target operational forecasting or retrospective exposure assessment? — they are different problems and the answer changes the architecture. And: who else is on AEON-UP, and is the ML side mine alone?",
+    "explanation": "Questions are evidence. These four are unanswerable by someone who has only skimmed the advert, and each one shows you have already started thinking about the actual project rather than about getting the job.",
+    "trap": "Asking about publication expectations or career development first. Ask those, but after the scientific questions have established what you are.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/study_room/05_interview_questions.md",
+      "https://doi.org/10.5194/gmd-12-3357-2019"
+    ],
+    "difficulty": 1690,
+    "requires": [
+      "her-l3-002",
+      "her-l3-003"
+    ]
+  },
+  {
+    "id": "her-l5-001",
+    "ladder": "hereon-aeon-up",
+    "level": 5,
+    "topic": "the pitch",
+    "question": "Sixty seconds, to Karl and Ramacher: why you for AEON-UP?",
+    "answer": "Deliver it aloud, roughly: 'I am a computational scientist who has spent a decade on environmental and physical simulation - an astrochemistry PhD on terabytes of accelerator data, then marine ecosystem modelling at Universität Hamburg, where I built a Lagrangian individual-based model of phytoplankton trait evolution, ported its legacy Fortran engine to JAX so the particle loop could run on GPUs, and worked daily with GOTM-FABM setups and large NetCDF archives on Linux HPC. Since then I have been building PyTorch pipelines around a fifteen-layer transformer, and I found and publicly corrected two silent errors in my own analysis that produced perfectly plausible output. I was a guest scientist at Hereon in 2025, so I know the centre. What draws me to AEON-UP is that it needs exactly that combination: someone who reads your model output as physics rather than as arrays, and who will be relentless about whether the uncertainty estimates are actually calibrated.'",
+    "explanation": "The pitch ends on calibration and on catching silent errors, because that is the fear a physics group has about machine learning — that it produces smooth, confident, unphysical fields. You are the candidate who names that fear first.",
+    "trap": "Leading with the chess project. It is the most recent and most interesting to you, and the least legible to them. It belongs in the middle, framed as pipeline engineering and error-hunting, never as the headline.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/study_room/04_the_bridge.md",
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1960,
+    "requires": [
+      "her-l4-001",
+      "her-l4-002"
+    ]
+  }
+]

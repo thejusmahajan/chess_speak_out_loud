@@ -21,6 +21,12 @@ DEFAULT_LADDER_RATINGS: Dict[str, float] = {
     "own-work": 820.0,
     "pytorch": 820.0,
     "uncertainty": 820.0,
+    # Application ladders (added 2026-08-22). Listed explicitly rather than relying on the
+    # 820.0 fallback, for the reason recorded in migrate_progress below: a ladder introduced
+    # after ladder_ratings was written gets no entry, and an absent entry is one refactor away
+    # from becoming a wrong entry. This has already made correct content unreachable twice.
+    "hereon-aeon-up": 820.0,
+    "bridge": 820.0,
 }
 
 

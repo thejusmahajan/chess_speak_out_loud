@@ -1,0 +1,303 @@
+[
+  {
+    "id": "bri-l0-001",
+    "ladder": "bridge",
+    "level": 0,
+    "topic": "NetCDF",
+    "question": "What is a NetCDF file, and why does it matter that you have worked with them for years?",
+    "answer": "A self-describing binary format for multi-dimensional gridded scientific arrays — typically a variable on a longitude by latitude by depth or height by time grid, carrying its own units, coordinates and metadata. It is the standard archive format for both ocean and atmospheric model output.",
+    "explanation": "This is the most concrete piece of shared ground you have with an atmospheric modelling group. Their chemistry transport model writes NetCDF; your marine model wrote NetCDF. Nothing about reading, slicing, regridding or checking one of their files would be new to you.",
+    "trap": "Mentioning it as a file format only. The transferable skill is not 'I can open a file' — it is knowing that coordinate order, calendar conventions and unit attributes are where silent errors hide.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex",
+      "../thejusmahajan.github.io/projects.html"
+    ],
+    "difficulty": 780,
+    "requires": []
+  },
+  {
+    "id": "bri-l0-002",
+    "ladder": "bridge",
+    "level": 0,
+    "topic": "the individual-based model",
+    "question": "What is the individual-based model you built, and why is it the piece of work you care most about?",
+    "answer": "A Lagrangian individual-based model (IBM) of phytoplankton trait evolution: an NPZD water-column ecosystem in which phytoplankton are not a concentration but a population of super-individual agents, each carrying its own optimal growth temperature, mutating on division and selected on by the environment. You applied it to the cyanobacteria life cycle for climate-warming projections.",
+    "explanation": "Say 'trait evolution' and 'selection', not just 'a plankton model'. What makes it interesting is that the population adapts: the trait distribution moves through trait space in response to seasonal forcing, which is a genuinely different kind of result from a concentration time series.",
+    "trap": "Apologising for it being low-dimensional. A 0D/1D water column is a deliberate choice - it buys resolution in trait space that a 3D grid could never afford. Say that, rather than treating it as a limitation.",
+    "sources": [
+      "../thejusmahajan.github.io/github_thejusmahajan_projects/IBM/README.md",
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 790,
+    "requires": []
+  },
+  {
+    "id": "bri-l0-003",
+    "ladder": "bridge",
+    "level": 0,
+    "topic": "Eulerian versus Lagrangian",
+    "question": "What is the difference between Eulerian and Lagrangian, and why does it connect you to Karl's model rather than separate you from it?",
+    "answer": "Eulerian fixes a grid in space and tracks what changes in each cell as material flows through it. Lagrangian follows the particles themselves. Your IBM is Lagrangian. EPISODE-CityChem is Eulerian on its main grid - but its whole CityChem extension is sub-grid components, because a grid cell cannot resolve a street canyon or a plume near its source.",
+    "explanation": "The 2019 GMD abstract is explicit: the extension 'entails specific developments within the sub-grid components', naming the simplified street canyon model (SSCM) for line sources and WMPP for point sources. Karl's model is a hybrid, and the sub-grid half is where the hard dispersion problem lives. That is the half your particle instinct speaks to.",
+    "trap": "Framing yourself as coming from a different philosophy and apologising for it. You are not the Eulerian candidate and you do not need to be - you have worked on both sides of the grid, which is exactly the seam their model is built across.",
+    "sources": [
+      "https://doi.org/10.5194/gmd-12-3357-2019",
+      "../job_search/applications/hereon_aeon_up/study_room/01_domain.md"
+    ],
+    "difficulty": 800,
+    "requires": []
+  },
+  {
+    "id": "bri-l0-004",
+    "ladder": "bridge",
+    "level": 0,
+    "topic": "your honest ML sentence",
+    "question": "What is the honest one-sentence description of your machine-learning experience?",
+    "answer": "'I build PyTorch pipelines: converting models from ONNX, engineering forward hooks to capture internal representations during inference, and running batched inference at scale — and I have studied the probabilistic deep-learning literature and implemented these architectures, though my published papers are in computational physical modelling.'",
+    "explanation": "Every clause here is defensible under questioning, and the last one pre-empts the Google Scholar check rather than waiting for it. Volunteering the limit is what makes the rest of the sentence credible.",
+    "trap": "Letting the sentence drift upward into research-level language about interpreting what a network has learned. Keep it at engineering: capture, convert, batch, validate.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/study_room/06_do_not_claim.md",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 815,
+    "requires": []
+  },
+  {
+    "id": "bri-l0-005",
+    "ladder": "bridge",
+    "level": 0,
+    "topic": "the risk-reducing line",
+    "question": "Which single line of your history most reduces their hiring risk, and why is that different from what impresses them?",
+    "answer": "The 2025 guest scientist period at Hereon. It does not impress anyone scientifically — it removes doubt about whether you will integrate, get set up, and understand how the centre works.",
+    "explanation": "Hiring committees run two separate assessments: is this person good, and is this person going to work out. Most of your material speaks to the first. This line is almost the only one that speaks to the second, so it belongs in the letter, not buried in the CV timeline.",
+    "trap": "Assuming the two assessments are the same. A slightly less brilliant candidate who is visibly low-risk often wins a post like this, and you happen to be low-risk — say so.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex",
+      "../job_search/applications/hereon_aeon_up/study_room/04_the_bridge.md"
+    ],
+    "difficulty": 830,
+    "requires": []
+  },
+  {
+    "id": "bri-l1-001",
+    "ladder": "bridge",
+    "level": 1,
+    "topic": "Fortran to JAX",
+    "question": "What was the Fortran-to-JAX port, and what does it prove about you?",
+    "answer": "At Universität Hamburg you translated a legacy Fortran environmental simulation engine into a high-performance Python implementation using Google JAX, with TPU and GPU parallelisation. It proves you can move a physics model onto modern accelerated hardware without losing the physics.",
+    "explanation": "This is unusually well matched to AEON-UP. The project needs someone comfortable on both sides of the same boundary: a Fortran-era chemistry transport model on one side, a differentiable Python framework on the other. You have already crossed it once, on a real model.",
+    "trap": "Describing it as 'rewrote some code in Python'. The load-bearing detail is that it was a legacy Fortran numerical engine and that the target was accelerated hardware — that combination is rare and it is exactly their gap.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1000,
+    "requires": [
+      "bri-l0-002"
+    ]
+  },
+  {
+    "id": "bri-l1-002",
+    "ladder": "bridge",
+    "level": 1,
+    "topic": "HealthTwiSt in numbers",
+    "question": "State the HealthTwiSt refactor in numbers, and say what it demonstrates.",
+    "answer": "A production R pipeline for the DeGIR national medical registry: 143,000+ patient records from roughly 300 clinics, codebase reduced by about a quarter, output verified byte-identical at every step, and 257 hard-coded rules moved out of code into reviewable configuration. Two pre-existing bugs found during review, documented rather than silently fixed.",
+    "explanation": "It demonstrates production discipline, which is what turns a research prototype into something an environmental agency could rely on. The byte-identical verification is the detail to lead with: it shows you change systems without changing their answers by accident.",
+    "trap": "Assuming a research institute does not care about clinical data engineering. Reframe it as reproducibility and regression discipline, which is precisely what a group worried about ML reliability wants to hear.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1030,
+    "requires": [
+      "bri-l0-005"
+    ]
+  },
+  {
+    "id": "bri-l1-003",
+    "ladder": "bridge",
+    "level": 1,
+    "topic": "PhD signal extraction",
+    "question": "What did your astrochemistry PhD involve, and which part of it is relevant to air quality?",
+    "answer": "Acquisition and processing of terabytes of raw data from tandem particle-accelerator collision experiments, with C++ noise-suppression and signal-smoothing algorithms, plus a molecular fragmentation model contributed to the KIDA database. The relevant part is separating physical signal from instrument noise at scale.",
+    "explanation": "Monitoring-station data has the same shape of problem: real measurements, real instruments, real drift and gaps. Someone who has done serious signal extraction does not treat observations as ground truth, and that habit is directly useful when the observations are your model's context set.",
+    "trap": "Presenting the PhD as unrelated because the subject is space chemistry. The subject is unrelated; the data handling and the reaction-network modelling are not.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex",
+      "https://kida.astrochem-tools.org/"
+    ],
+    "difficulty": 1060,
+    "requires": [
+      "bri-l0-001"
+    ]
+  },
+  {
+    "id": "bri-l2-001",
+    "ladder": "bridge",
+    "level": 2,
+    "topic": "the shared transport equation",
+    "question": "Why do marine biogeochemistry and atmospheric chemistry transport reduce to the same equation?",
+    "answer": "Both solve an advection-diffusion-reaction equation for the concentration $c$ of each tracer: $$\\frac{\\partial c}{\\partial t} = -\\nabla \\cdot (\\mathbf{u} c) + \\nabla \\cdot (K \\nabla c) + R(c) + S$$ where $\\mathbf{u}$ is the flow field, $K$ the turbulent diffusivity, $R(c)$ the reaction terms and $S$ the sources. Only the interpretation of the terms changes between ocean and atmosphere.",
+    "explanation": "This is the mathematical basis of your whole claim to transferability, and it is why you can honestly say you know how their model behaves without ever having run it. The numerical treatment — operator splitting, stability limits on the advection step, stiff reaction solvers — carries across as well.",
+    "trap": "Stopping at the equation. The interviewer's follow-up is where the domains differ: atmospheric chemistry is far stiffer, strongly driven by photolysis and the diurnal cycle, and urban boundary layers are more sharply structured than the ocean interior. Naming those differences yourself is what proves you understand the analogy rather than reciting it.",
+    "sources": [
+      "https://doi.org/10.5194/gmd-12-3357-2019",
+      "../job_search/applications/hereon_aeon_up/study_room/04_the_bridge.md"
+    ],
+    "difficulty": 1210,
+    "requires": [
+      "bri-l0-003"
+    ]
+  },
+  {
+    "id": "bri-l2-002",
+    "ladder": "bridge",
+    "level": 2,
+    "topic": "the model-experience question",
+    "question": "They ask directly: have you run EPISODE-CityChem or CMAQ? What do you say?",
+    "answer": "'No, I have not run either. My modelling background is water-column ecosystem dynamics - GOTM-FABM setups, gridded NetCDF output, multi-year projections on Linux HPC - and a Lagrangian individual-based model I built and later ported to JAX for GPU. I have read your 2019 GMD paper. I would need your team for the namelists and the chemical mechanisms, and I would not expect the HPC workflow or the output handling to be new.'",
+    "explanation": "The do-not-claim boundary here is absolute, because the person asking may have written the model. The answer works by conceding immediately and completely, then replacing the missing item with something adjacent, specific and verifiable.",
+    "trap": "Padding the 'no' with hedges — 'not directly', 'not the full model', 'I have worked with similar tools'. Hedging on a checkable fact is read as evasion, and it costs more than the missing experience does.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/study_room/06_do_not_claim.md",
+      "https://doi.org/10.5194/gmd-12-3357-2019"
+    ],
+    "difficulty": 1240,
+    "requires": [
+      "bri-l0-003",
+      "bri-l0-004"
+    ]
+  },
+  {
+    "id": "bri-l2-003",
+    "ladder": "bridge",
+    "level": 2,
+    "topic": "the silent bugs story",
+    "question": "How do you tell the story of the two silent pipeline errors so that it lands for this job?",
+    "answer": "Frame it as the failure mode they fear. 'In my own analysis I found two systematic errors that produced plausible, smooth, entirely wrong output — neither raised an exception nor failed a test. One was a coordinate-frame error, one was an input-history error. I diagnosed both, quantified the difference against the corrected version, and published a public correction of my own earlier write-up.'",
+    "explanation": "A probabilistic model of a pollution field can produce a beautiful, smooth, well-calibrated-looking map that is physically wrong, and nothing will crash. You are the candidate who has already been burned by exactly that class of error and went looking for it in your own work.",
+    "trap": "Telling it as a debugging anecdote. The point is not that you fixed a bug — it is that the bug was silent, that you found it yourself, and that you corrected the record publicly at a cost to yourself.",
+    "sources": [
+      "docs/CV_AI_MODULE.md",
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1270,
+    "requires": [
+      "bri-l0-004"
+    ]
+  },
+  {
+    "id": "bri-l3-001",
+    "ladder": "bridge",
+    "level": 3,
+    "topic": "physics versus arrays",
+    "question": "Why does a physics-based group need someone who reads model output as physics rather than as arrays?",
+    "answer": "Because a machine-learning specialist without physical training treats a gridded field as a tensor: they will happily normalise away units, interpolate across a coastline or an inversion layer, shuffle a spatial train-test split, and produce a model that scores well and violates mass conservation. Someone who has run Eulerian simulations reads the same array as a physical field with boundaries, conservation properties and non-stationary transport.",
+    "explanation": "This is the strongest single argument for hiring you over a stronger pure-ML candidate, and it is honest, because it claims a habit of mind you demonstrably have rather than expertise you do not.",
+    "trap": "Delivering it as a criticism of computer scientists. Phrase it as what you bring, not as what they lack — the group may already have collaborators you are implicitly insulting.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/study_room/04_the_bridge.md",
+      "https://doi.org/10.5194/gmd-12-3357-2019"
+    ],
+    "difficulty": 1400,
+    "requires": [
+      "bri-l2-001"
+    ]
+  },
+  {
+    "id": "bri-l3-002",
+    "ladder": "bridge",
+    "level": 3,
+    "topic": "the interpretability boundary",
+    "question": "Exactly what may you claim about your transformer work, and what must you not?",
+    "answer": "You may claim: PyTorch forward hooks that capture internal attention during inference, ONNX to PyTorch conversion, batched inference, policy and value head analysis, and the diagnosis of two silent pipeline errors. You must not claim causal intervention, activation patching, or circuit discovery — the do-not-claim list forbids all three, and the distinction between capturing an activation and intervening on it is the first thing a knowledgeable interviewer would probe.",
+    "explanation": "Capture is observational: you record what the network computed. Intervention means changing an internal value and measuring the downstream effect, which establishes that the component is used rather than merely correlated. Your work is the first; the vocabulary of the second is off-limits.",
+    "trap": "The word 'mechanistic'. It is doing damage in your own CV, and for this application in particular it invites confusion with Neural Processes — which have nothing to do with inspecting a network's internals.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/study_room/06_do_not_claim.md",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 1440,
+    "requires": [
+      "bri-l0-004",
+      "bri-l2-003"
+    ]
+  },
+  {
+    "id": "bri-l3-003",
+    "ladder": "bridge",
+    "level": 3,
+    "topic": "sparse observations to fields",
+    "question": "They ask whether you have built a model that turns sparse observations into a continuous field with quantified uncertainty. What is the honest answer?",
+    "answer": "'Not as a statistical interpolation problem, no. What I have done repeatedly is the neighbouring task: running a physical model that produces a continuous field and validating it against sparse observations - multi-year projections in a GOTM-FABM water column, checked against observational data. The direction is reversed, but the objects are the same ones, and the uncertainty question is the part I most want to work on.'",
+    "explanation": "This is a question where a small overclaim is very tempting and would be caught immediately, because the follow-up is simply 'which method, and how did you validate it'. The honest answer is still strong: you have lived on the model-observation comparison problem from the physics side.",
+    "trap": "Reaching for the chess project as evidence of probabilistic modelling. It is not — it is activation capture on a deterministic network, and the analogy will not survive one follow-up question.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex",
+      "../thejusmahajan.github.io/projects.html",
+      "https://arxiv.org/abs/1807.01613"
+    ],
+    "difficulty": 1480,
+    "requires": [
+      "bri-l2-002",
+      "bri-l2-001"
+    ]
+  },
+  {
+    "id": "bri-l4-001",
+    "ladder": "bridge",
+    "level": 4,
+    "topic": "your weakest point",
+    "question": "What is the weakest point in your profile for this post, and what do you say when they name it?",
+    "answer": "That your machine-learning work is recent, self-directed and unpublished, against a post that is fundamentally a probabilistic ML post. The answer: 'That is fair — my ML work is a year old and self-directed, and my publication record is in computational physics. What I would ask you to weigh against it is that the ML I have done is engineering-deep rather than tutorial-deep, that I have already caught the class of silent error this project is most exposed to, and that the environmental modelling half of the job needs no ramp-up at all.'",
+    "explanation": "Naming your own weakness before they do converts it from a discovery into a known quantity, and it buys the credibility that makes the counterweight land. Pretending the gap does not exist is not available: it is visible on the first page of the CV.",
+    "trap": "Compensating by inflating the ML work. The counterweight is the physics-plus-engineering combination and the rigour, not a bigger claim about the ML.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/study_room/06_do_not_claim.md",
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1540,
+    "requires": [
+      "bri-l3-002",
+      "bri-l3-003"
+    ]
+  },
+  {
+    "id": "bri-l4-002",
+    "ladder": "bridge",
+    "level": 4,
+    "topic": "the publication question",
+    "question": "Five peer-reviewed papers in physics, none in machine learning. How do you handle the publication question?",
+    "answer": "'I have five peer-reviewed publications in atomic and molecular physics and astrochemistry, including Astronomy and Astrophysics. I do not claim any in Bayesian deep learning or Neural Processes — that is exactly the record I want to start building, and AEON-UP is the project I would want to build it in.'",
+    "explanation": "The five papers do real work here: they prove you can carry a piece of research to peer-reviewed completion, which is the thing a postdoc post is actually buying. The ML gap then reads as a change of field rather than as an absence of output.",
+    "trap": "Blurring the fields to make the list look broader. The boundary is explicit on the do-not-claim list precisely because Google Scholar settles it in ten seconds, and a committee that catches one inflation will re-read everything else suspiciously.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/study_room/06_do_not_claim.md",
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1700,
+    "requires": [
+      "bri-l3-002",
+      "bri-l3-003"
+    ]
+  },
+  {
+    "id": "bri-l5-001",
+    "ladder": "bridge",
+    "level": 5,
+    "topic": "the bridge pitch",
+    "question": "Deliver the bridge argument aloud in under a minute: why does AEON-UP need someone with your specific history?",
+    "answer": "Roughly: 'AEON-UP has two halves that rarely sit in one person. The physics half is environmental transport modelling on gridded NetCDF output, run on HPC - I did that daily for four years in marine ecosystem modelling, and I built a Lagrangian individual-based model of phytoplankton trait evolution that I then ported from legacy Fortran to JAX, because per-particle updates vectorise on a GPU in a way they never will on a CPU. The learned half is probabilistic deep learning with honest uncertainty - I build PyTorch pipelines, I have studied that literature and implemented these architectures, and I do not yet have publications in it. What I do have is the habit that makes the combination safe: I found two silent errors in my own analysis that produced smooth, plausible, wrong results, and I published the correction. A probabilistic air-quality field can fail in exactly that way, and I would be watching for it from the first week.'",
+    "explanation": "The structure is: name the two halves, claim the first without qualification, claim the second with its honest limit, then close on the failure mode that connects them. The admitted gap is what makes the rest of it credible.",
+    "trap": "Letting it run past a minute. Everything after about sixty seconds is heard as anxiety, and the last sentence is the one that should be left in the room.",
+    "sources": [
+      "../job_search/applications/hereon_aeon_up/study_room/04_the_bridge.md",
+      "../job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1970,
+    "requires": [
+      "bri-l4-001",
+      "bri-l4-002"
+    ]
+  }
+]
