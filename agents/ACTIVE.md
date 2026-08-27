@@ -2,19 +2,24 @@
 
 ## ⚑ DEADLINE ITEMS — read this first, every session
 
-| item | due | status |
-|---|---|---|
-| **AEON-UP application (Hereon, ref. 1056)** | **2026-09-03** | **UNCONFIRMED** — materials corrected, verified, dated, on disk; *whether it was submitted is unknown.* See `state/NOW.md` §1 |
+| item | status |
+|---|---|
+| **AEON-UP application (Hereon, ref. 1056)** | **SENT** — confirmed by Thejus 2026-08-27. Closed. Do not re-audit the PDFs or re-litigate the letter. |
+| **⚑ AEON-UP INTERVIEW preparation** | **THE LIVE ITEM — top priority.** Gaps H1–H6 in `state/NOW.md` §2 |
 
-**Rules while any deadline item is `NOT SENT`:**
+**Rules while the interview is the live item:**
 1. Its status is stated at the start of the session, before anything else. Not as a closing footnote.
-2. **At most one non-deadline brief may be ACTIVE.**
-3. Every new brief filed carries a one-line **"why this before the deadline item?"** — usually
-   there is a good answer; the value is in having to write it.
+2. **At most one non-interview brief may be ACTIVE.**
+3. Every new brief filed carries a one-line **"why this before the interview?"** — usually there
+   is a good answer; the value is in having to write it.
 
 *Why this block exists: a registry, a ledger, an audit protocol and three documents were built
-while this item sat unsent. `COMMAND_BASE.md` warned about exactly that — "infrastructure that
-postpones exposure" — and was read many times during it.*
+while the application sat unsent. `COMMAND_BASE.md` warned about exactly that — "infrastructure
+that postpones exposure" — and was read many times during it.*
+
+**Priority after the interview:** (2) other applications — throughput, logging, reminders;
+(3) the two apps, LC0 chess and the spaced-repetition trainer; (4) `cnp_synthetic`, which is
+BUILT and exists for this application.
 
 ---
 

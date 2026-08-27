@@ -37,6 +37,14 @@ markdown files.
 
 The loop: **you spec → Gemini implements → you audit the diff and re-run the gate → go/no-go.**
 
+**This is the token economics of the project, and it is deliberate.** Your pool is small; spend
+it on reasoning, on the exact wording of a spec, and on verification — never on bulk typing.
+Gemini does the heavy lifting. A brief is therefore **long and pinned, with explicit checkpoints**:
+numbered steps, the exact files it may touch, the command it must run at each stage, the output it
+must paste back, and a stop-and-ask rule for anything the brief does not cover. Gemini is
+dangerous in exact proportion to how under-specified the task is — the checkpoints are what keep
+it on the rails. Under-specifying is *your* failure, not the worker's; see `LEADER_GROUNDING.md`.
+
 ---
 
 ## Why this project matters (do not treat it as a hobby repo)
@@ -87,6 +95,27 @@ This is the routine that makes the next restart cheap. It is four steps.
 If the session is ending and you have not done these four, you have lost the session.
 
 ---
+
+## The terminal (changed 2026-08-27 — read before you type)
+
+The integrated terminal in the Antigravity IDE was switched from `cmd` to **PowerShell**. Claude
+Code has two shell tools here and **they take different syntax**; picking the wrong one is a
+parser error, not a warning.
+
+- **PowerShell is Windows PowerShell 5.1**, not 7. So: **`&&` and `||` do not exist** (use
+  `A; if ($?) { B }`), no ternary `?:`, no `??`, no `-AsHashtable`. Don't redirect a native
+  exe's stderr with `2>&1` — 5.1 wraps it in an ErrorRecord and reports failure on exit 0.
+- **Bash is Git Bash** (POSIX): `/dev/null`, forward slashes, `$VAR`.
+- **Do not write large files with a bash heredoc.** A `cat > file <<'EOF'` of a long markdown
+  document failed here with *"unexpected EOF while looking for matching quote"*. Use the Write
+  tool for file content; keep Bash for reading, grepping and git.
+- **⚠ Never edit an existing file with PowerShell 5.1 `Get-Content` / `Set-Content`.** 5.1 reads
+  as ANSI and writes UTF-8, so every em dash in these documents silently becomes `â€"` — it
+  corrupted `state/JOURNAL.md` on 2026-08-27 (62 lines rewritten to insert 50) and had to be
+  reverted. To splice into a file, use the `cszero` Python with explicit
+  `io.open(..., encoding='utf-8')`. **Always check `git diff --numstat` after** — a clean insert
+  shows `N 0`, and any deleted-line count means the encoding was mangled.
+- Verified working 2026-08-27: PowerShell 5.1.19041.7663; `cszero` Python 3.11.15, torch 2.13.0+cpu.
 
 ## Runbook, the short version
 

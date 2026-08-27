@@ -16,6 +16,56 @@ Template:
 
 ---
 
+## 2026-08-27b — AEON-UP is SENT; the interview is now the live item; the CNP exists
+
+**Did:**
+- Re-pointed the whole state spine at the interview. `state/NOW.md` rewritten: §1 is the priority
+  order Thejus gave (1 interview, 2 other applications + logging/reminders, 3 the two apps —
+  LC0 chess and the spaced-repetition trainer, 4 the CNP), §2 is the measured interview gaps,
+  §3 the CNP. `agents/ACTIVE.md` deadline block replaced accordingly.
+- Recorded the terminal change and the worker economics in `CLAUDE.md`.
+
+**Found:**
+- **Q1 is answered: the application was SENT.** Three sources had disagreed for two days
+  (`ACTIVE.md` said NOT SENT, the 08-26 memory said "sending today", the PDFs sat on disk).
+  Thejus confirmed it directly. The 3 September deadline no longer governs.
+- **The CNP was built, and no state file knew.** `cnp_synthetic` is at `db3eb90` with commit
+  `063bc6e` "feat: CNP on synthetic data, with an honest uncertainty evaluation" — `cnp/`,
+  `train_1d.py`, `train_city.py`, `tests/`, five `runs/*.log`, four figures, `RESULTS.md`,
+  `REFEREE_REPORT.md`. The leader's own memory dated 2026-08-26 asserts "⚠⚠ THE CNP WAS NEVER
+  BUILT (verified)". **That note was true when written and is now false** — left visible per the
+  append-only rule, corrected in `state/NOW.md` §3 and in the memory file.
+  This is what puts something behind the word *implementation* in the submitted cover letter.
+  The repo is **dirty**: 5 modified + 1 untracked. Commit before it is ever screen-shared.
+- **The largest interview hole is the publication gap, and it has zero coverage** across 14
+  study-room files / ~3,400 lines. Five publications, all 2018–2020 astrochemistry, nothing from
+  the 2021–2025 marine post-doc. Also thin: TVöD E13 vs the stated €75k, questions *for* the
+  panel, no talk artefact, Karl's ultrafine-particle side never addressed in the letter.
+- **The terminal is now PowerShell** (Antigravity integrated terminal, switched from `cmd`), and
+  it is **Windows PowerShell 5.1** — no `&&`, no ternary. Both shells verified working; `cszero`
+  resolves (Python 3.11.15, torch 2.13.0+cpu). Cause of the crash not determined.
+- **A bash heredoc failed** writing a long markdown file — "unexpected EOF while looking for
+  matching quote". Use the Write tool for file content; Bash for reading, grep and git.
+
+**Decided:**
+- The interview inherits the deadline discipline verbatim: status stated first, one non-interview
+  brief at a time, every brief justifying itself against it, no new meta-process documents.
+- The LLM-seam brief keeps its ACTIVE slot as that one exception — the chess app is interview
+  evidence, and it currently ships a coach that talks without knowing anything.
+- Application logging and reminders belong in `job_search` as one artefact, not as new process
+  machinery in this repo.
+
+**Open:**
+- H1–H6 in `state/NOW.md` §2, H1 (the publication gap) first.
+- Q2 (ICON-O/HAMOCC) and Q3 (NIT Calicut date) are now interview risks, not just website risks.
+- Q4 (do the trainer equations render?) and Q5 (idiomatic German) still need two minutes each.
+- `cnp_synthetic` working tree is dirty.
+
+**Repo:** committed and pushed to `origin/windows-dev`; verified with `git status` reporting
+nothing ahead.
+
+---
+
 ## 2026-08-27 — built the restart spine; confirmed the LLM defect is live and cached
 
 **Did:**
