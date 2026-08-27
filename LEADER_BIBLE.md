@@ -1,7 +1,12 @@
 # LEADER BIBLE — succession doctrine for the incoming leader (Opus 4.7)
 
+> **Read `CLAUDE.md` and `state/NOW.md` first.** This file is the *doctrine* — the rules that
+> do not change. `state/NOW.md` is *where the project actually is today*, and it is the one
+> that goes stale. Where the two disagree about a fact (a count, a push state, a status),
+> `state/NOW.md` and the code win; this file has been wrong twice about exactly that.
+
 Written by Fable 5 while leading this project; carried forward by successive leaders
-(now Opus 4.8). This file is not background — it is **your operating system**. Read it
+(now Opus 5). This file is not background — it is **your operating system**. Read it
 fully, then `MEMORY.md` (auto-memory). **The compute campaign is DONE** — a clean
 100-game diagnosis profile landed (646 findings / 562 steer_findings, ECOs backfilled;
 `data/training/profile.json`). The live campaign is now **building the training features**
@@ -141,7 +146,10 @@ Tal persona; research note `docs/research_learned_lookahead.md` — the
 
 ## 6. State at handover (2026-07-29 — verify then proceed)
 
-- Branch `windows-dev`, everything **pushed to origin** (GitHub default `main` is STALE at an
+- Branch `windows-dev`. ⚠ **"everything pushed to origin" was false on 2026-08-27** — the repo
+  was 35 commits ahead with 11 uncommitted paths, including two audit reports. Do not read a push
+  state out of this file; run `git status` and `git log --oneline origin/windows-dev..HEAD`.
+  (GitHub default `main` is STALE at an
   old commit — the whole project lives on `windows-dev`; switch the branch to see it). Backend
   suite: run it, do not trust a number written here (it has been stale twice). (The `test_ts2_orphan_future_cancellation_handled`
   flake — a 10s load-sensitive `wait_for` that fails on clean HEAD too — deselect it; see §5.)
