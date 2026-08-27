@@ -105,7 +105,19 @@ has ever caught it.
 
 ### If your workspace is `thejusmahajan.github.io`
 
-**1. `briefs/2026-08-27_public-surface-honesty-sweep.md` — ACTIVE. Execute this one.**
+**1. `briefs/2026-08-27_public-surface-honesty-sweep.md` — DELIVERED, AUDITED, **ACCEPTED**,
+SHIPPED.** (`reports/…_AUDIT.md`) All four checkpoints independently re-run by the leader and
+reproduced. Step 4 correctly **refused** rather than inventing the LinkedIn input — the gate
+worked. **First delivery against this website to survive the grep rule** written after the
+2026-08-22 §6 fabrication. Nothing further for a worker here.
+
+The **LinkedIn audit was completed by the leader**, the input having arrived at a different path.
+Result: **the five names are not on LinkedIn — nothing needs removing for honesty.** What the
+audit found instead is a stale profile (12 items, L1–L12, in the audit report); L1 (CQ shown as
+*Present* when it ended 02/2026) and L5 (PhD field given as Astrophysics, not Astrochemistry) are
+factually wrong. **LinkedIn is edited by hand, by Thejus.**
+
+<details><summary>original brief text</summary>
 
 Kill the last **HAMOCC** on the site — a residual filename in a code block in
 `blog-ggplot2-timeseries.html`, missed when `eb8ecdc` scrubbed the prose on 2026-08-22 — then
@@ -117,6 +129,8 @@ the interview: a panel reads the site and the profile.*
 `job_search\linkedin_profile.txt` exists — Thejus must paste his profile text in himself, and
 LinkedIn is edited by hand, never by the worker. Every quoted string needs the `grep` that
 produced it, pasted. Leave both repos uncommitted.
+
+</details>
 
 ---
 

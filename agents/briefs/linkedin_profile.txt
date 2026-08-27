@@ -1,0 +1,105 @@
+
+Dr. Thejus Mahajan
+Computational Scientist | Bioinformatics & Data Science | HPC, Python, R, Fortran | Big Data Optimization
+Hamburg, Hamburg, Germany
+563 followers  500+ connections
+Join to view profile
+CQ Beratung+Bildung GmbH
+CQ Beratung+Bildung GmbH
+Université Paris-Saclay
+Université Paris-Saclay
+Personal Website
+Personal Website External link
+About
+Ph.D. in experimental atomic and molecular collision at ISMO, France. I analyzed Terra-bytes of experimental data from a Tandem accelerator and its silicon particle detectors.
+The data is reduced to a multidimensional data set where we use a homemade 2d visualizing software "DP2" written in C and Fortran programming languages. The information from DP2 is then tabulated and analyzed using the mathematical analysis and plotting software Sigmaplot. I identified several important physical quantities like Cross section, Fragmentation branching ratio, relative probabilities of different processes that would take place in the collision.
+My toolset apart from experiments with a tandem electrostatic accelerator (ALTO, Orsay) includes data reduction algorithms, noise cancellation methods, regression, and fitting.
+I did a theoretical simulation of the collision experiment involves Fortran 90 and 77 programming after which we could cross check with our experiment and predict the different probabilities of systems that are difficult or near impossible to analyze experimentally.
+I use Fortran to run my simulations and C++ for data reduction and analysis.
+
+Activity
+563 followers
+Posts
+Comments
+Reactions
+Preview only
+This is a sample view to give you an idea of how your Activity section will look. The live version may appear differently.
+
+See all activities
+Experience
+CQ Beratung+Bildung GmbH Graphic
+Further Training - Application-related Bioinformatics and Biostatistics
+CQ Beratung+Bildung GmbH
+Aug 2025 - Present 1 year 1 month
+
+Berlin, Germany
+
+Helmholtz-Zentrum Hereon Graphic
+Visiting Scientist
+Helmholtz-Zentrum Hereon
+May 2025 - Oct 2025 6 months
+
+Geesthacht, Schleswig-Holstein, Germany
+
+University of Hamburg Graphic
+Postdoctoral Researcher
+University of Hamburg
+Aug 2021 - Feb 2025 3 years 7 months
+
+Hamburg, Germany
+
+My research is under marine ecosystem modelling.
+The question I am trying to answer is "What makes Cyanobacteria the
+'winner of climate change'?". My task is to assess their evolution potential
+under warmer and seasonally varying climatic conditions that contribute
+positively to them dominating other phytoplankton communities.
+This study is the basis of improved climate projections. I am working
+with experimentalists who resurrect mummified cyanobacteria even older…Show more 
+
+Université Paris-Saclay Graphic
+Ph.D. Researcher
+Université Paris-Saclay
+Oct 2015 - Sep 2018 3 years
+
+Paris Area, France
+
+Education
+Université Paris-Saclay Graphic
+Université Paris-Saclay
+Doctor of Philosophy - PhD Astrophysics
+2015 - 2018
+
+National Institute of Technology Calicut Graphic
+National Institute of Technology Calicut
+Master's degree Physics
+2012 - 2014
+
+Publications
+Excitation, ionization, neutralization and anionic production in collisions of C+, N+ and CnN+ (n=1-3) with He atoms at 2.2 a.u velocity; cross sections and dissociation branching ratios
+Journal of Physics B Atomic Molecular and Optical Physics  July 18, 2019
+We present measurements of absolute cross sections for projectile ionization and electron capture for C+, N+ and C n N+ (n = 1–3) projectiles impinging on He atoms with velocity v = 2.2 a.u. Single and multiple electron processes are considered, as well as projectile dissociative excitation in the case of incident molecular cations. The measurements are compared to Classical Trajectory Monte Carlo (CTMC) calculations for C+, N+ + He collisions in the framework of the independent electron…Show more 
+
+See publication
+Semiempirical breakdown curves of C 2 N (+) and C 3 N (+) molecules; application to products branching ratios predictions of physical and chemical processes involving these adducts
+Molecular Astrophysics  2018
+We constructed semiempirical breakdown curves (BDC) for C2N, C3N, C2N+ and C3N+ molecules. These BDC, which are energy dependent dissociation branching ratios (BR) curves, were used to predict products branching ratios for various processes leading to the formation of C2N(+) and C3N(+) excited adducts. These processes, of astrochemical interest, are neutral-neutral and ion-molecule reactions, dissociative recombination and charge transfer reactions with He+. Model predictions of BR are compared…Show more 
+
+See publication
+Excitation and fragmentation in high velocity C n N + - He collisions
+Journal of Physics: Conference Series  2017
+Presented measurements and modeling for two aspects of the CnN+ - He collisions (n=1-3, v=2.25 a.u) : cross sections for electronic excitation processes and fragmentation branching ratios for the excited and ionized CnNq+ molecules produced in the collision (q=-1,0,1,2-5).
+
+See publication
+Languages
+French
+Limited working proficiency
+German
+Professional working proficiency
+English
+Native or bilingual proficiency
+Malayalam
+Native or bilingual proficiency
+Tamil
+Limited working proficiency
+Hindi
+Professional working proficiency
