@@ -10,7 +10,7 @@
     "trap": "Confusing model capacity with dataset size or physical GPU memory.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
-      "PLAN_SALIENCE_CNP.md"
+      "docs/plans/PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 780,
     "requires": []
@@ -41,7 +41,7 @@
     "trap": "Assuming non-parametric models have no parameters at all, or that parametric neural networks store training samples during inference.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
-      "PLAN_SALIENCE_CNP.md"
+      "docs/plans/PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 800,
     "requires": []
@@ -57,7 +57,7 @@
     "trap": "Thinking a Gaussian Process is a parametric neural network, or that GP training scales linearly O(N).",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
-      "PLAN_SALIENCE_CNP.md"
+      "docs/plans/PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 990,
     "requires": [
@@ -93,7 +93,7 @@
     "trap": "Believing a Neural Process performs matrix inversions at test time.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
-      "PLAN_SALIENCE_CNP.md"
+      "docs/plans/PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1060,
     "requires": [
@@ -111,7 +111,7 @@
     "trap": "Confusing the context set with the entire training dataset. The context set is fed directly as model input at inference time.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
-      "PLAN_SALIENCE_CNP.md"
+      "docs/plans/PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1210,
     "requires": [
@@ -129,7 +129,7 @@
     "trap": "Believing a Neural Process runs gradient descent when conditioned on new context points.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
-      "PLAN_SALIENCE_CNP.md"
+      "docs/plans/PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1240,
     "requires": [
@@ -147,7 +147,7 @@
     "trap": "Training on a static context set without varying context size and locations during meta-training.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
-      "PLAN_SALIENCE_CNP.md"
+      "docs/plans/PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1260,
     "requires": [
@@ -165,7 +165,7 @@
     "trap": "Using an RNN or concatenation for the context aggregator, which violates permutation invariance.",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
-      "PLAN_SALIENCE_CNP.md"
+      "docs/plans/PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1460,
     "requires": [
@@ -202,7 +202,7 @@
     "trap": "Confusing CNP deterministic training with variational autoencoder ELBO bounds (which are required for latent NPs, but not CNPs).",
     "sources": [
       "https://arxiv.org/abs/1807.01613",
-      "PLAN_SALIENCE_CNP.md"
+      "docs/plans/PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1520,
     "requires": [
@@ -221,7 +221,7 @@
     "trap": "Believing self-attention is used instead of target-to-context cross-attention.",
     "sources": [
       "https://arxiv.org/abs/1901.05761",
-      "PLAN_SALIENCE_CNP.md"
+      "docs/plans/PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1690,
     "requires": [
@@ -240,7 +240,7 @@
     "trap": "Claiming personal implementation experience with ConvCNP if you have only studied the theory.",
     "sources": [
       "https://arxiv.org/abs/1910.13556",
-      "PLAN_SALIENCE_CNP.md"
+      "docs/plans/PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1740,
     "requires": [
@@ -260,7 +260,7 @@
     "sources": [
       "https://arxiv.org/abs/1807.01613",
       "https://arxiv.org/abs/1910.13556",
-      "PLAN_SALIENCE_CNP.md"
+      "docs/plans/PLAN_SALIENCE_CNP.md"
     ],
     "difficulty": 1980,
     "requires": [

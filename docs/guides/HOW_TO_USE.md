@@ -1,7 +1,7 @@
 # Chess Speak Out Loud — User Manual
 
 > How to *use* the app. For how to *start* it (servers, conda env, ports), see
-> [`HOW_TO_RUN.md`](HOW_TO_RUN.md). For the HTTP API, see
+> [`HOW_TO_RUN.md`](../../HOW_TO_RUN.md). For the HTTP API, see
 > [`docs/api_contract.md`](docs/api_contract.md).
 
 The app has two modes, toggled in the header:

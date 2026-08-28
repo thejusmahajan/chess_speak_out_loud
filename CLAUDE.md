@@ -51,7 +51,7 @@ Gemini does the heavy lifting. A brief is therefore **long and pinned, with expl
 numbered steps, the exact files it may touch, the command it must run at each stage, the output it
 must paste back, and a stop-and-ask rule for anything the brief does not cover. Gemini is
 dangerous in exact proportion to how under-specified the task is — the checkpoints are what keep
-it on the rails. Under-specifying is *your* failure, not the worker's; see `LEADER_GROUNDING.md`.
+it on the rails. Under-specifying is *your* failure, not the worker's; see `docs/leadership/LEADER_GROUNDING.md`.
 
 ---
 

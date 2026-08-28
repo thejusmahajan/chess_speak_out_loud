@@ -14,19 +14,19 @@ If a question below has no answer on disk, that is a gap worth filing, not worth
 | What happened recently, and why? | **`state/JOURNAL.md`** |
 | What are the rules I operate under? | **`LEADER_BIBLE.md`** (§4 decided, §5 failure catalog) |
 | What is the worker doing? | **`agents/ACTIVE.md`** |
-| How do I brief a worker without hurting us? | `agents/README.md`, `WORKER_AGENT_COOKBOOK.md` |
-| What mistakes do *I* make? | `LEADER_GROUNDING.md` — read before writing any brief |
+| How do I brief a worker without hurting us? | `agents/README.md`, `docs/leadership/WORKER_AGENT_COOKBOOK.md` |
+| What mistakes do *I* make? | `docs/leadership/LEADER_GROUNDING.md` — read before writing any brief |
 
 ## The aim
 
 | question | file |
 |---|---|
 | What is the north star, in full? | `docs/NORTH_STAR_decoding_lc0.md` |
-| What is the product meant to become? | `GOAL_BOOK.md` |
+| What is the product meant to become? | `docs/plans/GOAL_BOOK.md` |
 | What is the open research frontier? | `docs/SALIENCE_PROBLEM.md` |
-| What is the current plan against it? | `PLAN_SALIENCE_CNP.md` |
+| What is the current plan against it? | `docs/plans/PLAN_SALIENCE_CNP.md` |
 | Why do we think LC0 has plans to decode? | `docs/research_learned_lookahead.md` |
-| How do the three tracks (build / learn / apply) connect? | `COMMAND_BASE.md` |
+| How do the three tracks (build / learn / apply) connect? | `docs/leadership/COMMAND_BASE.md` |
 
 ## Definitions — the ground truth for any chess claim
 
@@ -42,8 +42,8 @@ If a question below has no answer on disk, that is a gap worth filing, not worth
 | question | file |
 |---|---|
 | How do I run the app? | **`HOW_TO_RUN.md`** (authoritative) |
-| How is it put together? | `ARCHITECTURE.md` |
-| How does a user use it? | `HOW_TO_USE.md`, `USING_YOUR_PROFILE.md` |
+| How is it put together? | `docs/plans/ARCHITECTURE.md` |
+| How does a user use it? | `docs/guides/HOW_TO_USE.md`, `docs/guides/USING_YOUR_PROFILE.md` |
 | How do I deploy? | `DEPLOY_DEBIAN.md` if present; otherwise `HOW_TO_RUN.md` |
 
 ## Code that matters
@@ -65,10 +65,10 @@ If a question below has no answer on disk, that is a gap worth filing, not worth
 
 ## History — pull on demand, do not read cold
 
-`archive/` (108 files), `KAGGLE_BEST_PRACTICES.md`, `discussions/`, `docs/discussion_*.md`,
+`archive/` (108 files), `docs/guides/KAGGLE_BEST_PRACTICES.md`, `discussions/`, `docs/discussion_*.md`,
 `docs/SESSION_LOG_2026-08.md`, and the full brief/report archive in `agents/briefs/` +
 `agents/reports/`.
 
 **A file with `> **STATUS: SUPERSEDED` at the top is history, not instruction.** Convention is
-in `LEADER_GROUNDING.md`; only one root file currently carries it, which means most stale
+in `docs/leadership/LEADER_GROUNDING.md`; only one root file currently carries it, which means most stale
 documents are not marked. Treat an undated claim with suspicion and re-check it against code.
