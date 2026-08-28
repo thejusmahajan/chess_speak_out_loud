@@ -164,7 +164,7 @@ def test_level_zero_prerequisite_gating():
     progress = {"user_rating": 800.0, "cards": {}}
     
     # Level-1 is locked; only Level-0 is selectable
-    selectable = filter_selectable_cards(cards, progress, now, cram_mode=True)
+    selectable = filter_selectable_cards(cards, progress, now, cram_mode=False)
     assert len(selectable) == 1
     assert selectable[0]["id"] == "pyt-l0-001"
     
@@ -177,7 +177,7 @@ def test_level_zero_prerequisite_gating():
         "mastered": False,
         "history": [{"score": 0.5}],
     }
-    selectable = filter_selectable_cards(cards, progress, now, cram_mode=True)
+    selectable = filter_selectable_cards(cards, progress, now, cram_mode=False)
     assert len(selectable) == 1
     assert selectable[0]["id"] == "pyt-l0-001"
     
@@ -190,7 +190,7 @@ def test_level_zero_prerequisite_gating():
         "mastered": True,
         "history": [{"score": 1.0}],
     }
-    selectable = filter_selectable_cards(cards, progress, now, cram_mode=True)
+    selectable = filter_selectable_cards(cards, progress, now, cram_mode=False)
     assert len(selectable) == 2
     assert any(c["id"] == "pyt-l1-001" for c in selectable)
 
@@ -353,11 +353,11 @@ def test_selection_rating_window_widening():
     
     # 5 cards in range [1100..1300], 1 far out [1900]
     cards = [
-        {"id": f"c{i}", "level": 1, "difficulty": 1200, "requires": []} for i in range(5)
+        {"id": f"c{i}", "level": 0, "difficulty": 1200, "requires": []} for i in range(5)
     ]
-    cards.append({"id": "c_far", "level": 5, "difficulty": 1900, "requires": []})
+    cards.append({"id": "c_far", "level": 0, "difficulty": 1900, "requires": []})
     
-    selected = select_next_card(cards, progress, now, cram_mode=True, random_seed=42)
+    selected = select_next_card(cards, progress, now, cram_mode=False, random_seed=42)
     assert selected is not None
     assert selected["id"] != "c_far"
 
@@ -745,6 +745,79 @@ def test_selector_never_starves():
         selected = select_next_card(cards, progress, now, cram_mode=False, random_seed=i)
         assert selected is not None
         assert selected["id"] in ("card-A", "card-B")
+
+
+# =====================================================================
+# 8. Cram Mode & Prerequisite Selection Tests
+# =====================================================================
+
+def test_cram_mode_ignores_prerequisites():
+    """Card B requiring A is absent in normal mode (empty progress) and present in cram mode."""
+    now = datetime.now(timezone.utc)
+    card_a = {"id": "card-a", "ladder": "test", "level": 0, "difficulty": 800, "requires": []}
+    card_b = {"id": "card-b", "ladder": "test", "level": 0, "difficulty": 800, "requires": ["card-a"]}
+    cards = [card_a, card_b]
+    progress = {"cards": {}}
+
+    selectable_normal = filter_selectable_cards(cards, progress, now, cram_mode=False)
+    assert not any(c["id"] == "card-b" for c in selectable_normal)
+    assert any(c["id"] == "card-a" for c in selectable_normal)
+
+    selectable_cram = filter_selectable_cards(cards, progress, now, cram_mode=True)
+    assert any(c["id"] == "card-b" for c in selectable_cram)
+    assert any(c["id"] == "card-a" for c in selectable_cram)
+
+
+def test_cram_mode_ignores_level_gate():
+    """A card at level 4 in a ladder whose level 0 is unmastered is absent in normal mode and present in cram mode."""
+    now = datetime.now(timezone.utc)
+    card_l0 = {"id": "card-l0", "ladder": "test-ladder", "level": 0, "difficulty": 800, "requires": []}
+    card_l4 = {"id": "card-l4", "ladder": "test-ladder", "level": 4, "difficulty": 1600, "requires": []}
+    cards = [card_l0, card_l4]
+    progress = {"cards": {}}
+
+    selectable_normal = filter_selectable_cards(cards, progress, now, cram_mode=False)
+    assert not any(c["id"] == "card-l4" for c in selectable_normal)
+    assert any(c["id"] == "card-l0" for c in selectable_normal)
+
+    selectable_cram = filter_selectable_cards(cards, progress, now, cram_mode=True)
+    assert any(c["id"] == "card-l4" for c in selectable_cram)
+    assert any(c["id"] == "card-l0" for c in selectable_cram)
+
+
+def test_normal_mode_still_enforces_prerequisites():
+    """Regression guard: with cram_mode=False, a locked card stays locked."""
+    now = datetime.now(timezone.utc)
+    card_base = {"id": "card-base", "ladder": "ladder-x", "level": 0, "difficulty": 800, "requires": []}
+    card_locked = {"id": "card-locked", "ladder": "ladder-x", "level": 0, "difficulty": 800, "requires": ["card-base"]}
+    cards = [card_base, card_locked]
+    progress = {"cards": {}}
+
+    selectable = filter_selectable_cards(cards, progress, now, cram_mode=False)
+    assert any(c["id"] == "card-base" for c in selectable)
+    assert not any(c["id"] == "card-locked" for c in selectable)
+
+
+def test_cram_mode_ignores_elo_window():
+    """A ladder whose user rating is far below its high-level cards must still be able to return one in cram mode."""
+    now = datetime.now(timezone.utc)
+    cards = [
+        {"id": f"c_low_{i}", "ladder": "test", "level": 0, "difficulty": 800, "requires": []}
+        for i in range(5)
+    ]
+    cards.append({"id": "c_high", "ladder": "test", "level": 5, "difficulty": 1950, "requires": []})
+    progress = {"ladder_ratings": {"test": 800.0}, "cards": {}}
+
+    # In normal mode, c_high is never selected
+    for i in range(20):
+        normal_sel = select_next_card(cards, progress, now, cram_mode=False, random_seed=i)
+        assert normal_sel is not None
+        assert normal_sel["id"] != "c_high"
+
+    # In cram mode, c_high is in the pool and can be selected
+    cram_selected = [select_next_card(cards, progress, now, cram_mode=True, random_seed=i)["id"] for i in range(50)]
+    assert "c_high" in cram_selected
+
 
 
 

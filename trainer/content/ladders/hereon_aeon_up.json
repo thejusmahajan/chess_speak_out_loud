@@ -37,13 +37,14 @@
     "level": 0,
     "topic": "the two PIs",
     "question": "Who are the two principal investigators, and what is each one known for?",
-    "answer": "Dr. Matthias Karl — author and maintainer of the EPISODE-CityChem urban dispersion and chemistry model; aerosol dynamics, chemistry, dispersion, exposure. Dr. Martin Ramacher — regional and urban emission inventories (UrbEm, CMAQ) and exposure modelling; he co-mentored an ECMWF Code for Earth project on urban air-quality downscaling.",
-    "explanation": "Both are physics-based atmospheric modellers. Ramacher is the one with a foot already in the machine-learning direction, so he is the more likely reader of the ML content in your letter; Karl is the one who will notice any loose claim about his model.",
+    "answer": "Dr. Matthias Karl — author and maintainer of the EPISODE-CityChem urban dispersion and chemistry model; aerosol dynamics, chemistry, dispersion, exposure. Dr. Martin Ramacher — regional and urban emission inventories (UrbEm, CMAQ) and exposure modelling; he co-mentored an ECMWF Code for Earth project on urban air-quality downscaling, and first-authored an EGU 2025 abstract on machine-learning downscaling of the CAMS regional reanalysis to urban PM2.5 and NO2 across Europe.",
+    "explanation": "Both are physics-based atmospheric modellers. Ramacher is not merely sympathetic to machine learning — he has published an abstract doing it, and it is AEON-UP's precursor. Treat him as the more likely reader of the ML content in your letter. Karl is the one who will notice any loose claim about his model.",
     "trap": "Mixing up which one wrote EPISODE-CityChem. Karl wrote it. Saying otherwise in front of him would be memorable for the wrong reason.",
     "sources": [
       "https://doi.org/10.5194/gmd-12-3357-2019",
       "https://doi.org/10.3390/atmos12111404",
-      "../job_search/applications/hereon_aeon_up/study_room/00_START_HERE.md"
+      "../job_search/applications/hereon_aeon_up/study_room/00_START_HERE.md",
+      "https://meetingorganizer.copernicus.org/EGU25/EGU25-9157.html"
     ],
     "difficulty": 805,
     "requires": []
@@ -120,12 +121,13 @@
     "level": 1,
     "topic": "why they are hiring",
     "question": "Why would a group of physics-based atmospheric modellers hire a machine-learning postdoc at all?",
-    "answer": "Because they are hiring a capability they do not have in depth. Both PIs are physics and atmospheric-chemistry modellers with no substantial machine-learning publication record; the probabilistic deep-learning half of AEON-UP is the part of their own project they cannot staff internally.",
+    "answer": "Because they are hiring a capability they do not have in depth. Karl is a physics-based atmospheric modeller with no machine-learning publication record. Ramacher has already begun the transition himself — he first-authored EGU25-9157, 'Machine Learning Downscaling of CAMS Regional Air Quality Reanalyses: High-Resolution Urban Concentrations of PM2.5 and NO2 Across Europe', with Paul Keil — but that is a conference abstract by one person, not a group with depth in probabilistic deep learning. The uncertainty-aware half of AEON-UP is the part of their own project they cannot staff internally.",
     "explanation": "This reframes the competition. You are not trying to out-publish a theoretical ML researcher. You are offering to be the person who can build and validate the learned half inside a physics group — and who will not mishandle their grids while doing it.",
-    "trap": "Concluding that the ML bar is therefore low. It is the opposite: because they cannot check your ML work in detail, they will weight rigour, calibration and honesty about limits far more heavily than novelty.",
+    "trap": "Saying 'you have no machine-learning record' to Ramacher. He does, and it is the direct precursor to AEON-UP — the CAMS reanalysis downscaled to urban resolution across Europe, which is this project's problem statement. Also: concluding that the ML bar is therefore low. It is the opposite; because they cannot check your ML work in detail, they will weight rigour, calibration and honesty about limits far more heavily than novelty.",
     "sources": [
       "../job_search/applications/hereon_aeon_up/study_room/00_START_HERE.md",
-      "https://doi.org/10.5194/gmd-12-3357-2019"
+      "https://doi.org/10.5194/gmd-12-3357-2019",
+      "https://meetingorganizer.copernicus.org/EGU25/EGU25-9157.html"
     ],
     "difficulty": 1050,
     "requires": [
@@ -246,12 +248,13 @@
     "level": 2,
     "topic": "the regulatory vacuum",
     "question": "What is the regulatory and monitoring status of ultrafine particles in Europe?",
-    "answer": "There is no binding limit value. Directive 2008/50/EC sets limits for PM10 (40 ug/m3 annual) and PM2.5; the revised AAQD agreed in 2024 mandates UFP monitoring at supersites but still sets no numerical limit. WHO's 2021 guidelines give 'Good Practice Statements' for UFP, not a guideline value. Monitoring is also extremely sparse - routine networks measure NO2, O3, PM10 and PM2.5, while UFP needs CPC and SMPS instruments, so stations are rare.",
+    "answer": "There is no binding limit value. Directive 2008/50/EC sets limits for PM10 (40 ug/m3 annual) and PM2.5; the revised AAQD is Directive (EU) 2024/2881, adopted 23 October 2024 and in force since December 2024, with a two-year transposition deadline in December 2026. It makes UFP mandatory at monitoring supersites (alongside black carbon and ammonia), at a density of at least one UFP supersite per five million inhabitants, and still sets no numerical limit value. WHO's 2021 guidelines give 'Good Practice Statements' for UFP, not a guideline value. Monitoring is also extremely sparse - routine networks measure NO2, O3, PM10 and PM2.5, while UFP needs CPC and SMPS instruments, so stations are rare.",
     "explanation": "These two facts - no limit, almost no monitoring - are the setup for the strongest argument you have. Learn them as facts first so the argument in her-l3-004 rests on something solid.",
-    "trap": "Asserting a UFP limit value exists, or confusing the 2024 revised AAQD's monitoring mandate with a numerical limit. Karl will know the difference precisely.",
+    "trap": "Asserting a UFP limit value exists, or confusing the monitoring mandate with a numerical limit. Karl will know the difference precisely. Say the directive number only if you are sure of it — 2024/2881, the recast of 2008/50/EC.",
     "sources": [
       "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md",
-      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/01_domain.md"
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/01_domain.md",
+      "https://eur-lex.europa.eu/eli/dir/2024/2881/oj/eng"
     ],
     "difficulty": 1350,
     "requires": [

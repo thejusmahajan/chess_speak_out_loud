@@ -54,7 +54,16 @@ content — it comes from the script.**
 
 ---
 
-**2. `briefs/2026-08-27_llm-seam-removal.md` — ACTIVE. Execute this one.**
+**2. `briefs/2026-08-28_trainer-interview-mode.md` — ⚑ ACTIVE, INTERVIEW ITEM. Execute this one FIRST.**
+
+The `hereon-aeon-up` ladder has 51 cards and the app can serve only 5 of them: level gating pins
+the ladder at Level 0, and cram mode still applies prerequisites, so the 17 Level-4 cards on the
+publication gap and facing Karl and the 9 Level-5 cards on the talk are unreachable. Fix is one
+branch in `trainer/engine.py` plus three tests. **Code only — no card content may be touched.**
+
+---
+
+**3. `briefs/2026-08-27_llm-seam-removal.md` — ACTIVE. Execute this one.**
 
 Close the live LLM seam. `backend/app.py:658` calls `explanations.enrich_tree_explanations`
 unconditionally, that function has no `LLM_ENABLED` guard, and it reaches

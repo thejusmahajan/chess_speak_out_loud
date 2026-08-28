@@ -1,6 +1,6 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-08-28 by the leader (Opus 5)
+**Last updated:** 2026-08-29 by the leader (Opus 5)
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
 
 ---
@@ -49,11 +49,33 @@ mutation-checked — an injected "hands-on experience with EPISODE-CityChem" tur
 *This is recall drill, not more reading; it does not substitute for saying the talk aloud against
 a clock.* Levels are capped 0–5 by the schema, so the new material sits inside the existing bands.
 
-**Seven external facts are OUT FOR RESEARCH and not yet back** —
-`agents/briefs/2026-08-28_aeon-up-external-facts.md`, upload package in
-`research/aeon_up/research_01/`. **Two of them gate things he must not say until verified:**
-**R1** the exact title of Karl's UFP paper, and **R2** the TVöD Bund 2026 E13 table. Until R2
-returns, the €75,000 expectation is still unrecalibrated.
+**⛑ THE LADDER WAS UNREACHABLE UNTIL 2026-08-29.** The app could serve **5 of the 51 cards**.
+Level gating pinned the ladder to Level 0, and cram mode still applied `is_card_unlocked`, whose
+chains run five deep — so the L4 publication-gap cards and the L5 talk cards could not be reached
+by any route. Fixed and **AUDITED ACCEPT** (`agents/reports/2026-08-28_trainer-interview-mode_AUDIT.md`):
+every gate re-run by the leader, both guards mutation-checked, 15 live API calls returning L3–L5
+material. *The instrument now works. It has still never been drilled — 5 of 51 cards seen, last
+real session 2026-08-22.*
+
+**The external-facts research came back PARTIALLY, 2026-08-29** — two Deep Research PDFs in
+`applications/hereon_aeon_up/research/`, against `agents/briefs/2026-08-28_aeon-up-external-facts.md`.
+
+| target | outcome |
+|---|---|
+| **R1** Karl's UFP paper | **RESOLVED by the leader** (the report missed it). Lauenburg, M.; **Karl, M.**; Matthias, V.; Quante, M.; **Ramacher, M.O.P.**, *"City Scale Modeling of Ultrafine Particles in Urban Areas with Special Focus on Passenger Ferryboat Emission Impact"*, **Toxics 10(1), 3**, doi:10.3390/toxics10010003. **Karl is second author, Ramacher last.** The ⚠ on H5 is lifted — but call it *the ferryboat paper*, never "your paper". |
+| **R2** TVöD | **DROPPED by Thejus**, 2026-08-29. Do not re-open it. |
+| **R3** PI publications | **One claim was FALSE.** The report announced Karl now has an ML record; its cited source is a Copernicus *related-articles* page, and the quoted sentence belongs to Vartiainen et al. (AMT). **Karl has no ML record.** The true finding is the mirror: **Ramacher first-authored EGU25-9157**, *"Machine Learning Downscaling of CAMS Regional Air Quality Reanalyses"*, with Paul Keil — AEON-UP's problem statement, by one of its PIs. Cards corrected. |
+| **R4** AEON-UP as an entity | **LEADS ONLY, not facts.** Oct 2026–Sep 2028; partners Helmholtz Munich (Bayesian DL / neural processes) and RIFS Potsdam; benchmarks vs XGBoost and Gaussian Processes. All from job-board mirrors; jobtensor 403'd the leader. **Do not state as known.** The acronym expansion is unknown — do not guess it. |
+| **R5** interview format | **NEVER CAME BACK.** Panel composition and whether a presentation is standard are still unsourced, and `14_talk_script.md` assumes both. **Ask the panel by email.** |
+| **R6** the landscape | **Not card material.** Five of eight rows carry "Title Unavailable" or an UNVERIFIED DOI. One solid takeaway: leave-one-station-out reads as rigorous, not eccentric — supports `her-l3-008`. |
+| **R7** UFP regulation | **CONFIRMED and sharpened by the leader.** Directive **(EU) 2024/2881**, adopted 23 Oct 2024, in force since Dec 2024, transposition due **Dec 2026 — inside the project period**. UFP mandatory at supersites with black carbon and ammonia, **no numerical limit value**, ≥1 supersite per 5 million inhabitants. |
+
+**New lead worth a question: ACT-AQ**, a Helmholtz Forum consortium formed in response to the
+revised AAQD — kickoff 8–9 July 2026 in Hamburg, **Ramacher a PI**, partners including Helmholtz
+Munich and RIFS, the same two AEON-UP partners.
+
+**Cards not yet written:** the ferryboat citation, the Ramacher EGU abstract (as a question *to*
+him, never a claim *about* him), and ACT-AQ.
 
 | # | hole | why it matters |
 |---|---|---|

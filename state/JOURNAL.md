@@ -283,3 +283,81 @@ Pushed to `origin/windows-dev` and verified with `git status` reporting nothing 
 
 **Repo:** see the commit below this entry's date in `git log`. Pushed to `origin/windows-dev`
 and verified with `git status` reporting nothing ahead.
+
+---
+
+## 2026-08-29 — the interview ladder was unreachable; two research claims did not survive audit
+
+**Did:**
+- **Fixed the trainer's core defect.** The `hereon-aeon-up` ladder holds 51 cards and the app
+  could serve **5**. Level gating pinned the ladder to Level 0, and cram mode — the intended
+  escape hatch — still applied `is_card_unlocked`, whose chains run five deep. So the 17 Level-4
+  cards on the publication gap and facing Karl, and the 9 Level-5 cards on delivering the talk,
+  were unreachable by any route. Brief `agents/briefs/2026-08-28_trainer-interview-mode.md`,
+  delivered by Gemini, **AUDITED ACCEPT** — every gate re-run by the leader, both guards
+  mutation-checked, 15 live API calls returning L3–L5 material.
+- **Audited the two Deep Research PDFs** in `applications/hereon_aeon_up/research/` against the
+  seven targets in `agents/briefs/2026-08-28_aeon-up-external-facts.md`. R1, R3, R4 and part of R6
+  came back. **R5 and R7 did not come back at all**; R2 was dropped by Thejus.
+- **Corrected three cards** from verified facts: `her-l0-003`, `her-l1-003`, `her-l2-007`.
+  `verify_cards.py` still passes at 205 cards; `git diff --numstat` was `12 9`, no encoding damage.
+
+**Found:**
+- **A fabricated-class claim in the PI report.** It announces *"Contrary to the assumption that
+  Dr. Karl has no published record involving artificial intelligence, a definitive linkage to
+  machine learning exists."* The leader fetched its cited source, `gmd-9-451-2016-relations.html`.
+  The quoted sentence belongs to **Vartiainen et al., "Machine learning-based downscaling of
+  aerosol size distributions from a global climate model"** (AMT). Karl is not an author. A
+  *related-articles* listing was read as a bibliography. **Karl still has no ML record.** Fifth
+  fabricated delivery on record, and the third to arrive when a worker was asked for content.
+- **The real finding is the mirror image, and it is verified.** Ramacher **first-authored
+  EGU25-9157**, *"Machine Learning Downscaling of CAMS Regional Air Quality Reanalyses:
+  High-Resolution Urban Concentrations of PM2.5 and NO2 Across Europe"*, with Paul Keil. That is
+  AEON-UP's problem statement, written by one of its PIs. Card `her-l1-003` had said *"Both PIs
+  … no substantial machine-learning publication record"* — which, said to Ramacher, is a bad
+  moment. Corrected.
+- **R1 is resolved and the report missed it entirely.** The paper the study room flagged
+  ⚠ UNVERIFIED exists; the title was merely truncated: Lauenburg, M.; **Karl, M.**; Matthias, V.;
+  Quante, M.; **Ramacher, M.O.P.**, *"City Scale Modeling of Ultrafine Particles in Urban Areas
+  with Special Focus on Passenger Ferryboat Emission Impact"*, **Toxics 10(1), 3**,
+  doi:10.3390/toxics10010003. **Karl is second author, Ramacher last** — so it is not "your
+  paper" to either of them, and it is one paper joining both PIs, EPISODE-CityChem, UFP and
+  Hamburg.
+- **R7 confirmed and sharpened.** The revised AAQD is **Directive (EU) 2024/2881**, adopted
+  23 October 2024, in force since December 2024, transposition due December 2026 — inside the
+  AEON-UP project period. UFP mandatory at supersites alongside black carbon and ammonia,
+  **no numerical limit value**, at ≥1 UFP supersite per 5 million inhabitants.
+- **New lead: ACT-AQ**, a Helmholtz Forum consortium formed in response to the revised AAQD,
+  kickoff 8–9 July 2026 in Hamburg, **Ramacher a PI**, partners including Helmholtz Munich and
+  RIFS — the same two AEON-UP partners. Strong question material for Ramacher.
+- **The brief's Step 2.1 was wrong.** It forbade touching `select_next_card`, but the Elo window
+  breaks out at `len(elo_matched) >= 3`, so cram would have unlocked 51 cards and gone on serving
+  the same 5. The worker stopped and asked instead of improvising. **Under-specifying was the
+  leader's failure**; the checkpoint rule is what caught it.
+
+**Decided:**
+- **Delegate code, not content — again, and this time with a fifth data point.** The two research
+  PDFs were a content delegation and produced one false headline claim and one missed paper the
+  brief explicitly asked for. The trainer fix was a code delegation with five pinned gates and
+  came back clean. The engine fix went to Gemini; the card corrections were written by the leader.
+- **AEON-UP facts sourced only from job-board mirrors are leads, not facts.** Project period
+  Oct 2026–Sep 2028, partners Helmholtz Munich (Bayesian DL / neural processes) and RIFS Potsdam,
+  benchmarks against XGBoost and Gaussian Processes — jobtensor returned 403 to the leader, so
+  none of this is independently confirmed. **Do not state them as known.** The acronym expansion
+  is genuinely unknown; do not guess it.
+- **The R6 air-quality PDF is not card material.** Five of eight rows carry "Title Unavailable" or
+  an UNVERIFIED DOI. Its one solid contribution: leave-one-station-out reads as rigorous rather
+  than eccentric in the spatial-modelling community, which supports `her-l3-008`.
+
+**Open:**
+- **The ladder is reachable; it is not rehearsed.** 5 of 51 hereon cards have ever been seen and
+  the last real drilling session was 2026-08-22. The instrument is fixed. The drilling has not
+  happened, and no document substitutes for saying the talk aloud against a clock.
+- **R5 never came back** — panel composition and whether a presentation is standard at a Helmholtz
+  centre are still unsourced, and `14_talk_script.md` assumes both.
+- **New cards not yet written:** the ferryboat citation, the Ramacher EGU abstract (as a question
+  to him, never as a claim about him), and ACT-AQ.
+- **Repo tidy-up requested by Thejus this session.** The root carries 30 markdown files and the
+  directory now holds `applications/` alongside the two apps. Brief to follow.
+
+**Repo:** committed and pushed to `origin/windows-dev` this session.

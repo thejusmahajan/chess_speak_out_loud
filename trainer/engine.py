@@ -230,17 +230,15 @@ def filter_selectable_cards(
 ) -> List[Dict[str, Any]]:
     """
     Filter cards that are unlocked (prerequisites met), level-eligible, and due (if not in cram mode).
+
+    In cram mode, all cards are returned directly, bypassing level gating, prerequisite
+    unlock checks, and due-date scheduling.
     """
+    if cram_mode:
+        return list(cards)
+
     selectable = []
     cards_progress = progress.get("cards", {})
-    
-    if cram_mode:
-        for card in cards:
-            card_id = card["id"]
-            reqs = card.get("requires", [])
-            if is_card_unlocked(reqs, progress):
-                selectable.append(card)
-        return selectable
 
     # Level gating: compute active level per ladder
     ladder_groups: Dict[str, List[Dict[str, Any]]] = {}
@@ -308,19 +306,23 @@ def select_next_card(
         return float(c.get("difficulty", 1200))
     
     # 1. Elo window matching (|Rc - Ru_ladder| <= window, starting at 150)
-    window = 150.0
-    elo_matched = []
-    while window <= 2000.0:
-        elo_matched = [
-            c for c in candidates
-            if abs(get_card_rating(c) - get_ladder_rating(progress, c.get("ladder", "default"))) <= window
-        ]
-        if len(elo_matched) >= 3 or len(elo_matched) == len(candidates):
-            break
-        window += 50.0
-        
-    if not elo_matched:
-        elo_matched = candidates
+    # In cram mode, skip the Elo window entirely to allow drilling all material
+    if cram_mode:
+        elo_matched = list(candidates)
+    else:
+        window = 150.0
+        elo_matched = []
+        while window <= 2000.0:
+            elo_matched = [
+                c for c in candidates
+                if abs(get_card_rating(c) - get_ladder_rating(progress, c.get("ladder", "default"))) <= window
+            ]
+            if len(elo_matched) >= 3 or len(elo_matched) == len(candidates):
+                break
+            window += 50.0
+            
+        if not elo_matched:
+            elo_matched = candidates
         
     # 2. Prefer unseen cards within the Elo-matched pool
     unseen = [c for c in elo_matched if c["id"] not in cards_progress]
