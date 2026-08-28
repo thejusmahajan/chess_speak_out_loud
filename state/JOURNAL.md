@@ -16,6 +16,65 @@ Template:
 
 ---
 
+## 2026-08-28 (third session) — the "Claude keeps crashing" triage: it was the machine, not the tool
+
+**Did:**
+- Triaged repeated Claude Code crashes. Four hypotheses were on the table — cmd environment /
+  PATH overflow, overlapping plugins, the Bun-compiled native binary, and cmd-vs-PowerShell.
+  Measured all four instead of guessing.
+- Switched the Antigravity IDE default terminal profile to PowerShell and set
+  `terminal.integrated.gpuAcceleration: "off"`
+  (`~/AppData/Roaming/Antigravity IDE/User/settings.json`, backup `.bak-20260828`).
+- Set `DISABLE_AUTOUPDATER=1` and `cleanupPeriodDays: 20` in `~/.claude/settings.json`
+  (backup `.bak-20260828`).
+- Corrected the **The terminal** section of `CLAUDE.md` and added a crash-triage note to it.
+
+**Found:**
+- **Three of the four suspects are false, with numbers.** Machine PATH 764 + User PATH 635 =
+  **1400 chars** against an 8191 limit, whole environment block 5.2 KB of 32 KB — no overflow.
+  **Zero plugins enabled**; `~/.claude.json` has no `enabledPlugins` key, only the official
+  marketplace catalog cached on disk. And there is **no `claude.exe` crash dump, no WER report,
+  and no Application-event-log entry** for claude, bun or node — so nothing supports the Bun
+  theory either. The `/cmd` seen in PATH is `C:\Program Files\Git\cmd`.
+- **The machine was crashing, not Claude Code.** System log for the day: `Kernel-Power`
+  **Event 41** at 11:12:50 — *"the system has rebooted without cleanly shutting down"*;
+  `Display` **Event 4101** at 18:39:08 — *"Display driver igfx stopped responding and has
+  successfully recovered"*; a `dwm.exe` AppCrash at 17:48; archived `Kernel_139` and `Kernel_1e`
+  reports. When dwm or the Intel iGPU resets, the IDE window and its integrated terminal go with
+  it, and that presents as the agent dying.
+- **The native updater hot-swapped the binary mid-session**, 2.1.250 → 2.1.251 at 18:05:30,
+  leaving `claude.exe.old.1787940330363` (226 MB) beside the new 217 MB exe while sessions were
+  open.
+- **`CLAUDE.md` asserted a state that was never true.** It has claimed since 2026-08-27 that the
+  integrated terminal was switched from `cmd` to PowerShell. The IDE setting was still
+  `"Command Prompt"` today, so every session since has run the TUI in legacy conhost. Same
+  failure class as the 2026-08-27 finding that `LEADER_BIBLE.md` §6 claimed "everything pushed"
+  while 35 commits sat unpushed: **a document asserting a state nobody verified on disk.**
+- 78 MB of session transcripts for this project alone, one file at 23.5 MB. Disk C is down to
+  20.4 GB free of 218.6 GB.
+
+**Decided:**
+- **Do not migrate to the Node/npm build.** It was the obvious "bypass Bun" move and it is
+  staged (`npm i -g @anthropic-ai/claude-code`; Node v24.13.1 and npm 11.8.0 are both present),
+  but no evidence implicates the native build, and it would additionally need
+  `~/.local/bin/claude.exe` renamed so it stops shadowing the npm shim on PATH. Holding it as
+  the fallback if crashes survive the driver update — changing the toolchain on a hunch is how
+  an afternoon disappears.
+- Left the one stray empty entry (`;;`) in the User PATH alone. It is cosmetic, and rewriting a
+  persistent PATH for no measured gain is not worth the risk.
+
+**Open:**
+- **Thejus must update the Intel graphics driver.** This is the top item and cannot be done from
+  here. The igfx TDR is the leading suspect and is untreated.
+- The PowerShell + GPU-acceleration change **needs an IDE restart** to take effect.
+- Needs admin: Defender realtime is on with no exclusions for `C:\Users\Admin\.local\bin` or
+  `C:\Users\Admin\.claude`. Given the recorded `WinError 5` history on atomic writes
+  (`store._write_json_atomic`), these are worth adding.
+
+**Repo:** `CLAUDE.md` and this file. Not yet committed at time of writing.
+
+---
+
 ## 2026-08-28 — the job_search fork resolved; H1–H5 written; the deck is built
 
 **Did:**

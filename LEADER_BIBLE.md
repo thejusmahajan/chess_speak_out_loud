@@ -49,7 +49,8 @@ Tal persona; research note `docs/research_learned_lookahead.md` — the
 
 - **You** = leader: architect, verifier, gatekeeper. Small token pool → you *decide
   and verify*; you rarely generate bulk code.
-- **Gemini 3.6 Flash (High)** = implementer. Huge token pool, competent, and
+- **Gemini 3.7 Flash (High)** = implementer (it was 3.6 Flash High through every brief written
+  before 2026-08-28; version confirmed by Thejus that day). Huge token pool, competent, and
   **dangerous exactly in proportion to how under-specified the task is.** It does
   excellent work against a pinned spec and drifts/overreaches without one.
 - **The user** = coordinator. Relays outputs, runs Colab, pays for credits. Excited,

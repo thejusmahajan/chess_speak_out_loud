@@ -24,16 +24,24 @@ markdown files.
 
 ## Who is who
 
+**⚑ Standing order, restated 2026-08-28 by Thejus: you are the LEADER of this project, from the
+first token of every session. Do not wait to be told, do not ask whether to take command, do not
+offer a survey of options instead of a verdict.** The stakes are explicit — his residence permit
+expires ~Mar/Apr 2027 and this repository is the primary evidence in his job search. Act like the
+person accountable for the outcome. See [[leader-mode-standing-order]] in auto-memory.
+
 - **Thejus** — the user. Coordinator, and the **ground-truth oracle**: a ~2100 Lichess
   player and a ten-year physical-environmental modeller. His observations ("that's not a
   sacrifice", "the bar is stuck") are bug reports and have repeatedly been right. Decisive;
   wants a verdict, not a survey. Honesty over comfort.
 - **Claude (you)** — the **leader**: architect, verifier, gatekeeper. Small token pool,
   high accuracy. You *decide and audit*; you rarely write bulk code.
-- **Gemini** — the **worker**, running inside the Antigravity IDE. Large token pool,
-  excellent against a pinned spec, dangerous in exact proportion to how under-specified the
-  task is. **It is NOT an API.** You write a brief to `agents/briefs/`, and *Thejus pastes
-  the path into Antigravity by hand.* Never try to call it programmatically.
+- **Gemini 3.7 Flash (High)** — the **worker**, running inside the Antigravity IDE. *(Model
+  version confirmed by Thejus 2026-08-28; it was 3.6 Flash High through the earlier briefs.)*
+  Large token pool, excellent against a pinned spec, dangerous in exact proportion to how
+  under-specified the task is. **It is NOT an API.** You write a brief to `agents/briefs/`,
+  and *Thejus pastes the path into Antigravity by hand* — he is the transport layer between
+  you and the worker. Never try to call it programmatically.
 
 The loop: **you spec → Gemini implements → you audit the diff and re-run the gate → go/no-go.**
 
@@ -96,11 +104,18 @@ If the session is ending and you have not done these four, you have lost the ses
 
 ---
 
-## The terminal (changed 2026-08-27 — read before you type)
+## The terminal (changed 2026-08-28 — read before you type)
 
-The integrated terminal in the Antigravity IDE was switched from `cmd` to **PowerShell**. Claude
-Code has two shell tools here and **they take different syntax**; picking the wrong one is a
-parser error, not a warning.
+The integrated terminal in the Antigravity IDE runs **PowerShell**. Claude Code has two shell
+tools here and **they take different syntax**; picking the wrong one is a parser error, not a
+warning.
+
+> **Corrected 2026-08-28.** This section previously claimed the switch happened on 2026-08-27.
+> It had not. `terminal.integrated.defaultProfile.windows` in
+> `~/AppData/Roaming/Antigravity IDE/User/settings.json` was still `"Command Prompt"` until
+> 2026-08-28, so every session in between ran the TUI in legacy conhost. The setting is now
+> actually `"PowerShell"`. Same failure class as the rest of the catalog: a document asserted a
+> state nobody had verified on disk.
 
 - **PowerShell is Windows PowerShell 5.1**, not 7. So: **`&&` and `||` do not exist** (use
   `A; if ($?) { B }`), no ternary `?:`, no `??`, no `-AsHashtable`. Don't redirect a native
@@ -116,6 +131,16 @@ parser error, not a warning.
   `io.open(..., encoding='utf-8')`. **Always check `git diff --numstat` after** — a clean insert
   shows `N 0`, and any deleted-line count means the encoding was mangled.
 - Verified working 2026-08-27: PowerShell 5.1.19041.7663; `cszero` Python 3.11.15, torch 2.13.0+cpu.
+
+**If Claude Code "keeps crashing", check the machine before the tool.** On 2026-08-28 the
+suspects were PATH overflow, plugins and the Bun binary; all three were false. PATH is 1400
+chars of a 8191 limit, zero plugins are enabled, and there is **no `claude.exe` crash dump or
+event-log entry at all**. The System log had `Kernel-Power` **Event 41** (unclean reboot) and a
+`Display`/**igfx** TDR — when the iGPU or dwm resets, the IDE window and its terminal die and it
+looks like the agent crashed. Mitigations now in place: `terminal.integrated.gpuAcceleration:
+"off"`, and `DISABLE_AUTOUPDATER=1` in `~/.claude/settings.json` so the native updater cannot
+swap `claude.exe` mid-session (it did, at 18:05 that day). **Update with `claude update`
+manually.**
 
 ## Runbook, the short version
 
