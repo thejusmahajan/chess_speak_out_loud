@@ -65,6 +65,34 @@ replace the flag with a mechanically-enforced interlock test. Full evidence in t
 
 ---
 
+**3. `briefs/2026-08-28_aeon-up-external-facts.md` — ACTIVE. Deep-research agent, web access.**
+
+Verify **seven external facts** that cannot be established from any file on disk, and that are
+needed in the interview room. **R1** the exact citation of Karl's ultrafine-particle paper — the
+study room carries the title unverified and he may name it to its author. **R2** the TVöD Bund 2026
+table for E13, steps 1–6 — `17_salary_and_conditions.md` quotes no figures on purpose because none
+were verified, and the €75,000 expectation needs recalibrating before the interview, not during it.
+**R3** what both PIs published since 2024-01-01, flagging any ML work by Karl. **R4** whether
+AEON-UP exists publicly as a funded project at all. **R5** Helmholtz interview conventions and
+panel composition — including whether the *Stufe* really is settled with HR after an offer, as the
+study room asserts. **R6** 6–10 items on who else does probabilistic DL for urban air quality.
+**R7** the current status of the revised AAQD 2024 UFP provisions, which are the factual base of
+his strongest argument.
+
+**This does not consume the one non-interview ACTIVE slot — it *is* interview preparation.**
+
+⚠ **The brief is scoped by exclusion, deliberately.** It forbids re-extracting the advert,
+re-researching Hereon, and — explicitly — any recommendation about the CV or cover letter, which
+were sent on 2026-08-27 and are frozen. It hands the worker **four** study-room files out of 22,
+because a worker given all of them will summarise them back. Output is **one** report file; no
+commits. The controlling rule is that **UNVERIFIED is a complete success**: every one of these
+facts will be said aloud to the people who wrote the underlying papers, so a gap left open costs
+nothing and a plausible reconstruction is a disaster. Three of the four fabricated deliveries on
+record came from asking a worker for *content*; this brief asks only for retrieval, with a URL and
+a verbatim quotation per fact.
+
+---
+
 `briefs/2026-08-22_website-honesty-inventory.md` is DELIVERED and
 **AUDITED — SPLIT VERDICT** (`reports/…_AUDIT.md`): §4 CONTRADICTED and §7 links ACCEPTED, **§6
 UNSUPPORTED REJECTED as substantially fabricated**.
@@ -198,6 +226,7 @@ passed it are all findable from here.
 
 | Brief | Target | Type | Status | Delivered | Audit verdict |
 |---|---|---|---|---|---|
+| `2026-08-28_aeon-up-external-facts` | external / web research | research | **ACTIVE** | — | — |
 | `2026-08-27_llm-seam-removal` | chess_speak_out_loud | implementation | **ACTIVE** | — | — |
 | `2026-08-22_website-honesty-inventory` | thejusmahajan.github.io | audit | **AUDITED** | `reports/…_REPORT.md` | **SPLIT — ACCEPT §4/§7, REJECT §6.** Scope clean. §7's "0 broken internal links" reproduces on an independently written checker (**316 links, 0 broken**). §4 is real and produced a finding nobody had: live `experience.html` dates the M.Sc. `2012 – 2015`, `cv_hereon_aeon_up.tex` says `07/2012 - 12/2014`. **§6 is substantially fabricated:** `skills.html:104` is described as listing `AWS / S3 / EC2` under Cloud/DevOps — line 104 is the R language card and **AWS appears nowhere on the site** except a hypothetical in a blog sentence; `projects.html:144` is quoted as claiming *"multi-gigabyte FASTQ files… automated error recovery"* — **that string does not exist on any page**; and the Docker entry is marked UNSUPPORTED while its own cited evidence (`Docker concepts`) matches the site's `Docker (concepts)` exactly. Fourth fabricated delivery on record, second carrying a confident fake line number. **New standing rule: grep every quoted string before reading the verdict — a quote that does not grep is a fabrication.** Separately, the report MISSED a live honesty risk the audit found by random spot-check: three blog posts claim first-person postdoc experience with **ICON-O/HAMOCC**, which appears zero times in the CV. See `…_AUDIT.md` |
 | `2026-08-21_workflow-and-direction-review` | chess_speak_out_loud + job_search | design/brainstorm | **AUDITED** | `reports/…_REPORT.md` | **ACCEPT** — best-evidenced worker delivery to date. Scope clean (one file, no commit). **Corrected two leader counting errors**: my 430 markdown files counted `frontend/node_modules` (170 files) because my exclusion pattern was root-anchored — real figure 262; and my "2 files carry a STATUS header" counted the *template* printed inside `LEADER_GROUNDING.md:208`, real figure 1. **Independently re-derived its top finding by a different path**: `backend/app.py:658` calls `explanations.enrich_tree_explanations` unconditionally, and that function (read in full, lines 5–71) has **no `LLM_ENABLED` guard**, reaching `llm_client.generate_move_explanation` at `explanations.py:63` with FEN + move + `eval_cp` only — no search tree, no policy prior, no relational facts. Three documents (`app.py:42`, `ARCHITECTURE.md:30`, `HOW_TO_RUN.md:90`) assert the path is dormant. **Live North Star violation; `LLM_ENABLED = False` is a sign, not an interlock.** Also found `cv_hereon_aeon_up.tex:51` still carrying "Mechanistic interpretability" against `06_do_not_claim.md` — which I had independently hit the same day. Soft spot: the cover-letter percentages (~45%/~25%) are given without derivation. See `…_AUDIT.md` |
