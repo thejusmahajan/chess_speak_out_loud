@@ -67,6 +67,12 @@ replace the flag with a mechanically-enforced interlock test. Full evidence in t
 
 **3. `briefs/2026-08-28_aeon-up-external-facts.md` — ACTIVE. Deep-research agent, web access.**
 
+⚑ **Not a Gemini task — do not run this in Antigravity.** It goes to an external web-based
+research app with no filesystem access. The upload package is
+**`research/aeon_up/research_01/`**: paste `BRIEF.md` (the web adaptation of this brief — same
+seven targets, rewritten I/O sections) and attach the four files in `inputs/` (44 KB). The
+returned document is dropped into `research_01/report/` by hand.
+
 Verify **seven external facts** that cannot be established from any file on disk, and that are
 needed in the interview room. **R1** the exact citation of Karl's ultrafine-particle paper — the
 study room carries the title unverified and he may name it to its author. **R2** the TVöD Bund 2026
