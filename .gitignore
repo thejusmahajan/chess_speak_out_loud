@@ -62,3 +62,6 @@ docs/design_session/**/_probe.pdf
 downloads/
 kaggle_files/
 profiles/
+
+# Application material lives in the private job_search repo, never here.
+applications/

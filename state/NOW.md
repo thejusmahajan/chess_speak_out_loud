@@ -5,6 +5,59 @@
 
 ---
 
+## ⛔ 0. FIRST THING TOMORROW — this repository is PUBLIC
+
+**Checked against the GitHub API at 01:30 on 2026-08-29: `"private": false`, `"visibility": "public"`.**
+`job_search` is correctly private (anonymous 404). This one is not.
+
+**The first action of the next session is Thejus setting this repository back to private.**
+Nobody else can do it — it is a Settings click, and no agent here holds a token by his own
+deliberate instruction, which is the correct policy and should stay.
+
+**Why it matters more than the signature scare that started this.** Publicly readable right now:
+`trainer/content/ladders/hereon_aeon_up.json` (51 interview cards, **Karl named 22 times**,
+including how to talk about his model and why the strongest question works on him);
+`state/NOW.md` and `state/JOURNAL.md` (the publication-gap arithmetic, parental-leave dates,
+salary framing, *"8 of 11 applications never left Draft prepared"*); the two `*honesty*` audit
+reports; `CLAUDE.md` (permit expiry); `docs/career_strategy_conversation_aug2026.md`;
+`trainer/state/answers.jsonl` (131 graded answers). Karl and Ramacher are findable people who
+search their own model's name.
+
+**Removing files in a new commit does not undo this** — the history keeps them. Only the
+visibility flip stops further reading.
+
+**The structural fix, already agreed:** this repo is a code portfolio *and* a private career
+war-room wearing one visibility setting. Keep it private; build the public portfolio separately
+as a curated repo with the code and the two-silent-bugs story, and no `state/`, `agents/` or cards.
+
+### Done overnight, 2026-08-29
+- **`applications/` is out of this repo.** The three PDFs were copied to
+  `bioinformatics_project/job_search/applications/hereon_aeon_up/{research,other_documents}/`,
+  md5-verified identical, committed as `0088b9f` and **pushed to the private repo**. Then removed
+  here and `applications/` added to `.gitignore`.
+- **The trainer split was NOT done.** It needs a GitHub repo to exist first, and creating one
+  needs `gh` (not installed) or a token (deliberately not held). ⚠ Note before doing it:
+  `trainer/verify_cards.py` hardcodes `PROJECT_ROOT / "docs" / "CV_AI_MODULE.md"` and the cards
+  carry 193 repo citations, 72 into `docs/` and 22 into `backend/` — a standalone trainer repo
+  breaks the content gate until those are re-rooted. It is a real task, not a `git subtree` one-liner.
+
+### He drilled tonight — first real session since 2026-08-22
+21 answers and 6 comments, all on `air-quality`, at L3/L4 — **levels that were unreachable until
+today's fix**. Several scored 0.0. His own comments name the gaps:
+- *"I have no idea what neural surrogate is."* (`aq-l4-002`)
+- *"I don't know what their abbrevation mean."* (`aq-l3-001`)
+- *"covariance is something that varies along with another … I am forgetting things like ANOVA
+  which is very fundamental. This is scary."* (`aq-l4-002`)
+- *"May be give me some examples?"* (`aq-l2-001`)
+
+Two ideas of his worth keeping: linking AQI in Chennai / Mumbai / Delhi against Hamburg
+(`aq-l1-003`), and the morning-pollution and jogging angle as a ready answer to *"which is the
+latest paper you read?"* (`aq-l3-003`).
+
+**These are content gaps, not bugs. Write the cards with him, awake — do not delegate them.**
+
+---
+
 ## ⚑ 1. The live item: the AEON-UP INTERVIEW
 
 **The application was SENT.** Confirmed by Thejus on 2026-08-27. Q1 is closed; the 3 September
