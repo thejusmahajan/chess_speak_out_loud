@@ -30,7 +30,7 @@ PROJECT_ROOT = TRAINER_DIR.parent
 LADDERS_DIR = TRAINER_DIR / "content" / "ladders"
 
 REAL_DO_NOT_CLAIM_PATH = Path(
-    r"C:\Users\Admin\Documents\job_search\applications\hereon_aeon_up\study_room\06_do_not_claim.md"
+    r"C:\Users\Admin\Documents\bioinformatics_project\job_search\applications\hereon_aeon_up\study_room\06_do_not_claim.md"
 )
 ADDITIONAL_CV_PATH = PROJECT_ROOT / "docs" / "CV_AI_MODULE.md"
 

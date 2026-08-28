@@ -187,6 +187,78 @@
     ]
   },
   {
+    "id": "her-l2-004",
+    "ladder": "hereon-aeon-up",
+    "level": 2,
+    "topic": "UFP is a number, not a mass",
+    "question": "Why is particle number concentration (PNC), not micrograms per cubic metre, the quantity of interest for ultrafine particles?",
+    "answer": "Because mass measurement makes UFP invisible. A single 10 um particle carries the mass of roughly a million 100 nm particles, so ultrafine particles are under 1% of PM mass but 80-90% of particle number. The target variable is PNC.",
+    "explanation": "This is the single fastest way to signal you have read the domain rather than skimmed it - and the single fastest way to signal the opposite. Dr. Karl works on aerosol dynamics; a mass unit attached to UFP in his hearing is a real error, not a slip.",
+    "trap": "Saying 'UFP concentrations in micrograms per cubic metre'. It is number concentration. Never quote UFP in ug/m3.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/01_domain.md"
+    ],
+    "difficulty": 1290,
+    "requires": [
+      "her-l1-003"
+    ]
+  },
+  {
+    "id": "her-l2-005",
+    "ladder": "hereon-aeon-up",
+    "level": 2,
+    "topic": "the near-road gradient",
+    "question": "How sharply does ultrafine particle concentration fall off away from a road or ship plume, and why does that matter for a spatial model?",
+    "answer": "PNC drops by a factor of 5 to 10 within 100-200 m of a highway or a ship plume. The field therefore has very steep near-source structure sitting on a broad urban background - which is exactly the geometry that defeats coarse grids and smooth interpolators.",
+    "explanation": "This number is what makes the resolution argument concrete. It also explains why leave-one-station-out matters: a random split places training points a few tens of metres from test points and flatters every model you build.",
+    "trap": "Describing urban air quality as a smooth field. The whole difficulty is that it is not.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/01_domain.md"
+    ],
+    "difficulty": 1310,
+    "requires": [
+      "her-l1-003"
+    ]
+  },
+  {
+    "id": "her-l2-006",
+    "ladder": "hereon-aeon-up",
+    "level": 2,
+    "topic": "UFP is not a passive tracer",
+    "question": "Why can ultrafine particles not be treated as a passive tracer, and what does that imply for a learned correction?",
+    "answer": "Number concentration evolves by coagulation, which is second-order in N, so a fresh high-concentration plume decays very fast; particles also grow by condensation out of the ultrafine range entirely. Number is not conserved. So a learned correction cannot be assumed linear in concentration, and a model should not extrapolate into plume concentrations it never saw in training - an argument for conditioning on the CTM's own output rather than replacing it, and for epistemic uncertainty that rises honestly outside the training regime.",
+    "explanation": "Raising a limitation of your own approach, unprompted, in front of the physics PI does more for you than any claim of skill. This is the best available example of it: it is a real constraint, it is physics, and it argues against the naive version of your own method.",
+    "trap": "Treating this as a talking point rather than a constraint. If you raise coagulation you must be able to say why it bites - second-order in N - not just name it.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/01_domain.md"
+    ],
+    "difficulty": 1330,
+    "requires": [
+      "her-l1-003"
+    ]
+  },
+  {
+    "id": "her-l2-007",
+    "ladder": "hereon-aeon-up",
+    "level": 2,
+    "topic": "the regulatory vacuum",
+    "question": "What is the regulatory and monitoring status of ultrafine particles in Europe?",
+    "answer": "There is no binding limit value. Directive 2008/50/EC sets limits for PM10 (40 ug/m3 annual) and PM2.5; the revised AAQD agreed in 2024 mandates UFP monitoring at supersites but still sets no numerical limit. WHO's 2021 guidelines give 'Good Practice Statements' for UFP, not a guideline value. Monitoring is also extremely sparse - routine networks measure NO2, O3, PM10 and PM2.5, while UFP needs CPC and SMPS instruments, so stations are rare.",
+    "explanation": "These two facts - no limit, almost no monitoring - are the setup for the strongest argument you have. Learn them as facts first so the argument in her-l3-004 rests on something solid.",
+    "trap": "Asserting a UFP limit value exists, or confusing the 2024 revised AAQD's monitoring mandate with a numerical limit. Karl will know the difference precisely.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/01_domain.md"
+    ],
+    "difficulty": 1350,
+    "requires": [
+      "her-l1-003"
+    ]
+  },
+  {
     "id": "her-l3-001",
     "ladder": "hereon-aeon-up",
     "level": 3,
@@ -243,6 +315,130 @@
     ]
   },
   {
+    "id": "her-l3-004",
+    "ladder": "hereon-aeon-up",
+    "level": 3,
+    "topic": "the UFP bridge - the argument the letter missed",
+    "question": "Why is ultrafine particulate the strongest possible case for your uncertainty thesis? Give the argument as you would say it aloud.",
+    "answer": "\"With PM10 you have a limit value and a network - a wrong prediction gets caught. With UFP there is no binding limit and almost no monitoring, so the model's own uncertainty estimate is doing the work that a monitoring station would otherwise do. That is exactly the case where a confidently wrong model does real damage, and it is why I care so much about calibration rather than only about skill.\"",
+    "explanation": "This is the argument the cover letter should have made and did not - the letter engaged only Ramacher's work and never touched UFP, which is Karl's named area and named in the advert. Delivering it in the room is the correction. It is also stronger spoken than written, because it is a reply to a person rather than a paragraph.",
+    "trap": "Delivering it as a criticism of their field. It is not - it is a statement about what a model is FOR when nothing can check it. Frame it as agreeing with the sceptic, because you do.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md"
+    ],
+    "difficulty": 1400,
+    "requires": [
+      "her-l2-007",
+      "her-l2-004"
+    ]
+  },
+  {
+    "id": "her-l3-005",
+    "ladder": "hereon-aeon-up",
+    "level": 3,
+    "topic": "the CNP numbers, cold",
+    "question": "Task A of your CNP - 1-D GP samples, 512 held-out tasks. Give the table: NLL, CRPS, ECE and mean sigma for the CNP, the GP oracle and climatology.",
+    "answer": "CNP: NLL 0.1532, CRPS 0.1677, ECE 0.0214, mean sigma 0.2865. GP oracle: NLL -1.8676, CRPS 0.0379, ECE 0.0040, mean sigma 0.0716. Climatology: NLL 1.1223, CRPS 0.4442, ECE 0.0527, mean sigma 0.7387. All traceable to cnp_synthetic/runs/ - 16000 steps, 639.5 s, eval seed 20260818.",
+    "explanation": "This is the one place in the interview where you have your own numbers. Knowing them cold, without reaching for a slide, is what converts 'implementation' in the cover letter from a word into evidence. It is the strongest asset in the application and it must be defensible without notes.",
+    "trap": "Quoting a number you have not checked against RESULTS.md that morning. Never invent a figure - a wrong number here is checkable and it destroys the one thing that was solid.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/14_talk_script.md",
+      "../cnp_synthetic/RESULTS.md"
+    ],
+    "difficulty": 1430,
+    "requires": [
+      "her-l1-003"
+    ]
+  },
+  {
+    "id": "her-l3-006",
+    "ladder": "hereon-aeon-up",
+    "level": 3,
+    "topic": "losing to the oracle is the correct outcome",
+    "question": "Your CNP is 4.4x worse than the exact GP posterior on CRPS. Why is that the right result rather than a disappointing one?",
+    "answer": "Because the GP oracle is the exact posterior for the process that generated the data - it is an upper bound, not a competitor. Beating it would have meant a context/target leak, i.e. a bug. Reporting that you lost to the oracle by the expected margin is evidence the evaluation is honest.",
+    "explanation": "This is the single best demonstration of scientific judgement in your material: you built a baseline you knew you could not beat, specifically so that beating it would be a red flag. Say the reasoning, not just the number.",
+    "trap": "Presenting the CNP as 'beating baselines' and hoping nobody asks. Volunteer the loss to the oracle first - it is the part that makes the rest credible.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/14_talk_script.md",
+      "../cnp_synthetic/RESULTS.md"
+    ],
+    "difficulty": 1460,
+    "requires": [
+      "her-l2-003"
+    ]
+  },
+  {
+    "id": "her-l3-007",
+    "ladder": "hereon-aeon-up",
+    "level": 3,
+    "topic": "sharper AND better calibrated",
+    "question": "Against climatology your CNP wins on all four metrics. Why do you insist on stating sharpness and calibration as a pair?",
+    "answer": "Because either alone is trivial. Perfect calibration is achievable by predicting a very wide band everywhere - it costs nothing and says nothing. Sharpness alone is achievable by shrinking sigma until the intervals stop covering. Only the pair is evidence: the CNP is sharper than climatology (mean sigma 0.2865 vs 0.7387) AND better calibrated (ECE 0.0214 vs 0.0527). Also worth volunteering: NLL flatters the CNP, because NLL is its training objective and not the baselines'.",
+    "explanation": "Volunteering that your best-looking metric is the one you trained on is the kind of remark that makes a panel trust everything else you said. It costs you nothing because they would have worked it out.",
+    "trap": "Leading with NLL because it looks best. Lead with CRPS and calibration, and disclose the NLL asymmetry yourself.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/14_talk_script.md",
+      "../cnp_synthetic/RESULTS.md"
+    ],
+    "difficulty": 1480,
+    "requires": [
+      "her-l2-003"
+    ]
+  },
+  {
+    "id": "her-l3-008",
+    "ladder": "hereon-aeon-up",
+    "level": 3,
+    "topic": "leave-one-station-out, and its honest limit",
+    "question": "\"How would we know your model is right where we have no measurements?\" - answer it, including the limitation.",
+    "answer": "Leave-one-station-out, not random splits - random splits leak spatially and flatter everything. Score with CRPS and calibration, with mean sigma reported beside it, because calibration without sharpness is trivially achievable. And the honest limit: LOSO tells you about station-like locations. A street canyon with no station nearby is extrapolation, and the model should say so through its epistemic uncertainty rather than through a confident number.",
+    "explanation": "This is described as the best question you are likely to get, and the answer is fully prepared. The limitation at the end is what separates it from a memorised protocol - it shows you know what your own validation does not cover.",
+    "trap": "Stopping after 'leave-one-station-out'. The protocol without its limit sounds rehearsed; the limit is the part that shows judgement.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/14_talk_script.md"
+    ],
+    "difficulty": 1500,
+    "requires": [
+      "her-l2-005"
+    ]
+  },
+  {
+    "id": "her-l3-009",
+    "ladder": "hereon-aeon-up",
+    "level": 3,
+    "topic": "the honest link from your CNP to UFP",
+    "question": "Your CNP's second task resembles the UFP problem. State the link - and the disclaimers that must come with it.",
+    "answer": "Task B was a synthetic 2-D city field: a smooth regional background plus a sharp road ridge, evaluated leave-one-station-out. That is the UFP problem's geometry exactly - a broad urban background with steep near-road structure, and so few sensors that you must hold one out to learn anything. It was not built for air quality; it was built because that shape is the hard case. The disclaimers, said before he asks: it is synthetic, it is not UFP data, and it has no microphysics.",
+    "explanation": "The link is real, not a stretch, which is why it works. What makes it safe is volunteering the three limits in the same breath - a panel that hears you qualify your own strongest analogy stops looking for the overclaim.",
+    "trap": "Presenting the synthetic city field as if it were air-quality data. That is an explicit do-not-say. Say 'synthetic' in the same sentence, not in a later one.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md"
+    ],
+    "difficulty": 1510,
+    "requires": [
+      "her-l2-005"
+    ]
+  },
+  {
+    "id": "her-l3-010",
+    "ladder": "hereon-aeon-up",
+    "level": 3,
+    "topic": "\"why not just improve the CTM?\"",
+    "question": "Karl asks why you would bolt a network onto his model instead of improving the CTM. Answer.",
+    "answer": "Do not argue against the CTM - he wrote it. \"I would not replace it. The CTM carries the physics and the emissions inventory; what it cannot do is condition cheaply on sparse observations at arbitrary locations. The learned part is an observation-conditioning layer on top, and if it cannot beat kriging on the same data it has not earned its place.\"",
+    "explanation": "The answer works because it concedes the CTM's territory completely and claims only the narrow thing the CTM genuinely cannot do. The kriging clause is the load-bearing part: you are naming, unprompted, the condition under which your own contribution would be worthless.",
+    "trap": "Any phrasing that implies machine learning can replace the CTM. This is a physics-based group and that framing loses the room immediately.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md"
+    ],
+    "difficulty": 1520,
+    "requires": [
+      "her-l2-006"
+    ]
+  },
+  {
     "id": "her-l4-001",
     "ladder": "hereon-aeon-up",
     "level": 4,
@@ -281,6 +477,266 @@
     ]
   },
   {
+    "id": "her-l4-003",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "the publication gap - the arithmetic",
+    "question": "\"Your publication list is five papers, all 2018 to 2020, all astrochemistry. You were a post-doc at Universitaet Hamburg from 2021 to 2025. What came out of that?\" - open your answer.",
+    "answer": "Concede it is fair, then give the arithmetic before the story: the post-doc ran 08/2021 to 01/2025, about three and a half years on paper. A full year of that was parental leave (01/2024 - 12/2024), so it was about two and a half years of research. And it was a change of field - experimental atomic and molecular collision physics into marine ecosystem modelling - so the first stretch went into learning GOTM-FABM, the NPZD formulation and a legacy Fortran/OpenMP particle code well enough to build on it rather than around it.",
+    "explanation": "The interviewer is not testing productivity. They are testing whether you are honest about a visible weakness, whether you blame anyone for it, and - the real worry - whether a two-year AEON-UP contract will also end without output. The gap is survivable; the posture is not. Leading with arithmetic makes it smaller and unemotional.",
+    "trap": "Using parental leave as a shield. State it once as a fact - in Germany it is normal and legally protected - then move on. Dwelling on it looks like an excuse; hiding it makes the arithmetic look worse than it is.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/05_interview_questions.md"
+    ],
+    "difficulty": 1560,
+    "requires": [
+      "her-l3-004"
+    ]
+  },
+  {
+    "id": "her-l4-004",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "what came out of the post-doc",
+    "question": "Having given the arithmetic, what did the post-doc actually produce - and what is the strongest single fact in the answer?",
+    "answer": "A working model: a Lagrangian individual-based model of phytoplankton trait evolution, agents that mutate and are selected on optimal growth temperature, coupled into a water-column framework via GOTM-FABM, with the particle engine ported from Fortran/OpenMP to JAX so it would run on a GPU. The manuscript on the trait-evolution work is in final preparation. The strongest fact: after the contract ended you returned to Hereon as a guest scientist for six months, unpaid and without a contract (05/2025 - 10/2025), to finalise the framework and get the simulation data into publishable shape. You did not want to leave it unfinished.",
+    "explanation": "The unpaid six months is the answer to the unasked question. It is direct evidence that you finish work when nobody is paying you to - which is precisely the worry a two-year contract raises. It also happened at their own institution.",
+    "trap": "Claiming the manuscript is 'submitted' when the CV says in final preparation, or inventing a submission date. Checkable, and fatal.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/05_interview_questions.md"
+    ],
+    "difficulty": 1580,
+    "requires": [
+      "her-l3-004"
+    ]
+  },
+  {
+    "id": "her-l4-005",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "the lesson - publish incrementally",
+    "question": "Close the publication-gap answer with the lesson. What is it, and why is that specific example the right one?",
+    "answer": "\"What I would do differently is publish in smaller pieces. I was holding the work for one complete story. The port of the particle engine to JAX was a methods contribution in its own right - that is a model-description paper, the kind Geoscientific Model Development exists for - and I should have written it as one instead of waiting for the science paper to be finished. In a two-year project I would not make that mistake again.\"",
+    "explanation": "Naming GMD is the detail that makes it land: it is the journal Karl published EPISODE-CityChem Part 2 in, so it shows you know how this community publishes. And the lesson is a judgement you made, not a circumstance that happened to you - which is the whole point of the answer.",
+    "trap": "Only use this if it is true. Was the JAX port really publishable standalone? You are the only person who knows. If it was too small or too tied to the science paper, say the true version instead - the reflection only works if it is actually yours.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/05_interview_questions.md"
+    ],
+    "difficulty": 1600,
+    "requires": [
+      "her-l3-004"
+    ]
+  },
+  {
+    "id": "her-l4-006",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "\"how do we know AEON-UP won't end the same way?\"",
+    "question": "The real worry, asked directly. Answer it.",
+    "answer": "\"Because I would publish incrementally rather than hold everything for one paper, and because the deliverables here are separable - a data-and-training pipeline, a calibration and evaluation protocol, and the science result are three outputs, not one.\" Optionally add that you have already shown you finish work without being paid to.",
+    "explanation": "This is the question the whole publication-gap band exists to reach. The answer is structural rather than a promise to try harder: it names three things that can each be shipped alone, which is a project-management answer to a project-management fear.",
+    "trap": "Answering with reassurance instead of structure. 'I'm very motivated' is not an answer; three separable deliverables is.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/05_interview_questions.md"
+    ],
+    "difficulty": 1620,
+    "requires": [
+      "her-l3-004"
+    ]
+  },
+  {
+    "id": "her-l4-007",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "the follow-ups - where this answer actually fails",
+    "question": "The publication-gap answer rarely fails on the first question. Name the follow-ups and the hard rules.",
+    "answer": "\"What is the current status of the manuscript?\" - answer for your own part only and never invent a date; the write-up is with co-authors, and if you do not know today's status say you would need to check. \"Why didn't it get published during the post-doc?\" - the same question again, testing whether you will blame someone the second time; stay on your own side of it. \"Whose responsibility was that?\" - never criticise a former supervisor, group or institute. Not once, not mildly, not in response to an invitation to do so. \"You have no ML publications either\" - that is Question 15; answer it there and stop.",
+    "explanation": "Hereon and Universitaet Hamburg are twenty kilometres apart with overlapping people. An interviewer who hears you blame a previous PI concludes they will be blamed next. Take your share and stop talking.",
+    "trap": "Answering the ML-publications question here. It is a different question whose answer invites this one - keep them separate or you will deliver both badly.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/05_interview_questions.md"
+    ],
+    "difficulty": 1640,
+    "requires": [
+      "her-l3-004"
+    ]
+  },
+  {
+    "id": "her-l4-008",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "TVoeD - what is actually negotiable",
+    "question": "The advert says TVoeD E13. What is negotiable and what is not?",
+    "answer": "The group is fixed. E13 is E13 - you cannot talk your way to E14, and attempting it signals you do not know how the German public sector works, which at a Helmholtz centre is itself a mark against you. What is negotiable is the Stufe, the step within E13. Steps run 1 to 6 and are assigned from recognised einschlaegige Berufserfahrung - relevant prior professional experience. The gap between steps is large, it compounds over a two-year contract, and it is decided administratively, largely on what you can document. So the entire conversation is about step assignment, not about salary.",
+    "explanation": "This single reframing is the whole of H3. It converts an awkward moment into a question you can ask competently, and it makes you sound like someone who has worked in the German public sector rather than someone about to be surprised by it.",
+    "trap": "Trying to negotiate the group, or treating E13 as an opening offer. It is a published table, not an offer.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/17_salary_and_conditions.md"
+    ],
+    "difficulty": 1660,
+    "requires": [
+      "her-l1-003"
+    ]
+  },
+  {
+    "id": "her-l4-009",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "what to say when salary comes up",
+    "question": "They ask what you expect. Say it.",
+    "answer": "\"I understand the position is TVoeD E13, and I am not trying to negotiate the group - that is what it is. What matters to me is the step assignment. I have a doctorate and three and a half years of post-doctoral research, plus applied work in clinical data engineering, and I would want that recognised as relevant experience. Could you tell me how the step is determined here, and who decides it?\" If they ask whether E13 is acceptable and it is, say yes - do not perform reluctance to create leverage, because there is none to create. If they do not raise it at all, leave it: a first interview with two scientific PIs is usually not where this is settled.",
+    "explanation": "Ending on a question moves the conversation to the only variable that exists and hands the awkward part to them. The step assignment is normally an HR conversation once an offer exists - that is the right moment to push, and the wrong moment to have already agreed to step 1.",
+    "trap": "Naming a private-sector figure. Your stated expectation has been 75,000 EUR - do not open with it in a TVoeD post; it reads as not having understood the advert. Recalibrate against the current TVoeD Bund table BEFORE you go in, not during.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/17_salary_and_conditions.md"
+    ],
+    "difficulty": 1680,
+    "requires": [
+      "her-l1-003"
+    ]
+  },
+  {
+    "id": "her-l4-010",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "the step case, and the missing document",
+    "question": "What is the documented case for your Stufe, what must you ask HR rather than assert, and what document is missing?",
+    "answer": "The case, with dates: Ph.D. Researcher, Universite Paris-Saclay 10/2015-09/2018 (doctorate); Post-doctoral Scientist, Universitaet Hamburg 08/2021-01/2025 (direct scientific research experience); Guest Scientist, Helmholtz-Zentrum Hereon 05/2025-10/2025 (research, at this employer); Clinical Data Engineering, HealthTwiSt 02/2026-04/2026 (applied data engineering). Two things to ask rather than assert: how the 65% Teilzeit post-doc is counted, and whether the unpaid Hereon guest period counts at all. The missing document: the Universitaet Hamburg post-doc has no Arbeitszeugnis - the one major CV entry with no supporting document - and step assignment runs on documents.",
+    "explanation": "Step assignment is administrative and evidentiary. Having the list ready with dates means it can be handed over rather than recalled. Requesting a proper Arbeitszeugnis from Universitaet Hamburg is worth doing now, independently of this application.",
+    "trap": "Offering the Hamburg contract as a substitute for the Arbeitszeugnis. It discloses the 65% and a befristet end date that contradicts the CV's 01/2025. Do not produce it.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/17_salary_and_conditions.md"
+    ],
+    "difficulty": 1700,
+    "requires": [
+      "her-l1-003"
+    ]
+  },
+  {
+    "id": "her-l4-011",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "what must never be said about money",
+    "question": "Name the things that must not be said in the salary conversation, and why this is the highest-risk moment for one of them.",
+    "answer": "Never mention visa timing, financial runway, or how long the search has taken. Never say 'I would take anything' - it invites step 1 and devalues you. Never cite a competing offer you do not have. And do not ask about extension or permanency in a first interview; if they raise the two-year horizon themselves, answer about output: \"Two years is enough to do something publishable and leave something running, which is what I would aim for.\"",
+    "explanation": "Salary is exactly where pressure leaks out. Everything else in the room is about the science, where you are comfortable; this is the one topic that touches your actual situation, and that is why the rule is absolute here rather than merely advisable.",
+    "trap": "Letting relief or urgency show when a number is named. Decide in advance, calmly, whether E13 at a realistic step is worth having - discovering it mid-interview produces a visible flinch.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/17_salary_and_conditions.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/06_do_not_claim.md"
+    ],
+    "difficulty": 1710,
+    "requires": [
+      "her-l1-003"
+    ]
+  },
+  {
+    "id": "her-l4-012",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "\"what do you know about aerosol microphysics?\"",
+    "question": "Karl asks it directly. Answer - and know where to stop.",
+    "answer": "Honestly and short: astrochemistry reaction networks and marine biogeochemistry - coupled reaction-transport systems, but not aerosol dynamics. You know why number and mass diverge, why coagulation is second-order and what that implies for a learned model. You have not implemented a modal or sectional aerosol scheme. Then stop. Do not fill the silence.",
+    "explanation": "The 'then stop' is the whole card. A short true answer followed by silence reads as confidence; the same answer followed by thirty seconds of elaboration reads as someone talking themselves into an overclaim. Karl is the primary source on this topic and cannot be impressed, only reassured.",
+    "trap": "Padding the answer. Every extra sentence after 'I have not implemented a modal or sectional scheme' is a chance to claim something you cannot defend.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/06_do_not_claim.md"
+    ],
+    "difficulty": 1720,
+    "requires": [
+      "her-l2-006"
+    ]
+  },
+  {
+    "id": "her-l4-013",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "\"have you worked with EPISODE-CityChem?\"",
+    "question": "Answer, in the exact register required.",
+    "answer": "\"No.\" Then Boundary 3: your grid experience is water-column - GOTM-FABM, turbulence closure, operator splitting, NetCDF at scale - plus a Lagrangian individual-based model. The numerics transfer, the domain does not, and you would learn the namelists and chemical mechanisms from his team. Do not soften the 'no' into 'not directly'.",
+    "explanation": "This is the single most dangerous boundary in the room, because it is the one where the person opposite is the primary source - Karl wrote and maintains the model. A hedge here invites exactly one follow-up question about a namelist, and there is no recovery from it.",
+    "trap": "'Not directly', 'only a little', 'I've read about it'. All of these are heard as yes-with-qualification and will be probed. The word is 'No'.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/06_do_not_claim.md"
+    ],
+    "difficulty": 1730,
+    "requires": [
+      "her-l3-010"
+    ]
+  },
+  {
+    "id": "her-l4-014",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "the strongest question you can ask",
+    "question": "Which single question should you make sure to ask, to whom, and why does it work?",
+    "answer": "To Dr. Karl: \"Where do you expect EPISODE-CityChem to be weakest - emissions, the near-road gradient, or the microphysics? I would rather aim the learned correction at the part you least trust than at whatever happens to be easiest to fit.\" It works because it invites the model's author to talk about his own model's limits, which experts enjoy and rarely get asked; it positions the ML as serving the physics rather than competing with it; and it says you intend to choose the target deliberately.",
+    "explanation": "The cover letter engaged only Ramacher's work. Addressing Karl directly, by name, with a question only someone who had thought about his model could ask, is the correction for that - and the closing questions are scored whether or not anyone admits it.",
+    "trap": "Asking it as a test of him. It is a genuine design question and should sound like one.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/16_questions_for_the_panel.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md"
+    ],
+    "difficulty": 1740,
+    "requires": [
+      "her-l3-010"
+    ]
+  },
+  {
+    "id": "her-l4-015",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "how to run the closing questions",
+    "question": "How many questions do you bring, in what form, in what order - and what do you do when one gets answered early?",
+    "answer": "Bring four, written on paper, not on a phone - a prepared sheet reads as seriousness, scrolling reads as distraction. Ask at least one to each PI by name. Order: scientific questions first, then group and working practice, then conditions - and conditions only if the conversation has gone well or they open the door. Expect two to be answered during the conversation; that is why you bring four. Cross one off visibly and say so: \"You answered my second one already.\" It shows you were listening rather than waiting.",
+    "explanation": "\"No, I think you've covered everything\" is the worst available answer to the closing question, and it is the default when nothing was prepared. Four on paper makes that impossible.",
+    "trap": "Asking anything answerable from the advert or the website - start date, contract length, TVoeD group, the institute's research areas. It reads as not having read.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/16_questions_for_the_panel.md"
+    ],
+    "difficulty": 1750,
+    "requires": [
+      "her-l3-010"
+    ]
+  },
+  {
+    "id": "her-l4-016",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "the other three questions worth bringing",
+    "question": "Besides the EPISODE-CityChem weakness question, name three strong questions and what each is really for.",
+    "answer": "For Karl: \"For UFP, is the target particle number concentration, or the size distribution? Those are quite different learning problems, and it changes what the uncertainty even means\" - it can only be asked by someone who knows PNC is not a mass concentration. The data question, to either: \"Is the training data already assembled - CTM output and station observations in a usable state - or is the first job to build that?\" - every applied ML project lives or dies here, and only someone who has shipped a pipeline asks it first. Scope: \"At the end of the two years, what would make you consider AEON-UP a success - a validated model, a published method, or something operational that Hereon keeps running?\" - the three answers imply very different jobs; listen carefully, because the answer tells you how to weight everything else you say.",
+    "explanation": "Each of these does double duty: it gets you information you actually need, and it demonstrates a specific competence without a claim attached. That is what separates a real question from a disguised statement about yourself.",
+    "trap": "\"Would you say my experience with JAX is relevant here?\" That is not a question. Neither is any other sentence about yourself with a rising tone at the end.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/16_questions_for_the_panel.md"
+    ],
+    "difficulty": 1760,
+    "requires": [
+      "her-l3-010"
+    ]
+  },
+  {
+    "id": "her-l4-017",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "the Code4Earth question - get the facts right",
+    "question": "You want to ask Ramacher about the Code4Earth work. State the facts precisely, then the question.",
+    "answer": "The facts: ECMWF Code4Earth Challenge 34, mentored by Ramacher and Johannes Bieser, using the CAMS European Air Quality Reanalysis, and it produced Urban Air Quality View. He mentored it; he is not the author. The question: \"The Code4Earth challenge produced Urban Air Quality View. How much of AEON-UP starts from what came out of that, and how much is a fresh start?\"",
+    "explanation": "It shows you followed his work without claiming to have run the code - the exact honest position the study room sets for that project. The mentored-not-authored distinction is the part that gets fumbled, and getting it right is a small, specific signal of care.",
+    "trap": "Attributing the tool to Ramacher as its author, or getting the challenge number or the co-mentor wrong. A near-miss on a detail about someone's own project is worse than not raising it.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/16_questions_for_the_panel.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/05_interview_questions.md"
+    ],
+    "difficulty": 1770,
+    "requires": [
+      "her-l3-003"
+    ]
+  },
+  {
     "id": "her-l5-001",
     "ladder": "hereon-aeon-up",
     "level": 5,
@@ -297,6 +753,145 @@
     "requires": [
       "her-l4-001",
       "her-l4-002"
+    ]
+  },
+  {
+    "id": "her-l5-002",
+    "ladder": "hereon-aeon-up",
+    "level": 5,
+    "topic": "the one-line thesis",
+    "question": "The projector dies. You have one sentence. What is it?",
+    "answer": "\"I build environmental models, I have moved into machine learning, and what I am actually good at is finding the errors that do not announce themselves.\"",
+    "explanation": "This is the honest centre of the case. It is not 'I am an ML expert' - you would lose that argument to a candidate with NeurIPS papers. It is not 'I am an air-quality scientist' - you would lose that to Karl in one question. It is the intersection, and the intersection is rare. Every slide in the deck serves this sentence.",
+    "trap": "Drifting toward either pure claim under pressure. If you find yourself defending ML expertise or domain expertise, you have left the ground you can actually hold.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/14_talk_script.md"
+    ],
+    "difficulty": 1800,
+    "requires": [
+      "her-l4-001",
+      "her-l4-002"
+    ]
+  },
+  {
+    "id": "her-l5-003",
+    "ladder": "hereon-aeon-up",
+    "level": 5,
+    "topic": "slide 7 - the centrepiece",
+    "question": "Slide 7 is the slide the interview turns on. Give its five beats in order, and the line you land it with.",
+    "answer": "1. The output looked completely plausible - smooth attention maps, sensible structure. 2. Nothing failed: no exception, no failing test, the suite was green. 3. What it actually was - the board frame was mirrored, so every saliency map was read in the wrong orientation; and separately, 84 of 112 input planes were left empty because bare FEN input carried no move history. 4. How it was caught - not by a test, by an invariant that had to hold and did not. 5. What you did: fixed both, and published a public correction of findings already put out. The line, then stop for a beat: \"Both bugs produced results that were plausible enough to publish. One of them I had already published.\"",
+    "explanation": "That admission is the strongest thing in the deck. A panel hiring someone to build a model that will inform public-health exposure estimates is buying exactly this reflex. Give the slide its full 2:30 - if you are over time at slide 8, cut slide 10, never slide 7.",
+    "trap": "Softening the admission. Any hedge - 'a minor issue', 'in an early version' - removes the entire value of the slide. Say it flat and let the silence sit.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/14_talk_script.md"
+    ],
+    "difficulty": 1830,
+    "requires": [
+      "her-l4-006"
+    ]
+  },
+  {
+    "id": "her-l5-004",
+    "ladder": "hereon-aeon-up",
+    "level": 5,
+    "topic": "slide 8 - making the transfer explicit",
+    "question": "Having told the bug story, how do you connect it to air quality? Do not leave the panel to do it.",
+    "answer": "\"A miscalibrated uncertainty estimate fails the same way. It does not throw. The map still looks like a map. If an air-quality model is confidently wrong at an unmonitored location, nothing in the pipeline objects - and that is the location someone actually lives at.\"",
+    "explanation": "This is the cover letter's spine, and the panel will have read it. Landing it verbally is what makes the letter look true rather than written. It also sets up the UFP argument, since UFP is precisely the case with no monitoring station to object.",
+    "trap": "Assuming the transfer is obvious. It is obvious to you because you wrote it; to a panel listening to a chess-engine anecdote it is not, unless you say it.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/14_talk_script.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md"
+    ],
+    "difficulty": 1850,
+    "requires": [
+      "her-l3-004"
+    ]
+  },
+  {
+    "id": "her-l5-005",
+    "ladder": "hereon-aeon-up",
+    "level": 5,
+    "topic": "slide 11 - what you do not know",
+    "question": "There is a slide listing your gaps. What is on it, and why must it stay in the deck?",
+    "answer": "No hands-on CMAQ or EPISODE-CityChem - your grid experience is water-column: GOTM-FABM, turbulence closure, operator splitting, NetCDF at scale; the numerics transfer, the domain does not, and you would learn the namelists and mechanisms from Dr. Karl's team. Not an atmospheric chemist - astrochemistry reaction networks and marine biogeochemistry. Probabilistic deep learning is current, deliberate work, not a long track record: the CNP is where you are, not where you claim to be. It stays because volunteering the gap is what makes the rest of the deck credible, and it pre-empts the question being asked as a challenge.",
+    "explanation": "Do not let anyone talk you out of this slide. Its cost is one minute; its benefit is that every claim on the other twelve slides becomes believable, because you have demonstrated you will say the unflattering thing without being pushed.",
+    "trap": "Reading it apologetically. It is a scope statement, not a confession - deliver it at the same pace as the rest of the talk.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/14_talk_script.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/06_do_not_claim.md"
+    ],
+    "difficulty": 1870,
+    "requires": [
+      "her-l4-013"
+    ]
+  },
+  {
+    "id": "her-l5-006",
+    "ladder": "hereon-aeon-up",
+    "level": 5,
+    "topic": "slide 10 - how you would approach AEON-UP",
+    "question": "Present your approach without pretending to know their data. Give the sequence and the sentence that closes it.",
+    "answer": "Present a sequence, and say it is a proposal you expect to revise on contact with the group. 1. Get the pipeline honest first: CTM fields and station observations into one reproducible dataset, with a spatial cross-validation scheme using leave-one-station-out, because random splits leak spatially and will flatter every model built afterwards. 2. Baselines before architecture: climatology and a kriging/GP baseline, scored on CRPS and calibration, not RMSE alone - a model that cannot beat kriging is not yet interesting. 3. Then the neural process, conditioned on CTM output, with uncertainty evaluated the same way at every step. Close with: \"I would rather spend the first months making the evaluation trustworthy than the first months making the model bigger.\"",
+    "explanation": "The order is the argument. Anyone can propose an architecture; proposing to spend the first months on evaluation infrastructure is what an experienced modeller does, and it is the same instinct as the bug story on slide 7.",
+    "trap": "Presenting it as a research plan you are confident in. You have not seen their data. Say the sequence is a proposal you expect to revise.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/14_talk_script.md"
+    ],
+    "difficulty": 1890,
+    "requires": [
+      "her-l3-008"
+    ]
+  },
+  {
+    "id": "her-l5-007",
+    "ladder": "hereon-aeon-up",
+    "level": 5,
+    "topic": "the format question, and the cut",
+    "question": "What must you establish before rehearsing the talk, and what is the rule if you run long?",
+    "answer": "Ask the panel the format first: length (10 / 15 / 20 minutes), audience (the two PIs, or the whole institute), and whether they want your previous work or your plan for the project. Most Helmholtz panels want both, weighted to the first. The script is built for 15 minutes with both - thirteen slides, about 14:00, plus seven backup slides - and it marks the exact cuts for a 10-minute version. Timings are budgets, not targets: if you are over at slide 8, cut slide 10, never slide 7.",
+    "explanation": "Helmholtz interviews usually ask for a short presentation at ten days' notice or less. Asking the format is not an imposition - it is the first thing a prepared candidate does, and getting it wrong wastes the single largest block of time you control.",
+    "trap": "Rehearsing to 15 minutes and discovering on the day it is 10. Rehearse both versions, aloud, standing up, with a timer.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/14_talk_script.md"
+    ],
+    "difficulty": 1910,
+    "requires": [
+      "her-l4-001"
+    ]
+  },
+  {
+    "id": "her-l5-008",
+    "ladder": "hereon-aeon-up",
+    "level": 5,
+    "topic": "the closing line",
+    "question": "The interview is genuinely over. What do you say?",
+    "answer": "\"Thank you - this is the first post I have seen where the physics and the learned side are the same job rather than two teams, and that is the part I want to work on.\" Then stop talking.",
+    "explanation": "It is true, it is specific to them, and it is not a compliment about the institute's reputation - which every other candidate will offer. It also restates your thesis (the intersection) one last time without claiming anything.",
+    "trap": "Continuing after it. The line works because it ends.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/16_questions_for_the_panel.md"
+    ],
+    "difficulty": 1930,
+    "requires": [
+      "her-l4-015"
+    ]
+  },
+  {
+    "id": "her-l5-009",
+    "ladder": "hereon-aeon-up",
+    "level": 5,
+    "topic": "H6 - say GPU, not GPU/TPU",
+    "question": "Your CV says 'batched GPU inference' and 'GPU/TPU execution'. What do you say aloud, and why?",
+    "answer": "Say GPU. The deck already says GPU only. The TPU half is unconfirmed and this is a room with people who will ask which TPU generation, and what you did about the memory layout. If asked about the CV wording directly, correct it plainly - the work was on GPU - rather than defending it.",
+    "explanation": "The submitted CV is frozen and cannot be changed, so the mismatch has to be handled verbally. Volunteering a correction to your own CV costs almost nothing and is consistent with everything else in the talk; being caught defending an inflated line costs the credibility that slide 7 bought.",
+    "trap": "Repeating the CV's phrasing on autopilot because it is what is written. This is the one line on the CV you have decided not to say.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/14_talk_script.md"
+    ],
+    "difficulty": 1950,
+    "requires": [
+      "her-l4-012"
     ]
   }
 ]
