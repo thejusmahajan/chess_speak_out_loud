@@ -63,7 +63,25 @@ branch in `trainer/engine.py` plus three tests. **Code only — no card content 
 
 ---
 
-**3. `briefs/2026-08-27_llm-seam-removal.md` — ACTIVE. Execute this one.**
+**2. `briefs/2026-08-28_trainer-interview-mode.md` — ✅ DELIVERED, AUDITED, ACCEPTED 2026-08-29.**
+Do not execute it again. Report and audit are in `reports/`. Committed and pushed as `d32558d`.
+
+---
+
+**3. `briefs/2026-08-29_repo-reorganisation.md` — ⚑ ACTIVE. Execute this one.**
+
+Move the root's 30 markdown files into `docs/leadership/`, `docs/plans/`, `docs/guides/` and
+`archive/reports/`, leaving four spine files at the root. **Mechanical `git mv` only — no file
+body may be edited except four named link-repair targets, no card field except `sources`, and
+nothing may be deleted.** Six gates, ending in **both apps actually launched and served**.
+
+*⚠ WIP-limit note: this is a second non-interview brief ACTIVE alongside the LLM seam, which
+breaks the rule in the deadline block above. Thejus asked for it directly on 2026-08-29; the
+leader recorded the exception rather than pretending the rule was met.*
+
+---
+
+**4. `briefs/2026-08-27_llm-seam-removal.md` — ACTIVE. Execute this one.**
 
 Close the live LLM seam. `backend/app.py:658` calls `explanations.enrich_tree_explanations`
 unconditionally, that function has no `LLM_ENABLED` guard, and it reaches
