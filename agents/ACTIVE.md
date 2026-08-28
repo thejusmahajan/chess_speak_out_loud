@@ -67,11 +67,21 @@ replace the flag with a mechanically-enforced interlock test. Full evidence in t
 
 **3. `briefs/2026-08-28_aeon-up-external-facts.md` — ACTIVE. Deep-research agent, web access.**
 
-⚑ **Not a Gemini task — do not run this in Antigravity.** It goes to an external web-based
-research app with no filesystem access. The upload package is
-**`research/aeon_up/research_01/`**: paste `BRIEF.md` (the web adaptation of this brief — same
-seven targets, rewritten I/O sections) and attach the four files in `inputs/` (44 KB). The
-returned document is dropped into `research_01/report/` by hand.
+⚑ **Not a Gemini task — do not run this in Antigravity.** It goes to **Gemini Deep Research**, the
+web app: no filesystem, no sight of this repository, nothing reaches it but what Thejus pastes in.
+Its output is **not** a worker delivery and is not filed under `agents/reports/`.
+
+⚠ **Round 01 STALLED, 2026-08-28, and has been superseded.** `research/aeon_up/research_01/BRIEF.md`
+is 335 lines of scope contract, output schema and checkpoints — written for an agent that reads
+instructions. Deep Research takes a short *goal*, proposes a plan, browses, and returns a sourced
+report; it did not know what to do with a contract. **Use `research/aeon_up/research_02/`**: four
+self-contained prompts, run in order, **nothing attached to any of them**. The seven targets and
+their reasoning are unchanged and this brief remains authoritative for them; what was dropped is
+the machinery. Prompts 1 (R1/R3/R4) and 2 (R2/R5) gate things he must not say until they return.
+Reports drop into `research_02/report/` by hand.
+
+*Why four prompts and not one: Deep Research writes one plan per prompt, and a plan spanning the
+TVöD Bund pay table and neural processes for air quality goes shallow on both.*
 
 Verify **seven external facts** that cannot be established from any file on disk, and that are
 needed in the interview room. **R1** the exact citation of Karl's ultrafine-particle paper — the

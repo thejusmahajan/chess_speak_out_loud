@@ -1,5 +1,13 @@
 # AEON-UP interview — verify seven external facts
 
+> ⚠ **STALLED 2026-08-28 — SUPERSEDED. Do not paste this into Deep Research.**
+> Gemini Deep Research takes a short *goal*, proposes a plan, browses, and returns a sourced
+> report. This is a 335-line scope contract written for an agent that reads instructions, and
+> the tool did not know what to do with it. The live route is **`../research_02/`** — four
+> short self-contained prompts, nothing attached. The seven targets below are unchanged and
+> still authoritative; only the machinery around them was wrong. Kept as the record of what
+> was tried.
+
 **Round:** research_01 · filed 2026-08-28
 **Worker:** external web-based deep-research agent (no filesystem access)
 **Companion:** four background files are attached alongside this prompt — see §0.4
