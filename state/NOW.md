@@ -1,6 +1,6 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-08-27 by the leader (Opus 5)
+**Last updated:** 2026-08-28 by the leader (Opus 5)
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
 
 ---
@@ -39,6 +39,21 @@ re-litigate the cover letter. Those are decided and out of his hands.
 **18 files.** H1–H5 are all now written; **the deck is BUILT** (`../talk/aeon_up_talk.pdf`).
 **Nothing here is rehearsed.** The remaining work is his voice, out loud, with a timer — not more
 documents. *The problem was always priority, not volume; do not add more reading.*
+
+**⚑ H1–H5 are now DRILLABLE, 2026-08-28.** The `hereon-aeon-up` ladder in the trainer went
+**17 → 51 cards**. The old 17 were written 2026-08-22 and stopped at "the pitch"; the five holes
+were written 27–28 August and had **zero** coverage. Now: L2 the four UFP facts, L3 the UFP bridge
+and the CNP numbers, **L4 fourteen cards** on the publication gap / TVöD / facing Karl / the panel
+questions, L5 nine on delivering the talk. `verify_cards.py` passes at 205 cards and was
+mutation-checked — an injected "hands-on experience with EPISODE-CityChem" turns it red.
+*This is recall drill, not more reading; it does not substitute for saying the talk aloud against
+a clock.* Levels are capped 0–5 by the schema, so the new material sits inside the existing bands.
+
+**Seven external facts are OUT FOR RESEARCH and not yet back** —
+`agents/briefs/2026-08-28_aeon-up-external-facts.md`, upload package in
+`research/aeon_up/research_01/`. **Two of them gate things he must not say until verified:**
+**R1** the exact title of Karl's UFP paper, and **R2** the TVöD Bund 2026 E13 table. Until R2
+returns, the €75,000 expectation is still unrecalibrated.
 
 | # | hole | why it matters |
 |---|---|---|
@@ -132,7 +147,7 @@ Boards, not search results: HIDA board + Helmholtz Job Letter. Hereon was the wa
 
 | repo | branch | state at 2026-08-27 session close |
 |---|---|---|
-| `chess_speak_out_loud` | `windows-dev` | pushed and verified; see the session-close block in `CLAUDE.md` |
+| `chess_speak_out_loud` | `windows-dev` | pushed and verified at the 2026-08-28 close (6 commits: cards, brief, research package, launchers, ideas, trainer state) |
 | `cnp_synthetic` | (own git) | **DIRTY — 5 modified + 1 untracked at `db3eb90`.** Commit them (§3) |
 | `job_search` | `master` | **FIXED AND PUSHED 2026-08-28**, at `7619193`, `0 0` against `github.com/thejusmahajan/job_search` (private). **Canonical clone: `Documents\bioinformatics_project\job_search\`.** See the note below — this was not a missing remote but a fork. |
 | `thejusmahajan.github.io` | `main` | published 2026-08-22 (`c09496c`, `ac70a00`), verified live |
@@ -199,10 +214,12 @@ and `bridge`), 84/84 external URLs resolving, repetition fixed, per-ladder ratin
 `hereon-aeon-up` ladder *is* interview preparation, which puts the trainer on the critical path.
 
 Two trainer questions still need a human, and both are minutes of work:
-- **Q4 — do the equations render?** Open `http://127.0.0.1:8010`, reveal an `uncertainty` card,
-  confirm typeset maths and not raw `$$`. KaTeX was audited ACCEPT but **nobody has ever seen the
-  output.** *Standing lesson: three times, correct content was authored and left unreachable —
-  every trainer brief must gate on a 400-draw distribution.*
+- ~~**Q4 — do the equations render?**~~ **CLOSED 2026-08-28** — Thejus confirmed directly:
+  *"Equations are fine now."* KaTeX had been audited ACCEPT on 2026-08-20 with the honest caveat
+  that Playwright 404'd and **nobody had ever seen the output**; a human has now seen it. That
+  closes the third instance of the standing failure. *The lesson stands anyway: correct content
+  authored and left unreachable happened three times, and only a person looking at the screen
+  ever caught it.*
 - **Q5 — flag German that is correct but not idiomatic**, via the comment box category
   *"I think this is wrong"*. Invisible to every automated gate and to the leader.
 

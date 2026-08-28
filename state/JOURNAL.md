@@ -115,6 +115,76 @@ nothing ahead.
 
 ---
 
+## 2026-08-28 (second session) — the interview holes became drillable; research delegated outward
+
+**Did:**
+- **Carded H1–H5. The `hereon-aeon-up` ladder went 17 → 51 cards.** The existing 17 were written
+  2026-08-22 and topped out at "the pitch"; H1–H5 were written 27–28 August, so the five
+  highest-value pieces of interview material had **zero** coverage. Added 34: four UFP facts at L2,
+  the UFP bridge and the CNP numbers at L3, **fourteen** at L4 (publication gap, TVöD, facing Karl,
+  the panel questions), nine at L5 on delivering the talk. Every card sourced from the study room;
+  no figure or quotation invented.
+- **Filed `agents/briefs/2026-08-28_aeon-up-external-facts.md`** — seven external facts, R1–R7 —
+  and built the upload package at `research/aeon_up/research_01/` for an external web-based
+  research app. New `research/` tree, one directory per round, with copies of the four background
+  files because that worker has no filesystem access.
+- Committed the desktop launchers, `ideas/tactical_kernels.md`, and the real training state.
+
+**Found:**
+- **The trainer schema caps levels at 0–5.** The plan had been to add levels 6–8; `verify_cards.py`
+  rejects them, and it also requires every `requires` edge to point **strictly downward**. It
+  caught 25 same-level prerequisite edges on the first run. The new material was redistributed
+  inside the existing bands, with `difficulty` carrying intra-band ordering — which is how the
+  original ladder already worked.
+- **`verify_cards.py` was reading its do-not-claim gate from the RETIRED `Documents\job_search`
+  clone.** Contents are currently identical to the canonical copy, so nothing had gone wrong yet,
+  but the gate raises `FileNotFoundError` by design when that file is missing and the directory it
+  points at is dead. Repointed to `bioinformatics_project`.
+- **The gate is real.** Mutation-checked rather than trusted: injecting "hands-on experience with
+  EPISODE-CityChem" and "published papers in Neural Processes" into `her-l4-013` turned it red on
+  both boundaries. Restored.
+- **Q4 is closed.** Thejus confirmed the equations render — *"Equations are fine now."* KaTeX was
+  audited ACCEPT on 08-20 with the honest caveat that Playwright 404'd and nobody had ever seen the
+  output. A human has now seen it.
+
+**Decided:**
+- **The proposed research plan was rewritten, not accepted.** As drafted it had six steps: extract
+  the advert, research Hereon, research the field, identify required skills, **tailor the CV and
+  cover letter**, and generate interview questions. That is a plan for an application that has not
+  been sent. It was sent 2026-08-27; four of the six steps rebuild the existing 22-file study room
+  and one re-litigates frozen PDFs. Replaced with seven targets that share one property: **none can
+  be settled from any file on disk.**
+- **The brief is scoped by exclusion.** It forbids the four out-of-scope steps by name and hands
+  the worker **four** study-room files out of 22 — a research agent given all of them summarises
+  them back instead of going out to find what is missing.
+- **UNVERIFIED is defined as success**, in its own section with the reasoning attached: these facts
+  get said aloud to the people who wrote the underlying papers, so a gap left open costs nothing
+  and a confident reconstruction is a disaster. The brief also forbids "likely" / "appears to be" /
+  "approximately" — the words a model reaches for when it half-knows something. The Cabaneros and
+  Andersson fabrications are quoted back at it with both the wrong and the right citation.
+- **Flashcards are recall drill, not reading.** Recorded in `NOW.md` and in the commit: the cards
+  do not substitute for standing up and delivering the talk against a clock. Adding 34 documents
+  would have been this project's documented failure mode; adding 34 recall prompts is not, but only
+  if the rehearsal actually happens.
+
+**Open:**
+- **Nothing is rehearsed.** Unchanged from the last session and now the only thing left on H1–H5.
+- **The seven external facts are out and not back.** R1 (Karl's UFP paper title) and R2 (the TVöD
+  Bund 2026 E13 table) each gate something he must not say until verified. The €75,000 expectation
+  is still unrecalibrated.
+- **H6** — the CV's "GPU/TPU execution". Now carded as `her-l5-009` (say GPU, correct the CV line
+  if asked), but the underlying claim is still unconfirmed.
+- H1's two questions for Thejus, and H5's ⚠ on Karl's paper title, all still need him.
+- `cnp_synthetic` working tree is still dirty. Q5 (idiomatic German) still needs a human.
+- `applications/hereon_aeon_up/other_documents/registration_confirmation_hlrs_email.pdf` remains
+  untracked **on purpose** — it belongs in `job_search`, which already holds the same certificate.
+  Deliberately not committed this session despite committing everything around it.
+
+**Repo:** six commits — cards, brief, research package, launchers, ideas note, trainer state.
+Pushed to `origin/windows-dev` and verified with `git status` reporting nothing ahead.
+
+---
+
 ## 2026-08-27 — built the restart spine; confirmed the LLM defect is live and cached
 
 **Did:**
