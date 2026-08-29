@@ -15,6 +15,8 @@ If a question below has no answer on disk, that is a gap worth filing, not worth
 | What are the rules I operate under? | **`LEADER_BIBLE.md`** (§4 decided, §5 failure catalog) |
 | What is the worker doing? | **`agents/ACTIVE.md`** |
 | How do I brief a worker without hurting us? | `agents/README.md`, `docs/leadership/WORKER_AGENT_COOKBOOK.md` |
+| How do I *ask Gemini a question* about the project? | **`agents/CONSULT_GEMINI.md`** — paste it, add the question at the bottom |
+| Where do its answers land, and how are they checked? | `agents/consultations/`, audited by `python agents/audit_consultation.py` |
 | What mistakes do *I* make? | `docs/leadership/LEADER_GROUNDING.md` — read before writing any brief |
 
 ## The aim

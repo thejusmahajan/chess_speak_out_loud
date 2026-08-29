@@ -332,3 +332,35 @@ verified — record the verdict) · `SUPERSEDED by <id>` · `ABANDONED`.
 **`DELIVERED` never means done.** Nothing is believed until the leader has run the audit:
 boundaries via `git status`, the **diff rather than the report**, the gate re-run
 independently, the key guard mutation-tested, and the real path exercised on real data.
+
+---
+
+## Asking Gemini a question (not a work order)
+
+**`CONSULT_GEMINI.md` is a standing, reusable prompt** — Thejus pastes its path into Antigravity and
+types his question at the bottom. It makes Gemini the project's resident expert rather than a code
+worker: it grounds on the seven spine files, routes through `state/MAP.md`, and may web-search when
+the repo genuinely lacks the answer.
+
+**It is read-only.** The only file it may write is its own answer, at
+`agents/consultations/YYYY-MM-DD_NN_<slug>.md`, left marked `Status: UNAUDITED`.
+
+**The leader audits before anything is believed:**
+
+```
+python agents/audit_consultation.py            # every UNAUDITED consultation
+python agents/audit_consultation.py <file>     # one of them
+```
+
+It parses the mandatory claims table and mechanically enforces the standing rule that *a quote
+which does not grep is a fabrication*: every `VERIFIED` row must cite a file that exists and quote
+text that actually appears in it; every `EXTERNAL` row must carry a URL and a fetch date; every
+`INFERRED` row must cite something. **Self-tested against planted fabrications**
+(`consultations/_selftest.md`, `_`-prefixed fixtures are skipped by the no-argument run).
+
+⚠ **The script checks sourcing, not correctness.** It cannot tell whether the reasoning is right,
+only whether the evidence is real. **Read the answer.**
+
+*Why this exists: answering questions is content generation, and three of this project's five
+fabricated deliveries arrived when a worker was asked for content. The claims table is the
+mitigation, and the script is what makes auditing it cheap enough to actually happen.*

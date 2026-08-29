@@ -1,5 +1,5 @@
 {
-  "user_rating": 898.9,
+  "user_rating": 920.36,
   "cards": {
     "pyt-l1-001": {
       "rating": 977.59,
@@ -306,12 +306,12 @@
       ]
     },
     "pyt-l0-006": {
-      "rating": 825.46,
-      "ease": 2.7,
-      "interval_days": 6,
+      "rating": 826.56,
+      "ease": 2.55,
+      "interval_days": 4,
       "reps": 2,
-      "last_seen": "2026-08-21T05:40:35.325762+00:00",
-      "due_date": "2026-08-27T05:40:35.325762+00:00",
+      "last_seen": "2026-08-29T15:45:08.778544+00:00",
+      "due_date": "2026-09-02T15:45:08.778544+00:00",
       "mastered": true,
       "history": [
         {
@@ -325,6 +325,12 @@
           "score": 1.0,
           "user_rating": 913.22,
           "card_rating": 825.46
+        },
+        {
+          "timestamp": "2026-08-29T15:45:08.778544+00:00",
+          "score": 0.5,
+          "user_rating": 920.36,
+          "card_rating": 826.56
         }
       ]
     },
@@ -1684,15 +1690,12 @@
     "de-grammatik": 1180.02,
     "de-wortschatz": 1181.34,
     "air-quality": 898.9,
-    "pytorch": 923.66,
+    "pytorch": 920.36,
     "de-konnektoren": 1237.69,
     "hereon-aeon-up": 838.07,
     "bridge": 838.5
   },
   "recent": [
-    "aq-l1-001",
-    "aq-l1-002",
-    "aq-l5-001",
     "aq-l3-002",
     "aq-l4-002",
     "aq-l2-003",
@@ -1709,6 +1712,9 @@
     "aq-l3-003",
     "aq-l4-002",
     "aq-l3-001",
-    "aq-l4-001"
+    "aq-l4-001",
+    "de-wor-l0-003",
+    "pyt-l0-006",
+    "pyt-l1-001"
   ]
 }
