@@ -187,6 +187,25 @@ authored and left unreachable (Level 0, then German). Every trainer brief must g
 **400-draw distribution** proving the new content is actually served. It is the only check that
 has ever caught it.
 
+### If your workspace is `job_search` **or** `thejusmahajan.github.io`
+
+**0. `briefs/2026-08-29_pytorch-certificate-rollout.md` — ⚑ ACTIVE, INTERVIEW ITEM. Execute this
+one FIRST.** It spans **both** workspaces: Part A is two `.tex` files in
+`bioinformatics_project/job_search`, Part B is `experience.html` plus the CV asset on the website.
+Do Part A first — Part B copies Part A's build output.
+
+*Why this before the interview:* the submitted cover letter says *"I am in the final module"* of
+the IBM course. It was **completed on 29 August 2026**, credential `DDDI9T0KHUJ4`, verified live
+against Coursera by the leader. Every public artefact still says otherwise.
+
+⛔ **Two hard rails.** (1) `applications/hereon_aeon_up/cv_hereon_aeon_up.tex` and every other CV
+under `applications/` are **frozen records of what was sent** — exactly two `.tex` files change,
+both named in the brief. (2) The course contains **no Bayesian, uncertainty, calibration or
+neural-process material**; every string to be inserted is given verbatim and **the worker writes
+no copy at all**.
+
+---
+
 ### If your workspace is `thejusmahajan.github.io`
 
 **1. `briefs/2026-08-27_public-surface-honesty-sweep.md` — DELIVERED, AUDITED, **ACCEPTED**,

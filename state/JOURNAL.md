@@ -361,3 +361,64 @@ and verified with `git status` reporting nothing ahead.
   directory now holds `applications/` alongside the two apps. Brief to follow.
 
 **Repo:** committed and pushed to `origin/windows-dev` this session.
+
+---
+
+## 2026-08-29 (evening) — the PyTorch certificate is earned; the public surface has not caught up
+
+**Did:**
+- **Verified the credential before filing it.** The certificate PDF landed in `Downloads` claiming
+  completion of "Deep Learning with PyTorch", IBM via Coursera, 29 August 2026, credential
+  `DDDI9T0KHUJ4`. Rather than trust the file, the leader fetched
+  `coursera.org/verify/DDDI9T0KHUJ4`: it returns "Thejus Mahajan", "Deep Learning with PyTorch",
+  IBM, "August 29, 2026". Name, title, issuer and date all match the PDF. *A credential ID is the
+  one CV line an interviewer can check in ten seconds; checking it first costs nothing.*
+- **Filed it** as
+  `job_search/applications/hereon_aeon_up/certificates/IBM_Coursera_Deep_Learning_with_PyTorch.pdf`
+  — one canonical copy, in the private tracked repo, alongside every other credential, md5-verified
+  against the original. Committed and pushed as `2b8da1a`; `git status` reports level.
+- **Updated `study_room/12_pytorch_course.md`** — content, written by the leader, not delegated.
+  The status line said "in Module 6" as of 26 Aug; it now records completion, the credential ID and
+  the live verification, and it restates the section-2 boundary deliberately. `git diff --numstat`
+  was `17 1` — a clean insert, no encoding damage.
+- **Filed `agents/briefs/2026-08-29_pytorch-certificate-rollout.md`** and registered it in
+  `agents/ACTIVE.md` under a new combined `job_search` / website workspace heading.
+
+**Found:**
+- **The live website CV does not mention the course at all.** Hashing every PDF in `job_search`
+  against the website's assets established that `assets/Thejus_Mahajan_CV_ML.pdf` — the primary
+  download on `index.html` — is a byte-identical copy of
+  `applications/ml_interpretability_general/cv_ml_interpretability.pdf`, **not** of
+  `cv_general_ml/cv_ml_general.pdf` as the directory name would suggest. Its Further Training
+  section lists only HLRS and JSC. A worker told to "update the CV" would almost certainly have
+  edited the wrong file; the brief pins the right one and says why.
+- **Two of the three downloadable CVs cannot be rebuilt.** `Thejus_Mahajan_CV.pdf` and
+  `Thejus_Mahajan_CV_DE.pdf` match **no** PDF in `job_search`, and no corresponding `.tex` exists
+  there or in `Documents/cv`. They are orphaned build outputs. Open item for Thejus.
+- **The repository is still public.** Re-checked against the GitHub API this session:
+  `"private": false`. §0 of `NOW.md` has said this is the first action of the next session since
+  01:30 today and it has not happened.
+
+**Decided:**
+- **Every CV under `applications/` is a frozen record of what was sent, and the brief says so by
+  name.** The hereon CV reads "final module; certificate expected 09/2026" — true on 27 August,
+  when it was sent. Editing it now would make the repo disagree with the document Hereon actually
+  holds. Exactly two `.tex` files change; the other thirteen application directories are named
+  individually in the brief as off limits, because "roll it out everywhere" is precisely the
+  helpful improvisation this workflow keeps getting bitten by.
+- **The worker writes no copy on this task.** Every LaTeX and HTML string is given verbatim,
+  because the one wrong sentence here — anything implying the course covers Bayesian methods or
+  uncertainty — is worse now than it would have been last week: the credential ID publishes the
+  syllabus. Gate G4 greps the diff itself for probabilistic vocabulary and must come back empty.
+- **Completion is an interview asset, not a CV line.** The letter said "final module"; it is done.
+  One unprompted sentence early in the interview converts a stated plan into a delivered one.
+
+**Open:**
+- The brief is ACTIVE and unexecuted. It spans two repositories; Part A must run before Part B.
+- The two orphaned website CVs.
+- **The repository is still public.**
+- Unchanged from this morning: the ladder is reachable but only 5 of 51 hereon cards have been
+  seen, and nothing has been rehearsed aloud against a clock.
+
+**Repo:** committed and pushed to `origin/windows-dev` this session; `job_search` pushed at
+`2b8da1a`.

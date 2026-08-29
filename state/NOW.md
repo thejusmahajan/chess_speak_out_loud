@@ -30,6 +30,38 @@ visibility flip stops further reading.
 war-room wearing one visibility setting. Keep it private; build the public portfolio separately
 as a curated repo with the code and the two-silent-bugs story, and no `state/`, `agents/` or cards.
 
+**⛔ RE-CHECKED against the GitHub API at the 2026-08-29 evening session: still
+`"private": false`.** It has not been done. It is one Settings click and it outranks everything
+else in this file.
+
+### ⚑ The IBM PyTorch certificate is EARNED — 2026-08-29
+**Completed 29 August 2026. Credential `DDDI9T0KHUJ4`.** Verified live by the leader against
+`coursera.org/verify/DDDI9T0KHUJ4`: name, course title, issuer and date all match the PDF.
+Filed and pushed to the private repo as `2b8da1a` —
+`job_search/applications/hereon_aeon_up/certificates/IBM_Coursera_Deep_Learning_with_PyTorch.pdf`.
+
+**The interview line, and it is a good one.** The submitted cover letter says *"I am in the final
+module of the IBM certificate course"*. It is now finished. Say it unprompted and early: *"One
+update since I wrote to you — I finished the PyTorch certificate on 29 August."* One sentence,
+verifiable on the spot, and it shows a stated plan delivered. **The boundary is unchanged:** the
+course has no Bayesian methods, no uncertainty quantification, no neural processes. Overclaiming
+is now *worse* than before, because the credential ID puts the syllabus one click away.
+`study_room/12_pytorch_course.md` is updated with all of this.
+
+**Where it is still invisible:** the live website CV
+(`job_search/applications/ml_interpretability_general/cv_ml_interpretability.tex` — md5-confirmed
+as the source of `assets/Thejus_Mahajan_CV_ML.pdf`, the primary download on the site) has **no
+PyTorch course entry at all**, and neither does `cv_general_ml/cv_ml_general.tex`. The website's
+Certifications & Training section lists four cards and not this one. **Brief filed:**
+`agents/briefs/2026-08-29_pytorch-certificate-rollout.md` — two `.tex` files, `experience.html`,
+one asset copy, ten gates, ending in a screenshot. *The hereon CV and every other application CV
+are frozen records of what was sent and are explicitly off limits.*
+
+⚠ **Open, found while doing this:** `assets/Thejus_Mahajan_CV.pdf` and `Thejus_Mahajan_CV_DE.pdf`
+on the website have **no source `.tex` anywhere in `job_search`** — every PDF in the repo was
+hashed and neither matched. Two of the three CVs a visitor can download cannot currently be
+rebuilt. Needs a decision from Thejus, not a worker.
+
 ### Done overnight, 2026-08-29
 - **`applications/` is out of this repo.** The three PDFs were copied to
   `bioinformatics_project/job_search/applications/hereon_aeon_up/{research,other_documents}/`,
