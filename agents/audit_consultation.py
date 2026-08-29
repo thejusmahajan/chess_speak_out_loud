@@ -21,9 +21,30 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-CONSULT_DIR = PROJECT_ROOT / "agents" / "consultations"
+JOB_SEARCH = PROJECT_ROOT.parent / "bioinformatics_project" / "job_search"
+CNP = PROJECT_ROOT.parent / "cnp_synthetic"
+
+# An interview answer cites the study room, this repo's code, and the CNP's results
+# in the same breath, so a cited path is resolved against each in turn.
+SEARCH_ROOTS = [PROJECT_ROOT, JOB_SEARCH, JOB_SEARCH / "applications" / "hereon_aeon_up", CNP]
+
+CONSULT_DIRS = [
+    JOB_SEARCH / "applications" / "hereon_aeon_up" / "study_room" / "consultations",
+    PROJECT_ROOT / "agents" / "consultations",
+]
 
 VALID_TAGS = {"VERIFIED", "INFERRED", "EXTERNAL", "UNVERIFIED"}
+
+
+def resolve(rel):
+    """Find a cited path under any of the known repository roots."""
+    rel = rel.lstrip("/\\")
+    for root in SEARCH_ROOTS:
+        candidate = root / rel
+        if candidate.exists():
+            return candidate
+    p = Path(rel)
+    return p if p.is_absolute() and p.exists() else None
 
 
 def normalise(text):
@@ -74,9 +95,11 @@ def audit(path):
                 problems.append(f"row {idx}: VERIFIED but no `path` in the source cell")
                 continue
             rel = re.sub(r":\d+(-\d+)?$", "", m.group(1)).strip()
-            target = PROJECT_ROOT / rel
-            if not target.exists():
-                problems.append(f"row {idx}: cited file does not exist -> {rel}")
+            target = resolve(rel)
+            if target is None:
+                problems.append(
+                    f"row {idx}: cited file not found under any known repo root -> {rel}"
+                )
                 continue
             q = normalise(quote).strip('"').strip("'")
             if len(q) < 8:
@@ -115,15 +138,16 @@ def audit(path):
 def main():
     targets = [Path(a) for a in sys.argv[1:]]
     if not targets:
-        if not CONSULT_DIR.exists():
-            print("no agents/consultations/ directory yet - nothing to audit")
-            return 0
         # `_`-prefixed files are fixtures (see _selftest.md), never real consultations.
-        targets = [p for p in sorted(CONSULT_DIR.glob("*.md"))
-                   if not p.name.startswith("_")
-                   and "Status:** UNAUDITED" in io.open(p, encoding="utf-8").read()]
+        for d in CONSULT_DIRS:
+            if not d.exists():
+                continue
+            targets += [p for p in sorted(d.glob("*.md"))
+                        if not p.name.startswith("_")
+                        and "Status:** UNAUDITED" in io.open(p, encoding="utf-8").read()]
         if not targets:
-            print("no UNAUDITED consultations found")
+            searched = "\n  ".join(str(d) for d in CONSULT_DIRS)
+            print(f"no UNAUDITED consultations found. Searched:\n  {searched}")
             return 0
 
     failed = False

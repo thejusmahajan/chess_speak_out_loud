@@ -335,15 +335,23 @@ independently, the key guard mutation-tested, and the real path exercised on rea
 
 ---
 
-## Asking Gemini a question (not a work order)
+## ⚑ Interview Q&A with Gemini — `CONSULT_GEMINI.md`
 
-**`CONSULT_GEMINI.md` is a standing, reusable prompt** — Thejus pastes its path into Antigravity and
-types his question at the bottom. It makes Gemini the project's resident expert rather than a code
-worker: it grounds on the seven spine files, routes through `state/MAP.md`, and may web-search when
-the repo genuinely lacks the answer.
+**This is interview preparation, not a work order, and it is an INTERVIEW ITEM.** Thejus pastes the
+file's path into Antigravity and types his question at the bottom. Gemini answers as an expert on
+*his* material — the study room, his own code, the CNP — and returns it in the **house format of
+`05_interview_questions.md`**: what the interviewer is really testing, a model answer in his voice
+that he can say aloud in 45–90 seconds, the honest boundary inside it, **the follow-up that comes
+next**, and what would make the answer fail.
+
+**The perimeter is `06_do_not_claim.md`, quoted into the prompt in full** — six boundaries, plus
+never inflating a 1D water column into a 3D domain and never mentioning visa or financial pressure.
+The prompt also carries the stale-claims table, so it cannot repeat "the CNP was never built" or
+"Karl has an ML record" back at him.
 
 **It is read-only.** The only file it may write is its own answer, at
-`agents/consultations/YYYY-MM-DD_NN_<slug>.md`, left marked `Status: UNAUDITED`.
+`…/hereon_aeon_up/study_room/consultations/YYYY-MM-DD_NN_<slug>.md` — **in `job_search`, with the
+rest of the interview material, not in this repo** — left marked `Status: UNAUDITED`.
 
 **The leader audits before anything is believed:**
 
@@ -355,8 +363,12 @@ python agents/audit_consultation.py <file>     # one of them
 It parses the mandatory claims table and mechanically enforces the standing rule that *a quote
 which does not grep is a fabrication*: every `VERIFIED` row must cite a file that exists and quote
 text that actually appears in it; every `EXTERNAL` row must carry a URL and a fetch date; every
-`INFERRED` row must cite something. **Self-tested against planted fabrications**
-(`consultations/_selftest.md`, `_`-prefixed fixtures are skipped by the no-argument run).
+`INFERRED` row must cite something. **Cited paths resolve across all three repositories** — this
+one, `job_search` (including the `hereon_aeon_up` prefix), and `cnp_synthetic` — because an
+interview answer cites the study room, his code and the CNP results in the same breath.
+**Self-tested against planted fabrications** (`consultations/_selftest.md`; `_`-prefixed fixtures
+are skipped by the no-argument run): real quotes from all three repos pass, while an invented quote,
+a missing file, an undated URL and an unsourced inference all fail.
 
 ⚠ **The script checks sourcing, not correctness.** It cannot tell whether the reasoning is right,
 only whether the evidence is real. **Read the answer.**
