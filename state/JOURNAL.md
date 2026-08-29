@@ -552,3 +552,49 @@ and verified with `git status` reporting nothing ahead.
 - Still nothing rehearsed aloud against a clock.
 
 **Repo:** committed and pushed to `origin/windows-dev` this session.
+
+---
+
+## 2026-08-29 (night, cont.) — history question closed; the ferryboat card written and verified
+
+**Decided (by Thejus):** *"Doesn't matter with the history."* **No history rewrite.** Delete-only
+when the separation happens. Closed — do not re-open it. *"We prepare for the interview."*
+
+**Did:**
+- **Wrote `her-l3-011`, the ferryboat card** — the one paper joining Karl, Ramacher, ultrafine
+  particles and Hamburg. Leader-authored; card content is never delegated.
+- **Verified the citation against the Crossref API before writing it**, rather than trusting this
+  repo's own earlier note: `Lauenburg, Marvin; Karl, Matthias; Matthias, Volker; Quante, Markus;
+  Ramacher, Martin`, *"City Scale Modeling of Ultrafine Particles in Urban Areas with Special Focus
+  on Passenger Ferryboat Emission Impact"*, Toxics 10(1), doi:10.3390/toxics10010003, issued
+  2021-12-21. Karl second of five, Ramacher last. The card exists to stop him saying *"your paper"*
+  to either of them.
+- **Gated it properly.** `verify_cards.py` passes at 206 cards; **mutation-checked** by injecting
+  "hands-on experience with EPISODE-CityChem" into the new card and watching it go red on the
+  forbidden-claim regex, then restoring to green. `git diff --numstat` was `18 0` — a clean insert
+  that did not reformat the other 51 cards.
+- **Confirmed the card is actually reachable**, which is the lesson this project keeps paying for:
+  a 400-draw cram-mode distribution served **all 52 cards**, the new one 7 times.
+
+**Found:**
+- **ACT-AQ could not be verified and therefore was not written.** The Helmholtz URL 404s and a web
+  search returns nothing matching. It came from the same Deep Research batch that produced the false
+  "Karl has an ML record" claim. **An unverified fact does not go on a card that will be recited to
+  the people it is about.**
+- **63 ladder citations point at the RETIRED `job_search` clone.** They use `../job_search/...`,
+  which resolves from the repo root to `Documents\job_search` — the dead copy — while the newer L5
+  cards correctly use `../bioinformatics_project/job_search/...`. The gate only checks that the path
+  exists, and the retired directory still does, **so it has been green against a stale tree.**
+  Re-rooting them is bulk work for the separation brief.
+- **Part B still has not been run** — the website repo is clean, so the brief has not been handed
+  back to the worker yet.
+
+**Open:**
+- Part B of the rollout.
+- The separation itself: delete-only, target `job_search`, plus the 63 stale citations and the URL
+  check in `verify_cards.py`. Brief not yet written.
+- **The real interview gap is unchanged and no card fixes it:** 5 of 52 hereon cards have ever been
+  seen, last real drilling session 2026-08-22, and the talk has never been said aloud against a
+  clock.
+
+**Repo:** committed and pushed to `origin/windows-dev` this session.

@@ -246,8 +246,30 @@ real session 2026-08-22.*
 revised AAQD — kickoff 8–9 July 2026 in Hamburg, **Ramacher a PI**, partners including Helmholtz
 Munich and RIFS, the same two AEON-UP partners.
 
-**Cards not yet written:** the ferryboat citation, the Ramacher EGU abstract (as a question *to*
-him, never a claim *about* him), and ACT-AQ.
+**Cards status, updated 2026-08-29 (night):**
+- ✅ **The ferryboat citation is WRITTEN** — `her-l3-011`, ladder now **52 cards** (206 total).
+  **Re-verified against the Crossref API before writing**, not taken from the earlier note:
+  Lauenburg, Marvin; **Karl, Matthias**; Matthias, Volker; Quante, Markus; **Ramacher, Martin**,
+  *"City Scale Modeling of Ultrafine Particles in Urban Areas with Special Focus on Passenger
+  Ferryboat Emission Impact"*, Toxics 10(1), doi:10.3390/toxics10010003. Karl is **second of five**,
+  Ramacher **last**; first author is Marvin Lauenburg. The card's whole point is *never say "your
+  paper"*. Gate passes at 206, **mutation-checked** (an injected "hands-on experience with
+  EPISODE-CityChem" turns it red, restore turns it green), and **reachability confirmed by a
+  400-draw cram distribution: all 52 served, the new card 7 times.**
+- ✅ **The Ramacher EGU abstract** is already covered — `EGU25` appears in 3 cards after this
+  morning's corrections. Nothing to write.
+- ⛔ **ACT-AQ is NOT written, deliberately.** It came from the Deep Research batch and the leader
+  **could not verify it** — the Helmholtz page 404s and a web search returns nothing matching.
+  *The same batch produced the false "Karl has an ML record" claim.* **An unverified fact does not
+  go on a card that will be recited to the people it is about.** If Thejus wants it, it needs a
+  primary source first.
+
+⚠ **Found while writing the card: 63 of the ladder citations point at the RETIRED `job_search`
+clone.** They use `../job_search/...`, which resolves from the repo root to
+`Documents\job_search` — the dead copy — while the newer L5 cards correctly use
+`../bioinformatics_project/job_search/...`. The gate checks only that the path *exists*, and the
+retired directory still does, so **it is green against a stale tree**. Re-rooting those 63 is bulk
+work and belongs in the separation brief, not in a one-card edit.
 
 | # | hole | why it matters |
 |---|---|---|

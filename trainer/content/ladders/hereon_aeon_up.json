@@ -896,5 +896,23 @@
     "requires": [
       "her-l4-012"
     ]
+  },
+  {
+    "id": "her-l3-011",
+    "ladder": "hereon-aeon-up",
+    "level": 3,
+    "topic": "Karl's UFP paper - the ferryboat study",
+    "question": "One paper joins Karl, Ramacher, ultrafine particles and Hamburg. Which is it, and how do you refer to it in the room?",
+    "answer": "The ferryboat study: Lauenburg, Karl, Matthias, Quante and Ramacher, 'City Scale Modeling of Ultrafine Particles in Urban Areas with Special Focus on Passenger Ferryboat Emission Impact', Toxics volume 10, issue 1. Call it 'the ferryboat paper' or 'the Lauenburg paper' - never 'your paper' to either of them, because Karl is second of five authors and Ramacher is last. Use it to open the UFP conversation: it puts a city-scale ultrafine-particle model, Hamburg harbour and both of your interviewers in one place.",
+    "explanation": "This is the single best citation you have ready, because it is the only paper joining both PIs to the exact intersection of the post: a city-scale UFP model applied to Hamburg. Naming it correctly shows you read the group's work rather than the advert. Author order verified against the Crossref API on 2026-08-29: Lauenburg, Marvin; Karl, Matthias; Matthias, Volker; Quante, Markus; Ramacher, Martin. doi:10.3390/toxics10010003.",
+    "trap": "Saying 'your paper' to Karl or to Ramacher. The first author is Marvin Lauenburg, and attributing a colleague's first-authored work to the person across the table is a small error that lands badly in a small field. The second trap is drifting from citing the paper into implying you have run the model in it - see her-l3-001.",
+    "sources": [
+      "https://doi.org/10.3390/toxics10010003",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/15_karl_and_ufp.md"
+    ],
+    "difficulty": 1480,
+    "requires": [
+      "her-l2-003"
+    ]
   }
 ]
