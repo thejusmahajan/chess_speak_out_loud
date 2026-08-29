@@ -192,10 +192,21 @@ has ever caught it.
 
 ### If your workspace is `job_search` **or** `thejusmahajan.github.io`
 
-**0. `briefs/2026-08-29_pytorch-certificate-rollout.md` — ⚑ ACTIVE, INTERVIEW ITEM. Execute this
-one FIRST.** It spans **both** workspaces: Part A is two `.tex` files in
-`bioinformatics_project/job_search`, Part B is `experience.html`, `skills.html` and the CV asset on
-the website. **Part A first** — Part B copies Part A's build output.
+**0. `briefs/2026-08-29_pytorch-certificate-rollout.md` — ⚑ PART A ✅ AUDITED ACCEPT 2026-08-29.
+PART B IS ACTIVE — execute §3 only.**
+
+**Part A** (two `.tex` files in `job_search`) came back correct: the diff matched the spec exactly
+in both files, including the deliberately different FROM string in `cv_ml_general.tex`, and no
+frozen application CV was touched. The worker **halted at G3** — `cv_ml_general.pdf` compiled to 3
+pages — reported it honestly and did not start Part B. **That was the right call**, and the second
+consecutive delivery where a checkpoint caught a problem rather than a fabrication reaching the
+leader. Audit: `reports/2026-08-29_pytorch-certificate-rollout_AUDIT.md`.
+
+**The leader resolved the overflow** (page 3 held only the signature block; 0.25 cm of whitespace,
+no content cut) and re-gated both CVs green at 2 pages. **The brief's §3 is amended: the "Part A
+green first" rule is lifted**, because the failure was isolated to a file Part B never touches.
+**Hand the same brief back and have the worker do §3.1–§3.4** — `experience.html`, `skills.html`
+and the CV asset on the website.
 
 *Why this before the interview:* three things are true and none are visible to anyone who looks him
 up. The IBM certificate is **earned** (completed 29 Aug 2026, `DDDI9T0KHUJ4`, verified live against

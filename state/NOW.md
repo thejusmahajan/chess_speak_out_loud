@@ -5,14 +5,16 @@
 
 ---
 
-## ⛔ 0. FIRST THING TOMORROW — this repository is PUBLIC
+## ⛔ 0. THIS REPOSITORY STAYS PUBLIC — so the career material has to leave it
 
-**Checked against the GitHub API at 01:30 on 2026-08-29: `"private": false`, `"visibility": "public"`.**
-`job_search` is correctly private (anonymous 404). This one is not.
+**⚑ DECIDED BY THEJUS, 2026-08-29 (evening):** *"I keep the chess repo public and we will remove
+all the other stuff from it as it is not part of chess repo."* **This reverses the standing
+"set it private" instruction that headed this section all day.** Do not re-open it; the task is now
+subtraction, not a visibility flip.
 
-**The first action of the next session is Thejus setting this repository back to private.**
-Nobody else can do it — it is a Settings click, and no agent here holds a token by his own
-deliberate instruction, which is the correct policy and should stay.
+**Also decided the same evening:** *"Don't worry about the other applications. Only this hereon is
+active as others were rejected."* The other ten are closed. `APPLICATION_LOG.md` still shows 4
+Submitted and 7 "Draft prepared" — that log is now a historical record, not a work queue.
 
 **Why it matters more than the signature scare that started this.** Publicly readable right now:
 `trainer/content/ladders/hereon_aeon_up.json` (51 interview cards, **Karl named 22 times**,
@@ -23,16 +25,47 @@ reports; `CLAUDE.md` (permit expiry); `docs/career_strategy_conversation_aug2026
 `trainer/state/answers.jsonl` (131 graded answers). Karl and Ramacher are findable people who
 search their own model's name.
 
-**Removing files in a new commit does not undo this** — the history keeps them. Only the
-visibility flip stops further reading.
+**⛔ Removing files in a new commit does not undo any of that — the history keeps them.** With the
+repo staying public, **deleting the files changes nothing about what is already readable.** Anyone
+can `git log` back to August and read all of it. This is the single most important fact on this
+page and it must not be softened.
 
-**The structural fix, already agreed:** this repo is a code portfolio *and* a private career
-war-room wearing one visibility setting. Keep it private; build the public portfolio separately
-as a curated repo with the code and the two-silent-bugs story, and no `state/`, `agents/` or cards.
+### The exposure, measured 2026-08-29
 
-**⛔ RE-CHECKED against the GitHub API at the 2026-08-29 evening session: still
-`"private": false`.** It has not been done. It is one Settings click and it outranks everything
-else in this file.
+| fact | value |
+|---|---|
+| repo created | 2026-07-15; **300 commits** |
+| `docs/career_strategy_conversation_aug2026.md` first appears | **2026-08-15** |
+| `trainer/`, `agents/`, `discussions/` first appear | **2026-08-19** |
+| `state/` first appears | **2026-08-27** |
+| commits since 2026-08-15 (i.e. the rewrite blast radius) | **75 of 300** |
+| stars / forks / watchers / subscribers | **0 / 0 / 0 / 0** |
+
+**Everything before 2026-08-15 is pure chess.** The career material is confined to the last two
+weeks of a six-week repository, in cleanly separable directories, and **nobody is watching it** —
+no forks, no stars, no subscribers. That is about as good a position as this could be in.
+
+**The full career footprint in the public tree** is wider than this section listed all day. Beyond
+`agents/` (31 files), `trainer/` (112) and `state/`, it also includes **`research/aeon_up/`** — 11
+files including `2_salary_and_conditions.md` and `1_karl_and_ufp.md` — plus `discussions/` (4),
+`archive/superseded_tasks/` (3 AEON-UP worker tasks), `docs/SESSION_LOG_2026-08.md`,
+`docs/leadership/COMMAND_BASE.md`, `docs/CV_AI_MODULE.md`, and `CLAUDE.md` itself, which carries the
+permit expiry and the who-is-who.
+
+### ⚑ The decision that is still open, and it is Thejus's
+
+Deleting the files is easy. Making them *unreadable* means rewriting history and force-pushing.
+Given 0 forks and 0 stars, a force-push breaks nobody, and 225 of 300 commits are untouched. The
+residual is that GitHub keeps unreferenced commits reachable by SHA until it garbage-collects, so
+the thorough version ends with a request to GitHub Support to purge cached views.
+
+**⚠ A premise the leader had wrong and checked:** the submitted hereon CV does **not** link to
+`github.com/thejusmahajan/chess_speak_out_loud`. It links the GitHub *profile*, the website, the
+blog post, and `hepatitis-delta-pipeline`. So preserving this exact repository URL is **not**
+load-bearing for the live application — which widens the options rather than narrowing them.
+
+**So the question to answer before any `git mv`: delete-only, or delete plus history rewrite?**
+Everything else in the separation plan (§0b) is mechanical once that is settled.
 
 ### ⚑ The IBM PyTorch certificate is EARNED — 2026-08-29
 **Completed 29 August 2026. Credential `DDDI9T0KHUJ4`.** Verified live by the leader against
@@ -100,14 +133,17 @@ own.** Three pieces of evidence, all checked today:
 `docs/CV_AI_MODULE.md`, `docs/career_strategy_conversation_aug2026.md`, `docs/career/`, and the
 career-facing audit reports in `agents/reports/`.
 
-**⛔ The unresolved design question, and why no brief is filed yet.** `verify_cards.py` **checks
-that every repo citation resolves on disk** (line 309, `if not target_file.exists()`). The gate
-reports **193 repo citations** — 84 into `docs/`, 22 into `backend/`, both of which stay in the
-chess repo. Move the trainer and the gate goes red on all of them. The obvious fix is to rewrite
-those citations as GitHub URLs, **but the chess repo is going private**, so a URL citation becomes
-a dead link for anyone but him. *So the citation question and the visibility question are the same
-question, and it has to be answered before the move, not during it.* That is a leader decision and
-a short conversation with Thejus — not something to discover halfway through a `git mv`.
+**✅ The citation question is now ANSWERED by the public-repo decision.** `verify_cards.py` checks
+that every repo citation resolves on disk (line 309, `if not target_file.exists()`). The gate
+reports **193 repo citations** — 84 into `docs/`, 22 into `backend/` — both of which stay in the
+chess repo, so moving the trainer turns 106 of them red. Earlier today the obvious fix (rewrite
+them as GitHub URLs) collided with the repo going private, which would have made them dead links.
+**The repo stays public, so URLs are now the correct answer** — and they are strictly better than
+local paths, because a citation the reader can click is evidence and a relative path is not.
+
+That leaves one real design item for the brief: `verify_cards.py` must gain a URL-shaped citation
+check (it already counts `url_sources_count` separately, so the machinery is half there) instead of
+`exists()` for the 106 that move out of reach. **Mechanical, and specifiable.**
 
 **Also leader work, not worker work:** `state/NOW.md` and `state/JOURNAL.md` are roughly half
 career war-room and half chess project state. Splitting them is authorship, and three of this

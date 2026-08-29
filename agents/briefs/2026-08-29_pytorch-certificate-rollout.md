@@ -242,8 +242,29 @@ says is a leader decision.
 
 ## 3. Part B — the website
 
-Workspace `C:\Users\Admin\Documents\thejusmahajan.github.io`, branch `main`. **Part A must be
-finished and its gates green first** — Part B copies Part A's build output.
+Workspace `C:\Users\Admin\Documents\thejusmahajan.github.io`, branch `main`.
+
+> ### ⚑ AMENDED 2026-08-29 by the leader — PART A IS DONE. START HERE.
+>
+> **You already delivered Part A, and it was correct.** The diff matched the spec exactly in both
+> files, G1, G2, G4 and G5 were re-run by the leader and are green, and **you were right to halt at
+> G3** — `cv_ml_general.pdf` really did come out at 3 pages. Stopping instead of improvising a fix
+> was the correct call and it is the second time in two days a checkpoint has caught something.
+> Do not redo Part A.
+>
+> **The leader fixed the overflow.** Page 3 held nothing but the signature block, so it was a
+> marginal spill: the pre-signature `\vspace{0.3cm}` became `\vspace{0.05cm}`, and the credential
+> moved onto the issuer line in *that file only*. **No content was cut.** Rebuilt, re-gated, and
+> visually checked at 90 dpi — `cv_ml_general.pdf` is now 2 pages with the signature block sitting
+> normally. Both CVs are green.
+>
+> **The sequencing rule in this section is lifted.** It was written before the leader knew the
+> failure would be isolated to `cv_general_ml`, which Part B never touches. Part B depends only on
+> `cv_ml_interpretability.pdf`, which has been 2 pages and green throughout.
+>
+> **Do §3.1 through §3.4 now.** Everything below is unchanged. Do not touch either `.tex` file
+> again — `git status` in `job_search` is expected to show both CVs modified; that is the leader's
+> and your work, already audited. Leave it dirty and do not stage or commit it.
 
 ### 3.1 Refresh the downloadable CV
 

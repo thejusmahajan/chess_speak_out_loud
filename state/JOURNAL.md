@@ -485,3 +485,70 @@ and verified with `git status` reporting nothing ahead.
 - Still nothing rehearsed aloud against a clock; 5 of 51 hereon cards ever seen.
 
 **Repo:** committed and pushed to `origin/windows-dev` this session.
+
+---
+
+## 2026-08-29 (night) — Part A audited accept; the repo stays public, so the material has to move
+
+**Did:**
+- **Audited the worker's Part A delivery. ACCEPT.** The diff matched the brief verbatim in both
+  `.tex` files, including the deliberately different FROM string in `cv_ml_general.tex` — the trap
+  in the brief, and it was not tripped. No frozen application CV was opened. G1, G2, G4 and G5
+  re-run by the leader from the files themselves, not read from the report.
+- **The worker halted at G3 and was right to.** `cv_ml_general.pdf` compiled to 3 pages. It
+  reported the failure with real `pdflatex` output, did not improvise a fix, and did not start
+  Part B. Second consecutive delivery where a checkpoint caught a problem instead of a fabrication
+  reaching the leader. Audit filed at
+  `agents/reports/2026-08-29_pytorch-certificate-rollout_AUDIT.md`.
+- **Fixed the overflow myself** — what a CV says is a leader decision, and the brief said so. Page 3
+  contained 44 characters: the signature block alone. `\vspace{0.3cm}` before it became
+  `\vspace{0.05cm}`, and the credential moved onto the issuer line in that file only. **No content
+  cut.** Rebuilt, re-gated green at 2 and 2, and page 2 rendered at 90 dpi and looked at.
+  *Worth recording: compressing the text did not fix it; 0.25 cm of whitespace did.*
+- **Amended the brief and handed Part B back.** The "Part A green first" rule was mine and was
+  written before I knew the failure would land in a file Part B never touches.
+
+**Found:**
+- **A defect in my own G4 gate.** As written it greps the whole `git diff -U0`, so a hunk-header
+  context line containing "publications" reads as a hit. Filtered to added lines
+  (`grep "^+" | grep -v "^+++"`) it is clean. The gate can false-positive; future briefs use the
+  filtered form. *My brief, my defect — not the worker's.*
+- **The career footprint in the public repo is wider than `state/NOW.md` §0 had listed all day.**
+  Beyond `agents/`, `trainer/` and `state/`, it includes **`research/aeon_up/`** (11 files, among
+  them `2_salary_and_conditions.md` and `1_karl_and_ufp.md`), `discussions/` (4),
+  `archive/superseded_tasks/` (3 AEON-UP worker tasks), `docs/SESSION_LOG_2026-08.md`,
+  `docs/leadership/COMMAND_BASE.md` and `CLAUDE.md` itself.
+- **The exposure is bounded and nobody is watching.** 300 commits from 2026-07-15; the career
+  material first appears 08-15 (`career_strategy_conversation`), 08-19 (`trainer/`, `agents/`,
+  `discussions/`) and 08-27 (`state/`). 75 of 300 commits sit in that window. **0 stars, 0 forks,
+  0 watchers, 0 subscribers.** Everything before 08-15 is pure chess.
+- **⚠ A premise of mine that was wrong, checked before I built on it.** I was about to argue that
+  this repository's URL must be preserved because the submitted hereon CV links it. It does not:
+  it links the GitHub *profile*, the website, the blog post and `hepatitis-delta-pipeline`. The
+  repo URL is not load-bearing for the live application.
+
+**Decided (by Thejus):**
+- **The chess repo stays PUBLIC.** This reverses the "set it private" instruction that headed
+  `NOW.md` §0 all day. The fix is subtraction: everything that is not chess leaves.
+- **Only Hereon is live.** The other ten applications were rejected. `APPLICATION_LOG.md` is now a
+  historical record, not a work queue — which retrospectively confirms the ruling that the seven
+  never-sent drafts were not worth updating.
+
+**Decided (by the leader):**
+- **The citation question is answered by the public decision.** 106 of the 193 card citations point
+  into `docs/` and `backend/`, which stay here. With the repo public, rewriting them as GitHub URLs
+  is correct *and better than what exists* — a citation the reader can click is evidence; a relative
+  path is not. `verify_cards.py` needs a URL check in place of `exists()` for those, and it already
+  counts URL citations separately, so the machinery is half built.
+
+**Open:**
+- **Delete-only, or delete plus history rewrite?** Deleting the files changes nothing about what is
+  already readable back to 15 August. With 0 forks and 0 stars a force-push breaks nobody and
+  leaves 225 of 300 commits untouched; the thorough version ends with asking GitHub Support to
+  purge cached views. **This is Thejus's call and it gates the separation brief.**
+- Part B of the rollout, handed back to the worker.
+- `cv_ml_general.tex` is still dated "Hamburg, 19 August 2026".
+- Two website CVs with no source.
+- Still nothing rehearsed aloud against a clock.
+
+**Repo:** committed and pushed to `origin/windows-dev` this session.
