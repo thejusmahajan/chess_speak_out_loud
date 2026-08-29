@@ -68,7 +68,10 @@ Do not execute it again. Report and audit are in `reports/`. Committed and pushe
 
 ---
 
-**3. `briefs/2026-08-29_repo-reorganisation.md` — ⚑ ACTIVE. Execute this one.**
+**3. `briefs/2026-08-29_repo-reorganisation.md` — ✅ DELIVERED 2026-08-29, committed as `3e2d403`.**
+Do not execute it again. The root now carries four spine files. *(This entry said ACTIVE until the
+evening of 2026-08-29, after the work had already landed — the ledger was stale. Same failure class
+as the rest: a document asserting a state nobody re-checked.)* The original text follows.
 
 Move the root's 30 markdown files into `docs/leadership/`, `docs/plans/`, `docs/guides/` and
 `archive/reports/`, leaving four spine files at the root. **Mechanical `git mv` only — no file
@@ -191,18 +194,22 @@ has ever caught it.
 
 **0. `briefs/2026-08-29_pytorch-certificate-rollout.md` — ⚑ ACTIVE, INTERVIEW ITEM. Execute this
 one FIRST.** It spans **both** workspaces: Part A is two `.tex` files in
-`bioinformatics_project/job_search`, Part B is `experience.html` plus the CV asset on the website.
-Do Part A first — Part B copies Part A's build output.
+`bioinformatics_project/job_search`, Part B is `experience.html`, `skills.html` and the CV asset on
+the website. **Part A first** — Part B copies Part A's build output.
 
-*Why this before the interview:* the submitted cover letter says *"I am in the final module"* of
-the IBM course. It was **completed on 29 August 2026**, credential `DDDI9T0KHUJ4`, verified live
-against Coursera by the leader. Every public artefact still says otherwise.
+*Why this before the interview:* three things are true and none are visible to anyone who looks him
+up. The IBM certificate is **earned** (completed 29 Aug 2026, `DDDI9T0KHUJ4`, verified live against
+Coursera by the leader) while the sent letter still says "final module". The **CNP is built**, so
+the CV's Machine Learning line can finally carry something probabilistic. And `skills.html` — the
+page a technical reader clicks — **contains no PyTorch, no deep learning, no machine learning at
+all**, while the front page headlines "Machine Learning". The public surface contradicts itself.
 
 ⛔ **Two hard rails.** (1) `applications/hereon_aeon_up/cv_hereon_aeon_up.tex` and every other CV
-under `applications/` are **frozen records of what was sent** — exactly two `.tex` files change,
-both named in the brief. (2) The course contains **no Bayesian, uncertainty, calibration or
-neural-process material**; every string to be inserted is given verbatim and **the worker writes
-no copy at all**.
+under `applications/` are **frozen records of what was sent** — all fourteen are named in the brief
+as off limits; exactly two `.tex` files change. (2) The IBM course contains **no Bayesian,
+uncertainty, calibration or neural-process material** — the probabilistic line on the CV comes from
+the CNP and is deliberately kept separate. Every string is given verbatim; **the worker writes no
+copy at all.** Twelve gates, ending in two screenshots.
 
 ---
 

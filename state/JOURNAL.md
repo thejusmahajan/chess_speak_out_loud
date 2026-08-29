@@ -422,3 +422,66 @@ and verified with `git status` reporting nothing ahead.
 
 **Repo:** committed and pushed to `origin/windows-dev` this session; `job_search` pushed at
 `2b8da1a`.
+
+---
+
+## 2026-08-29 (late) — the brief widened; the public surface turns out to contradict itself
+
+**Did:**
+- **Widened `2026-08-29_pytorch-certificate-rollout.md`** from "add the certificate" to the whole
+  public surface, at Thejus's instruction ("update all the CVs, and the text on the website"). It
+  was filed narrow two hours earlier; handing it over and following with a second overlapping brief
+  would have put two worker passes on the same four files and produced a conflict of the leader's
+  own making. One brief, twelve gates, two screenshots.
+- **Marked `2026-08-29_repo-reorganisation.md` DELIVERED in `agents/ACTIVE.md`.** It had been
+  sitting as ACTIVE while `3e2d403` had already landed the work and the root was down to four spine
+  files. The ledger was stale — the same failure class the catalog is full of, in the file whose
+  entire job is to be current.
+
+**Found:**
+- **`skills.html` has no machine-learning content at all.** No PyTorch, no deep learning, no ML.
+  The Python card reads "Data science, automation, and bioinformatics pipelines: Pandas, NumPy,
+  scikit-learn, matplotlib, seaborn, xarray". The front page headlines "Machine Learning" and
+  serves the ML CV as the primary download. **A technical reader who clicks Skills finds a
+  bioinformatician.** This is worse than the missing certificate and nobody had noticed it.
+- **`verify_cards.py:33` hardcodes an absolute path into the `job_search` repo** —
+  `study_room/06_do_not_claim.md`, from which the gate loads its five forbidden-claim boundaries.
+  The trainer is already coupled to the career repo. That single fact decides the separation target.
+- **The gate checks that citations resolve on disk** (line 309). Run directly, it reports **193
+  repo citations** across 205 cards — 84 into `docs/`, 22 into `backend/`. Ground truth from the
+  tool itself rather than from `NOW.md`, which had said "193 / 72 / 22"; the docs/ figure was low.
+- **Application statuses, from `APPLICATION_LOG.md`:** 4 Submitted (MPINAT, Roche, Helmholtz Munich
+  IDM, and Hereon), 7 "Draft prepared", never sent.
+- **The CNP was re-verified on disk before it was written onto a CV** — `cnp_synthetic` at
+  `063bc6e`, `RESULTS.md` giving cnp CRPS 0.1677 against gp_oracle 0.0379, ratio 4.4214, backed by
+  `runs/*.log`. Still dirty: 5 modified, 1 untracked.
+
+**Decided:**
+- **"Update all the CVs" resolves to two files, and the ruling is written into the brief.** The 4
+  submitted applications are evidence — if Hereon asks "is this the CV you sent us?", the repo has
+  to answer yes, so the hereon CV keeps saying "final module; certificate expected 09/2026". The 7
+  never-sent drafts are stale artefacts that get regenerated from the live CV when he actually
+  applies; polishing them now is documents that reach nobody, which is the documented failure mode.
+  All fourteen application directories are named individually in the brief as off limits, because
+  "roll it out everywhere" is exactly the helpful improvisation this workflow keeps losing to.
+- **The trainer goes into `job_search`, not into a repo of its own.** Its gate already reaches into
+  `job_search`; its 205 cards are career content, not chess content; and a new GitHub repo needs
+  Thejus, while `job_search` exists and is private today.
+- **No separation brief is filed yet, deliberately.** Moving the trainer turns 106 on-disk citations
+  red, and the natural fix — rewrite them as GitHub URLs — collides with the chess repo going
+  private, which would make them dead links. *The citation question and the visibility question are
+  the same question.* Answer it before the move, not halfway through a `git mv`. Splitting
+  `NOW.md`/`JOURNAL.md` into chess state and career state is authorship and stays with the leader.
+- **The CV's ML line finally carries the probabilistic work** — `conditional neural processes
+  (implemented from scratch), uncertainty calibration (NLL, CRPS, ECE)` — closing the §3 open item.
+  Kept in a separate line from the IBM entry on purpose: the course teaches none of it, and the
+  credential ID now publishes the syllabus.
+
+**Open:**
+- The brief is ACTIVE and unexecuted; it is the one thing waiting to be handed to the worker.
+- The separation, blocked on the citations-vs-visibility decision above.
+- Two website CVs with no source.
+- **The repository is still public.**
+- Still nothing rehearsed aloud against a clock; 5 of 51 hereon cards ever seen.
+
+**Repo:** committed and pushed to `origin/windows-dev` this session.

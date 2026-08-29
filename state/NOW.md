@@ -62,6 +62,57 @@ on the website have **no source `.tex` anywhere in `job_search`** — every PDF 
 hashed and neither matched. Two of the three CVs a visitor can download cannot currently be
 rebuilt. Needs a decision from Thejus, not a worker.
 
+⚠ **The public surface contradicts itself, and this is the bigger finding.** `skills.html` has
+**no ML content whatsoever** — no PyTorch, no deep learning, no machine learning. Its Python card
+reads *"Data science, automation, and bioinformatics pipelines: Pandas, NumPy, scikit-learn,
+matplotlib, seaborn, xarray"*. Meanwhile `index.html` headlines *"Modelling · Data Engineering ·
+Machine Learning"* and offers the ML CV as the primary download. A technical reader who clicks
+Skills finds a bioinformatician. **Folded into the same brief** (§3.3): an ML section, a rewritten
+Python card, a rewritten page subtitle. The CV's Machine Learning line also finally gets the CNP —
+`conditional neural processes (implemented from scratch), uncertainty calibration (NLL, CRPS, ECE)`
+— which closes the §3 open item below. CNP re-verified on disk before writing it: `cnp_synthetic`
+at `063bc6e`, `RESULTS.md` giving cnp CRPS 0.1677 vs gp_oracle 0.0379, ratio 4.4214, with `runs/`
+logs behind it.
+
+---
+
+## ⚑ 0b. SEPARATING THE REPOSITORIES — decided 2026-08-29, not yet started
+
+**Thejus's instruction:** *"We will move the hereon stuff and then interview preparation to the job
+search repo or another repo. Let's keep everything standalone and don't mix up."* Correct, and it
+is the structural fix §0 already agreed.
+
+**The leader's ruling on the target: the trainer goes into `job_search`, not into a repo of its
+own.** Three pieces of evidence, all checked today:
+
+1. **`trainer/verify_cards.py:33` already hardcodes an absolute path into `job_search`** —
+   `...\applications\hereon_aeon_up\study_room\06_do_not_claim.md`. The content gate loads its five
+   forbidden-claim boundaries from the study room. The trainer is *already* coupled to the career
+   repo; moving it there **removes** a cross-repo dependency rather than adding one.
+2. **The content is career content, not chess content.** 205 cards: `hereon_aeon_up` (51),
+   `air_quality`, `own_work`, `neural_processes`, `uncertainty`, `pytorch`, `bridge`, three German
+   ladders. None of it is about chess. It belongs beside the study room.
+3. **A new GitHub repo needs Thejus** — no agent here holds a token, deliberately. `job_search`
+   exists, is private, and is already the right neighbourhood. Choosing it means the work can start
+   without waiting on anyone.
+
+**What moves:** `trainer/` (112 files), `launch_knowledge_trainer.bat`, `stop_knowledge_trainer.bat`,
+`docs/CV_AI_MODULE.md`, `docs/career_strategy_conversation_aug2026.md`, `docs/career/`, and the
+career-facing audit reports in `agents/reports/`.
+
+**⛔ The unresolved design question, and why no brief is filed yet.** `verify_cards.py` **checks
+that every repo citation resolves on disk** (line 309, `if not target_file.exists()`). The gate
+reports **193 repo citations** — 84 into `docs/`, 22 into `backend/`, both of which stay in the
+chess repo. Move the trainer and the gate goes red on all of them. The obvious fix is to rewrite
+those citations as GitHub URLs, **but the chess repo is going private**, so a URL citation becomes
+a dead link for anyone but him. *So the citation question and the visibility question are the same
+question, and it has to be answered before the move, not during it.* That is a leader decision and
+a short conversation with Thejus — not something to discover halfway through a `git mv`.
+
+**Also leader work, not worker work:** `state/NOW.md` and `state/JOURNAL.md` are roughly half
+career war-room and half chess project state. Splitting them is authorship, and three of this
+project's five fabricated deliveries came from handing a worker content.
+
 ### Done overnight, 2026-08-29
 - **`applications/` is out of this repo.** The three PDFs were copied to
   `bioinformatics_project/job_search/applications/hereon_aeon_up/{research,other_documents}/`,
