@@ -226,8 +226,34 @@ Level gating pinned the ladder to Level 0, and cram mode still applied `is_card_
 chains run five deep — so the L4 publication-gap cards and the L5 talk cards could not be reached
 by any route. Fixed and **AUDITED ACCEPT** (`agents/reports/2026-08-28_trainer-interview-mode_AUDIT.md`):
 every gate re-run by the leader, both guards mutation-checked, 15 live API calls returning L3–L5
-material. *The instrument now works. It has still never been drilled — 5 of 51 cards seen, last
-real session 2026-08-22.*
+material. *The instrument now works.*
+
+**⚑ Be precise about this — the loose version of it misled the leader on 2026-08-29.** The app is
+**in active use and saving correctly**; what is undrilled is **this ladder specifically**. From
+`trainer/state/answers.jsonl`, read directly on 2026-08-29:
+
+| | |
+|---|---|
+| total answers, all ladders | **127** across 19, 20, 21, 22, 26 and 28 August |
+| most recent session | **2026-08-28**, 22 answers + 6 comments, ending 23:26 UTC (01:26 local on the 29th), **all on `air-quality`** |
+| **`hereon-aeon-up` answers, ever** | **5** |
+| distinct hereon cards ever seen | **5 of 52** |
+| last hereon answer | **2026-08-22T19:42 UTC** |
+
+So: *"he has not drilled since 22 August"* is **false** — he drilled on the 28th. *"He has not
+drilled the hereon ladder since 22 August"* is true. **The 47 unseen cards include all 17 Level-4
+cards on the publication gap and facing Karl, and all 9 Level-5 cards on delivering the talk** —
+which is exactly the material that only became reachable on 2026-08-29.
+
+**The app is one source of truth and nothing is being lost.** Desktop shortcut
+`Knowledge Trainer.lnk` → `launch_knowledge_trainer.bat` (`%~dp0`) → uvicorn on port 8010 serving
+`trainer.app:app` **from this repo**, reading and writing `trainer/state/`. There is no second copy
+of the state anywhere on the machine — checked. `load_all_cards()` runs **per request**
+(`trainer/app.py:111,152,184`), so newly authored cards appear without restarting the server.
+
+**⛔ Constraint this puts on the separation (§0b):** the launcher resolves `%~dp0`, so moving
+`trainer/` out of this repo **breaks the desktop shortcut he uses daily**. The brief must move the
+`.bat` files with it and rebuild the shortcut, and prove the app still launches and serves.
 
 **The external-facts research came back PARTIALLY, 2026-08-29** — two Deep Research PDFs in
 `applications/hereon_aeon_up/research/`, against `agents/briefs/2026-08-28_aeon-up-external-facts.md`.
