@@ -87,8 +87,8 @@ Navigate to **http://localhost:5173** in your browser. (Not 8000 — that serves
 ## Notes for AI agents working on this repo
 
 - **Do not re-derive the run setup** — it's this file. Backend = `cszero` python + uvicorn on 8000; frontend = vite on 5173.
-- The LLM path (`backend/llm_client.py`, Gemini) is **dormant** by design — `LLM_ENABLED = False` in `backend/app.py`. Don't wire it into the runtime.
-- `.env` holds a `GEMINI_API_KEY` and is gitignored; it is unused while the LLM is disabled.
+- The LLM path (`backend/llm_client.py`, Gemini) is **unreachable from any request path**, and that is now enforced by `backend/tests/test_llm_seam.py`, not by a flag. `LLM_ENABLED = False` in `backend/app.py` is a historical sign that nothing ever read — **it did not hold**: until 2026-08-30 two endpoints called `enrich_tree_explanations`, which reached the model with a FEN and an eval and served the result as coaching. The module stays in the tree as scaffolding for the eventual *translator* role — a model handed LC0's search tree, policy prior and relational facts. Anything less is a chess reasoner, and a bad coach does more harm than no coach.
+- `.env` holds a `GEMINI_API_KEY` and is gitignored; nothing in the runtime reads it.
 - See `ARCHITECTURE.md` for the data-flow / component boundaries.
 
 ---

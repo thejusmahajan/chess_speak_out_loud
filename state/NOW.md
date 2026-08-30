@@ -436,28 +436,46 @@ deleted — Thejus should move or drop it.
 
 ---
 
-## 6. The live defect in the chess app: the LLM is reasoning about chess
+## 6. ~~The live defect: the LLM is reasoning about chess~~ — CLOSED 2026-08-30
 
-**Status: CONFIRMED, unfixed.** A direct violation of the north star, in shipped code. The brief
-is written and registered — `agents/briefs/2026-08-27_llm-seam-removal.md` — and it is the one
-non-interview brief allowed ACTIVE under §1. *Why this before the interview: the chess app is
-interview evidence, and this is a coach that talks without knowing anything.*
+**The seam is removed.** `agents/briefs/2026-08-27_llm-seam-removal.md` was executed on
+2026-08-30 (21:45–22:05) and its report is `agents/reports/2026-08-27_llm-seam-removal_REPORT.md`.
+No non-test module under `backend/` imports `llm_client`; neither repertoire endpoint calls the
+enricher; the poisoned cache is deleted; the UI now shows text derived from LC0's own computed
+values. `backend/tests/test_llm_seam.py` is the interlock — a static `ast` guard that fails
+naming the offending file, mutation-verified red then green.
 
-- `backend/app.py:658` calls `explanations.enrich_tree_explanations(tree)` **unconditionally** on
-  the repertoire-tree endpoint.
-- `backend/training/explanations.py` has **no `LLM_ENABLED` guard anywhere** and reaches
-  `llm_client.generate_move_explanation` at line 63.
-- The context handed over (`explanations.py:44-62`) is FEN, move UCI, `eval_cp`, `critical_reason`,
-  `user_blind_rate`, opponent replies. **No LC0 search tree, no policy prior, no relational facts.**
-- Three documents assert the path is dormant (`backend/app.py:42`, `ARCHITECTURE.md:30`,
-  `HOW_TO_RUN.md:90`). `LLM_ENABLED = False` is a sign, not an interlock.
+`301 − 12 + 2 = 291` backend tests; 49 frontend tests; the arithmetic balances.
 
-**It has already fired and cached its output.** `data/training/cache/explanations.jsonl`, 16
-entries, 2026-07-26 19:37. *"Focus on maintaining sound piece activity and watch out for opponent
-counter-play"* appears **verbatim on four different positions**. It comes from
-`_build_fallback_explanation` (`llm_client.py:214-216`), which fires when `GEMINI_API_KEY` is
-unset — so the served text is position-**independent** filler. Other entries truncate mid-word.
-`llm_client.py` targets model id `gemini-3.5-flash`, which is not a real model.
+### ⚠ Three things this left behind — do not lose them
+
+1. **It was executed by the LEADER, so it was never independently audited.** The person who wrote
+   the diff checked it. That is weaker than this repo's normal loop. **An audit brief for Gemini
+   against this diff is a legitimate and cheap next item.**
+2. **Nobody has looked at the Coach Explanation card in a running browser.** Vitest passes and
+   the panel mounts, but this project's most-repeated failure is correct work nobody looked at —
+   now four times over. Start the app, open a repertoire tree, look at that card.
+3. **`kaggle_files/` holds a complete July clone of `backend/`** with both call sites and its own
+   `llm_client.py`. Gitignored, local-only, not reachable from the served app, and NOT covered by
+   the interlock. Found and deliberately not fixed. **Do not re-serve that snapshot** — regenerate
+   it from HEAD when Kaggle is next used.
+
+### What the brief had wrong, all understated
+
+| brief said | actually measured 2026-08-30 |
+|---|---|
+| one call site, `app.py:658` | **two** — `app.py:659` and `app.py:745` (the drills endpoint) |
+| filler on "four different positions" | **9 of 16** entries, 8 distinct EPDs |
+| — | the other **7 entries are real Gemini output, truncated mid-word** |
+
+That last row is the one that matters: the fallback template always ends with its fixed sentence,
+so those 7 did not come from it. **The app had genuinely called a language model and served its
+chess text.** Why they truncate at 25–37 characters, when `max_output_tokens=180`, is unexplained
+and the evidence is now deleted — it survives only in the report.
+
+Also worth knowing before anyone builds the *translator*: `llm_client.py` targets model id
+`gemini-3.5-flash`, **which is not a real model**, and `google.generativeai` is deprecated
+(`FutureWarning` in the suite). It is not usable scaffolding as it stands.
 
 ---
 

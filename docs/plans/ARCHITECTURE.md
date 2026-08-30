@@ -17,7 +17,7 @@ graph TD
     API -->|JSON Response (Policy + Saliency)| UI
     
     %% Dormant LLM Node
-    API -.->|Dormant/Disabled| Gemini[Google Gemini API]
+    API -.->|Unreachable - seam removed 2026-08-30| Gemini[Google Gemini API]
     style Gemini stroke-dasharray: 5 5, fill:#eee, color:#aaa
 ```
 
@@ -27,7 +27,7 @@ graph TD
 2. **Backend (`backend/`)**: FastAPI orchestrator.
    - **`engine_manager.py`**: Interacts with the `lc0.exe` subprocess to extract policy priors (`VerboseMoveStats`) and PV.
    - **`neural_vision.py`**: Interacts with `lczerolens` / PyTorch to extract true neural attention (saliency maps).
-   - **`llm_client.py`**: **Dormant**. Wraps `google.generativeai` but is disabled behind the `LLM_ENABLED` flag.
+   - **`llm_client.py`**: **Unreachable from any request path**, enforced by `backend/tests/test_llm_seam.py` (no non-test module under `backend/` may import it). It was NOT previously disabled: the `LLM_ENABLED` flag was never read, and two repertoire endpoints reached this module until 2026-08-30. Retained as scaffolding for the eventual *translator* role.
 
 ## Data Flow for Neural Vision Analysis
 1. User plays a move or requests analysis.

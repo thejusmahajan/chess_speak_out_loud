@@ -16,6 +16,63 @@ Template:
 
 ---
 
+## 2026-08-30 (night) — the LLM seam is closed; the brief understated its own defect three ways
+
+**Did:** executed `agents/briefs/2026-08-27_llm-seam-removal.md` in full. Report:
+`agents/reports/2026-08-27_llm-seam-removal_REPORT.md`.
+
+Deleted `backend/training/explanations.py`, its 12 tests, and the 16-entry poisoned cache.
+Removed the unused `generate_conversation` import and **both** `enrich_tree_explanations` call
+sites from `backend/app.py`. Dropped the generated-prose branch from `RepertoirePanel.tsx` so the
+Coach Explanation card renders only LC0-derived values. Corrected `HOW_TO_RUN.md:90` and
+`docs/plans/ARCHITECTURE.md` (line 30 **and** the mermaid edge, which the brief did not name).
+Created `backend/tests/test_llm_seam.py`: a static `ast` guard plus a behavioural test.
+
+**Found — the brief's own evidence was understated three ways, all in the same direction:**
+- **Two call sites, not one.** `app.py:659` *and* `app.py:745`. The second is the repertoire
+  **drills** endpoint — generated text was being served into drill reveals and nobody had it
+  written down.
+- **The filler was on 9 of 16 cache entries, not four.** 8 distinct EPDs.
+- **The other 7 entries are real Gemini output, truncated mid-word.** The fallback template always
+  ends with its fixed sentence, so those did not come from it. **The app had genuinely called a
+  language model and served its chess text.** That is a stronger violation than anything written
+  down before tonight.
+
+**Found and deliberately NOT fixed** (the brief asks for exactly this): `kaggle_files/` is a
+complete 64-file clone of `backend/` frozen 2026-07-21, carrying both call sites and its own
+`llm_client.py`. Gitignored, local-only, unreachable from the served app, and outside the
+interlock's walk. Recommendation recorded: regenerate from HEAD rather than patch the snapshot.
+
+**Verified:**
+- Null test on HEAD before touching anything: `grep -c "sound piece activity" … = 9`.
+- **`301 − 12 + 2 = 291`.** It balances. Frontend `vitest`: 9 files, 49 tests, all green,
+  including `RepertoireTrainer.test.tsx` which mounts the edited panel.
+- **Mutation test — and the first attempt failed usefully.** I inserted the import above a
+  `from __future__` line, making a SyntaxError, and pytest died at *collection* instead of the
+  guard going red. That exposed a real flaw in my own test: it imported fixtures at module scope,
+  so a broken backend module took the guard down with it — exactly when you need it most. Moved
+  those imports inside the behavioural test. Re-run correctly: guard goes **red naming
+  `backend	raining\select_repertoire.py`**, revert is byte-identical, green again.
+
+**⚠ Open, and stated plainly:**
+1. **No independent audit.** The leader wrote this diff and the leader checked it. An audit brief
+   for Gemini against it is cheap and legitimate.
+2. **Nobody has looked at the Coach Explanation card in a browser.** Fourth instance of the
+   standing failure in this repo's history. Vitest is not a pair of eyes.
+3. `llm_client.py` targets `gemini-3.5-flash`, **not a real model**, on a deprecated SDK. Whoever
+   builds the *translator* rewrites it; it is not usable scaffolding today.
+4. Why the 7 cached generations truncate at 25–37 chars against `max_output_tokens=180` is
+   unexplained, and the cache is deleted — the evidence now exists only in the report.
+
+**Context:** this is the first code change to `backend/` since **2026-08-19** (`74724c3`); the
+eleven days between were docs, archiving and the interview. The north-star frontier
+(`docs/plans/PLAN_SALIENCE_CNP.md` Stage 0, repairing the label pipeline) is untouched and is the
+next real piece of work.
+
+**Repo:** one commit on `windows-dev`. PUSHED — verified.
+
+---
+
 ## 2026-08-30 (evening, third) — his trainer comments went unread for ten hours; one was a real bug
 
 **Found — and this is a leader failure, not a worker one:**

@@ -437,18 +437,18 @@ function RepertoireTrainer({ eco, color, openingName, onSelectMode }: Repertoire
         {/* Coach Explanation Panel (Placeholder for R3 / Node Explanation) */}
         <div className="glass-card" style={{ borderLeft: '3px solid #38bdf8' }}>
           <h4 style={{ margin: '0 0 0.5rem 0', color: '#38bdf8', fontSize: '0.9rem' }}>Coach Explanation</h4>
-          {currentNode?.explanation ? (
-            <p style={{ margin: 0, fontSize: '0.88rem', lineHeight: 1.4 }}>{currentNode.explanation}</p>
-          ) : (
-            <p style={{ margin: 0, fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
-              <em>
-                {currentNode?.critical
-                  ? `Critical node due to ${currentNode.critical_reason}. `
-                  : 'Standard repertoire node. '}
-                Best move: <strong>{currentNode?.user_move?.san || 'N/A'}</strong> ({currentNode?.eval_cp != null ? `${(currentNode.eval_cp / 100).toFixed(2)}cp` : 'N/A'}).
-              </em>
-            </p>
-          )}
+          {/* Derived from LC0's own computed values only. The generated-prose
+              branch that used to sit here was removed 2026-08-30: it rendered
+              text written by a language model that had been handed a FEN and an
+              eval and nothing else. See backend/tests/test_llm_seam.py. */}
+          <p style={{ margin: 0, fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
+            <em>
+              {currentNode?.critical
+                ? `Critical node due to ${currentNode.critical_reason}. `
+                : 'Standard repertoire node. '}
+              Best move: <strong>{currentNode?.user_move?.san || 'N/A'}</strong> ({currentNode?.eval_cp != null ? `${(currentNode.eval_cp / 100).toFixed(2)}cp` : 'N/A'}).
+            </em>
+          </p>
         </div>
 
         {/* Actions */}

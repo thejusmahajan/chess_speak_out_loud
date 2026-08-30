@@ -1,5 +1,5 @@
 {
-  "user_rating": 974.0,
+  "user_rating": 833.87,
   "cards": {
     "pyt-l1-001": {
       "rating": 977.59,
@@ -496,12 +496,12 @@
       ]
     },
     "own-l0-001": {
-      "rating": 778.23,
-      "ease": 2.45,
+      "rating": 779.48,
+      "ease": 2.3,
       "interval_days": 1,
       "reps": 1,
-      "last_seen": "2026-08-22T19:43:03.110336+00:00",
-      "due_date": "2026-08-23T19:43:03.110336+00:00",
+      "last_seen": "2026-08-30T18:58:30.861309+00:00",
+      "due_date": "2026-08-31T18:58:30.861309+00:00",
       "mastered": true,
       "history": [
         {
@@ -515,16 +515,22 @@
           "score": 0.5,
           "user_rating": 890.63,
           "card_rating": 778.23
+        },
+        {
+          "timestamp": "2026-08-30T18:58:30.861309+00:00",
+          "score": 0.5,
+          "user_rating": 886.88,
+          "card_rating": 779.48
         }
       ]
     },
     "own-l0-002": {
-      "rating": 797.05,
-      "ease": 2.6,
-      "interval_days": 1,
-      "reps": 1,
-      "last_seen": "2026-08-20T17:28:11.817817+00:00",
-      "due_date": "2026-08-21T17:28:11.817817+00:00",
+      "rating": 801.63,
+      "ease": 2.4,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-30T19:24:12.987358+00:00",
+      "due_date": "2026-08-30T19:24:12.987358+00:00",
       "mastered": true,
       "history": [
         {
@@ -532,6 +538,12 @@
           "score": 1.0,
           "user_rating": 901.86,
           "card_rating": 797.05
+        },
+        {
+          "timestamp": "2026-08-30T19:24:12.987358+00:00",
+          "score": 0.0,
+          "user_rating": 833.87,
+          "card_rating": 801.63
         }
       ]
     },
@@ -951,12 +963,12 @@
       ]
     },
     "own-l0-005": {
-      "rating": 800.29,
-      "ease": 2.3,
-      "interval_days": 0,
+      "rating": 801.24,
+      "ease": 2.15,
+      "interval_days": 1,
       "reps": 0,
-      "last_seen": "2026-08-20T22:59:34.491476+00:00",
-      "due_date": "2026-08-20T22:59:34.491476+00:00",
+      "last_seen": "2026-08-30T19:07:57.403698+00:00",
+      "due_date": "2026-08-31T19:07:57.403698+00:00",
       "mastered": false,
       "history": [
         {
@@ -964,6 +976,12 @@
           "score": 0.0,
           "user_rating": 895.6,
           "card_rating": 800.29
+        },
+        {
+          "timestamp": "2026-08-30T19:07:57.403698+00:00",
+          "score": 0.5,
+          "user_rating": 881.47,
+          "card_rating": 801.24
         }
       ]
     },
@@ -985,12 +1003,12 @@
       ]
     },
     "own-l0-008": {
-      "rating": 829.8,
-      "ease": 2.3,
-      "interval_days": 0,
+      "rating": 830.36,
+      "ease": 2.15,
+      "interval_days": 1,
       "reps": 0,
-      "last_seen": "2026-08-20T23:01:44.517436+00:00",
-      "due_date": "2026-08-20T23:01:44.517436+00:00",
+      "last_seen": "2026-08-30T19:18:42.417177+00:00",
+      "due_date": "2026-08-31T19:18:42.417177+00:00",
       "mastered": false,
       "history": [
         {
@@ -998,16 +1016,22 @@
           "score": 0.0,
           "user_rating": 881.19,
           "card_rating": 829.8
+        },
+        {
+          "timestamp": "2026-08-30T19:18:42.417177+00:00",
+          "score": 0.5,
+          "user_rating": 877.09,
+          "card_rating": 830.36
         }
       ]
     },
     "own-l0-003": {
-      "rating": 790.08,
-      "ease": 2.3,
+      "rating": 795.06,
+      "ease": 2.1,
       "interval_days": 0,
       "reps": 0,
-      "last_seen": "2026-08-20T23:02:08.308101+00:00",
-      "due_date": "2026-08-20T23:02:08.308101+00:00",
+      "last_seen": "2026-08-30T19:19:36.842060+00:00",
+      "due_date": "2026-08-30T19:19:36.842060+00:00",
       "mastered": false,
       "history": [
         {
@@ -1015,6 +1039,12 @@
           "score": 0.0,
           "user_rating": 865.95,
           "card_rating": 790.08
+        },
+        {
+          "timestamp": "2026-08-30T19:19:36.842060+00:00",
+          "score": 0.0,
+          "user_rating": 862.15,
+          "card_rating": 795.06
         }
       ]
     },
@@ -1087,12 +1117,12 @@
       ]
     },
     "own-l0-007": {
-      "rating": 811.58,
-      "ease": 2.6,
+      "rating": 812.43,
+      "ease": 2.45,
       "interval_days": 1,
       "reps": 1,
-      "last_seen": "2026-08-21T05:19:51.492492+00:00",
-      "due_date": "2026-08-22T05:19:51.492492+00:00",
+      "last_seen": "2026-08-30T19:04:10.726541+00:00",
+      "due_date": "2026-08-31T19:04:10.726541+00:00",
       "mastered": true,
       "history": [
         {
@@ -1100,6 +1130,12 @@
           "score": 1.0,
           "user_rating": 876.2,
           "card_rating": 811.58
+        },
+        {
+          "timestamp": "2026-08-30T19:04:10.726541+00:00",
+          "score": 0.5,
+          "user_rating": 884.32,
+          "card_rating": 812.43
         }
       ]
     },
@@ -1201,12 +1237,12 @@
       ]
     },
     "own-l0-006": {
-      "rating": 801.81,
-      "ease": 2.6,
+      "rating": 802.71,
+      "ease": 2.45,
       "interval_days": 1,
       "reps": 1,
-      "last_seen": "2026-08-21T05:30:11.002723+00:00",
-      "due_date": "2026-08-22T05:30:11.002723+00:00",
+      "last_seen": "2026-08-30T19:15:18.514576+00:00",
+      "due_date": "2026-08-31T19:15:18.514576+00:00",
       "mastered": true,
       "history": [
         {
@@ -1214,6 +1250,12 @@
           "score": 1.0,
           "user_rating": 885.77,
           "card_rating": 801.81
+        },
+        {
+          "timestamp": "2026-08-30T19:15:18.514576+00:00",
+          "score": 0.5,
+          "user_rating": 878.77,
+          "card_rating": 802.71
         }
       ]
     },
@@ -1252,12 +1294,12 @@
       ]
     },
     "own-l0-004": {
-      "rating": 787.08,
-      "ease": 2.6,
-      "interval_days": 1,
-      "reps": 1,
-      "last_seen": "2026-08-21T05:34:08.557179+00:00",
-      "due_date": "2026-08-22T05:34:08.557179+00:00",
+      "rating": 791.93,
+      "ease": 2.4,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-30T19:22:38.525462+00:00",
+      "due_date": "2026-08-30T19:22:38.525462+00:00",
       "mastered": true,
       "history": [
         {
@@ -1265,6 +1307,12 @@
           "score": 1.0,
           "user_rating": 894.54,
           "card_rating": 787.08
+        },
+        {
+          "timestamp": "2026-08-30T19:22:38.525462+00:00",
+          "score": 0.0,
+          "user_rating": 847.6,
+          "card_rating": 791.93
         }
       ]
     },
@@ -2740,7 +2788,7 @@
     }
   },
   "ladder_ratings": {
-    "own-work": 890.63,
+    "own-work": 833.87,
     "uncertainty": 946.8,
     "neural-processes": 895.14,
     "de-grammatik": 1180.02,
@@ -2752,14 +2800,6 @@
     "bridge": 838.5
   },
   "recent": [
-    "her-l0-004",
-    "her-l0-005",
-    "her-l4-014",
-    "her-l0-003",
-    "her-l1-003",
-    "her-l3-001",
-    "pyt-l3-002",
-    "pyt-l4-001",
     "pyt-l4-002",
     "pyt-l2-002",
     "pyt-l5-001",
@@ -2771,6 +2811,14 @@
     "pyt-l0-006",
     "pyt-l2-003",
     "de-gra-l0-001a",
-    "own-l0-001"
+    "own-l0-001",
+    "own-l0-007",
+    "own-l0-005",
+    "own-l0-006",
+    "own-l0-008",
+    "own-l0-003",
+    "own-l0-004",
+    "own-l0-002",
+    "own-l0-003"
   ]
 }

@@ -32,14 +32,16 @@ from backend.neural_vision import NeuralVision
 from backend.heatmap import generate_all_heatmaps
 from backend.concept_mapper import analyze_position
 from backend.mock_data import get_coach_summary
-from backend.llm_client import generate_conversation
 
 # ------------------------------------------------------------------
 # Configuration
 # ------------------------------------------------------------------
 
 VERSION = "0.1.0"
-LLM_ENABLED = False  # Aim: bypass all text-generation. Keep code dormant, never call at runtime.
+LLM_ENABLED = False  # Historical flag. NOTHING READS IT and it never did -- see
+# backend/tests/test_llm_seam.py, which is the actual interlock: no non-test module under
+# backend/ may import llm_client, so no request path can reach a language model. The motto
+# is that the LLM translates LC0's thinking and is never itself a chess reasoner.
 
 BACKEND_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BACKEND_DIR.parent
@@ -655,8 +657,6 @@ async def get_repertoire_tree(req: RepertoireTreeRequest):
             req.eco, req.color, str(pgn_path), player_name, lc0_engine, profile=profile
         )
 
-    from backend.training import explanations
-    tree = await explanations.enrich_tree_explanations(tree)
     return tree
 
 
@@ -740,9 +740,6 @@ async def generate_repertoire_drills(req: RepertoireTreeRequest):
         tree = await build_repertoire_tree(
             req.eco, req.color, str(pgn_path), "derdiedasdie", lc0_engine, profile=profile
         )
-    # attach coach explanations so drills carry them in their reveal
-    from backend.training import explanations
-    tree = await explanations.enrich_tree_explanations(tree)
 
     drill_set = drills.build_repertoire_drill_set(tree)
     if not drill_set["drills"]:
