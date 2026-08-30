@@ -308,6 +308,32 @@ def get_schedule_now():
     return schedule_engine.day_state(_load_timetable(), datetime.now())
 
 
+@app.get("/api/schedule/daemon")
+def get_schedule_daemon(stale_seconds: int = 30):
+    """Is the desktop timetable daemon running?
+
+    The daemon rewrites its cursor file every few seconds, so the file's
+    freshness is the heartbeat. The browser asks this so it can stay SILENT
+    while the desktop alarm has him covered — otherwise an open tab and the
+    daemon both sound at the same instant and every alert arrives doubled.
+    """
+    cursor_file = STATE_DIR / "schedule_daemon.json"
+    try:
+        with open(cursor_file, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        last_seen = datetime.fromisoformat(payload["cursor"])
+    except (OSError, ValueError, KeyError):
+        return {"alive": False, "last_seen": None, "age_seconds": None, "pid": None}
+
+    age = (datetime.now() - last_seen).total_seconds()
+    return {
+        "alive": 0 <= age <= stale_seconds,
+        "last_seen": last_seen.isoformat(),
+        "age_seconds": round(age, 1),
+        "pid": payload.get("pid"),
+    }
+
+
 @app.get("/api/schedule/reminders")
 def get_schedule_reminders(hours: float = 24.0):
     """Every reminder due in the next `hours`, with its sound decision."""

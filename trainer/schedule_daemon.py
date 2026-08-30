@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import threading
 import time
@@ -210,12 +211,30 @@ def read_cursor() -> Optional[datetime]:
         return None
 
 
-def write_cursor(moment: datetime) -> None:
+def write_cursor(moment: datetime, attempts: int = 4) -> bool:
+    """Persist the cursor, and double as the daemon's heartbeat — the browser
+    reads this file's freshness to decide whether the desktop alarm already has
+    him covered, so it is written on a tick even when nothing fired.
+
+    os.replace on this machine is intermittently denied with WinError 5 when a
+    virus scanner or an indexer holds the target (a documented failure in this
+    repo). Retry, and if it still will not land, say so and CARRY ON — a cursor
+    write must never be the thing that takes the alarm clock down.
+    """
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     tmp = CURSOR_FILE.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as handle:
-        json.dump({"cursor": moment.isoformat()}, handle)
-    tmp.replace(CURSOR_FILE)
+    payload = {"cursor": moment.isoformat(), "pid": os.getpid()}
+    for attempt in range(attempts):
+        try:
+            with open(tmp, "w", encoding="utf-8") as handle:
+                json.dump(payload, handle)
+            tmp.replace(CURSOR_FILE)
+            return True
+        except OSError:
+            if attempt == attempts - 1:
+                return False
+            time.sleep(0.05 * (attempt + 1))
+    return False
 
 
 def log_event(kind: str, reminder: Reminder, extra: Optional[dict] = None) -> None:
@@ -230,8 +249,11 @@ def log_event(kind: str, reminder: Reminder, extra: Optional[dict] = None) -> No
                  f"-{schedule_engine.format_hhmm(reminder.incoming.end_min)}",
     }
     entry.update(extra or {})
-    with open(LOG_FILE, "a", encoding="utf-8") as handle:
-        handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as handle:
+            handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        say(f"[log] could not append to {LOG_FILE.name}: {exc}")
 
 
 # =====================================================================
@@ -261,6 +283,7 @@ class ScheduleDaemon:
         alarm_seconds: int = 25,
         silent_seconds: int = 12,
         status_seconds: int = 300,
+        cursor_seconds: float = 3.0,
     ) -> None:
         self.timetable_file = Path(timetable_file)
         self.stale_seconds = stale_seconds
@@ -274,6 +297,7 @@ class ScheduleDaemon:
         self._last_status = ""
         self._last_status_at: Optional[datetime] = None
         self.status_seconds = status_seconds
+        self.cursor_seconds = cursor_seconds
 
     # -- timetable -----------------------------------------------------
     def timetable(self) -> Timetable:
@@ -346,6 +370,8 @@ class ScheduleDaemon:
         say(f"  started {now:%Y-%m-%d %H:%M:%S}   ·   Ctrl+C to stop")
         say("=" * 72)
         self.status(now)
+        last_write: Optional[datetime] = None
+        cursor_warned = False
 
         try:
             while True:
@@ -367,7 +393,18 @@ class ScheduleDaemon:
                     self.fire(reminder)
 
                 cursor = now
-                write_cursor(cursor)
+                # One replace a second is ~86k pointless writes a day, each a
+                # chance at the AV race above. Every few seconds is still a
+                # fresh enough heartbeat for the browser to trust.
+                if (last_write is None
+                        or (now - last_write).total_seconds() >= self.cursor_seconds):
+                    if write_cursor(cursor):
+                        last_write = now
+                    elif not cursor_warned:
+                        say("[cursor] cannot write the heartbeat file (AV or a reader holds "
+                            "it); reminders are unaffected, the browser just will not see "
+                            "that the daemon is running")
+                        cursor_warned = True
                 self.status(now)
                 self.banner.pump()
                 time.sleep(self.tick_seconds)

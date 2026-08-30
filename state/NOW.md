@@ -506,6 +506,20 @@ wake-up alarm fires *at* 03:00, not 02:55.
 Two gaps in the dictated plan were filled rather than left silent: **04:15–04:30 = Rest** (he did
 not specify it) and **22:00–03:00 = Sleep**. Both are one-line edits if he wants them different.
 
+### Answered 2026-08-30: the tab is optional
+
+He asked whether to keep a browser tab open all day. **No — open the trainer when he studies and
+close it after.** The daemon owns the alarms. That question exposed a real defect and it is fixed:
+with a tab open, the daemon and the page fired at the same instant and every alert arrived
+doubled. The page now reads the daemon's heartbeat (`/api/schedule/daemon`, freshness of the
+cursor file) and **stays silent while the daemon is alive**, taking the sound back within 15
+seconds if the daemon dies. The button says which one is covering him.
+
+Hardened at the same time: the cursor write is a `os.replace` that ran once per second, and this
+machine has a documented WinError 5 denial from AV holding the target. It now retries and, if it
+still fails, warns once and carries on — **a heartbeat write must never take the alarm clock
+down.** Writes are throttled to once every 3 s.
+
 ### ⚑ One thing still needs Thejus
 
 1. ~~**Put `launch_schedule.bat` in the Startup folder.**~~ **DONE 2026-08-30** — the leader

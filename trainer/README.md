@@ -101,9 +101,25 @@ Task Scheduler task with trigger *At log on*.
 The bar under the header shows the current block, a progress track, a live countdown, and what
 comes next — and fires the same reminders as an on-page overlay plus a system notification.
 
-**Click "🔔 Enable alarm" once per browser.** Browsers refuse to play audio until a user gesture,
-so until you click it the overlay appears silently. The choice is remembered. The tab must stay
-open for browser alarms; the daemon is what covers you when it is not.
+**You do not need to keep a tab open.** Open the trainer when you study and close it when you are
+done; the daemon is what makes the noise.
+
+**Who sounds the alarm.** The daemon rewrites its cursor file every few seconds, so that file's
+freshness is a heartbeat. The page reads it via `/api/schedule/daemon` and gets out of the way:
+
+| daemon | the tab | the button says |
+|---|---|---|
+| running | shows the overlay, stays **silent** | 🖥️ Desktop alarm active |
+| not running, tab armed | shows the overlay **and sounds** | 🔔 Tab alarm armed |
+| not running, tab not armed | shows the overlay only | 🔔 Enable alarm *(click it)* |
+
+Without this the daemon and an open tab both fire at the same instant and every alert arrives
+doubled. The page re-checks every 15 seconds, so killing the daemon hands the sound back to the
+tab within one check — and an unreachable server counts as "not covered", which errs toward
+making a noise rather than staying quiet.
+
+**Clicking "🔔 Enable alarm" only matters when the daemon is not running.** Browsers refuse audio
+until a user gesture; the choice is remembered per browser.
 
 ---
 
@@ -113,6 +129,7 @@ open for browser alarms; the daemon is what covers you when it is not.
 python -m pytest trainer/tests -q
 ```
 
-`tests/test_schedule.py` pins the reminder doctrine — which boundaries sound and which do not,
-that the wake-up fires at 03:00 rather than 02:55, and that the firing window is half-open so
-nothing can fire twice. Each of those guards has been mutation-checked.
+75 tests. `tests/test_schedule.py` pins the reminder doctrine — which boundaries sound and which
+do not, that the wake-up fires at 03:00 rather than 02:55, and that the firing window is half-open
+so nothing can fire twice — plus the heartbeat rules that decide whether the tab or the daemon
+makes the noise. Each of those guards has been mutation-checked.

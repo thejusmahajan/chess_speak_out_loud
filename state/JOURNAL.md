@@ -16,6 +16,43 @@ Template:
 
 ---
 
+## 2026-08-30 (evening, second) — "should I keep a tab open?" exposed a double-alarm, now fixed
+
+**Did:**
+- Answered the question: **no, the tab is optional.** Open the trainer when studying, close it
+  after; the daemon owns the alarms.
+- **Fixed the defect the question exposed.** With a tab open, the daemon and the page both fired
+  at the same instant — every alert arrived doubled. The daemon's cursor file is rewritten every
+  few seconds, so its freshness is a heartbeat; new endpoint **`/api/schedule/daemon`** exposes
+  it, and the page now stays **silent while the daemon is alive**. The arm button reports which
+  of the two is covering him (`🖥️ Desktop alarm active` / `🔔 Tab alarm armed` / `🔔 Enable alarm`).
+  Re-checked every 15 s, and an unreachable server counts as *not covered* — it errs toward making
+  a noise, never toward silence.
+- **Hardened the daemon against this repo's own documented failure.** `write_cursor` did a bare
+  `os.replace` once per second; on this machine AV/indexer holds intermittently deny that with
+  **WinError 5**, which would have killed the 24/7 process outright. It now retries four times,
+  and on final failure warns once and carries on. Log appends are wrapped the same way. Writes
+  throttled 1 s → 3 s (~86k replaces a day → ~29k, each one fewer chance at the race).
+
+**Verified:**
+- **75 tests pass** (6 new, via `TestClient` with `STATE_DIR` monkeypatched to a tmp dir).
+  Two more mutation checks, red then restored: treat a future heartbeat as alive → 1 red;
+  a corrupt/missing heartbeat reads as alive → 2 red.
+- **Live, both directions:** `{"alive":true,...,"age_seconds":0.2}` with the daemon running;
+  33 s after killing it, `{"alive":false,...,"age_seconds":32.9}`.
+- **The page's silence rule asserted in a node VM**, 6/6: daemon-alive → 0 plays for a work
+  boundary and for the wake-up; daemon-gone → 1 play each; into-rest stays silent either way
+  (it is a quiet kind, which has nothing to do with the daemon). The earlier 45/45 engine
+  cross-check still passes after the edit.
+- Daemon restarted on the hardened code — **PID 4820**, heartbeat carrying its pid.
+
+**Open:** unchanged — **nobody has looked at the browser bar render.** Fourth instance of the
+standing failure; the fix is one person, one glance.
+
+**Repo:** one commit on `windows-dev`. PUSHED — verified.
+
+---
+
 ## 2026-08-30 — the timetable is now part of the Knowledge Trainer, and it runs without a browser
 
 **Did:**

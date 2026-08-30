@@ -7,6 +7,7 @@ boundary is real work.
 """
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta
 
 import pytest
@@ -333,3 +334,72 @@ def test_timetable_to_dict_is_json_shaped(real):
     first = payload["blocks"][0]
     for key in ("start", "end", "start_min", "end_min", "task", "kind", "icon", "lead_sound", "start_alarm"):
         assert key in first
+
+
+# =====================================================================
+# 8. The daemon heartbeat — what stops the tab and the daemon both sounding
+# =====================================================================
+
+def _write_cursor(state_dir, moment, pid=4242):
+    state_dir.mkdir(parents=True, exist_ok=True)
+    (state_dir / "schedule_daemon.json").write_text(
+        json.dumps({"cursor": moment.isoformat(), "pid": pid}), encoding="utf-8"
+    )
+
+
+@pytest.fixture
+def client(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from trainer import app as trainer_app
+
+    monkeypatch.setattr(trainer_app, "STATE_DIR", tmp_path)
+    return TestClient(trainer_app.app), tmp_path
+
+
+def test_daemon_reported_alive_when_the_heartbeat_is_fresh(client):
+    api, state_dir = client
+    _write_cursor(state_dir, datetime.now())
+    body = api.get("/api/schedule/daemon").json()
+    assert body["alive"] is True
+    assert body["pid"] == 4242
+    assert body["age_seconds"] < 5
+
+
+def test_daemon_reported_dead_when_the_heartbeat_is_stale(client):
+    """A killed daemon stops rewriting the file; after the staleness window the
+    browser must take the sound back rather than assume it is covered."""
+    api, state_dir = client
+    _write_cursor(state_dir, datetime.now() - timedelta(seconds=120))
+    body = api.get("/api/schedule/daemon").json()
+    assert body["alive"] is False
+    assert body["age_seconds"] > 100
+
+
+def test_daemon_reported_dead_when_there_is_no_heartbeat_file(client):
+    api, state_dir = client
+    body = api.get("/api/schedule/daemon").json()
+    assert body == {"alive": False, "last_seen": None, "age_seconds": None, "pid": None}
+
+
+def test_daemon_reported_dead_when_the_heartbeat_file_is_corrupt(client):
+    """A half-written file must read as 'not covered', never as 'covered'."""
+    api, state_dir = client
+    state_dir.mkdir(parents=True, exist_ok=True)
+    (state_dir / "schedule_daemon.json").write_text('{"cursor": "not-a-', encoding="utf-8")
+    assert api.get("/api/schedule/daemon").json()["alive"] is False
+
+
+def test_a_heartbeat_from_the_future_is_not_alive(client):
+    """A clock jump must not latch the browser silent for hours."""
+    api, state_dir = client
+    _write_cursor(state_dir, datetime.now() + timedelta(hours=2))
+    assert api.get("/api/schedule/daemon").json()["alive"] is False
+
+
+def test_schedule_endpoints_answer(client):
+    api, _ = client
+    day = api.get("/api/schedule").json()
+    assert len(day["blocks"]) == 24
+    live = api.get("/api/schedule/now").json()
+    assert live["current"]["task"]
+    assert live["next"]["task"]

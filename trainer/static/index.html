@@ -982,7 +982,23 @@
     let audioCtx = null;
     let alarmVoices = [];
     let remindersArmed = localStorage.getItem('sched-armed') === '1';
+    // The desktop daemon owns the sound whenever it is running. An open tab
+    // must stay silent then, or every alert arrives twice at once.
+    let daemonAlive = false;
     const firedReminders = new Set();
+
+    async function fetchDaemonState() {
+      try {
+        const res = await fetch('/api/schedule/daemon');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const was = daemonAlive;
+        daemonAlive = !!(await res.json()).alive;
+        if (was !== daemonAlive) renderAlarmSource();
+      } catch (err) {
+        // Server unreachable: assume nothing is covering us and sound here.
+        if (daemonAlive) { daemonAlive = false; renderAlarmSource(); }
+      }
+    }
 
     async function fetchTimetable() {
       try {
@@ -1104,7 +1120,8 @@
       if (window.Notification && Notification.permission === 'granted') {
         try { new Notification(title, { body: body, silent: !sound }); } catch (e) { /* ignore */ }
       }
-      if (sound) playAlarm();
+      // Sound here only if the desktop daemon is not already doing it.
+      if (sound && !daemonAlive) playAlarm();
     }
 
     function dismissReminder() {
@@ -1156,16 +1173,36 @@
       }
       remindersArmed = true;
       localStorage.setItem('sched-armed', '1');
-      markArmed();
+      renderAlarmSource();
       playAlarm(1);
       showNotification('Alarm armed — keep this tab open.', 'var(--green)');
     }
 
-    function markArmed() {
+    // Says which of the two things is going to make the noise, so it is never
+    // a guess whether closing the tab loses the alarm.
+    function renderAlarmSource() {
       const btn = document.getElementById('sched-arm');
-      btn.textContent = '🔔 Alarm armed';
-      btn.classList.add('armed');
-      btn.onclick = null;
+      if (daemonAlive) {
+        btn.textContent = '🖥️ Desktop alarm active';
+        btn.title = 'The timetable daemon is running and will sound the alarm. '
+                  + 'This tab stays silent, and you can close it.';
+        btn.classList.add('armed');
+        btn.onclick = null;
+        return;
+      }
+      if (remindersArmed) {
+        btn.textContent = '🔔 Tab alarm armed';
+        btn.title = 'The desktop daemon is NOT running, so this tab will sound '
+                  + 'the alarm. Keep it open.';
+        btn.classList.add('armed');
+        btn.onclick = null;
+        return;
+      }
+      btn.textContent = '🔔 Enable alarm';
+      btn.title = 'The desktop daemon is not running and this tab is silent. '
+                + 'Click to let the tab sound the alarm.';
+      btn.classList.remove('armed');
+      btn.onclick = armReminders;
     }
 
     function scheduleTick() {
@@ -1182,13 +1219,15 @@
         // A previous session armed it, but some browsers still require a
         // gesture before audio plays — resume on the first click of this one.
         try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { /* ignore */ }
-        markArmed();
         document.addEventListener('click', function () {
           if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         }, { once: true });
       }
+      await fetchDaemonState();
+      renderAlarmSource();
       scheduleTick();
       setInterval(scheduleTick, 1000);
+      setInterval(fetchDaemonState, 15 * 1000);     // has the daemon gone away?
       setInterval(fetchTimetable, 10 * 60 * 1000);  // pick up edits to timetable.json
     }
 

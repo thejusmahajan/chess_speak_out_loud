@@ -1,5 +1,5 @@
 {
-  "user_rating": 990.71,
+  "user_rating": 974.0,
   "cards": {
     "pyt-l1-001": {
       "rating": 977.59,
@@ -25,12 +25,12 @@
       ]
     },
     "pyt-l2-001": {
-      "rating": 1176.29,
-      "ease": 2.6,
+      "rating": 1174.18,
+      "ease": 2.45,
       "interval_days": 1,
       "reps": 1,
-      "last_seen": "2026-08-19T19:50:44.166521+00:00",
-      "due_date": "2026-08-20T19:50:44.166521+00:00",
+      "last_seen": "2026-08-30T17:33:46.490990+00:00",
+      "due_date": "2026-08-31T17:33:46.490990+00:00",
       "mastered": true,
       "history": [
         {
@@ -38,6 +38,12 @@
           "score": 1.0,
           "user_rating": 1216.41,
           "card_rating": 1176.29
+        },
+        {
+          "timestamp": "2026-08-30T17:33:46.490990+00:00",
+          "score": 0.5,
+          "user_rating": 978.95,
+          "card_rating": 1174.18
         }
       ]
     },
@@ -306,12 +312,12 @@
       ]
     },
     "pyt-l0-006": {
-      "rating": 826.56,
-      "ease": 2.55,
-      "interval_days": 4,
+      "rating": 828.21,
+      "ease": 2.4,
+      "interval_days": 2,
       "reps": 2,
-      "last_seen": "2026-08-29T15:45:08.778544+00:00",
-      "due_date": "2026-09-02T15:45:08.778544+00:00",
+      "last_seen": "2026-08-30T17:34:04.546735+00:00",
+      "due_date": "2026-09-01T17:34:04.546735+00:00",
       "mastered": true,
       "history": [
         {
@@ -331,6 +337,12 @@
           "score": 0.5,
           "user_rating": 920.36,
           "card_rating": 826.56
+        },
+        {
+          "timestamp": "2026-08-30T17:34:04.546735+00:00",
+          "score": 0.5,
+          "user_rating": 974.0,
+          "card_rating": 828.21
         }
       ]
     },
@@ -444,12 +456,12 @@
       ]
     },
     "pyt-l0-003": {
-      "rating": 796.49,
-      "ease": 2.6,
-      "interval_days": 1,
-      "reps": 1,
-      "last_seen": "2026-08-20T05:52:29.986393+00:00",
-      "due_date": "2026-08-21T05:52:29.986393+00:00",
+      "rating": 802.52,
+      "ease": 2.4,
+      "interval_days": 0,
+      "reps": 0,
+      "last_seen": "2026-08-30T17:32:07.117314+00:00",
+      "due_date": "2026-08-30T17:32:07.117314+00:00",
       "mastered": true,
       "history": [
         {
@@ -457,6 +469,12 @@
           "score": 1.0,
           "user_rating": 853.1,
           "card_rating": 796.49
+        },
+        {
+          "timestamp": "2026-08-30T17:32:07.117314+00:00",
+          "score": 0.0,
+          "user_rating": 972.62,
+          "card_rating": 802.52
         }
       ]
     },
@@ -2728,15 +2746,12 @@
     "de-grammatik": 1180.02,
     "de-wortschatz": 1181.34,
     "air-quality": 929.78,
-    "pytorch": 990.71,
+    "pytorch": 974.0,
     "de-konnektoren": 1237.69,
     "hereon-aeon-up": 1231.32,
     "bridge": 838.5
   },
   "recent": [
-    "her-l2-005",
-    "her-l3-005",
-    "her-l4-017",
     "her-l2-007",
     "her-l5-009",
     "her-l0-004",
@@ -2753,6 +2768,9 @@
     "pyt-l4-003",
     "pyt-l3-001",
     "pyt-l0-005",
-    "pyt-l0-003"
+    "pyt-l0-003",
+    "pyt-l2-001",
+    "pyt-l0-006",
+    "pyt-l2-003"
   ]
 }
