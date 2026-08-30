@@ -16,6 +16,70 @@ Template:
 
 ---
 
+## 2026-08-30 — the timetable is now part of the Knowledge Trainer, and it runs without a browser
+
+**Did:**
+- Built the day timetable Thejus dictated into the Knowledge Trainer as a first-class feature,
+  in four pieces:
+  - **`trainer/content/timetable.json`** — the 24 blocks as editable data, not code. Validated
+    at load: the blocks must tile the full 24 h, one block may wrap midnight, a gap is a hard
+    error naming both sides of it.
+  - **`trainer/schedule.py`** — the pure engine. No clock of its own; every function takes `now`,
+    so all of it is deterministic under test.
+  - **`trainer/schedule_daemon.py`** — the 24/7 process. Always-on-top Tk banner +
+    `winsound.Beep` alarm. **This is the reliable half; the browser is the convenience.**
+  - **`trainer/static/index.html`** — a live bar under the header (current block, progress track,
+    countdown, what's next) that fires the same reminders as an overlay + system notification.
+- Endpoints `/api/schedule`, `/api/schedule/now`, `/api/schedule/reminders`.
+- `launch_schedule.bat` / `stop_schedule.bat`; the daemon also starts from
+  `launch_knowledge_trainer.bat`, so one double-click gives him cards *and* the clock.
+
+**Decided (the reminder doctrine — this is the whole design):**
+- **One reminder per boundary, five minutes before it.** The "session ending" notice and the
+  "next session starting" notice are the *same event*; announcing both would double every alert
+  in his day. He asked for both and gets both, in one message.
+- **It sounds only when the block STARTING at that boundary is not rest/sleep.** That is exactly
+  his rule — silence when a session ends because he is concentrating, alarm when a break ends
+  because that is when he needs pulling back — and it falls out of one line of code rather than
+  a table of special cases.
+- **The 03:00 wake-up alarm fires at 03:00, not 02:55.** A five-minute lead on a wake-up wakes
+  him five minutes early; `start_alarm` suppresses the lead for that block.
+- Two gaps in the dictated timetable were filled rather than left silent: **04:15–04:30 as Rest**
+  (unstated in the original) and **22:00–03:00 as Sleep**. Both are one-line edits in the JSON.
+
+**Verified (not reported — run):**
+- **69 tests pass** (`trainer/tests`, 37 of them new). **Five mutation checks**, each confirmed
+  red then restored green: invert the quiet-kind sound rule → 5 red; drop the contiguity check
+  → 2 red; wake-up gets a lead instead of a start alarm → 1 red; make the firing window
+  inclusive at both ends → 1 red; block containment half-open → closed → 2 red.
+  A sixth mutation appeared to survive and did not: I had written it at the wrong indentation,
+  so it patched nothing. Re-applied correctly, it went red.
+- **The live daemon fired all three reminder shapes** against synthetic timetables whose
+  boundaries landed in the next two minutes: `19:14 ALARM (wake, at-start)`,
+  `19:15 silent (into rest)`, `19:16 ALARM (out of rest, into work)` — with the matching
+  `state/schedule_log.jsonl` lines. This is the path that matters and it was not assumed.
+- **All three endpoints answered a live uvicorn**, and `/api/state` still answers unchanged.
+- **The browser JS was cross-checked against the Python engine** — the page recomputes the
+  schedule from the device clock rather than trusting the server, so the two implementations
+  could drift. Ran the page's own script in a node VM against the real timetable:
+  **45/45 assertions matched** (current + next block at 10 probe minutes, all 24 boundaries,
+  and the sound decision at each).
+
+**Open:**
+- **The browser bar has not been looked at.** Its logic is verified and its markup parses, but
+  nobody has seen it render. Load `http://127.0.0.1:8010/` and click **🔔 Enable alarm** once —
+  browsers refuse audio until a user gesture, so until that click the overlay is silent.
+- **For the 03:00 alarm to exist, something must have started the daemon before 03:00.** Nothing
+  does that yet: put a shortcut to `launch_schedule.bat` in `shell:startup`.
+- **⚠ This adds to the public footprint §0 is trying to shrink.** `timetable.json` publishes his
+  daily routine — wake time, "Interview prep" twice a day, German, the mech-interp slot — in a
+  repo that stays public. It is far milder than what §0 already lists, and `trainer/` is already
+  on the §0b removal list, so the timetable rides out with it. Flagging it, not blocking on it.
+
+**Repo:** one commit on `windows-dev`. PUSHED — verified with `git status` reporting nothing ahead.
+
+---
+
 ## 2026-08-28 (third session) — the "Claude keeps crashing" triage: it was the machine, not the tool
 
 **Did:**

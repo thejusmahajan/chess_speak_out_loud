@@ -65,3 +65,8 @@ profiles/
 
 # Application material lives in the private job_search repo, never here.
 applications/
+
+# Timetable daemon runtime state (per-second cursor + local adherence log)
+trainer/state/schedule_daemon.json
+trainer/state/schedule_daemon.tmp
+trainer/state/schedule_log.jsonl

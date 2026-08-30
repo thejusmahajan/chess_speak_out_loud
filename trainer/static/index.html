@@ -452,6 +452,110 @@
       z-index: 100;
       font-size: 0.9rem;
     }
+
+    /* ---------- Timetable bar (24/7 day schedule) ---------- */
+    .schedule-bar {
+      background: linear-gradient(180deg, #131a24 0%, var(--card-bg) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 24px 12px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .sched-icon { font-size: 1.6rem; line-height: 1; }
+    .sched-main { flex: 1 1 320px; min-width: 260px; }
+    .sched-task {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-bright);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .sched-clock { font-variant-numeric: tabular-nums; color: var(--text-muted); font-weight: 500; font-size: .85rem; }
+    .sched-sub { font-size: .82rem; color: var(--text-muted); margin-top: 2px; }
+    .sched-track {
+      height: 5px;
+      background: #0b0f15;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 7px;
+      border: 1px solid var(--border);
+    }
+    .sched-fill { height: 100%; width: 0%; background: var(--accent); transition: width 1s linear; }
+    .sched-countdown {
+      font-variant-numeric: tabular-nums;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 108px;
+      text-align: right;
+    }
+    .sched-countdown.warn { color: var(--amber); }
+    .sched-next {
+      font-size: .8rem;
+      color: var(--text-muted);
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      min-width: 190px;
+    }
+    .sched-next strong { color: var(--text); display: block; font-size: .95rem; }
+    .sched-arm {
+      background: var(--amber);
+      color: #16202b;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 13px;
+      font-weight: 700;
+      font-size: .82rem;
+      cursor: pointer;
+    }
+    .sched-arm.armed { background: transparent; color: var(--green-hover); border: 1px solid var(--border); cursor: default; }
+
+    /* kind tints */
+    .schedule-bar[data-kind="rest"]  .sched-fill,
+    .schedule-bar[data-kind="sleep"] .sched-fill { background: var(--text-muted); }
+    .schedule-bar[data-kind="rest"]  .sched-countdown,
+    .schedule-bar[data-kind="sleep"] .sched-countdown { color: var(--text-muted); }
+    .schedule-bar[data-kind="meal"]  .sched-fill { background: var(--amber); }
+    .schedule-bar[data-kind="meal"]  .sched-countdown { color: var(--amber); }
+    .schedule-bar[data-kind="focus"] .sched-fill { background: var(--level2); }
+    .schedule-bar[data-kind="focus"] .sched-countdown { color: var(--level2); }
+
+    /* ---------- Reminder overlay ---------- */
+    .reminder-overlay {
+      display: none;
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 900;
+      width: min(680px, 92vw);
+      background: var(--card-bg);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 22px 26px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, .75);
+    }
+    .reminder-overlay.alarm { border-color: var(--amber); animation: reminder-pulse 1.1s ease-in-out infinite; }
+    @keyframes reminder-pulse {
+      0%, 100% { box-shadow: 0 18px 60px rgba(0,0,0,.75); }
+      50%      { box-shadow: 0 18px 60px rgba(0,0,0,.75), 0 0 0 6px rgba(210,153,34,.16); }
+    }
+    .reminder-title { font-size: 1.5rem; font-weight: 800; color: var(--text-bright); }
+    .reminder-body { color: var(--text); margin-top: 8px; }
+    .reminder-dismiss {
+      margin-top: 16px;
+      background: var(--accent);
+      color: #08111c;
+      border: none;
+      border-radius: 6px;
+      padding: 9px 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -480,6 +584,31 @@
       </div>
     </div>
   </header>
+
+  <!-- 24/7 timetable bar: current block, countdown, what is next -->
+  <div class="schedule-bar" id="schedule-bar" data-kind="work" title="Day timetable — edit trainer/content/timetable.json">
+    <span class="sched-icon" id="sched-icon">📚</span>
+    <div class="sched-main">
+      <div class="sched-task">
+        <span id="sched-task">Loading timetable…</span>
+        <span class="sched-clock" id="sched-window"></span>
+      </div>
+      <div class="sched-sub" id="sched-note"></div>
+      <div class="sched-track"><div class="sched-fill" id="sched-fill"></div></div>
+    </div>
+    <div class="sched-countdown" id="sched-countdown">--:--</div>
+    <div class="sched-next">
+      Next<strong id="sched-next-task">—</strong>
+      <span id="sched-next-at"></span>
+    </div>
+    <button class="sched-arm" id="sched-arm" onclick="armReminders()">🔔 Enable alarm</button>
+  </div>
+
+  <div class="reminder-overlay" id="reminder-overlay">
+    <div class="reminder-title" id="reminder-title"></div>
+    <div class="reminder-body" id="reminder-body"></div>
+    <button class="reminder-dismiss" onclick="dismissReminder()">Dismiss (Esc)</button>
+  </div>
 
   <div class="controls-bar">
     <div class="filter-group">
@@ -838,9 +967,238 @@
       setTimeout(() => { notif.style.display = 'none'; }, 2500);
     }
 
+    // =================================================================
+    // Timetable — the 24/7 day schedule
+    //
+    // The full day plan is fetched once and the countdown is computed from the
+    // device clock every second, so the bar keeps ticking (and reminders keep
+    // firing) even if the server is briefly unreachable.
+    //
+    // One reminder per boundary, `lead_minutes` before it. It makes a sound
+    // only when the block STARTING at that boundary is not a rest/sleep block:
+    // a session ending must never break concentration, a break ending must.
+    // =================================================================
+    let TIMETABLE = null;
+    let audioCtx = null;
+    let alarmVoices = [];
+    let remindersArmed = localStorage.getItem('sched-armed') === '1';
+    const firedReminders = new Set();
+
+    async function fetchTimetable() {
+      try {
+        const res = await fetch('/api/schedule');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        TIMETABLE = await res.json();
+      } catch (err) {
+        console.error('timetable fetch failed', err);
+      }
+    }
+
+    // Absolute blocks for yesterday..tomorrow, so the block that wraps past
+    // midnight resolves correctly. Built with local-time Date constructors
+    // (minute overflow normalises), which keeps the wall-clock labels honest.
+    function blocksAround(now) {
+      if (!TIMETABLE) return [];
+      const out = [];
+      for (const offset of [-1, 0, 1]) {
+        for (const b of TIMETABLE.blocks) {
+          const d = now.getDate() + offset;
+          out.push(Object.assign({}, b, {
+            startAt: new Date(now.getFullYear(), now.getMonth(), d, 0, b.start_min, 0, 0),
+            endAt: new Date(now.getFullYear(), now.getMonth(), d, 0, b.end_min, 0, 0)
+          }));
+        }
+      }
+      out.sort((a, b) => a.startAt - b.startAt);
+      return out;
+    }
+
+    function currentAndNext(now) {
+      const blocks = blocksAround(now);
+      const idx = blocks.findIndex(b => b.startAt <= now && now < b.endAt);
+      if (idx < 0) return null;
+      return { current: blocks[idx], next: blocks[idx + 1] || null };
+    }
+
+    function fmtCountdown(seconds) {
+      seconds = Math.max(0, Math.floor(seconds));
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+      if (h > 0) return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+
+    function fmtClock(d) {
+      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+
+    function renderScheduleBar(now) {
+      const found = currentAndNext(now);
+      if (!found) return;
+      const current = found.current;
+      const next = found.next;
+      document.getElementById('schedule-bar').dataset.kind = current.kind;
+      document.getElementById('sched-icon').textContent = current.icon || '•';
+      document.getElementById('sched-task').textContent = current.task;
+      document.getElementById('sched-window').textContent = current.start + '–' + current.end;
+      document.getElementById('sched-note').textContent = current.note || '';
+
+      const total = (current.endAt - current.startAt) / 1000;
+      const elapsed = (now - current.startAt) / 1000;
+      const remaining = total - elapsed;
+      document.getElementById('sched-fill').style.width =
+        Math.max(0, Math.min(100, (elapsed / total) * 100)).toFixed(2) + '%';
+
+      const cd = document.getElementById('sched-countdown');
+      cd.textContent = fmtCountdown(remaining);
+      cd.classList.toggle('warn', remaining <= (TIMETABLE.lead_minutes || 5) * 60);
+
+      if (next) {
+        document.getElementById('sched-next-task').textContent = next.task;
+        document.getElementById('sched-next-at').textContent =
+          'at ' + fmtClock(next.startAt) + (next.start_alarm || next.lead_sound ? ' 🔔' : ' (silent)');
+      }
+    }
+
+    // ---- reminder firing ----------------------------------------------
+    function reminderKey(block, event) {
+      return block.startAt.toDateString() + '|' + block.start + '|' + event;
+    }
+
+    function checkReminders(now) {
+      if (!TIMETABLE) return;
+      const lead = (TIMETABLE.lead_minutes || 5) * 60 * 1000;
+      for (const block of blocksAround(now)) {
+        const event = block.start_alarm ? 'start' : 'lead';
+        const fireAt = block.start_alarm ? block.startAt : new Date(block.startAt - lead);
+        const age = now - fireAt;
+        // Fire once, and only within a minute of the moment — a tab opened at
+        // noon must not replay the whole morning.
+        if (age < 0 || age > 60000) continue;
+        const key = reminderKey(block, event);
+        if (firedReminders.has(key)) continue;
+        firedReminders.add(key);
+        fireReminder(block, event);
+      }
+    }
+
+    function fireReminder(block, event) {
+      const sound = block.start_alarm ? true : !!block.lead_sound;
+      const lead = TIMETABLE.lead_minutes || 5;
+      const title = event === 'start'
+        ? block.icon + '  ' + block.task + ' — NOW'
+        : block.icon + '  ' + block.task + ' in ' + lead + ' min';
+      const body = (event === 'start'
+        ? 'Starts now, ' + block.start + '. ' + (block.note || '')
+        : 'Current session ends at ' + block.start + '. Then: ' + block.task +
+          ' (' + block.start + '–' + block.end + '). ' + (block.note || '')).trim();
+
+      const overlay = document.getElementById('reminder-overlay');
+      document.getElementById('reminder-title').textContent = title;
+      document.getElementById('reminder-body').textContent = body;
+      overlay.classList.toggle('alarm', sound);
+      overlay.style.display = 'block';
+      setTimeout(dismissReminder, sound ? 25000 : 12000);
+
+      if (window.Notification && Notification.permission === 'granted') {
+        try { new Notification(title, { body: body, silent: !sound }); } catch (e) { /* ignore */ }
+      }
+      if (sound) playAlarm();
+    }
+
+    function dismissReminder() {
+      document.getElementById('reminder-overlay').style.display = 'none';
+      stopAlarm();
+    }
+
+    // ---- sound ---------------------------------------------------------
+    // Rising three-tone pattern, repeated. Matches the desktop daemon's alarm.
+    function playAlarm(repeats) {
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      stopAlarm();
+      const tones = [[880, 0.18], [1175, 0.18], [1568, 0.32]];
+      const cycle = tones.reduce((a, t) => a + t[1], 0) + 0.9;
+      const times = repeats || 5;
+      for (let r = 0; r < times; r++) {
+        let at = audioCtx.currentTime + r * cycle;
+        for (const tone of tones) {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = tone[0];
+          gain.gain.setValueAtTime(0.0001, at);
+          gain.gain.exponentialRampToValueAtTime(0.28, at + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, at + tone[1]);
+          osc.connect(gain).connect(audioCtx.destination);
+          osc.start(at);
+          osc.stop(at + tone[1] + 0.02);
+          alarmVoices.push(osc);
+          at += tone[1];
+        }
+      }
+    }
+
+    function stopAlarm() {
+      for (const osc of alarmVoices) { try { osc.stop(); } catch (e) { /* already stopped */ } }
+      alarmVoices = [];
+    }
+
+    // Browsers block audio until a user gesture, so arming is an explicit click.
+    async function armReminders() {
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        await audioCtx.resume();
+      } catch (e) { console.warn('audio unavailable', e); }
+      if (window.Notification && Notification.permission === 'default') {
+        try { await Notification.requestPermission(); } catch (e) { /* ignore */ }
+      }
+      remindersArmed = true;
+      localStorage.setItem('sched-armed', '1');
+      markArmed();
+      playAlarm(1);
+      showNotification('Alarm armed — keep this tab open.', 'var(--green)');
+    }
+
+    function markArmed() {
+      const btn = document.getElementById('sched-arm');
+      btn.textContent = '🔔 Alarm armed';
+      btn.classList.add('armed');
+      btn.onclick = null;
+    }
+
+    function scheduleTick() {
+      const now = new Date();
+      renderScheduleBar(now);
+      // The overlay always shows; only the sound depends on having been armed.
+      checkReminders(now);
+    }
+
+    async function startSchedule() {
+      await fetchTimetable();
+      if (!TIMETABLE) return;
+      if (remindersArmed) {
+        // A previous session armed it, but some browsers still require a
+        // gesture before audio plays — resume on the first click of this one.
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { /* ignore */ }
+        markArmed();
+        document.addEventListener('click', function () {
+          if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        }, { once: true });
+      }
+      scheduleTick();
+      setInterval(scheduleTick, 1000);
+      setInterval(fetchTimetable, 10 * 60 * 1000);  // pick up edits to timetable.json
+    }
+
     // Keyboard Shortcuts
     document.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+        return;
+      }
+      if (e.key === 'Escape') {
+        dismissReminder();
         return;
       }
       if (e.code === 'Space') {
@@ -858,6 +1216,7 @@
     // Initial load
     fetchState();
     loadNextCard();
+    startSchedule();
   </script>
 </body>
 </html>

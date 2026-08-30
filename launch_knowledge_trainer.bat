@@ -9,6 +9,9 @@ echo ========================================================
 echo        Launching Knowledge Trainer (Study Cards)
 echo ========================================================
 
+echo Starting the 24/7 timetable daemon...
+start "Timetable Daemon" /min "C:\Users\Admin\miniconda3\envs\cszero\python.exe" -X utf8 -m trainer.schedule_daemon
+
 echo Starting Knowledge Trainer server on port 8010...
 start "Knowledge Trainer" /min "C:\Users\Admin\miniconda3\envs\cszero\python.exe" -m uvicorn trainer.app:app --port 8010
 

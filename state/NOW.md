@@ -1,6 +1,6 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-08-30 by the leader (Opus 5)
+**Last updated:** 2026-08-30 (evening) by the leader (Opus 5) — see §8, the timetable
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
 
 ---
@@ -488,3 +488,48 @@ set rather than train on it; abstention is the motto in code). **Never hand-code
 **Queued, blocked on the WIP limit:** `2026-08-19_attention-demo-page` (blocked on the regenerated
 export), `2026-08-19_attention-export-with-history`, `2026-08-18_cnp-synthetic-build` (now
 superseded — the build landed; close it).
+
+---
+
+## 8. The timetable is live in the Knowledge Trainer — 2026-08-30
+
+Thejus dictated a full day plan and asked for it to run 24/7 alongside the trainer. Built and
+verified this session. **`trainer/content/timetable.json` is the single source of truth** — edit
+that file, and the daemon, the API and the browser bar all follow it.
+
+**The rule, once, so nobody re-derives it:** one reminder per block boundary, five minutes
+before. It is simultaneously *"this session is ending"* and *"the next one starts"*, so nothing
+is announced twice. **It sounds only when the block starting at that boundary is not rest or
+sleep** — silent when a session ends (he is concentrating), alarm when a break ends. The 03:00
+wake-up alarm fires *at* 03:00, not 02:55.
+
+Two gaps in the dictated plan were filled rather than left silent: **04:15–04:30 = Rest** (he did
+not specify it) and **22:00–03:00 = Sleep**. Both are one-line edits if he wants them different.
+
+### ⚑ Two things need Thejus, and they are both small
+
+1. **Put `launch_schedule.bat` in the Startup folder** (`Win+R` → `shell:startup` → drop a
+   shortcut). Until then nothing starts the daemon, so **there is no 03:00 alarm tomorrow.**
+   This is the whole feature's dependency and it takes thirty seconds.
+2. **Open `http://127.0.0.1:8010/` and click "🔔 Enable alarm" once.** Browsers refuse audio
+   until a user gesture. *This is also the fourth instance of the standing failure* — the bar's
+   logic is verified against the Python engine 45/45 and its markup parses, but **nobody has
+   looked at the screen.** Same class as the KaTeX equations. Look at it.
+
+### What was verified, and how
+
+69 tests pass (37 new, `trainer/tests/test_schedule.py`). Five mutation checks, each red then
+restored green. The **live daemon** fired all three reminder shapes against synthetic timetables
+with boundaries two minutes out — at-start alarm, silent-into-rest, alarm-out-of-rest — with
+matching `schedule_log.jsonl` lines. All three endpoints answered a live uvicorn and `/api/state`
+is unchanged. The page's own JS was run in a node VM against the Python reference: 45/45.
+
+`state/schedule_log.jsonl` (gitignored) records every reminder fired or missed. That is the
+adherence record — the only honest answer to *"did I actually keep the schedule this week?"*
+
+### ⚠ It adds to the footprint §0 is shrinking
+
+`timetable.json` publishes his daily routine — wake time, two "Interview prep" blocks, German,
+the mech-interp slot — in a repo that stays public. Much milder than what §0 already lists, and
+`trainer/` is on the §0b removal list already, so the timetable leaves with it. Noted, not a
+blocker on the feature.

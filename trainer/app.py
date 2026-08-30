@@ -17,6 +17,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from trainer import schedule as schedule_engine
 from trainer.engine import (
     calculate_elo,
     update_sm2,
@@ -34,6 +35,7 @@ BASE_DIR = Path(__file__).resolve().parent
 LADDERS_DIR = BASE_DIR / "content" / "ladders"
 STATE_DIR = BASE_DIR / "state"
 STATIC_DIR = BASE_DIR / "static"
+TIMETABLE_FILE = BASE_DIR / "content" / "timetable.json"
 PROGRESS_FILE = STATE_DIR / "progress.json"
 ANSWERS_FILE = STATE_DIR / "answers.jsonl"
 COMMENTS_FILE = STATE_DIR / "comments.jsonl"
@@ -273,6 +275,46 @@ def post_grade(req: GradeRequest):
         "new_ease": new_ease,
         "new_reps": new_reps,
     }
+
+
+# =====================================================================
+# Timetable — the 24/7 day schedule that runs alongside the card drilling
+# =====================================================================
+
+def _load_timetable():
+    """Read the timetable fresh on every request so editing the JSON takes
+    effect without restarting the server."""
+    try:
+        return schedule_engine.load_timetable(TIMETABLE_FILE)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"timetable not found: {TIMETABLE_FILE}")
+    except ValueError as exc:
+        raise HTTPException(status_code=500, detail=f"timetable is invalid: {exc}")
+
+
+@app.get("/api/schedule")
+def get_schedule():
+    """The whole day plan. The UI fetches this once and ticks locally, so the
+    countdown keeps running even if the server is briefly unreachable."""
+    timetable = _load_timetable()
+    payload = timetable.to_dict()
+    payload["server_now"] = datetime.now().isoformat()
+    return payload
+
+
+@app.get("/api/schedule/now")
+def get_schedule_now():
+    """Live state: what is running, how long is left, what fires next."""
+    return schedule_engine.day_state(_load_timetable(), datetime.now())
+
+
+@app.get("/api/schedule/reminders")
+def get_schedule_reminders(hours: float = 24.0):
+    """Every reminder due in the next `hours`, with its sound decision."""
+    timetable = _load_timetable()
+    now = datetime.now()
+    window = schedule_engine.reminders_between(timetable, now, now + timedelta(hours=hours))
+    return {"now": now.isoformat(), "hours": hours, "reminders": [r.to_dict() for r in window]}
 
 
 @app.post("/api/comment")

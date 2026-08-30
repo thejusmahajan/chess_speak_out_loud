@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "name": "Thejus — daily study timetable",
+  "authored": "2026-08-30",
+  "lead_minutes": 5,
+  "_doc": [
+    "Times are LOCAL 24h 'HH:MM'. Blocks must tile the full 24 hours with no gap and",
+    "no overlap; the last block wraps past midnight (end < start is allowed there only).",
+    "kind: chore | focus | work | meal | rest | sleep.",
+    "  'rest' and 'sleep' are QUIET kinds -- a boundary INTO them fires a silent reminder.",
+    "  A boundary into any other kind fires an ALARM.",
+    "start_alarm: true  -> also sound an alarm exactly AT the block start (wake-up only),",
+    "                      and suppress that block's 5-minute lead reminder.",
+    "lead_sound: true/false explicitly overrides the kind-derived sound decision."
+  ],
+  "blocks": [
+    {
+      "start": "03:00",
+      "end": "03:30",
+      "task": "Wake up — clean porch & hall",
+      "kind": "chore",
+      "note": "Alarm sounds at 03:00 sharp. No 02:55 pre-alarm.",
+      "start_alarm": true
+    },
+    {
+      "start": "03:30",
+      "end": "04:15",
+      "task": "Meditation",
+      "kind": "focus"
+    },
+    {
+      "start": "04:15",
+      "end": "04:30",
+      "task": "Rest",
+      "kind": "rest",
+      "note": "Implicit gap in the original timetable, filled as rest."
+    },
+    {
+      "start": "04:30",
+      "end": "06:00",
+      "task": "Interview prep",
+      "kind": "work"
+    },
+    {
+      "start": "06:00",
+      "end": "06:15",
+      "task": "Rest",
+      "kind": "rest"
+    },
+    {
+      "start": "06:15",
+      "end": "07:45",
+      "task": "Coursera — ML",
+      "kind": "work"
+    },
+    {
+      "start": "07:45",
+      "end": "08:00",
+      "task": "Rest",
+      "kind": "rest"
+    },
+    {
+      "start": "08:00",
+      "end": "08:45",
+      "task": "Breakfast",
+      "kind": "meal",
+      "note": "Prepare and eat light — cooked and hot."
+    },
+    {
+      "start": "08:45",
+      "end": "09:00",
+      "task": "Rest",
+      "kind": "rest"
+    },
+    {
+      "start": "09:00",
+      "end": "10:30",
+      "task": "Interview prep",
+      "kind": "work"
+    },
+    {
+      "start": "10:30",
+      "end": "10:45",
+      "task": "Rest",
+      "kind": "rest"
+    },
+    {
+      "start": "10:45",
+      "end": "12:00",
+      "task": "Statistics + Weiterbildung project revision",
+      "kind": "work"
+    },
+    {
+      "start": "12:00",
+      "end": "12:45",
+      "task": "Lunch",
+      "kind": "meal",
+      "note": "Eat moderate — hot and cooked."
+    },
+    {
+      "start": "12:45",
+      "end": "13:00",
+      "task": "Rest",
+      "kind": "rest"
+    },
+    {
+      "start": "13:00",
+      "end": "14:30",
+      "task": "Coursera — ML with Python",
+      "kind": "work"
+    },
+    {
+      "start": "14:30",
+      "end": "14:45",
+      "task": "Rest",
+      "kind": "rest"
+    },
+    {
+      "start": "14:45",
+      "end": "16:00",
+      "task": "German",
+      "kind": "work"
+    },
+    {
+      "start": "16:00",
+      "end": "16:15",
+      "task": "Rest",
+      "kind": "rest"
+    },
+    {
+      "start": "16:15",
+      "end": "18:00",
+      "task": "German",
+      "kind": "work"
+    },
+    {
+      "start": "18:00",
+      "end": "18:15",
+      "task": "Rest",
+      "kind": "rest"
+    },
+    {
+      "start": "18:15",
+      "end": "20:00",
+      "task": "Revision",
+      "kind": "work"
+    },
+    {
+      "start": "20:00",
+      "end": "20:45",
+      "task": "Dinner",
+      "kind": "meal",
+      "note": "Eat light — hot and cooked."
+    },
+    {
+      "start": "20:45",
+      "end": "22:00",
+      "task": "Mech-interp project",
+      "kind": "work"
+    },
+    {
+      "start": "22:00",
+      "end": "03:00",
+      "task": "Sleep",
+      "kind": "sleep"
+    }
+  ]
+}

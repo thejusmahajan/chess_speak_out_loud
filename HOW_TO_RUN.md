@@ -90,3 +90,33 @@ Navigate to **http://localhost:5173** in your browser. (Not 8000 — that serves
 - The LLM path (`backend/llm_client.py`, Gemini) is **dormant** by design — `LLM_ENABLED = False` in `backend/app.py`. Don't wire it into the runtime.
 - `.env` holds a `GEMINI_API_KEY` and is gitignored; it is unused while the LLM is disabled.
 - See `ARCHITECTURE.md` for the data-flow / component boundaries.
+
+---
+
+## The Knowledge Trainer and its 24/7 timetable (separate from the chess app)
+
+A second, independent app in `trainer/`: spaced-repetition interview cards **plus** the day
+timetable that runs as an alarm clock. It does not touch the backend or the frontend.
+
+```
+launch_knowledge_trainer.bat   starts the timetable daemon AND the card server on port 8010
+stop_knowledge_trainer.bat     stops both
+launch_schedule.bat            the timetable daemon on its own
+```
+
+The day plan is **`trainer/content/timetable.json`** — edit it and the daemon reloads by itself.
+
+**The reminder rule:** one reminder per block boundary, five minutes before it. It sounds an
+alarm only when the block *starting* at that boundary is not rest or sleep — so a session
+*ending* is announced silently (do not break concentration) and a break *ending* sounds
+(get back to the desk). The 03:00 wake-up alarm fires at 03:00, not 02:55.
+
+```powershell
+python -m trainer.schedule_daemon --check        # the next 8 reminders, then exit
+python -m trainer.schedule_daemon --test-alarm   # prove the sound works
+python -m pytest trainer/tests -q                # 69 tests
+```
+
+For it to be running before 03:00, put a shortcut to `launch_schedule.bat` in `shell:startup`.
+
+Full detail: **`trainer/README.md`**.
