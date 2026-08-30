@@ -506,11 +506,12 @@ wake-up alarm fires *at* 03:00, not 02:55.
 Two gaps in the dictated plan were filled rather than left silent: **04:15–04:30 = Rest** (he did
 not specify it) and **22:00–03:00 = Sleep**. Both are one-line edits if he wants them different.
 
-### ⚑ Two things need Thejus, and they are both small
+### ⚑ One thing still needs Thejus
 
-1. **Put `launch_schedule.bat` in the Startup folder** (`Win+R` → `shell:startup` → drop a
-   shortcut). Until then nothing starts the daemon, so **there is no 03:00 alarm tomorrow.**
-   This is the whole feature's dependency and it takes thirty seconds.
+1. ~~**Put `launch_schedule.bat` in the Startup folder.**~~ **DONE 2026-08-30** — the leader
+   created `Startup\Knowledge Trainer Timetable.lnk` pointing at `launch_schedule.bat`
+   (minimised), and started the daemon in this session (PID confirmed running, cursor file
+   ticking). **So the 03:00 alarm exists tomorrow.** To undo it, delete that shortcut.
 2. **Open `http://127.0.0.1:8010/` and click "🔔 Enable alarm" once.** Browsers refuse audio
    until a user gesture. *This is also the fourth instance of the standing failure* — the bar's
    logic is verified against the Python engine 45/45 and its markup parses, but **nobody has
