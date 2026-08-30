@@ -16,6 +16,64 @@ Template:
 
 ---
 
+## 2026-08-30 (evening, third) — his trainer comments went unread for ten hours; one was a real bug
+
+**Found — and this is a leader failure, not a worker one:**
+- `trainer/state/comments.jsonl` was **modified in the working tree when this session started**,
+  and the leader committed it twice without reading a single line. The comment box in the app
+  says feedback goes *"directly to the leader's audit queue"*. There was no queue. Six comments
+  from 2026-08-30, the oldest sitting **ten hours**.
+- **`CLAUDE.md` Step 0 now routes to it as item 5**, with the one-liner that prints the tail.
+  Nothing else would have caught this: it is not in NOW.md, not in the JOURNAL, not in MAP.md.
+
+**His comment [5] was a correct bug report — "I don't see the question here!" (her-l4-013):**
+- He was right. The question he had to answer — *"have you worked with EPISODE-CityChem?"* — was
+  in the small `topic` pill, and the `question` field held only a stage direction,
+  *"Answer, in the exact register required."* Unanswerable on its own.
+- **Five cards had drifted this way**, all in `hereon-aeon-up`: her-l3-010, her-l4-006, -009,
+  -012, -013. All five rewritten so the question he will actually be asked is in the question
+  field. 5 lines changed, 5 added — no reformat.
+- **New gate in `verify_cards.py`:** if a topic quotes a question, that question must also appear
+  in the question field. Mutation-checked (reverting her-l4-013 → gate goes red), and it earned
+  its keep immediately by catching **her-l3-010, which the leader's own ad-hoc scan had missed**.
+  That fifth card was borderline — its question paraphrased the quoted one in full — and the
+  choice was made to conform the card rather than weaken the gate.
+- Full gate: **206 cards, 87 URLs, 0 errors.** 75 tests pass.
+
+**Two of his questions were folded back into the cards, not just answered in chat:**
+- **[2] "why is it both Lagrangian and Eulerian? I am guessing it is Eulerian."** He is right about
+  the flagship models, and the honest answer is better than that: **Karl's own model is a hybrid.**
+  Fetched and quoted from the source the card already cites — *"EPISODE consists of a 3-D Eulerian
+  grid CTM that interacts with a sub-grid Gaussian dispersion model for the dispersion of
+  pollutants emitted from both line and point sources"* (Karl, Walker, Solberg **and Ramacher**,
+  Geosci. Model Dev. 12, 3357–3399, 2019) — HIWAY-2 for line sources, SEGPLU for point sources,
+  100 m over Hamburg. Added to `aq-l1-001`'s explanation. **Both his interviewers are on that
+  paper.**
+- **[1] the GOTM-FABM analogy** — yes, structurally. Same advection-diffusion-reaction equation
+  with the biogeochemical source/sink term swapped out. Recorded on the same card **with the
+  boundary attached**: the numerics transfer, the reaction term does not, and that is exactly
+  what her-l4-012 forbids him to claim.
+- **[4] "what is in this paper"** (the ferryboat study) — abstract fetched via Europe PMC and the
+  numbers quoted into `her-l3-011`: *"1.5–3 × 10⁴ cm⁻³ at ferryboat piers and at the road traffic
+  locations"* against an urban background of *"0.4–1.2 × 10⁴ cm⁻³"*, sub-50 nm dominated.
+  MDPI returned 403; Europe PMC was the route that worked.
+
+**Answered in chat, no card change needed:**
+- **[3] "predicting a Gaussian instead of a number"** — right, and the `uncertainty` ladder already
+  carries the refinement (8 cards mention aleatoric/epistemic; `unc-l0-002`, `unc-l1-001`,
+  `unc-l3-003` are the spine). No gap to fill.
+- **[6] he "almost forgot" `her-l5-003`** — that is the **slide-7 centrepiece**, the bug-admission
+  slide. A level-5 card he half-forgot with the interview live is the one to re-drill first.
+
+**Also:** ⚑ **Thejus confirmed the schedule bar renders** — *"The bar is running."* That closes the
+open item from the two entries above, and the **fourth** instance of the standing failure
+(correct work left unlooked-at). A person looked at the screen. That is still the only thing that
+ever catches it.
+
+**Repo:** one commit on `windows-dev`. PUSHED — verified.
+
+---
+
 ## 2026-08-30 (evening, second) — "should I keep a tab open?" exposed a double-alarm, now fixed
 
 **Did:**

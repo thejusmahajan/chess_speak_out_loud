@@ -16,6 +16,13 @@ Read, in this order, and do not skip:
 3. **`LEADER_BIBLE.md`** — the operating system: §1 the motto, §4 decided/do-not-relitigate,
    §5 the failure catalog, §6 handover state.
 4. **`agents/ACTIVE.md`** — what the worker (Gemini) is doing, and the audit ledger.
+5. **`trainer/state/comments.jsonl`** — **the only channel Thejus has to you from inside the
+   trainer.** The comment box in the app tells him his feedback goes "directly to the leader's
+   audit queue", so there has to be a queue and you are it. Read the tail:
+   `python -c "import io,json;[print(json.loads(l)['timestamp'][:16],json.loads(l)['card_id'],json.loads(l)['comment']) for l in io.open('trainer/state/comments.jsonl',encoding='utf-8').readlines()[-12:]]"`
+   Anything newer than the last JOURNAL entry is unread. **Added 2026-08-30 because the leader
+   committed six of his comments without reading one of them** — including a bug report
+   ("I don't see the question here!") that was correct and had been sitting there for ten hours.
 
 `state/MAP.md` answers *"which file tells me X?"* — go there instead of grepping 262
 markdown files.

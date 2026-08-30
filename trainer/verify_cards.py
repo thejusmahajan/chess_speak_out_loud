@@ -152,6 +152,11 @@ def check_single_url(url: str) -> Tuple[str, int, str, Optional[str]]:
     return (url, 0, url, "Unknown error")
 
 
+#: A question quoted inside a topic, e.g. '"have you worked with EPISODE-CityChem?"'.
+#: Straight or curly quotes, ending in a question mark.
+QUOTED_QUESTION = re.compile(r'["\u201c]([^"\u201c\u201d]{6,200}\?)["\u201d]')
+
+
 def verify_all_cards(
     ladders_dir: Path = LADDERS_DIR,
     root_dir: Path = PROJECT_ROOT,
@@ -236,6 +241,26 @@ def verify_all_cards(
             level = card.get("level")
             if not isinstance(level, int) or level < 0 or level > 5:
                 errors.append(f"Card '{card_id}': Level must be integer 0..5, got {level}.")
+
+            # Gate: the question must be self-contained.
+            #
+            # Reported by Thejus 2026-08-30 on her-l4-013 -- "I don't see the
+            # question here!". He was right: the question he had to answer was
+            # sitting in the small `topic` pill and the `question` field held
+            # only a stage direction ("Answer, in the exact register required.").
+            # Four cards had drifted this way. So: whenever the topic quotes an
+            # actual question, that question must ALSO be in the question field,
+            # where the drill puts it in front of him.
+            topic_text = card.get("topic", "") or ""
+            question_text = card.get("question", "") or ""
+            for quoted in QUOTED_QUESTION.findall(topic_text):
+                core = quoted.strip().strip("\u201c\u201d\"").rstrip("?").strip()
+                if core and core.lower() not in question_text.lower():
+                    errors.append(
+                        f"Card '{card_id}': the topic quotes the question "
+                        f"'{quoted.strip()}' but the question field does not contain it. "
+                        f"The question field is what the drill shows -- put it there."
+                    )
 
             # Gate: Math LaTeX Delimiters and KaTeX Macro validation
             UNSUPPORTED_KATEX_MACROS = re.compile(

@@ -520,6 +520,42 @@ machine has a documented WinError 5 denial from AV holding the target. It now re
 still fails, warns once and carries on — **a heartbeat write must never take the alarm clock
 down.** Writes are throttled to once every 3 s.
 
+### ⚑ CLOSED 2026-08-30 — Thejus confirmed the bar renders
+
+*"The bar is running."* That was the fourth instance of the standing failure and it is shut.
+Nothing about the timetable is now waiting on anyone.
+
+### The trainer comment queue — READ IT EVERY SESSION
+
+**`trainer/state/comments.jsonl` is the only channel he has to the leader from inside the app**,
+and on 2026-08-30 the leader committed six of his comments twice without reading one of them.
+One was a correct bug report that had been sitting ten hours. `CLAUDE.md` Step 0 item 5 now
+routes to it. Anything newer than the last JOURNAL entry is unread.
+
+Outcome of that triage, in full:
+- **5 cards fixed** (her-l3-010, her-l4-006/-009/-012/-013): the question he had to answer was in
+  the `topic` pill while the `question` field held a stage direction. All five now state the
+  question outright.
+- **New gate in `verify_cards.py`** — a question quoted in a topic must also appear in the
+  question field. Mutation-checked, and it caught a fifth card the leader's own scan had missed.
+  206 cards, 87 URLs, 0 errors.
+- **Two of his questions folded back into the cards**, so they return in the drill rather than
+  living in a chat log: the Eulerian/Lagrangian answer on `aq-l1-001` (**Karl's own model is a
+  hybrid** — 3-D Eulerian grid CTM plus sub-grid Gaussian dispersion, HIWAY-2 for line sources and
+  SEGPLU for point sources, GMD 12, 3357–3399, 2019, **Ramacher a co-author**), and the ferryboat
+  paper's headline numbers on `her-l3-011`.
+
+### ⚑ Two things worth his attention next
+
+1. **Re-drill `her-l5-003` first.** He wrote *"I have to understand the problem and solution more
+   clearly as I almost forgot."* That is **slide 7, the centrepiece** — the bug-admission slide the
+   whole talk turns on. A half-forgotten level-5 card there, with the interview live, is the
+   highest-value thing in the queue.
+2. **His GOTM-FABM instinct is a genuine asset and should be rehearsed as a line.** A CTM is the
+   same advection-diffusion-reaction equation he already solves, with the biogeochemical
+   source/sink term swapped for chemistry. *"The numerics transfer, the chemistry does not"* is
+   both true and exactly the register her-l4-012/-013 demand. It converts a gap into a bridge.
+
 ### ⚑ One thing still needs Thejus
 
 1. ~~**Put `launch_schedule.bat` in the Startup folder.**~~ **DONE 2026-08-30** — the leader
