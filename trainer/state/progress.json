@@ -1,5 +1,5 @@
 {
-  "user_rating": 904.12,
+  "user_rating": 929.78,
   "cards": {
     "pyt-l1-001": {
       "rating": 977.59,
@@ -1495,13 +1495,13 @@
       ]
     },
     "aq-l1-001": {
-      "rating": 987.95,
-      "ease": 2.2,
+      "rating": 983.13,
+      "ease": 2.3,
       "interval_days": 1,
-      "reps": 0,
-      "last_seen": "2026-08-28T23:21:54.107137+00:00",
-      "due_date": "2026-08-29T23:21:54.107137+00:00",
-      "mastered": false,
+      "reps": 1,
+      "last_seen": "2026-08-30T05:49:21.413703+00:00",
+      "due_date": "2026-08-31T05:49:21.413703+00:00",
+      "mastered": true,
       "history": [
         {
           "timestamp": "2026-08-28T23:16:17.036414+00:00",
@@ -1514,6 +1514,12 @@
           "score": 0.5,
           "user_rating": 902.28,
           "card_rating": 987.95
+        },
+        {
+          "timestamp": "2026-08-30T05:49:21.413703+00:00",
+          "score": 1.0,
+          "user_rating": 929.78,
+          "card_rating": 983.13
         }
       ]
     },
@@ -1552,12 +1558,12 @@
       ]
     },
     "aq-l3-002": {
-      "rating": 1486.27,
-      "ease": 2.35,
+      "rating": 1482.54,
+      "ease": 2.2,
       "interval_days": 1,
       "reps": 0,
-      "last_seen": "2026-08-28T23:17:43.393845+00:00",
-      "due_date": "2026-08-29T23:17:43.393845+00:00",
+      "last_seen": "2026-08-30T05:45:45.767154+00:00",
+      "due_date": "2026-08-31T05:45:45.767154+00:00",
       "mastered": false,
       "history": [
         {
@@ -1565,6 +1571,12 @@
           "score": 0.5,
           "user_rating": 916.0,
           "card_rating": 1486.27
+        },
+        {
+          "timestamp": "2026-08-30T05:45:45.767154+00:00",
+          "score": 0.5,
+          "user_rating": 915.31,
+          "card_rating": 1482.54
         }
       ]
     },
@@ -1701,15 +1713,13 @@
     "neural-processes": 895.14,
     "de-grammatik": 1180.02,
     "de-wortschatz": 1181.34,
-    "air-quality": 904.12,
+    "air-quality": 929.78,
     "pytorch": 920.36,
     "de-konnektoren": 1237.69,
     "hereon-aeon-up": 838.07,
     "bridge": 838.5
   },
   "recent": [
-    "aq-l2-001",
-    "aq-l0-002",
     "aq-l0-001",
     "aq-l1-001",
     "aq-l2-002",
@@ -1727,6 +1737,8 @@
     "de-kon-l0-003c",
     "aq-l0-001",
     "aq-l2-002",
-    "aq-l3-002"
+    "aq-l3-002",
+    "aq-l1-001",
+    "aq-l5-001"
   ]
 }

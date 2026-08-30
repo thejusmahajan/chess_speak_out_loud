@@ -268,6 +268,25 @@ def filter_selectable_cards(
         if is_card_due(card_prog, now):
             selectable.append(card)
             
+    # If no cards are strictly due by schedule, but the ladder's active level is not yet
+    # 80% mastered, allow unmastered cards in the active level to be drilled so the user
+    # can continue learning and reach the threshold to unlock the next level.
+    if not selectable:
+        for card in cards:
+            card_id = card["id"]
+            ladder = card.get("ladder", "default")
+            card_level = card.get("level", 0)
+            
+            if card_level > active_levels.get(ladder, 0):
+                continue
+                
+            reqs = card.get("requires", [])
+            if not is_card_unlocked(reqs, progress):
+                continue
+                
+            if not _is_card_mastered(card_id, progress):
+                selectable.append(card)
+                
     return selectable
 
 

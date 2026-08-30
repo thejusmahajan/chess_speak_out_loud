@@ -1,6 +1,6 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-08-29 by the leader (Opus 5)
+**Last updated:** 2026-08-30 by the leader (Opus 5)
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
 
 ---
@@ -101,11 +101,16 @@ reads *"Data science, automation, and bioinformatics pipelines: Pandas, NumPy, s
 matplotlib, seaborn, xarray"*. Meanwhile `index.html` headlines *"Modelling · Data Engineering ·
 Machine Learning"* and offers the ML CV as the primary download. A technical reader who clicks
 Skills finds a bioinformatician. **Folded into the same brief** (§3.3): an ML section, a rewritten
-Python card, a rewritten page subtitle. The CV's Machine Learning line also finally gets the CNP —
-`conditional neural processes (implemented from scratch), uncertainty calibration (NLL, CRPS, ECE)`
-— which closes the §3 open item below. CNP re-verified on disk before writing it: `cnp_synthetic`
-at `063bc6e`, `RESULTS.md` giving cnp CRPS 0.1677 vs gp_oracle 0.0379, ratio 4.4214, with `runs/`
-logs behind it.
+Python card, a rewritten page subtitle. ~~The CV's Machine Learning line also finally gets the CNP.~~
+**⛔ REVERSED 2026-08-30 by Thejus** — *"Lets not put things that we still not finalized. So we
+remove the claim from the website as well."* The clause
+`, conditional neural processes (implemented from scratch), uncertainty calibration (NLL, CRPS, ECE)`
+has been **removed from both `.tex` files**, both PDFs rebuilt at 2 pages, and the brief and ledger
+amended so Part B cannot put it back. See §3.
+*(The CNP itself was re-verified on disk when the line was written — `cnp_synthetic` at `063bc6e`,
+`RESULTS.md` giving cnp CRPS 0.1677 vs gp_oracle 0.0379, ratio 4.4214, with `runs/` logs behind it.
+**The evidence was never the problem; the decision is that an unfinalised thing is not a written
+claim.**)*
 
 ---
 
@@ -366,9 +371,17 @@ because NLL is its training objective and not the baselines'.
 - The repo has **uncommitted changes** (`RESULTS.md`, `WORKER_REPORT.md`, `cnp_colab.ipynb`,
   `runs/pytest.log`, `tests/test_model.py`) and an **untracked `REFEREE_REPORT.md`**. Commit them
   — an unclean repo is a bad thing to screen-share.
-- **The CV's Machine Learning skills line still contains nothing probabilistic.** The CNP is the
-  highest-value addition to it. The submitted PDF is frozen, but every *future* application takes
-  the improved line.
+- **⛔ The CNP is deliberately NOT on any CV — decided by Thejus, 2026-08-30.** *"Lets not put
+  things that we still not finalized."* It was added to both live ML CVs on 2026-08-29 and
+  **removed again on 2026-08-30**; the brief and `agents/ACTIVE.md` are amended so Part B cannot
+  reintroduce it. **Do not re-litigate this and do not helpfully add it back.**
+  *The reasoning, which is sound:* the submitted hereon CV claims nothing probabilistic — verified
+  by grepping the sent PDF, not a note — and the cover letter's only mention frames neural
+  processes as *"current areas of learning and implementation"*. Every public surface now agrees
+  with the one document the panel is actually holding.
+  *What this does NOT change:* the CNP is built, real, and the strongest thing he has for a
+  probabilistic-DL post. It is **spoken** material — slide 9 of the deck — not written-claim
+  material. And because nothing in the application mentions it, **nobody will ask; he must raise it.**
 
 ---
 

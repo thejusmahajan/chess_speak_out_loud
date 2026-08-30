@@ -819,5 +819,92 @@ def test_cram_mode_ignores_elo_window():
     assert "c_high" in cram_selected
 
 
+# =====================================================================
+# 9. Active Level Queue Starvation & Fallback Tests
+# =====================================================================
+
+def test_small_level_zero_does_not_deadlock_on_partial():
+    """A ladder with 2 Level 0 cards where 1 is mastered and 1 scored 0.5 (scheduled tomorrow) continues to serve."""
+    now = datetime.now(timezone.utc)
+    future = now + timedelta(days=1)
+    cards = [
+        {"id": "aq-l0-001", "ladder": "air-quality", "level": 0, "difficulty": 780, "requires": []},
+        {"id": "aq-l0-002", "ladder": "air-quality", "level": 0, "difficulty": 790, "requires": []},
+        {"id": "aq-l1-001", "ladder": "air-quality", "level": 1, "difficulty": 990, "requires": ["aq-l0-001", "aq-l0-002"]},
+    ]
+    
+    # Progress: aq-l0-002 mastered, aq-l0-001 scored 0.5 (due tomorrow)
+    progress = {
+        "ladder_ratings": {"air-quality": 820.0},
+        "cards": {
+            "aq-l0-002": {
+                "mastered": True,
+                "reps": 1,
+                "interval_days": 2,
+                "last_seen": now.isoformat(),
+                "due_date": future.isoformat(),
+                "history": [{"score": 1.0}],
+            },
+            "aq-l0-001": {
+                "mastered": False,
+                "reps": 0,
+                "interval_days": 1,
+                "last_seen": now.isoformat(),
+                "due_date": future.isoformat(),
+                "history": [{"score": 0.5}],
+            },
+        },
+        "recent": [],
+    }
+    
+    # Selection must not return None; it should serve the unmastered Level 0 card
+    selectable = filter_selectable_cards(cards, progress, now, cram_mode=False)
+    assert len(selectable) >= 1
+    assert any(c["id"] == "aq-l0-001" for c in selectable)
+    
+    selected = select_next_card(cards, progress, now, cram_mode=False, ladder_filter="air-quality")
+    assert selected is not None
+    assert selected["id"] == "aq-l0-001"
+
+
+def test_small_level_zero_advances_to_level_one_after_mastery():
+    """Once both Level 0 cards are mastered, Level 1 cards unlock and are served."""
+    now = datetime.now(timezone.utc)
+    future = now + timedelta(days=1)
+    cards = [
+        {"id": "aq-l0-001", "ladder": "air-quality", "level": 0, "difficulty": 780, "requires": []},
+        {"id": "aq-l0-002", "ladder": "air-quality", "level": 0, "difficulty": 790, "requires": []},
+        {"id": "aq-l1-001", "ladder": "air-quality", "level": 1, "difficulty": 990, "requires": ["aq-l0-001", "aq-l0-002"]},
+    ]
+    
+    progress = {
+        "ladder_ratings": {"air-quality": 820.0},
+        "cards": {
+            "aq-l0-001": {
+                "mastered": True,
+                "reps": 1,
+                "interval_days": 1,
+                "last_seen": now.isoformat(),
+                "due_date": future.isoformat(),
+                "history": [{"score": 1.0}],
+            },
+            "aq-l0-002": {
+                "mastered": True,
+                "reps": 1,
+                "interval_days": 1,
+                "last_seen": now.isoformat(),
+                "due_date": future.isoformat(),
+                "history": [{"score": 1.0}],
+            },
+        },
+        "recent": [],
+    }
+    
+    selected = select_next_card(cards, progress, now, cram_mode=False, ladder_filter="air-quality")
+    assert selected is not None
+    assert selected["id"] == "aq-l1-001"
+
+
+
 
 

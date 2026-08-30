@@ -553,9 +553,12 @@
 
     <!-- Empty State Container -->
     <div class="card-box empty-state" id="empty-state" style="display: none;">
-      <h2>🎉 All Due Cards Completed!</h2>
-      <p>You're completely caught up on your spaced-repetition queue.</p>
-      <button class="reveal-btn" onclick="toggleCramAndReload()">Enable Cram Mode to Keep Drilling</button>
+      <h2 id="empty-title">🎉 All Scheduled Due Cards Completed!</h2>
+      <p id="empty-desc">You're caught up on your spaced-repetition due cards for this queue.</p>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 10px;">
+        <button class="reveal-btn" onclick="toggleCramAndReload()">Enable Cram Mode to Keep Drilling</button>
+        <button class="submit-comment-btn" id="switch-all-btn" onclick="resetToAllLadders()">Switch to All Ladders</button>
+      </div>
     </div>
 
     <!-- Leader Feedback Box -->
@@ -589,6 +592,35 @@
     let currentCard = null;
     let isRevealed = false;
     let sessionAnswerCount = 0;
+    let laddersInitialized = false;
+
+    const LADDER_NAMES = {
+      "air-quality": "Urban Air Quality & CTMs",
+      "bridge": "Bridge / Postdoc Application",
+      "de-grammatik": "DE: Grammatik B2",
+      "de-konnektoren": "DE: Konnektoren & Redemittel",
+      "de-wortschatz": "DE: Wortschatz & NVV",
+      "hereon-aeon-up": "Hereon AEON-UP Application",
+      "neural-processes": "Neural Processes & CNP",
+      "own-work": "Own Interpretability Research",
+      "pytorch": "PyTorch Foundations",
+      "uncertainty": "Uncertainty & Calibration"
+    };
+
+    function updateLadderSelect(ladders) {
+      if (!ladders || !ladders.length) return;
+      const select = document.getElementById('ladder-select');
+      const currentVal = select.value;
+      
+      let html = '<option value="">All Ladders</option>';
+      ladders.forEach(lad => {
+        const label = LADDER_NAMES[lad] || lad.replace(/[-_]/g, ' ').toUpperCase();
+        html += `<option value="${lad}">${label}</option>`;
+      });
+      select.innerHTML = html;
+      select.value = currentVal;
+      laddersInitialized = true;
+    }
 
     function renderMath() {
       const cardEl = document.getElementById('card-container');
@@ -611,6 +643,9 @@
           document.getElementById('user-rating-val').textContent = Number(data.user_rating).toFixed(1);
           document.getElementById('due-count-val').textContent = data.due_count;
           document.getElementById('mastered-count-val').textContent = `${data.mastered_count} / ${data.total_cards}`;
+          if (!laddersInitialized && data.ladders) {
+            updateLadderSelect(data.ladders);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch state:", err);
@@ -635,15 +670,18 @@
         if (!data.card) {
           document.getElementById('card-container').style.display = 'none';
           document.getElementById('empty-state').style.display = 'flex';
+          const ladderLabel = ladder ? (LADDER_NAMES[ladder] || ladder) : 'queue';
+          document.getElementById('empty-desc').textContent = `All due cards for ${ladderLabel} are completed. Enable Cram Mode to keep drilling or switch ladders.`;
           currentCard = null;
           return;
         }
 
-        document.getElementById('card-container').style.display = 'flex';
+        const cardContainer = document.getElementById('card-container');
+        cardContainer.style.display = 'flex';
         document.getElementById('empty-state').style.display = 'none';
 
         currentCard = data.card;
-        document.getElementById('card-ladder').textContent = currentCard.ladder.toUpperCase();
+        document.getElementById('card-ladder').textContent = (LADDER_NAMES[currentCard.ladder] || currentCard.ladder).toUpperCase();
         
         if (data.ladder_rating !== undefined || data.user_rating !== undefined) {
           const r = data.ladder_rating !== undefined ? data.ladder_rating : data.user_rating;
@@ -703,6 +741,16 @@
     async function gradeCard(score) {
       if (!currentCard) return;
       
+      const prevCardId = currentCard.id;
+      
+      if (score === 1.0) {
+        showNotification("✅ Got it! (1.0) — Rating updated (+)", "var(--green)");
+      } else if (score === 0.5) {
+        showNotification("⚠️ Partial (0.5) — Kept in practice queue", "var(--amber)");
+      } else if (score === 0.0) {
+        showNotification("❌ Missed (0.0) — Scheduled for immediate retry", "var(--red)");
+      }
+      
       try {
         const res = await fetch('/api/grade', {
           method: 'POST',
@@ -722,6 +770,11 @@
 
     function toggleCramAndReload() {
       document.getElementById('cram-toggle').checked = true;
+      loadNextCard();
+    }
+
+    function resetToAllLadders() {
+      document.getElementById('ladder-select').value = "";
       loadNextCard();
     }
 
@@ -770,18 +823,19 @@
         if (res.ok) {
           document.getElementById('comment-text').value = '';
           toggleCommentBox();
-          showNotification("Feedback submitted directly to the leader's audit log!");
+          showNotification("Feedback submitted directly to the leader's audit log!", "var(--accent)");
         }
       } catch (err) {
         console.error("Failed to submit comment:", err);
       }
     }
 
-    function showNotification(msg) {
+    function showNotification(msg, borderColor) {
       const notif = document.getElementById('notification');
       notif.textContent = msg;
+      notif.style.borderColor = borderColor || 'var(--green)';
       notif.style.display = 'block';
-      setTimeout(() => { notif.style.display = 'none'; }, 4000);
+      setTimeout(() => { notif.style.display = 'none'; }, 2500);
     }
 
     // Keyboard Shortcuts

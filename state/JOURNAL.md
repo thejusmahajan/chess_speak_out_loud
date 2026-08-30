@@ -598,3 +598,67 @@ when the separation happens. Closed — do not re-open it. *"We prepare for the 
   clock.
 
 **Repo:** committed and pushed to `origin/windows-dev` this session.
+
+---
+
+## 2026-08-30 — the CNP claim comes off every CV; the ReLU consultation audited
+
+**Decided (by Thejus):** *"Lets not put things that we still not finalized. So we remove the claim
+from the website as well."* **The CNP is not a written claim on any public surface.** It stays what
+it always was — spoken material, slide 9 of the deck. Do not re-litigate; do not helpfully add it back.
+
+**Did:**
+- **Answered the question he actually asked** — does the CV mention the CNP — by grepping the
+  **sent PDF**, `Mahajan_CoverLetter_CV_1056.pdf`, not a note about it. **The CV pages contain zero
+  hits** for *neural process*, *CNP*, *CRPS*, *probabilistic*, *uncertainty*, *calibration* or
+  *Bayes*. The only two hits in the whole bundle are in the **cover letter**, and both are
+  disclaimers: *"I come to the probabilistic side as a builder rather than as someone with a
+  publication record in it, and Bayesian methods and neural processes are current areas of learning
+  and implementation."*
+- **Removed the clause** `, conditional neural processes (implemented from scratch), uncertainty
+  calibration (NLL, CRPS, ECE)` from `cv_ml_interpretability.tex` and `cv_general_ml/cv_ml_general.tex`.
+  Both Machine Learning lines are now **byte-identical to their pre-Part-A state** — which is the
+  proof the revert was exact, since the line stopped appearing in `git diff` at all.
+- **Rebuilt both PDFs: 2 pages each** — the page-count gate Part A originally failed on still
+  passes — **0 CNP/CRPS hits**, and **credential `DDDI9T0KHUJ4` still present** in both. The PyTorch
+  certificate was not touched; that one is finalised.
+- **Amended the brief and the ledger so Part B cannot put it back.** This was the real risk:
+  `2026-08-29_pytorch-certificate-rollout.md` §3.3 would have inserted *Conditional Neural
+  Processes* and *Uncertainty Calibration (NLL, CRPS, ECE)* as chips on `skills.html`, and **gate G9
+  checked that they were there**. Both chips struck; G9 inverted to *must be 0*; G2's CNP half
+  withdrawn; the two historical `TO` blocks in §2.2 prefixed with a do-not-apply marker, because a
+  live-looking instruction inside a brief is exactly this project's failure class.
+- **Audited the ReLU consultation** (`agents/consultations/2026-08-29_01_...`). ACCEPT on substance.
+  `audit_consultation.py` passes — 6 claims, 3 VERIFIED all grepping, 2 EXTERNAL with URL and date.
+- Committed and pushed both repos. `job_search` at `80e2d89`, this repo below.
+
+**Found:**
+- **The live website never carried the CNP claim at all.** Grepped the whole site — HTML, MD, JS,
+  CSS and `assets/Thejus_Mahajan_CV_ML.pdf`: **zero hits**. Part A edited the `.tex` sources; Part B
+  never ran, so nothing was ever published. The removal was pre-emptive, not a retraction.
+- **⛔ A wrong complexity bound in the consultation, and it would have been said to a panel.** The
+  follow-up answer quotes the growth of linear regions as $\mathcal{O}((N/L)^{L \cdot d})$. Against
+  Montúfar et al. (2014) that is wrong three ways: the ratio is width over **input dimension**, the
+  exponent is **$(L-1)n_0$**, and it is a **lower bound on the maximum**, not a big-O on what a
+  trained network has. Replaced with the qualitative form, which is what the argument needs:
+  *exponential in depth, polynomial in width, at fixed parameter budget.*
+- **A limit of the mechanical auditor, worth knowing:** it greps `VERIFIED` quotes against local
+  files and **cannot check an `EXTERNAL` quote's wording**. Claim 4's quoted abstract line says
+  regions grow exponentially "with the number of hidden units"; the result that paper is known for
+  is exponential in **depth**. The claim stands; the quotation is unconfirmed.
+- **The interview consequence of all this, and it is the part that matters.** Nothing in the
+  application — CV or letter — tells the panel the CNP exists. **So nobody will ask about it.** It
+  is the strongest asset he has for a probabilistic-DL post and it enters the room only if he
+  raises it himself. That is now slide 9's whole job.
+
+**Open (unchanged, and still the only thing that matters):**
+- **5 of 52 hereon cards have ever been seen; last hereon drill 2026-08-22.** He drilled twice this
+  morning at 05:32 UTC — both `air-quality`, both 0.5.
+- **The talk has still never been said aloud against a clock.**
+- **R5 never came back:** ask the panel by email what the format is. `14_talk_script.md` assumes
+  both the length and that a presentation is standard.
+- **H6:** is the "GPU/TPU" claim on the submitted CV real? The deck says GPU only.
+- Part B of the rollout, now safe to hand back.
+- The separation brief, still unwritten.
+
+**Repo:** `chess_speak_out_loud` and `job_search`, both committed and pushed and verified level.

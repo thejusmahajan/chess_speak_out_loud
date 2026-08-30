@@ -4,7 +4,7 @@
 "add the certificate" to "update all the CVs, and the text on the website."
 **Worker:** Gemini 3.7 Flash (High), Antigravity IDE
 **Workspaces:** `bioinformatics_project/job_search` (Part A) **then** `thejusmahajan.github.io` (Part B)
-**Status:** ACTIVE
+**Status:** ACTIVE (Part B) — **AMENDED 2026-08-30, the CNP claim withdrawn; see the amendment block below**
 
 **Why this before the interview?** Three things are true today and none of them are visible to
 anyone who looks him up. (1) The IBM PyTorch certificate is **earned** — the submitted cover letter
@@ -15,6 +15,33 @@ an AEON-UP panel. (3) The website's skills page — the page a technical reader 
 front page headline says "Machine Learning" and the primary CV download is the ML one.
 
 That last one is the real finding. The public surface currently contradicts itself.
+
+---
+
+## ⚑ AMENDMENT — 2026-08-30, by the leader. READ BEFORE PART B.
+
+**Thejus's instruction:** *"Lets not put things that we still not finalized. So we remove the claim
+from the website as well."* **The CNP claim is OUT of this brief.** The PyTorch certificate stays —
+that one is finalised, with a verified credential ID.
+
+**What changed, and it is already done in `job_search`:**
+- The clause `, conditional neural processes (implemented from scratch), uncertainty calibration
+  (NLL, CRPS, ECE)` has been **removed by the leader** from both `.tex` files. Both Machine Learning
+  lines are back to their pre-Part-A wording; both PDFs rebuilt at 2 pages; both still carry
+  `DDDI9T0KHUJ4`. **Do not re-add it.**
+- **§2.2 is therefore historical.** Its `TO` lines still show the CNP wording; that wording has been
+  reverted. Read §2.2 for the certificate edit only.
+- **§2.5 gate G2 is amended:** the `grep -c "conditional neural processes"` check is **withdrawn**.
+  Only the `Deep Learning with PyTorch` half of G2 still applies, and it must print 1.
+- **§3.3 is amended below:** the two chips *Conditional Neural Processes* and *Uncertainty
+  Calibration (NLL, CRPS, ECE)* have been struck from the HTML block. Eight chips, not ten.
+- **§3.4 gate G9 is amended:** `grep -c "Conditional Neural Processes" skills.html` is **withdrawn**.
+  Replaced by `grep -c "Conditional Neural Processes" skills.html` **must print 0.**
+
+*Why: the submitted hereon CV claims nothing probabilistic — verified in the sent PDF itself — and
+the cover letter's only mention frames neural processes as something he is still learning. The
+public surfaces now match that. The CNP is real and it is built; it is simply not a finalised,
+claimable line yet, and consistency across surfaces is worth more than one phrase in a skills list.*
 
 ---
 
@@ -157,6 +184,9 @@ FROM (one line, under `\cvskills{Machine Learning}`):
 ```latex
          {Transformers, attention/activation capture (forward hooks), mechanistic interpretability, ONNX$\rightarrow$PyTorch conversion, batched GPU inference, policy/value head analysis, tidymodels}
 ```
+⛔ **AMENDED 2026-08-30 - DO NOT APPLY THE LINE BELOW.** The CNP clause in it was withdrawn
+and has already been reverted on disk. Kept only as a record of what Part A did.
+
 TO:
 ```latex
          {Transformers, attention/activation capture (forward hooks), mechanistic interpretability, ONNX$\rightarrow$PyTorch conversion, batched GPU inference, policy/value head analysis, conditional neural processes (implemented from scratch), uncertainty calibration (NLL, CRPS, ECE), tidymodels}
@@ -169,6 +199,9 @@ FROM:
 ```latex
          {Transformers, attention/activation capture (forward hooks), representation extraction, ONNX$\rightarrow$PyTorch conversion, batched GPU inference, policy/value head analysis, tidymodels}
 ```
+⛔ **AMENDED 2026-08-30 - DO NOT APPLY THE LINE BELOW.** The CNP clause in it was withdrawn
+and has already been reverted on disk. Kept only as a record of what Part A did.
+
 TO:
 ```latex
          {Transformers, attention/activation capture (forward hooks), representation extraction, ONNX$\rightarrow$PyTorch conversion, batched GPU inference, policy/value head analysis, conditional neural processes (implemented from scratch), uncertainty calibration (NLL, CRPS, ECE), tidymodels}
@@ -182,7 +215,8 @@ in `cnp_synthetic/RESULTS.md` from logged runs. "Implemented from scratch" is th
 ### 2.3 Nothing else in either file changes
 
 Not the profile, not the summary, not the experience bullets, not the publications block, not the
-languages. **Two edits per file, four edits total.**
+languages. **Two edits per file, four edits total.** *(AMENDED 2026-08-30: one of the two - the Machine
+Learning skills line - has since been reverted. Only the Further Training block stands.)*
 
 ### 2.4 Build
 
@@ -208,9 +242,9 @@ pdftotext cv_general_ml/cv_ml_general.pdf - | grep -c "DDDI9T0KHUJ4"
 for f in applications/ml_interpretability_general/cv_ml_interpretability.pdf cv_general_ml/cv_ml_general.pdf; do
   echo "== $f"
   pdftotext "$f" - | grep -c "Deep Learning with PyTorch"
-  pdftotext "$f" - | grep -c "conditional neural processes"
 done
-# all four must print 1
+# WITHDRAWN 2026-08-30: the "conditional neural processes" check is gone.
+# Only the two "Deep Learning with PyTorch" counts remain, and both must print 1.
 
 # G3 — page count UNCHANGED. A 3-page CV is a failure, not a detail.
 python -c "
@@ -356,8 +390,6 @@ Biostatistics section exactly, including the `border-l-4 border-sky-600` accent:
                     <span class="bg-sky-50 text-sky-700 px-4 py-2 rounded-full font-medium text-sm border border-sky-100">Forward Hooks &amp; Activation Capture</span>
                     <span class="bg-sky-50 text-sky-700 px-4 py-2 rounded-full font-medium text-sm border border-sky-100">ONNX &rarr; PyTorch Conversion</span>
                     <span class="bg-sky-50 text-sky-700 px-4 py-2 rounded-full font-medium text-sm border border-sky-100">CNNs &amp; Transfer Learning</span>
-                    <span class="bg-sky-50 text-sky-700 px-4 py-2 rounded-full font-medium text-sm border border-sky-100">Conditional Neural Processes</span>
-                    <span class="bg-sky-50 text-sky-700 px-4 py-2 rounded-full font-medium text-sm border border-sky-100">Uncertainty Calibration (NLL, CRPS, ECE)</span>
                     <span class="bg-sky-50 text-sky-700 px-4 py-2 rounded-full font-medium text-sm border border-sky-100">Batched GPU Inference</span>
                     <span class="bg-sky-50 text-sky-700 px-4 py-2 rounded-full font-medium text-sm border border-sky-100">Tidymodels &amp; scikit-learn</span>
                 </div>
@@ -385,7 +417,7 @@ grep -n "md:grid-cols-3" experience.html
 # G9 — the skills page now has ML content
 grep -c "Machine Learning &amp; Deep Learning" skills.html   # must be 1
 grep -c "PyTorch" skills.html                                # must be >= 2
-grep -c "Conditional Neural Processes" skills.html           # must be 1
+grep -c "Conditional Neural Processes" skills.html           # must be 0 (AMENDED 2026-08-30)
 
 # G10 — no stray HTML. Every opened tag in the inserted blocks is closed.
 python -c "

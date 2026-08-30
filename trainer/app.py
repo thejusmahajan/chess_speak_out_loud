@@ -25,6 +25,7 @@ from trainer.engine import (
     filter_selectable_cards,
     select_next_card,
     get_ladder_rating,
+    get_ladder_active_level,
     migrate_progress,
     DEFAULT_LADDER_RATINGS,
 )
@@ -118,9 +119,12 @@ def get_state():
     
     due_count = 0
     mastered_count = 0
+    ladder_groups: Dict[str, List[Dict[str, Any]]] = {}
     
     for c in cards:
         c_id = c["id"]
+        c_ladder = c.get("ladder", "unknown")
+        ladder_groups.setdefault(c_ladder, []).append(c)
         c_prog = cards_progress.get(c_id)
         if is_card_unlocked(c.get("requires", []), progress):
             if is_card_due(c_prog, now):
@@ -134,7 +138,11 @@ def get_state():
         with open(ANSWERS_FILE, "r", encoding="utf-8") as f:
             answer_count = sum(1 for line in f if line.strip())
             
-    ladders = sorted(list({c.get("ladder", "unknown") for c in cards}))
+    ladders = sorted(list(ladder_groups.keys()))
+    active_levels = {
+        ladder: get_ladder_active_level(l_cards, progress)
+        for ladder, l_cards in ladder_groups.items()
+    }
     
     return {
         "user_rating": user_rating,
@@ -144,6 +152,7 @@ def get_state():
         "mastered_count": mastered_count,
         "answers_count": answer_count,
         "ladders": ladders,
+        "active_levels": active_levels,
     }
 
 

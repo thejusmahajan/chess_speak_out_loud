@@ -195,6 +195,15 @@ has ever caught it.
 **0. `briefs/2026-08-29_pytorch-certificate-rollout.md` — ⚑ PART A ✅ AUDITED ACCEPT 2026-08-29.
 PART B IS ACTIVE — execute §3 only.**
 
+⛔ **AMENDED 2026-08-30 — the CNP claim is WITHDRAWN from this brief.** Thejus: *"Lets not put
+things that we still not finalized. So we remove the claim from the website as well."* The leader has
+already reverted `, conditional neural processes (implemented from scratch), uncertainty calibration
+(NLL, CRPS, ECE)` from both `.tex` files and rebuilt both PDFs (2 pages, credential still present).
+**Part B must read the amendment block at the top of the brief first:** two chips are struck from the
+§3.3 HTML, gate G9 now requires `Conditional Neural Processes` to appear **0** times in
+`skills.html`, and G2's CNP half is withdrawn. **The PyTorch certificate is unaffected — that one is
+finalised.**
+
 **Part A** (two `.tex` files in `job_search`) came back correct: the diff matched the spec exactly
 in both files, including the deliberately different FROM string in `cv_ml_general.tex`, and no
 frozen application CV was touched. The worker **halted at G3** — `cv_ml_general.pdf` compiled to 3
@@ -210,8 +219,8 @@ and the CV asset on the website.
 
 *Why this before the interview:* three things are true and none are visible to anyone who looks him
 up. The IBM certificate is **earned** (completed 29 Aug 2026, `DDDI9T0KHUJ4`, verified live against
-Coursera by the leader) while the sent letter still says "final module". The **CNP is built**, so
-the CV's Machine Learning line can finally carry something probabilistic. And `skills.html` — the
+Coursera by the leader) while the sent letter still says "final module". ~~The **CNP is built**, so the CV's Machine Learning line can finally carry
+something probabilistic.~~ *(struck 2026-08-30 — withdrawn, see above.)* And `skills.html` — the
 page a technical reader clicks — **contains no PyTorch, no deep learning, no machine learning at
 all**, while the front page headlines "Machine Learning". The public surface contradicts itself.
 
