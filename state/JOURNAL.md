@@ -16,6 +16,59 @@ Template:
 
 ---
 
+## 2026-08-31 (late) — cleared the diagnosed card backlog in one pass, after being asked why I was not
+
+**Thejus asked: "Are you writing one card at a time?"** He was right to. I had diagnosed a batch
+of defects on 2026-08-30 and had been handing them back one card per turn, which made him the
+scheduler for work already scoped. Six cards this pass, no further prompting.
+
+**Rewrote five `own_work` L0 cards.** These are the cards about HIS OWN research, and two of them
+carried claims their cited source does not contain:
+- **`own-l0-007`** asserted 24 heads means 24 concepts, illustrated with *"Head 1 tracks diagonal
+  bishop pin lines, Head 2 tracks open file control"*. **Gone.** It now says what a head
+  structurally IS — the model width split into 24 slices, each with its own learned Q/K/V
+  projections and its own 64×64 map — and that heads are **polysemantic**, initialised randomly
+  and trained by gradient descent with nothing assigning roles. His own instinct was more accurate
+  than the card. The card now also says what the honest answer to "what does head 7 do?" is:
+  *"I would have to probe it."*
+- **`own-l0-008`** asserted layers 1–4 local / 5–10 tactical / 11–15 strategic. **Gone.** It now
+  describes a block — attention sublayer, position-wise MLP, residual and normalisation, reading
+  from and adding to a running representation — and what depth actually buys, which is
+  composition. Where the literature DOES say something (middle layers carrying board states 3–7
+  plies ahead, linear-probe recoverable) it is cited as literature to check via
+  `docs/research_learned_lookahead.md`, which names the two source papers, never as his finding.
+- **`own-l0-005`** now carries the shape from his own code: `backend/neural_vision.py:302`,
+  `[15, N, 24, 64, 64]` — 15 layers, 24 heads, **64×64**. His question *"is this like a 64×64
+  matrix?"* had a one-line answer sitting in his own repository, withheld because the card was
+  authored "without mathematical matrices". It also answers the convolution half: a convolution
+  slides a fixed kernel over neighbours, attention computes weights from content and reaches all
+  63 others in one step.
+- **`own-l0-006`** now says what the *self* in self-attention means — Q, K and V are three
+  projections of the SAME token set, against cross-attention where queries come from elsewhere.
+- **`own-l0-003`** now follows the token through: embedding, 15 blocks of mixing, then the policy
+  and value heads — and notes that after 15 blocks the vector at index 28 is a contextual
+  representation, not a piece identity.
+
+**Added `np-l1-004`, the Neural Process picture**, gated behind yesterday's `np-l0-004`. A GP
+recomputes the posterior exactly and pays $\mathcal{O}(N^3)$; a CNP encodes each observed pair,
+**averages** them into one context vector, and decodes to a mean and sigma anywhere. The averaging
+is what makes it permutation-invariant and able to take any number of context points. The card
+volunteers the price: a CNP underfits the exact posterior and is only as good as the task family
+it was trained on.
+
+**Verified:** gate **231 cards, 0 errors, 89 URLs**. 75 tests pass. Because the whole file was
+re-serialised, the diff was audited rather than trusted: only `topic/question/answer/explanation/
+trap/sources` lines changed, all 15 untouched cards parse identical, ids and count unchanged, and
+a mojibake sweep across every ladder is clean. Confirmed by grep that the two fabricated claims
+return **0** hits and that `[15, N, 24, 64, 64]` is now present.
+
+**This closes the fifth fabrication-class defect on record** — and the only one that was inside
+the material he would say out loud about his own research.
+
+**Open:** the clinical-project deck (with Gemini, commissioned not delivered).
+
+---
+
 ## 2026-08-31 (night) — the missing L0 Gaussian-Process card
 
 **Did:** added `np-l0-004`, "what a Gaussian Process actually is", and threaded it into the

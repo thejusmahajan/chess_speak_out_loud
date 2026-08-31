@@ -118,6 +118,24 @@
     ]
   },
   {
+    "id": "np-l1-004",
+    "ladder": "neural-processes",
+    "level": 1,
+    "topic": "what a Neural Process actually is",
+    "question": "You can now picture a Gaussian Process. What is a Neural Process - in the same kind of picture?",
+    "answer": "Same job, different machinery. A GP conditions on your observed points by exact linear algebra, and pays $\\mathcal{O}(N^3)$ every time. A Conditional Neural Process learns to do the conditioning instead: an encoder network turns each observed pair $(x_i, y_i)$ into a vector, those vectors are AVERAGED into one context representation $r$, and a decoder maps $(r, x_*)$ to a mean and a standard deviation at any new location $x_*$. So a GP recomputes the posterior from scratch for every new set of observations, while a Neural Process has already learned what conditioning looks like - across many similar tasks during training - and applies it in a single forward pass.",
+    "explanation": "Two details do real work. The averaging is what lets it accept ANY number of context points in any order - a mean is permutation-invariant, which is exactly the symmetry a set of observations has. And 'amortised' means you pay the cost once, in training, over many tasks; afterwards conditioning on a new set of stations is cheap. The price is honest and worth volunteering: a CNP UNDERFITS relative to the exact posterior, and it is only as good as the family of tasks it was trained on - it has learned what conditioning looked like there, not conditioning in general.",
+    "trap": "Thinking a Neural Process is a neural network fitted to one dataset. It is trained across many tasks to learn the mapping from a context SET to a predictive distribution - the trained object is a conditioner, not a fitted curve. The second trap is claiming it beats a GP: on data a GP is optimal for, it should not, and if it does you probably have a context/target leak.",
+    "sources": [
+      "https://arxiv.org/abs/1807.01613",
+      "docs/plans/PLAN_SALIENCE_CNP.md"
+    ],
+    "difficulty": 1010,
+    "requires": [
+      "np-l0-004"
+    ]
+  },
+  {
     "id": "np-l2-001",
     "ladder": "neural-processes",
     "level": 2,

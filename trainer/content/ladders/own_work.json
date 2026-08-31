@@ -35,14 +35,14 @@
     "id": "own-l0-003",
     "ladder": "own-work",
     "level": 0,
-    "topic": "transformer tokenization of chessboard",
-    "question": "What is a 'token' in a transformer neural network, and what is a token in the LC0 chess transformer?",
-    "answer": "In language models, a token is a word fragment or character. In the Leela Chess Zero transformer (BT3), the $8 \\times 8$ chessboard is tokenized spatially into exactly 64 discrete tokens—one token per board square (from a1=0 to h8=63).",
-    "explanation": "Example: Square e4 occupied by a White Knight is treated as a single token containing the Knight's identity, color, and board coordinates.",
-    "trap": "Thinking tokens represent individual chess pieces (which would vary in number) rather than fixed 64 board squares.",
+    "topic": "the 64 tokens, and what happens to them",
+    "question": "The board is tokenised into 64 tokens. What happens to a token after that, all the way to a move?",
+    "answer": "Each of the 64 squares becomes one token, embedded as a vector encoding what is on that square and where it is. The 64 vectors then pass through 15 transformer blocks, and in every block each token is rewritten using information gathered from all 64 - so a token's vector stops meaning 'what stands on e4' and starts meaning 'what e4 is doing in this position'. At the end, two heads read the final vectors: the policy head produces a distribution over legal moves, and the value/WDL head produces a win-draw-loss estimate.",
+    "explanation": "The count is fixed at 64 because the tokens are squares, not pieces - an empty square is still a token, and the sequence length never changes with material. Your toolchain taps the middle of this: forward hooks on each block's query-key softmax capture attention while the position flows through.",
+    "trap": "Thinking tokens are pieces, which would make the sequence length vary. Also: thinking the token still 'is' its square's contents at the end. After 15 blocks of mixing, the vector at index 28 is a contextual representation, not a piece identity.",
     "sources": [
-      "docs/writeup_attention_frame_bug.md",
-      "backend/neural_vision.py"
+      "backend/neural_vision.py",
+      "docs/writeup_attention_frame_bug.md"
     ],
     "difficulty": 785,
     "requires": []
@@ -67,14 +67,14 @@
     "id": "own-l0-005",
     "ladder": "own-work",
     "level": 0,
-    "topic": "attention intuition in one sentence",
-    "question": "What is 'attention' in a transformer, in one plain sentence without mathematical matrices?",
-    "answer": "Attention is a mechanism that allows every square on the board to look across all other 63 squares, calculate which squares are relevant to its tactical and positional role, and gather information from them weighted by relevance.",
-    "explanation": "Example: A Black King on g8 pays high attention to a White Bishop on c4 and a White Queen on f7 creating checkmate threats, but nearly zero attention to a passive pawn on a2.",
-    "trap": "Assuming attention is a fixed hardcoded rule rather than dynamically learned weights computed on the fly for each position.",
+    "topic": "attention, and the 64x64 matrix",
+    "question": "What is attention computing, and what is the shape of the thing your hooks capture?",
+    "answer": "For every square, attention asks how much each of the 64 squares should contribute to its updated representation. Those weights form a **64 by 64 matrix** - one row per query square, one column per key square, each row summing to 1. Your own code says so: `backend/neural_vision.py:302` stacks the captured tensors to `[15, N, 24, 64, 64]` - 15 layers, N positions, 24 heads, and a 64 by 64 attention map for each.",
+    "explanation": "The weights are computed from the content of the position itself, which is why the same network attends differently in different positions - nothing about the pattern is fixed in advance.",
+    "trap": "Confusing this with convolution. A convolution slides a small fixed kernel over neighbours, so information moves one neighbourhood per layer and the weights do not depend on the input. Attention computes its weights from the content and lets every square reach all 63 others in a single step - which is how one layer can relate a bishop on c4 to a square on f7 without any notion of adjacency.",
     "sources": [
-      "docs/writeup_attention_frame_bug.md",
-      "backend/neural_vision.py"
+      "backend/neural_vision.py",
+      "docs/writeup_attention_frame_bug.md"
     ],
     "difficulty": 795,
     "requires": []
@@ -83,13 +83,13 @@
     "id": "own-l0-006",
     "ladder": "own-work",
     "level": 0,
-    "topic": "Query, Key, Value intuition",
-    "question": "In a transformer's self-attention layer, what do the Query, Key, and Value vectors represent in plain words?",
-    "answer": "The Query (Q) is the question a square asks ('What pieces threaten or support me?'), the Key (K) is the label each square advertises ('I am a dark-squared bishop controlling the long diagonal'), and the Value (V) is the actual content transferred ('My attack line, piece value, and defense role').",
-    "explanation": "Example: When square e4 (Query: 'Who defends me?') matches square f3 (Key: 'Knight defending e4 and d4'), their dot product produces high attention, transferring f3's tactical Value into e4's representation.",
-    "trap": "Thinking Query, Key, and Value are database SQL tables rather than linear projections of token embeddings.",
+    "topic": "Query, Key, Value - and why it is called SELF-attention",
+    "question": "What are Query, Key and Value, and what does the word 'self' in self-attention actually refer to?",
+    "answer": "Q, K and V are three different learned linear projections of the same token vectors. The attention weight between two squares is the dot product of one square's Query with another's Key, scaled and softmaxed; the weights are then used to take a weighted sum of Values. 'Self' means all three come from the SAME set of tokens - the board attends to itself. The contrast is cross-attention, where the Queries come from one sequence and the Keys and Values from another, as when a decoder attends to an encoder.",
+    "explanation": "Reading it as roles helps: the Query is what this square is looking for, the Key is what each square advertises about itself, and the Value is what actually gets copied across when the two match. But all three are projections of the same underlying vector - the roles are learned, not built in.",
+    "trap": "Treating Q, K and V as three different data sources. They are three views of one input. Missing the word 'self' entirely is the other trap: it is the thing that distinguishes this from cross-attention, and it is a normal interview follow-up.",
     "sources": [
-      "docs/writeup_attention_frame_bug.md",
+      "backend/neural_vision.py",
       "docs/study/STUDY_CROSS_ENTROPY_AND_OPTIMIZATION.md"
     ],
     "difficulty": 805,
@@ -99,14 +99,14 @@
     "id": "own-l0-007",
     "ladder": "own-work",
     "level": 0,
-    "topic": "multi-head attention",
-    "question": "What is an 'attention head' in a multi-head transformer, and why does LC0 use 24 heads per layer?",
-    "answer": "An attention head is an independent attention mechanism focusing on a specific type of geometric or tactical relationship. Having 24 heads allows the network to track 24 distinct concepts simultaneously in parallel across the board.",
-    "explanation": "Example: In a single position, Head 1 tracks diagonal bishop pin lines, Head 2 tracks open file control for rooks, Head 3 tracks knight outpost coverage, and Head 4 tracks king escape squares.",
-    "trap": "Assuming all 24 heads compute the same attention weights; each head projects into a different linear subspace.",
+    "topic": "what an attention head actually is",
+    "question": "What IS an attention head, structurally - and is it true that LC0's 24 heads track 24 concepts?",
+    "answer": "Structurally: the model's vector width is split into 24 slices, and each head gets its own learned Query, Key and Value projections into its own slice. Each head therefore computes its own independent 64 by 64 attention map; the 24 results are concatenated and mixed by an output projection. And no - '24 heads means 24 concepts' is a myth. All 24 are initialised randomly and trained by gradient descent with nothing assigning any head a role, and in practice heads are **polysemantic**: one head does several unrelated things, and one behaviour is often spread across several heads.",
+    "explanation": "This card previously asserted that head 1 tracked bishop pin lines, head 2 open files, and so on. That claim does not appear anywhere in the source it cited, and no such measurement exists in this repository - it was removed on 2026-08-31 after Thejus questioned it. His own instinct, that these are just independently initialised weights adjusted by gradient descent, was more accurate than the card. Head specialisation IS a real research finding, but it is something you MEASURE and then argue for; the look-ahead literature reports specific heads that route information about future moves. It is never something you can read off the head index.",
+    "trap": "Assigning concepts to head numbers. If asked what head 7 does, the correct answer is 'I would have to probe it' - and saying that is stronger than any invented answer, because it is exactly the discipline this project is about.",
     "sources": [
-      "docs/writeup_attention_frame_bug.md",
-      "backend/neural_vision.py"
+      "backend/neural_vision.py",
+      "docs/research_learned_lookahead.md"
     ],
     "difficulty": 815,
     "requires": []
@@ -115,14 +115,14 @@
     "id": "own-l0-008",
     "ladder": "own-work",
     "level": 0,
-    "topic": "stacking 15 transformer layers",
-    "question": "What happens as board representations pass through all 15 stacked transformer layers in LC0's BT3 network?",
-    "answer": "Early layers (Layers 1–4) compute immediate, local board geometry (direct attacks, defenses, and open files). Middle layers (Layers 5–10) combine these into complex tactical patterns (pins, forks, skewers, and king attacks). Deep layers (Layers 11–15) synthesize global strategic evaluation (long-term piece coordination, pawn structure, and winning plans).",
-    "explanation": "Example: Layer 2 sees a bishop attacking d5; Layer 7 recognizes an absolute pin against the Queen; Layer 14 evaluates White's long-term positional advantage.",
-    "trap": "Assuming every layer performs the same level of abstract reasoning; depth creates a hierarchy from local features to global strategy.",
+    "topic": "what one of the 15 blocks does",
+    "question": "What is inside one of BT3's 15 transformer blocks, and what does stacking them buy?",
+    "answer": "Each block has two sublayers: multi-head self-attention, then a position-wise MLP applied to each token separately. Both are wrapped in a residual connection with normalisation, so a block does not replace the representation - it READS the running one and ADDS to it. Stacking means later blocks can compose what earlier blocks wrote: an attention pattern computed at block 3 is available as input at block 9. That is what depth buys - composition, not a fixed ladder of abstraction.",
+    "explanation": "The earlier version of this card claimed layers 1-4 do local geometry, 5-10 tactical patterns and 11-15 strategy. That split is not measured anywhere in this repository and is not in the source the card cited; it was removed on 2026-08-31. What the literature DOES report for chess networks is that middle layers carry internal representations of board states 3-7 plies ahead, recoverable by a linear probe - see `docs/research_learned_lookahead.md`, which names the two source papers. Cite that as literature to check, never as your own finding.",
+    "trap": "Claiming a specific division of labour across depth as if you had measured it. You captured all 15 layers - `[15, N, 24, 64, 64]` - but capturing activations is not the same as showing what each layer computes, and a panel will hear the difference immediately.",
     "sources": [
-      "docs/writeup_attention_frame_bug.md",
-      "docs/CV_AI_MODULE.md"
+      "backend/neural_vision.py",
+      "docs/research_learned_lookahead.md"
     ],
     "difficulty": 825,
     "requires": []
