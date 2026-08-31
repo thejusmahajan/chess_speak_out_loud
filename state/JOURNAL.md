@@ -16,6 +16,55 @@ Template:
 
 ---
 
+## 2026-08-31 (night) — the missing L0 Gaussian-Process card
+
+**Did:** added `np-l0-004`, "what a Gaussian Process actually is", and threaded it into the
+ladder so `np-l1-001` now requires it.
+
+**Found — the gap was more specific than "no GP card".** `np-l1-001` *does* define a GP: *"a
+non-parametric probabilistic model defining a prior distribution over functions"*. But it is at
+**L1, gated behind two other cards**, phrased formally, and the question it answers is about
+$\mathcal{O}(N^3)$ scaling rather than about the object. So the ladder taught the **properties
+before the object** — the kernel at L0-002, the scaling wall at L1-001, and the definition only
+in passing inside the scaling question. Thejus read all of it and still wrote *"I don't know what
+a Gaussian process is either."* He was right, and it was the ladder's fault.
+
+**The card gives the picture rather than the formula:** a normal distribution is a probability
+over numbers; a GP is a probability over **functions**. Pick any finite set of locations and
+their values come from one joint Gaussian, means from a mean function, covariances from the
+kernel. Before data, a cloud of plausible curves; conditioned, pinned through the observations
+with a band that is tight near data and widens away from it.
+
+**Two consequences recorded in the card because both matter for AEON-UP:** the uncertainty is a
+consequence of the geometry, not bolted on — far from every station the kernel says nothing
+correlates, so the band widens on its own and nobody tuned it to; and conditioning is exact
+linear algebra, not gradient training, which is precisely what makes a GP a clean upper bound to
+measure a learned model against. That is the argument `her-l4-020` rests on.
+
+**The trap card carries the near-universal confusion:** 'Gaussian' describes the joint
+distribution over function values — it does **not** mean the data must be normally distributed or
+that the fitted function looks like a bell curve. The kernel decides the shape.
+
+**Verified:** gate **230 cards, 0 errors, 89 URLs** — the eur-lex `202` from the previous two runs
+resolved this time, confirming it was a transient status and not a broken link. 75 tests pass.
+The prerequisite chain was checked against the engine rather than assumed: on a fresh profile
+`np-l0-004` is unlocked and `np-l1-001` is not; mastering only the two OLD prerequisites still
+leaves `np-l1-001` locked; adding `np-l0-004` unlocks it. Source is Rasmussen and Williams,
+verified 200 through the gate's own URL checker before use.
+
+**This closes the chain that ends at Ramacher's decider:** kernel → the GP object → the scaling
+wall → why a Neural Process exists → `her-l4-020`.
+
+**Open, unchanged:** the clinical-project deck (commissioned, not delivered); the two `own_work`
+L0 cards with ungrounded per-head and per-layer claims (diagnosed, not fixed); and the NP
+mental-picture card, which is now the only remaining rung — `her-l0-004` calls a Neural Process
+"the deep-learning cousin of a Gaussian Process", and the cousin now has a foundation but no
+portrait of its own.
+
+**Repo:** committed and pushed.
+
+---
+
 ## 2026-08-31 (later) — the three unprepared interview questions are now cards; the deck gate caught me
 
 **Did:**

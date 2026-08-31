@@ -47,6 +47,22 @@
     "requires": []
   },
   {
+    "id": "np-l0-004",
+    "ladder": "neural-processes",
+    "level": 0,
+    "topic": "what a Gaussian Process actually is",
+    "question": "What is a Gaussian Process - in a picture, not a formula?",
+    "answer": "A normal distribution is a probability over NUMBERS. A Gaussian Process is a probability over FUNCTIONS - over whole curves, or whole spatial fields, at once. You never write the infinite object down, because the working definition is finite: choose any set of locations you care about, and the values at those locations come from a single joint multivariate Gaussian, with means from a mean function and covariances from the kernel $k(x, x')$. Before any data it is a cloud of plausible curves. Condition on your observations and the cloud is pinned to pass through them: at every new location you now get a mean AND a spread - tight near the data, widening as you move away from it.",
+    "explanation": "Two things follow, and they are why this object is the right one for sparse monitoring networks. First, the uncertainty is not bolted on - it is a consequence of the geometry. Far from every station the kernel says nothing there correlates with anything you measured, so the posterior falls back toward the prior spread and the band widens on its own. Nobody tuned it to do that. Second, conditioning is exact linear algebra, not gradient training: there is no 'fit' step in the neural sense, which is what makes it a clean upper bound to measure a learned model against. This card is the foundation the rest of the chain stands on - np-l0-002 gives you the kernel, np-l1-001 gives you the $\\mathcal{O}(N^3)$ wall that motivates Neural Processes, and her-l0-004 calls a Neural Process 'the deep-learning cousin of a Gaussian Process', which means nothing until you can picture this.",
+    "trap": "Two, and the first is nearly universal. 'Gaussian' describes the JOINT DISTRIBUTION OVER FUNCTION VALUES - it does not mean your data must be normally distributed, and it does not mean the fitted function looks like a bell curve. A GP can represent a wiggly, monotonic or periodic function perfectly well; the kernel decides that, not the word Gaussian. The second: thinking a GP returns a single best curve with error bars added afterwards. The distribution IS the output.",
+    "sources": [
+      "https://gaussianprocess.org/gpml/chapters/RW.pdf",
+      "docs/plans/PLAN_SALIENCE_CNP.md"
+    ],
+    "difficulty": 860,
+    "requires": []
+  },
+  {
     "id": "np-l1-001",
     "ladder": "neural-processes",
     "level": 1,
@@ -62,7 +78,8 @@
     "difficulty": 990,
     "requires": [
       "np-l0-002",
-      "np-l0-003"
+      "np-l0-003",
+      "np-l0-004"
     ]
   },
   {
