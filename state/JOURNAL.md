@@ -16,6 +16,60 @@ Template:
 
 ---
 
+## 2026-08-31 — eight comments read; the `own_work` L0 cards teach a story, not a mechanism
+
+**Did:** read the comment queue via the new `CLAUDE.md` Step 0 item 5 (42 entries, 8 unread since
+the last triage). Wrote the Ramacher round-table document he asked for — **to the PRIVATE repo**,
+`bioinformatics_project/job_search/.../study_room/18_ramacher_roundtable.md`, commit `14b8354`,
+pushed. It is career material and §0 says that leaves this repo, not enters it.
+
+**Found — and on the first point he is right and the cards are wrong:**
+- **`own-l0-007` and `own-l0-008` assert claims their cited sources do not contain.** The head
+  card says 24 heads "track 24 distinct concepts" and illustrates with *"Head 1 tracks diagonal
+  bishop pin lines, Head 2 tracks open file control…"*; the layer card splits 1–4 local / 5–10
+  tactical / 11–15 strategic. **Grepped `docs/writeup_attention_frame_bug.md`: neither claim is
+  in it.** Invented illustrations wearing the word "Example:", in cards about his OWN work.
+  **Fifth fabrication-class defect on record, and the first inside material he would say aloud
+  about his own research.** Heads are known to be polysemantic; his own objection —
+  *"isn't it just weights independently initialised and adjusted by gradient descent?"* — is more
+  correct than the card.
+- **What is real, and the cards withheld it:** `backend/neural_vision.py:302` is
+  `stacked = torch.stack(attention_tensors)  # [15, N, 24, 64, 64]`. 15 layers, 24 heads,
+  **64×64**. His question *"is this like a 64×64 matrix?"* has a one-line answer sitting in his
+  own code, and `own-l0-005` hid it because it was authored "without mathematical matrices".
+- **`own-l0-006` never says what the *self* in self-attention means** (Q, K and V from the same
+  token set). He asked exactly that.
+- **No card anywhere defines what a Gaussian Process IS.** `neural_processes` L0 has capacity,
+  kernel, parametric-vs-non-parametric; the first GP card is **L1, "Gaussian Processes & kernel
+  scaling"** — the properties before the object. He wrote *"I don't know what a Gaussian process
+  is either."* That is the ladder's fault, not his.
+
+**Why the GP gap is urgent and not cosmetic:** the abstract he supplied shows **Ramacher's own
+method list is "XGBoost and Gaussian Processes"**. The interviewer uses the object the candidate
+cannot picture, and the candidate has *built* its deep-learning cousin.
+
+**Corrected a memory that could have cost the interview.** The `MEMORY.md` index line read
+"4.42x CRPS vs the GP oracle", which compresses to something that sounds like a win. It is the
+CNP being **4.42× worse** than the exact GP posterior, and `RESULTS.md` says that is the correct
+outcome because beating it would indicate a context/target leak. Index line rewritten with the
+direction and the warning explicit. The memory body was already right.
+
+**Verified:** every number in the new document grepped against its source before commit —
+11 figures against `cnp_synthetic/RESULTS.md`, the EPISODE-CityChem quote against GMD 12,
+3357–3399, the ferryboat ranges against the Europe PMC record. The moved-road experiment I lean
+on is committed at `db3eb90`, not just working-tree.
+
+**Open:**
+1. **The five `own_work` L0 cards are not yet rewritten** — the defect is diagnosed, not fixed.
+2. **No L0 Gaussian-Process card yet.** Highest-value single gap in the trainer.
+3. **`cnp_synthetic` has 5 modified files and an untracked `REFEREE_REPORT.md`**, unchanged for
+   four days. That repo is screen-share material. The moved-road result is safely committed, but
+   the referee report — which holds the mutation tests — is not in git at all.
+
+**Repo:** this entry + memory correction. The round-table document is in the private repo.
+
+---
+
 ## 2026-08-30 (night) — the LLM seam is closed; the brief understated its own defect three ways
 
 **Did:** executed `agents/briefs/2026-08-27_llm-seam-removal.md` in full. Report:

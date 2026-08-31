@@ -1,5 +1,5 @@
 {
-  "user_rating": 833.87,
+  "user_rating": 1176.57,
   "cards": {
     "pyt-l1-001": {
       "rating": 977.59,
@@ -1534,13 +1534,13 @@
       ]
     },
     "her-l0-003": {
-      "rating": 813.59,
-      "ease": 1.7,
+      "rating": 818.72,
+      "ease": 1.5,
       "interval_days": 1,
-      "reps": 0,
-      "last_seen": "2026-08-30T10:52:23.321931+00:00",
-      "due_date": "2026-08-31T10:52:23.321931+00:00",
-      "mastered": false,
+      "reps": 1,
+      "last_seen": "2026-08-31T03:22:46.466407+00:00",
+      "due_date": "2026-09-01T03:22:46.466407+00:00",
+      "mastered": true,
       "history": [
         {
           "timestamp": "2026-08-22T19:41:43.735533+00:00",
@@ -1571,16 +1571,34 @@
           "score": 0.5,
           "user_rating": 1237.21,
           "card_rating": 813.59
+        },
+        {
+          "timestamp": "2026-08-31T03:18:31.592138+00:00",
+          "score": 0.5,
+          "user_rating": 1169.27,
+          "card_rating": 816.72
+        },
+        {
+          "timestamp": "2026-08-31T03:19:20.815402+00:00",
+          "score": 0.5,
+          "user_rating": 1151.33,
+          "card_rating": 819.75
+        },
+        {
+          "timestamp": "2026-08-31T03:22:46.466407+00:00",
+          "score": 1.0,
+          "user_rating": 1154.43,
+          "card_rating": 818.72
         }
       ]
     },
     "her-l0-004": {
-      "rating": 822.9,
-      "ease": 1.7,
+      "rating": 843.4,
+      "ease": 1.3,
       "interval_days": 1,
       "reps": 0,
-      "last_seen": "2026-08-30T10:51:51.242214+00:00",
-      "due_date": "2026-08-31T10:51:51.242214+00:00",
+      "last_seen": "2026-08-31T03:18:53.579400+00:00",
+      "due_date": "2026-09-01T03:18:53.579400+00:00",
       "mastered": false,
       "history": [
         {
@@ -1612,6 +1630,30 @@
           "score": 0.5,
           "user_rating": 1246.79,
           "card_rating": 822.9
+        },
+        {
+          "timestamp": "2026-08-31T03:04:30.273536+00:00",
+          "score": 0.0,
+          "user_rating": 1209.41,
+          "card_rating": 830.2
+        },
+        {
+          "timestamp": "2026-08-31T03:10:46.515342+00:00",
+          "score": 0.0,
+          "user_rating": 1187.84,
+          "card_rating": 837.39
+        },
+        {
+          "timestamp": "2026-08-31T03:10:51.285067+00:00",
+          "score": 0.5,
+          "user_rating": 1178.66,
+          "card_rating": 840.45
+        },
+        {
+          "timestamp": "2026-08-31T03:18:53.579400+00:00",
+          "score": 0.5,
+          "user_rating": 1160.41,
+          "card_rating": 843.4
         }
       ]
     },
@@ -1874,19 +1916,25 @@
       ]
     },
     "her-l1-002": {
-      "rating": 1018.03,
-      "ease": 2.35,
+      "rating": 1015.67,
+      "ease": 2.45,
       "interval_days": 1,
-      "reps": 0,
-      "last_seen": "2026-08-30T08:55:34.970544+00:00",
-      "due_date": "2026-08-31T08:55:34.970544+00:00",
-      "mastered": false,
+      "reps": 1,
+      "last_seen": "2026-08-31T03:51:01.766096+00:00",
+      "due_date": "2026-09-01T03:51:01.766096+00:00",
+      "mastered": true,
       "history": [
         {
           "timestamp": "2026-08-30T08:55:34.970544+00:00",
           "score": 0.5,
           "user_rating": 838.4,
           "card_rating": 1018.03
+        },
+        {
+          "timestamp": "2026-08-31T03:51:01.766096+00:00",
+          "score": 1.0,
+          "user_rating": 1176.57,
+          "card_rating": 1015.67
         }
       ]
     },
@@ -2214,19 +2262,25 @@
       ]
     },
     "her-l1-001": {
-      "rating": 990.49,
-      "ease": 2.35,
+      "rating": 988.33,
+      "ease": 2.45,
       "interval_days": 1,
-      "reps": 0,
-      "last_seen": "2026-08-30T10:32:15.755594+00:00",
-      "due_date": "2026-08-31T10:32:15.755594+00:00",
-      "mastered": false,
+      "reps": 1,
+      "last_seen": "2026-08-31T03:48:03.016957+00:00",
+      "due_date": "2026-09-01T03:48:03.016957+00:00",
+      "mastered": true,
       "history": [
         {
           "timestamp": "2026-08-30T10:32:15.755594+00:00",
           "score": 0.5,
           "user_rating": 1030.96,
           "card_rating": 990.49
+        },
+        {
+          "timestamp": "2026-08-31T03:48:03.016957+00:00",
+          "score": 1.0,
+          "user_rating": 1169.49,
+          "card_rating": 988.33
         }
       ]
     },
@@ -2316,13 +2370,13 @@
       ]
     },
     "her-l1-003": {
-      "rating": 1052.36,
-      "ease": 2.2,
+      "rating": 1049.5,
+      "ease": 2.3,
       "interval_days": 1,
-      "reps": 0,
-      "last_seen": "2026-08-30T16:20:47.211683+00:00",
-      "due_date": "2026-08-31T16:20:47.211683+00:00",
-      "mastered": false,
+      "reps": 1,
+      "last_seen": "2026-08-31T03:43:38.817618+00:00",
+      "due_date": "2026-09-01T03:43:38.817618+00:00",
+      "mastered": true,
       "history": [
         {
           "timestamp": "2026-08-30T10:40:00.252039+00:00",
@@ -2335,6 +2389,12 @@
           "score": 0.5,
           "user_rating": 1231.32,
           "card_rating": 1052.36
+        },
+        {
+          "timestamp": "2026-08-31T03:43:38.817618+00:00",
+          "score": 1.0,
+          "user_rating": 1163.0,
+          "card_rating": 1049.5
         }
       ]
     },
@@ -2796,21 +2856,10 @@
     "air-quality": 929.78,
     "pytorch": 974.0,
     "de-konnektoren": 1237.69,
-    "hereon-aeon-up": 1231.32,
+    "hereon-aeon-up": 1176.57,
     "bridge": 838.5
   },
   "recent": [
-    "pyt-l4-002",
-    "pyt-l2-002",
-    "pyt-l5-001",
-    "pyt-l4-003",
-    "pyt-l3-001",
-    "pyt-l0-005",
-    "pyt-l0-003",
-    "pyt-l2-001",
-    "pyt-l0-006",
-    "pyt-l2-003",
-    "de-gra-l0-001a",
     "own-l0-001",
     "own-l0-007",
     "own-l0-005",
@@ -2819,6 +2868,17 @@
     "own-l0-003",
     "own-l0-004",
     "own-l0-002",
-    "own-l0-003"
+    "own-l0-003",
+    "her-l0-004",
+    "her-l0-004",
+    "her-l0-004",
+    "her-l0-003",
+    "her-l0-004",
+    "her-l0-003",
+    "her-l0-003",
+    "her-l1-003",
+    "her-l1-001",
+    "her-l1-002",
+    "her-l2-005"
   ]
 }
