@@ -1,0 +1,331 @@
+[
+  {
+    "id": "stat-l0-001",
+    "ladder": "statistics",
+    "level": 0,
+    "topic": "variable classification decides the test",
+    "question": "Why is classifying your variables the first step of any analysis, before you choose a test?",
+    "answer": "Because the variable's scale determines which statistics are even defined. Nominal (categories, no order) supports counts and modes. Ordinal (ordered, unequal gaps) supports medians and rank tests. Interval and ratio (equal gaps; ratio has a true zero) support means, standard deviations and parametric tests. Choosing a t-test for an ordinal outcome is not a judgement call - it computes a mean of something that has no meaningful mean.",
+    "explanation": "This is chapter 07 (variableclassification) of the RStatsbook, and it comes before the descriptive and testing chapters for exactly this reason. In the DeGIR registry the distinction is constant and practical: complication grade is ordinal, clinic ID is nominal, contrast volume is ratio.",
+    "trap": "Treating a numeric code as numeric data. A complication grade stored as 1-4 is ordinal; averaging it produces a number with no clinical meaning.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 800,
+    "requires": []
+  },
+  {
+    "id": "stat-l0-002",
+    "ladder": "statistics",
+    "level": 0,
+    "topic": "mean vs median, SD vs IQR",
+    "question": "When do you report the median and IQR rather than the mean and standard deviation?",
+    "answer": "When the distribution is skewed or has outliers. The mean and standard deviation are both pulled by extreme values; the median and interquartile range are not. Clinical and environmental measurements are very often right-skewed - lengths of stay, contrast volumes, pollutant concentrations - so the median is frequently the honest summary.",
+    "explanation": "RStatsbook chapter 08 (describe) and 09 (summarize). The practical rule: look at the distribution before choosing the summary, never the other way round.",
+    "trap": "Reporting mean $\\pm$ SD by habit for a skewed variable. It implies a symmetric spread that is not there, and a reader reconstructing the range from it will get nonsense.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 810,
+    "requires": []
+  },
+  {
+    "id": "stat-l0-003",
+    "ladder": "statistics",
+    "level": 0,
+    "topic": "what a p-value is, and is not",
+    "question": "State precisely what a p-value is - and name two things it is not.",
+    "answer": "A p-value is the probability of observing data at least as extreme as yours, assuming the null hypothesis is true. It is NOT the probability that the null hypothesis is true, and it is NOT a measure of effect size - a tiny p-value from a large sample can accompany a difference too small to matter.",
+    "explanation": "The definition is conditional on the null being true, which is why it cannot be read backwards as a probability about the hypothesis. This is the single most common misstatement in applied statistics and the one an interviewer is most likely to probe.",
+    "trap": "Saying 'there is a 5% chance the result is due to chance' or 'p < 0.05 means the effect is real'. Both invert the conditional.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 860,
+    "requires": []
+  },
+  {
+    "id": "stat-l0-004",
+    "ladder": "statistics",
+    "level": 0,
+    "topic": "choosing a two-group test",
+    "question": "You are comparing one continuous outcome between two groups. How do you decide which test to run?",
+    "answer": "Three questions. (1) Paired or independent - are the two measurements on the same subject? Paired gives the paired t-test or Wilcoxon signed-rank. (2) Is the outcome approximately normal, or the sample large enough for the central limit theorem? If yes, t-test; if not, Mann-Whitney U (Wilcoxon rank-sum). (3) Equal variances? If not, use Welch's t-test, which is the safer default anyway.",
+    "explanation": "RStatsbook chapter 10 (test2groups). Welch's correction costs almost nothing when variances happen to be equal, so many statisticians use it by default rather than testing for equality of variance first.",
+    "trap": "Running a test for equal variances and then choosing the t-test based on its result. That is a two-stage procedure whose overall error rate is not the one you think it is.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 900,
+    "requires": []
+  },
+  {
+    "id": "stat-l0-005",
+    "ladder": "statistics",
+    "level": 0,
+    "topic": "covariance vs correlation",
+    "question": "What is the difference between covariance and correlation, and why is correlation usually the one reported?",
+    "answer": "Covariance measures how two variables vary together but carries the product of their units, so its magnitude is uninterpretable on its own. Correlation is covariance divided by the two standard deviations, which makes it dimensionless and bounded in $[-1, 1]$ - so it is comparable across variable pairs and across datasets.",
+    "explanation": "RStatsbook chapter 11 (CovCor). Worth holding onto beyond the clinical context: a covariance matrix over locations, with a function defining how covariance decays with distance, is exactly the object a Gaussian Process is built from.",
+    "trap": "Reading a correlation near zero as 'no relationship'. Pearson correlation measures LINEAR association only - a perfect parabola has a correlation of about zero.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 880,
+    "requires": []
+  },
+  {
+    "id": "stat-l0-006",
+    "ladder": "statistics",
+    "level": 0,
+    "topic": "what a linear model is",
+    "question": "What does a linear model actually estimate, and what does 'linear' refer to?",
+    "answer": "It estimates the coefficients $\\beta$ in $y = \\beta_0 + \\beta_1 x_1 + \\ldots + \\beta_p x_p + \\varepsilon$, each coefficient being the expected change in $y$ per unit change in that predictor, holding the others fixed. 'Linear' refers to linearity in the COEFFICIENTS, not in the predictors - a model with $x^2$ or $\\log x$ as a term is still a linear model.",
+    "explanation": "RStatsbook chapter 12 (lm). The 'holding the others fixed' clause is what makes multiple regression different from a set of separate simple regressions, and it is where most misinterpretation starts.",
+    "trap": "Believing a model containing a squared term is 'non-linear regression'. Non-linear means the parameters enter non-linearly, e.g. $y = a e^{bx}$.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 940,
+    "requires": []
+  },
+  {
+    "id": "stat-l0-007",
+    "ladder": "statistics",
+    "level": 0,
+    "topic": "ANOVA is a linear model",
+    "question": "Your CV lists ANOVA. If asked what it is, what is the answer that shows you understand it rather than having run it?",
+    "answer": "ANOVA is a linear model whose predictors are categorical. It asks whether the group means differ by more than the within-group noise, by comparing between-group variance to within-group variance as an F-ratio. In R, `aov()` and `lm()` followed by `anova()` fit the same underlying model - ANOVA is a way of summarising a linear model, not a separate technique.",
+    "explanation": "This framing matters for the interview. There is no separate ANOVA chapter in the RStatsbook - it sits inside the linear-model material (chapters 12-13), which is exactly right, because that is what it is. Saying so demonstrates you learned the structure rather than a recipe.",
+    "trap": "Describing ANOVA as 'a test for comparing more than two means' and stopping. That is what it is used for, not what it is - and the follow-up 'so how does it relate to regression?' will come.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 1020,
+    "requires": []
+  },
+  {
+    "id": "stat-l1-001",
+    "ladder": "statistics",
+    "level": 1,
+    "topic": "ANOVA mechanics and what comes after it",
+    "question": "A one-way ANOVA returns $p < 0.05$ across four groups. What have you learned, and what must you do next?",
+    "answer": "You have learned only that the group means are not all equal. You do NOT know which groups differ. That requires post-hoc pairwise comparisons - Tukey's HSD, or pairwise t-tests with an adjustment - because running all six pairwise comparisons unadjusted inflates the family-wise error rate well above 5%.",
+    "explanation": "The F-test is an omnibus test: it partitions total variance into between-group and within-group components and asks whether the between-group part is large relative to the within-group part. Rejecting the null tells you the partition is uneven, nothing more.",
+    "trap": "Reporting the ANOVA p-value and then naming the group with the highest mean as 'significantly higher'. That comparison was never tested.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 1100,
+    "requires": [
+      "stat-l0-007"
+    ]
+  },
+  {
+    "id": "stat-l1-002",
+    "ladder": "statistics",
+    "level": 1,
+    "topic": "generalized linear models and the link function",
+    "question": "What does a GLM add to a linear model, and what is the link function for?",
+    "answer": "A GLM lets the outcome follow a distribution other than the normal - binomial for yes/no, Poisson for counts - and connects the linear predictor to the mean of that distribution through a link function. The link keeps the prediction in the legal range: the logit link maps a probability in $(0, 1)$ to the whole real line, so the linear predictor can take any value and the fitted probability still cannot exceed 1.",
+    "explanation": "RStatsbook chapter 14 (glm). Logistic regression is the case you will be asked about: outcome binomial, link logit, coefficients interpretable as log-odds ratios.",
+    "trap": "Fitting an ordinary linear model to a 0/1 outcome. It will happily predict a probability of 1.4, and its error structure is wrong by construction.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 1160,
+    "requires": [
+      "stat-l0-006"
+    ]
+  },
+  {
+    "id": "stat-l1-003",
+    "ladder": "statistics",
+    "level": 1,
+    "topic": "multiple testing",
+    "question": "You test 200 variables for association with an outcome at $\\alpha = 0.05$. Before looking at the results, what do you expect?",
+    "answer": "About 10 significant results by chance alone, even if no variable is truly associated. You must correct: Bonferroni divides $\\alpha$ by the number of tests and controls the probability of ANY false positive - very conservative. Benjamini-Hochberg controls the false discovery rate, the expected PROPORTION of your discoveries that are false, and is the usual choice when screening many variables.",
+    "explanation": "This is the core of the bioinformatics half of the Weiterbildung, where testing thousands of genes at once makes uncorrected p-values meaningless. It transfers directly to any wide registry dataset.",
+    "trap": "Applying Bonferroni to a large screen and concluding nothing is significant, when FDR control was the appropriate question - or correcting only the tests you chose to report.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 1180,
+    "requires": [
+      "stat-l0-003"
+    ]
+  },
+  {
+    "id": "stat-l2-001",
+    "ladder": "statistics",
+    "level": 2,
+    "topic": "PCA - what it does and the scaling trap",
+    "question": "Your CV lists PCA. What does it actually compute, and what must you do to the data first?",
+    "answer": "PCA finds an orthogonal set of directions - the eigenvectors of the covariance (or correlation) matrix - ordered by how much variance each explains. It is an unsupervised rotation into new axes that are uncorrelated with one another; no outcome variable is involved. You must standardise the variables first unless they share units, otherwise the component structure is decided by whichever variable happens to have the largest numerical scale.",
+    "explanation": "RStatsbook chapter 22 (PCA). The eigenvalue of each component is the variance along it, which is why the scree plot and 'proportion of variance explained' both come straight out of the decomposition.",
+    "trap": "Running PCA on raw unstandardised variables where one is measured in millilitres and another in metres. PC1 will simply be the millilitre variable, and it will look like a real finding.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 1240,
+    "requires": [
+      "stat-l0-005"
+    ]
+  },
+  {
+    "id": "stat-l2-002",
+    "ladder": "statistics",
+    "level": 2,
+    "topic": "hierarchical clustering - the three choices",
+    "question": "Your CV lists HCA. What three choices does a hierarchical clustering result depend on, and which is the one people forget?",
+    "answer": "(1) The distance metric - Euclidean, Manhattan, correlation-based. (2) The linkage criterion - single, complete, average, or Ward - which defines the distance between two clusters rather than two points. (3) Where you cut the dendrogram, which is what actually determines the number of clusters. The forgotten one is linkage: single linkage produces long straggly chains, Ward produces compact equal-sized blobs, on the very same data.",
+    "explanation": "RStatsbook chapter 24 (cluster). Hierarchical clustering is unsupervised and always returns a dendrogram - it cannot tell you that there is no cluster structure, because it will impose a hierarchy on pure noise.",
+    "trap": "Presenting a dendrogram as evidence that groups exist. Run it on random data and you still get a beautiful tree; the structure must be validated against something external.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 1260,
+    "requires": [
+      "stat-l0-005"
+    ]
+  },
+  {
+    "id": "stat-l2-003",
+    "ladder": "statistics",
+    "level": 2,
+    "topic": "mixed models - when clinics are not independent",
+    "question": "The DeGIR registry pools ~300 clinics. Why can that break an ordinary linear model, and what fixes it?",
+    "answer": "Because observations within a clinic are correlated - shared staff, equipment, case mix and protocols - so the effective sample size is far smaller than the row count. An ordinary model treats all 143,000 rows as independent and produces standard errors that are far too small, hence false confidence. A linear mixed model adds a random effect for clinic, letting each clinic have its own intercept while estimating one shared slope.",
+    "explanation": "RStatsbook chapter 15 (lmm). The general principle is worth stating in an interview because it recurs everywhere: whenever the data have a grouping structure, that structure has to appear in the model or the uncertainty is wrong.",
+    "trap": "Believing a very large N solves it. Non-independence does not average away - more rows from the same 300 clinics buys much less information than the row count suggests.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 1330,
+    "requires": [
+      "stat-l0-006"
+    ]
+  },
+  {
+    "id": "stat-l3-001",
+    "ladder": "statistics",
+    "level": 3,
+    "topic": "the tidymodels workflow you taught",
+    "question": "You wrote HealthTwiSt's tidymodels teaching script. Name the five core packages and what each one owns.",
+    "answer": "rsample - splitting and resampling (`initial_split()`, `vfold_cv()`). recipes - preprocessing and feature engineering as `step_*()` operations. parsnip - model specification in an engine-agnostic API, so the same code can call different back ends. workflows - binds a recipe and a model into one object that is fitted as a unit. yardstick - evaluation metrics (RMSE, R-squared, accuracy, ROC AUC).",
+    "explanation": "This was your first assignment from Dr. Busjahn: replace the older caret-based material with tidymodels, delivered as a 302-line Quarto document on the Palmer Penguins dataset, and it is now part of the training curriculum. The key design idea is the workflow object - because preprocessing is bound to the model, the recipe is re-estimated inside every resample rather than once on the whole dataset.",
+    "trap": "Describing tidymodels as 'the tidyverse version of caret' and stopping. The substantive difference is the modular separation and the workflow object, which is what prevents preprocessing leakage.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook",
+      "../bioinformatics_project/job_search/work_done_during_internship/09_tidymodels.md"
+    ],
+    "difficulty": 1420,
+    "requires": [
+      "stat-l1-002"
+    ]
+  },
+  {
+    "id": "stat-l3-002",
+    "ladder": "statistics",
+    "level": 3,
+    "topic": "resampling, and where leakage gets in",
+    "question": "Why must preprocessing happen inside the cross-validation loop rather than before it?",
+    "answer": "Because any step that learns from the data - centring, scaling, imputation, or selecting variables by their association with the outcome - uses information from the held-out fold if it is fitted on the full dataset first. The validation score then measures performance on data the preprocessing has already seen, and it comes out optimistically biased. Binding the recipe to the model in a workflow makes the correct behaviour the default: the recipe is re-estimated on each training fold.",
+    "explanation": "This is the practical reason the workflow object exists, and it is the same failure that makes a random split invalid for spatially autocorrelated data - in both cases the test set is not independent of what was learned.",
+    "trap": "Scaling the whole dataset once, then splitting. It is the most common leak in applied work and it never raises an error - the numbers just come out better than they should.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook",
+      "../bioinformatics_project/job_search/work_done_during_internship/09_tidymodels.md"
+    ],
+    "difficulty": 1480,
+    "requires": [
+      "stat-l2-001"
+    ]
+  },
+  {
+    "id": "stat-l3-003",
+    "ladder": "statistics",
+    "level": 3,
+    "topic": "gradient boosting and XGBoost",
+    "question": "Explain gradient boosting in plain terms - and why this one is worth having cold for the AEON-UP interview.",
+    "answer": "Boosting builds an ensemble sequentially: each new shallow tree is fitted to the residual errors the current ensemble still makes, and is added with a small learning rate. Where a random forest averages many independent deep trees to reduce variance, boosting adds many weak dependent trees to reduce bias. XGBoost is a regularised, efficient implementation with second-order gradients, shrinkage and column subsampling. Its output is a point prediction - it does not give a calibrated predictive distribution without extra machinery.",
+    "explanation": "It is chapter 20 of the RStatsbook, so this is course material you have covered, not something to disclaim. It matters because Ramacher's own ML downscaling abstract applies XGBoost and Gaussian Processes - the tree ensemble gives accuracy, and the last sentence above is precisely the gap that a probabilistic method is brought in to fill.",
+    "trap": "Confusing boosting with bagging. Random forest = parallel, independent, variance reduction. Boosting = sequential, dependent, bias reduction.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 1500,
+    "requires": [
+      "stat-l1-002"
+    ]
+  },
+  {
+    "id": "stat-l4-001",
+    "ladder": "statistics",
+    "level": 4,
+    "topic": "PCA vs LDA - the discriminating question",
+    "question": "Both PCA and LDA project data into fewer dimensions. What is the difference, and when does PCA actively mislead?",
+    "answer": "PCA is unsupervised: it finds directions of maximum total variance, ignoring any class label. LDA is supervised: it finds directions that maximise between-class separation relative to within-class scatter. PCA misleads whenever the largest source of variance is not the effect you care about - a batch effect, a scanner difference, a dominant confounder - because PC1 will be that nuisance and the class structure may sit in a low-variance direction PCA discards.",
+    "explanation": "RStatsbook chapters 22 (PCA) and 23 (LDA). This is a favourite interview question because it separates people who ran the function from people who know what it optimises.",
+    "trap": "Using PCA for dimension reduction before classification and assuming the retained components contain the signal. They contain the variance; those are not the same thing.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 1560,
+    "requires": [
+      "stat-l2-001"
+    ]
+  },
+  {
+    "id": "stat-l4-002",
+    "ladder": "statistics",
+    "level": 4,
+    "topic": "MCMC - the Bayesian chapter you have already had",
+    "question": "What problem does MCMC solve, and why does it matter that this was in your course?",
+    "answer": "Bayesian inference needs the posterior $p(\\theta \\mid \\text{data}) \\propto p(\\text{data} \\mid \\theta) \\, p(\\theta)$, whose normalising constant is an integral that is usually intractable. MCMC sidesteps it by constructing a Markov chain whose stationary distribution IS the posterior, then drawing correlated samples from it - so you can compute any posterior summary from samples without ever evaluating the integral. It matters because your cover letter calls Bayesian methods a current area of learning, and chapter 17 of the course means you have already met the machinery.",
+    "explanation": "Practical consequences to have ready: samples are correlated, so effective sample size is less than the number of draws; chains need a burn-in period discarded; and convergence must be checked rather than assumed, with several chains from different starting points and a statistic such as R-hat.",
+    "trap": "Saying MCMC 'finds the best parameters'. It does not optimise - it samples. Confusing it with maximum-likelihood estimation removes the entire point of being Bayesian.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 1620,
+    "requires": [
+      "stat-l1-002"
+    ]
+  },
+  {
+    "id": "stat-l4-003",
+    "ladder": "statistics",
+    "level": 4,
+    "topic": "survival analysis - a CV claim with no course chapter",
+    "question": "Your CV lists 'survival analysis concepts'. What are the concepts, and how far can you defend the claim?",
+    "answer": "The concepts: the outcome is TIME UNTIL an event, and its defining feature is censoring - a patient who leaves the study event-free contributes information up to that point and must not be dropped or counted as an event. Kaplan-Meier estimates the survival curve non-parametrically; the log-rank test compares curves between groups; Cox proportional hazards regresses on covariates and reports hazard ratios, assuming the hazard ratio is constant over time. On defending it: the RStatsbook has NO survival chapter, so the claim rests on the wider bioinformatics and biostatistics training, not on this course - say 'concepts' and mean it, and do not imply you have fitted Cox models to a registry.",
+    "explanation": "The CV wording is already careful - it says 'survival analysis concepts', not 'survival analysis'. Keep it that careful out loud. This card exists because a claim on a CV with no traceable course chapter behind it is exactly the kind of thing a panel probes, and the honest boundary is easy to hold if it is prepared.",
+    "trap": "Upgrading 'concepts' to experience under friendly questioning. The correct move is the opposite: state the boundary before being asked, which converts a soft spot into evidence of calibration.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook"
+    ],
+    "difficulty": 1660,
+    "requires": [
+      "stat-l1-002"
+    ]
+  },
+  {
+    "id": "stat-l5-001",
+    "ladder": "statistics",
+    "level": 5,
+    "topic": "the method-choice interview answer",
+    "question": "An interviewer says: 'Your CV lists ANOVA, PCA, HCA and multivariate methods. Take a dataset you have worked with and walk me through how you decided what to run.' Give the answer.",
+    "answer": "Structure it in four beats. (1) Classify the variables first - the outcome's scale decides the family of methods; the DeGIR registry mixes nominal clinic identifiers, ordinal complication grades and ratio-scaled measurements. (2) State the question, because the question chooses the method, not the reverse: describing structure with no outcome is unsupervised (PCA, hierarchical clustering); testing a difference between groups is a linear model, of which ANOVA is the categorical-predictor case. (3) Check the assumptions the design forces on you: with ~300 clinics the observations are not independent, so a random effect for clinic belongs in the model or the standard errors are wrong. (4) Say what would falsify the result - which comparisons were pre-specified rather than found, and what multiple-testing correction applies. Close on the honest limit rather than the result.",
+    "explanation": "The panel is not testing whether you can define ANOVA. It is testing whether method selection is reasoned or reached for. Beat 3 is the one that separates candidates, because it shows you think about the design and not only the test, and beat 4 is the register this whole application has been built on.",
+    "trap": "Leading with the method names on the CV. It sounds like a list being defended. Lead with the variables and the question, and let the methods follow as consequences.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 1780,
+    "requires": [
+      "stat-l4-001"
+    ]
+  }
+]

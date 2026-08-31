@@ -27,6 +27,14 @@ DEFAULT_LADDER_RATINGS: Dict[str, float] = {
     # from becoming a wrong entry. This has already made correct content unreachable twice.
     "hereon-aeon-up": 820.0,
     "bridge": 820.0,
+    # Weiterbildung ladders (added 2026-08-31). Registered explicitly for the reason above,
+    # not left to the fallback. "statistics" starts above the 820 foundational baseline
+    # because it is a course he completed and holds a certificate for -- unlike the ML
+    # ladders, this is revision rather than first contact -- but below the 1200 used for the
+    # German ladders, since the deck reaches to XGBoost, MCMC and mixed models.
+    "statistics": 950.0,
+    # The clinical-project ladder is recall of his own work, so the usual baseline applies.
+    "clinical-project": 820.0,
 }
 
 

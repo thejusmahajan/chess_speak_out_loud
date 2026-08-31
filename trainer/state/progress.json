@@ -1,5 +1,5 @@
 {
-  "user_rating": 1176.57,
+  "user_rating": 1192.93,
   "cards": {
     "pyt-l1-001": {
       "rating": 977.59,
@@ -2643,19 +2643,25 @@
       ]
     },
     "her-l2-005": {
-      "rating": 1309.0,
-      "ease": 2.35,
+      "rating": 1303.55,
+      "ease": 2.45,
       "interval_days": 1,
-      "reps": 0,
-      "last_seen": "2026-08-30T10:49:47.013779+00:00",
-      "due_date": "2026-08-31T10:49:47.013779+00:00",
-      "mastered": false,
+      "reps": 1,
+      "last_seen": "2026-08-31T08:16:24.428742+00:00",
+      "due_date": "2026-09-01T08:16:24.428742+00:00",
+      "mastered": true,
       "history": [
         {
           "timestamp": "2026-08-30T10:49:47.013779+00:00",
           "score": 0.5,
           "user_rating": 1224.45,
           "card_rating": 1309.0
+        },
+        {
+          "timestamp": "2026-08-31T08:16:24.428742+00:00",
+          "score": 1.0,
+          "user_rating": 1192.93,
+          "card_rating": 1303.55
         }
       ]
     },
@@ -2856,11 +2862,10 @@
     "air-quality": 929.78,
     "pytorch": 974.0,
     "de-konnektoren": 1237.69,
-    "hereon-aeon-up": 1176.57,
+    "hereon-aeon-up": 1192.93,
     "bridge": 838.5
   },
   "recent": [
-    "own-l0-001",
     "own-l0-007",
     "own-l0-005",
     "own-l0-006",
@@ -2879,6 +2884,7 @@
     "her-l1-003",
     "her-l1-001",
     "her-l1-002",
-    "her-l2-005"
+    "her-l2-005",
+    "her-l2-006"
   ]
 }
