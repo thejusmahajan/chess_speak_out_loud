@@ -914,5 +914,60 @@
     "requires": [
       "her-l2-003"
     ]
+  },
+  {
+    "id": "her-l4-018",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "\"what don't you yet know how to do?\"",
+    "question": "Ramacher says: \"Your ML skills are all about reading a trained network - hooks, attention capture, representation extraction. This job is about fitting one and saying how uncertain it is. What don't you yet know how to do?\" Answer it.",
+    "answer": "Name the gap, do not defend it. \"My visible ML work is analysis of a network somebody else trained. Fitting a predictive model and calibrating its uncertainty is a different discipline and I am earlier in it. What transfers is the validation instinct, the numerics, and the engineering - I have ported a Fortran particle engine to JAX and refactored a production pipeline with byte-identical verification. What I would be learning on the job is the probabilistic modelling itself, and I would want to be measured on how fast.\" Then stop.",
+    "explanation": "This is the highest-probability hard question in the CV-grounded set and the study room had never drilled it. He is not trying to catch you out - he is pricing a risk he can already see, because the CV's ML skills line is entirely about reading a model (hooks, extraction, ONNX conversion) and contains nothing about training or evaluating one. Answering crisply proves you can assess your own competence, which for a project whose product is calibrated uncertainty IS the competence. Someone who cannot state the limits of his ML will not state the limits of the model.",
+    "trap": "Insisting it is the same skill, or reaching for the chess project to prove the gap is not real. Ramacher already knows it is not the same skill; arguing converts an honest candidate into a defensive one in a single sentence. The second trap is over-correcting into apology - name the gap once, flatly, then say what transfers.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/19_roundtable_from_the_cv.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1700,
+    "requires": [
+      "her-l2-003"
+    ]
+  },
+  {
+    "id": "her-l4-019",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "\"how much was AI-assisted?\"",
+    "question": "Karl asks: \"Six weeks. ONNX conversion, hooks on a 15-layer transformer, batched inference, a React front end, a test suite and a blog post. How much of that did you build yourself, and how much was AI-assisted?\" Answer it.",
+    "answer": "Say it plainly and without embarrassment. \"Heavily assisted - I used AI coding assistants throughout, and I would do the same here. What I kept was the part that decides whether the output is real: the design decisions and the auditing. The evidence that the understanding is mine is the two bugs. Neither raised an exception, neither failed a test, and no assistant flagged them - the attention maps looked beautiful. I caught them because I insisted on an invariant that had to hold, and checked whether it did.\"",
+    "explanation": "This question is close to certain and may arrive obliquely - \"walk me through how you decided X\" is the same probe. It is not a trap and using assistants is not a scandal; Hereon's own groups use them. What Karl needs to establish is which parts are yours, because an assistant that wrote the pipeline while you ran it leaves you with a portfolio rather than a skill. The bugs settle it: a tool can produce plausible code, but it cannot supply the suspicion that plausible output might be wrong. That suspicion is the thing this project is hiring for, and it is already in the letter they read.",
+    "trap": "Minimising the assistance. If you imply you wrote it unaided and they probe one layer down - why a hook on the softmax rather than the projection - the claim collapses and the honesty that earned you the interview is spent. The other trap is answering this differently from her-l4-020: the CNP was built the same way, and describing your working relationship with these tools one way here and another way there is the inconsistency that gets noticed.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/19_roundtable_from_the_cv.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1740,
+    "requires": [
+      "her-l2-003"
+    ]
+  },
+  {
+    "id": "her-l4-020",
+    "ladder": "hereon-aeon-up",
+    "level": 4,
+    "topic": "\"what have you implemented?\"",
+    "question": "Ramacher says: \"You wrote that Bayesian methods and neural processes are areas of learning AND implementation. What have you implemented?\" Answer it.",
+    "answer": "Answer it, do not deflect - your own letter invited this question. Say what exists: a Conditional Neural Process on synthetic data, scored against an exact GP posterior and a climatology floor with NLL, CRPS, calibration and PIT. Describe how it was built the same way you described the chess project - specification and audit yours, implementation assisted. Then, unprompted, the limits: it is synthetic data and says nothing about real air quality; a single seed; the run stopped on a time budget, not convergence. And the result stated correctly: it LOSES to the exact GP posterior by 4.42x on CRPS, which is the outcome you wanted, because beating an oracle that is optimal by construction would have meant a context or target leak.",
+    "explanation": "Ramacher's decider, and he is not measuring knowledge - he is measuring rate of learning. Note the asymmetry that makes this card necessary: the CNP is on neither the CV nor the letter, so the panel has no idea it exists, but the letter's word 'implementation' invites the question anyway. If the answer is 'I have been reading', the letter quietly overreached and you have also thrown away the only evidence you have of how fast you learn.",
+    "trap": "Three, and the middle one is fatal. First: presenting synthetic results as evidence about real air quality. Second: compressing '4.42x CRPS versus the GP oracle' into something that sounds like a win - said that way to the man whose own published method list includes Gaussian Processes, it ends the interview. Third: saying 'only reading' out of modesty, which makes your own letter untrue and costs you the point.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/study_room/19_roundtable_from_the_cv.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cover_letter_hereon.tex",
+      "../cnp_synthetic/RESULTS.md"
+    ],
+    "difficulty": 1765,
+    "requires": [
+      "her-l2-003"
+    ]
   }
 ]

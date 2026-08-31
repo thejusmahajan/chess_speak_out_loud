@@ -16,6 +16,64 @@ Template:
 
 ---
 
+## 2026-08-31 (later) — the three unprepared interview questions are now cards; the deck gate caught me
+
+**Did:**
+- Built `trainer/content/ladders/statistics.json` — 20 cards, L0–L5, from **Dr Busjahn's own
+  RStatsbook** (`abusjahn/RStatsbook`, 24 chapters, fetched and read rather than assumed).
+- Wrote `GEMINI_BRIEF_clinical_cards.md` (private repo) commissioning the clinical-project deck
+  from the 20 internship documents — extraction only, every number to be grepped.
+- Added **her-l4-018/019/020** — the three questions the CV-grounded panel asks that the study
+  room had never drilled: *what don't you yet know how to do*, *how much was AI-assisted*, and
+  *what have you implemented*.
+
+**Found — the course is richer than the CV suggests, and two CV claims needed care:**
+- **`20_xgboost` and `17_MCMC` are chapters he has covered.** XGBoost is one of the two methods in
+  Ramacher's own downscaling abstract, so it is course material rather than something to
+  disclaim; and MCMC means the letter's *"Bayesian methods are a current area of learning"* has a
+  chapter behind it. Neither fact was anywhere in the study room.
+- **No ANOVA chapter** — correctly, because ANOVA is a linear model with categorical predictors.
+  `stat-l0-007` teaches it that way, which is the answer that shows structure over recipe.
+- **No survival chapter at all**, against a CV claiming *"survival analysis concepts"*.
+  `stat-l4-003` teaches the concepts and carries the boundary. The CV wording is already careful;
+  the card's job is to keep it that careful out loud.
+
+**The interlock nobody had noticed.** Q8 (AI assistance) and Q9 (what have you implemented) are
+**the same question in two costumes.** `WORKER_REPORT.md` shows the CNP was built exactly as the
+chess project was — his specification, assisted implementation, audited after. So the cards
+cross-reference each other explicitly: describing that working relationship one way in one answer
+and another way in the other is the inconsistency a panel notices. Neither card tells him what his
+split was; both tell him it must be the same split in both answers.
+
+**⚑ The gate I wrote yesterday caught my own card.** `her-l4-019`'s topic quoted *"how much of
+that project was AI-assisted?"* while its question field said something slightly different — the
+exact defect class Thejus reported on `her-l4-013`, committed by the leader one day after building
+the guard against it. Fixed by aligning the topic. **That is the first time a gate in this project
+has failed the person who wrote it, and it is the best evidence so far that the gate was worth
+building.**
+
+**Verified:** card gate **229 cards, 0 errors** (88 URLs; the eur-lex 202 is a pre-existing
+`hereon_aeon_up` card returning `202 Accepted`, not a 404, and not mine). 75 tests pass. The
+statistics ladder's first gate run also caught two errors of mine — same-level `requires`, which
+the gate forbids. Both new ladders registered in `DEFAULT_LADDER_RATINGS` rather than left to the
+820 fallback, per the warning in that block that an absent entry has twice made content
+unreachable.
+
+**Audited Gemini's round-table delivery: ACCEPT** — its best on record. Every line number and
+quotation verified against the CV and letter; scope clean; uncommitted as instructed. Its headline
+finding is real and nobody had it: **the cover letter never mentions ultrafine particles and names
+Karl only in the salutation**, while UFP is Karl's own area and is named in the advert. It also
+refused to write a parental-leave question and said why.
+
+**Open:**
+1. The clinical-project deck is commissioned, not delivered.
+2. The `own_work` L0 cards are still diagnosed-not-fixed (two ungrounded claims).
+3. Still no L0 Gaussian-Process card, which is the `her-l4-020` prerequisite in all but name.
+
+**Repo:** committed and pushed on both.
+
+---
+
 ## 2026-08-31 — eight comments read; the `own_work` L0 cards teach a story, not a mechanism
 
 **Did:** read the comment queue via the new `CLAUDE.md` Step 0 item 5 (42 entries, 8 unread since
