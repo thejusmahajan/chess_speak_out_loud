@@ -393,7 +393,11 @@ def verify_all_cards(
                 }
                 if status_code == 404 or (status_code == 0 and err):
                     errors.append(f"URL Resolution Failed ({err or status_code}): '{u}'")
-                elif status_code in (200, 301, 302, 403):
+                # 202 Accepted is EUR-Lex's throttling response: the server answered and
+                # the link is live, it just declined to render this time. The same URL
+                # returned 200 on an earlier run. A link check must not fail on a status
+                # that is not evidence of a broken link. Added 2026-09-01.
+                elif status_code in (200, 202, 301, 302, 403):
                     pass
                 else:
                     errors.append(f"URL returned abnormal status ({status_code}): '{u}'")

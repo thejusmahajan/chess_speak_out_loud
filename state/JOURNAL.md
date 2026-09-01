@@ -16,6 +16,51 @@ Template:
 
 ---
 
+## 2026-09-01 (09:10, Interview prep block) — clinical deck audited and installed; 250 cards
+
+**Working to the timetable.** 09:00–10:30 is Interview prep, so this is interview work.
+
+**Gemini's clinical deck had been sitting undelivered-to-me since 2026-08-31 11:28** — I
+commissioned it and then did not look. Same failure Thejus called out. Audited and installed in
+one pass this block.
+
+**AUDITED ACCEPT — its second strong delivery running.**
+- Shape exactly to spec: 18 cards, levels 5/3/3/3/3/1, ids unique, **no same-level `requires`**,
+  no dangling prerequisites, no missing fields, balanced `$`, and every source carrying the
+  `../bioinformatics_project/` prefix the gate needs.
+- **Every number verified mechanically: 44 figures extracted from the card text and checked
+  against all 20 internship documents plus the CV. Zero not found.**
+- Its section 2 found three genuine cross-document disagreements, including an off-by-one it
+  traced to its cause: `03_directive_d3` and `04_directive_d2` sum to −486 lines while
+  `1,834 − 1,349 = 485`. It resolved to `16_metrics.md` as instructed and reported the conflict
+  rather than hiding it.
+
+**⚑ Its highest-value finding, which no card covered — so I added one.** The formal training
+contract is titled *"Implementation of Machine Learning Workflows using the Tidymodels Framework
+in R"* (verified at `01_executive_summary.md:9`), but the ML was **one week on Palmer Penguins**;
+the other nine weeks were production ETL. That title is on a certificate the panel can read and
+it contains the two words the post is about. **`clin-l4-004`** now carries the answer: correct the
+framing before they discover it, keep the teaching script (it replaced their caret curriculum and
+he wrote it never having used R), and point at the engineering, which is the bigger story.
+
+**Fixed a gate false positive rather than leaving it.** `https://eur-lex.europa.eu/...` returns
+**202 Accepted** — EUR-Lex throttling. The link is live and returned 200 on an earlier run, but
+the checker accepted only 200/301/302/403 and failed the whole gate. 202 is not evidence of a
+broken link, so it is now accepted; mutation-checked that a genuine 404 still fails.
+
+**Verified:** gate **250 cards, 0 errors, 89 URLs**. 75 tests pass.
+
+**Ladders now:** hereon 55, statistics 20, own_work 20, clinical_project 19, pytorch 19,
+de-grammatik 20, neural_processes 17, uncertainty 17, bridge 17, de-konnektoren 17,
+de-wortschatz 15, air_quality 14.
+
+**Correction to my own advice of 2026-09-01.** I proposed he work the unsent applications. He
+corrected me: they have passed their dates, and `state/NOW.md:17` already says that log is *"a
+historical record, not a work queue"* — my own repo said so and I contradicted it. He is
+deliberately targeting work where ML is actively applied. Recorded so it is not re-litigated.
+
+---
+
 ## 2026-08-31 (late) — cleared the diagnosed card backlog in one pass, after being asked why I was not
 
 **Thejus asked: "Are you writing one card at a time?"** He was right to. I had diagnosed a batch

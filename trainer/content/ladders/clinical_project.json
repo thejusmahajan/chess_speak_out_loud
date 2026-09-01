@@ -1,0 +1,351 @@
+[
+  {
+    "id": "clin-l0-001",
+    "ladder": "clinical-project",
+    "level": 0,
+    "topic": "what is degir and its registry",
+    "question": "What is DeGIR, and what is the primary purpose of its clinical quality registry?",
+    "answer": "DeGIR (Deutsche Gesellschaft fuer Interventionelle Radiologie und minimal-invasive Therapie) is the German national society for interventional radiology. Its quality registry collects procedural and outcome data from ~300 German clinics via the samedi platform to generate annual quality reports and complication benchmarks for clinic directors and the DeGIR executive board.",
+    "explanation": "The quality registry monitors medical standards and procedural safety across interventional radiology sites in Germany, processed by HealthTwiSt GmbH into formal quality reports.",
+    "trap": "Assuming DeGIR is an individual hospital or commercial EHR software vendor rather than the German national scientific society operating a multi-site clinical quality registry.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/02_pipeline_context.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/14_domain_knowledge.md"
+    ],
+    "difficulty": 820,
+    "requires": []
+  },
+  {
+    "id": "clin-l0-002",
+    "ladder": "clinical-project",
+    "level": 0,
+    "topic": "scale of the degir clinical registry",
+    "question": "What is the exact data scale processed annually by the DeGIR quality registry pipeline?",
+    "answer": "The pipeline ingests raw annual exports containing 143,143 rows by ~1,920 columns (~143,000 patient records) from ~300 German clinics, producing a report-ready dataset of 143,120 rows by 216 columns after dropping 23 records with missing intervention values.",
+    "explanation": "The dataset reflects high-dimensional real-world clinical registry data covering dozens of interventional procedure types and detailed complication parameters.",
+    "trap": "Claiming millions of rows or omitting the ~1,920-column width. The complexity arises from high dimensionality and multi-site clinical entries across ~300 clinics.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/02_pipeline_context.md"
+    ],
+    "difficulty": 860,
+    "requires": []
+  },
+  {
+    "id": "clin-l0-003",
+    "ladder": "clinical-project",
+    "level": 0,
+    "topic": "degir pipeline etl stages and deliverables",
+    "question": "What are the main ETL stages and output deliverables produced by the DeGIR data pipeline?",
+    "answer": "The import.R pipeline ingests raw samedi CSV exports, applies data corrections (clinic exclusions, module corrections, title normalizations, label mappings), computes complication severity grades and success criteria, exports cleaned RDS and 21 Excel workbooks, and generates per-clinic and annual aggregate PDF reports via R Markdown.",
+    "explanation": "The pipeline serves as the central data curation and reporting engine converting multi-site raw registry data into structured governance deliverables.",
+    "trap": "Believing the pipeline trains predictive deep learning models for clinical diagnosis. It is an ETL and governance reporting pipeline for quality assurance.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/02_pipeline_context.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 910,
+    "requires": []
+  },
+  {
+    "id": "clin-l0-004",
+    "ladder": "clinical-project",
+    "level": 0,
+    "topic": "the four refactoring directives",
+    "question": "What were the four refactoring directives assigned for modernizing the DeGIR pipeline?",
+    "answer": "Directive 1 (D1): R package extraction (degirtools, 9 functions); Directive 2 (D2): refactoring repetitive functionality (complication grading and success criteria); Directive 3 (D3): externalizing hardcoded corrections into CSV config files; Directive 4 (D4): replacing deprecated tidyverse functions across the codebase.",
+    "explanation": "These four directives systematically addressed code duplication, maintainability, configuration separation, and technical debt across the 1,834-line monolithic pipeline.",
+    "trap": "Assuming the directives involved rewriting the pipeline from scratch in Python or SQL. All four directives focused on modularizing, cleaning, and testing the existing R/tidyverse codebase.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/01_executive_summary.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 960,
+    "requires": []
+  },
+  {
+    "id": "clin-l0-005",
+    "ladder": "clinical-project",
+    "level": 0,
+    "topic": "internship structure and background",
+    "question": "What was the duration, organization, and scope of the HealthTwiSt internship?",
+    "answer": "A 10.5-week, 40 hours/week internship (February 2 to April 15, 2026) at HealthTwiSt GmbH in Berlin, supervised by CEO Dr. Andreas Busjahn. It covered three projects: a tidymodels ML teaching curriculum, the DeGIR production pipeline refactoring, and an interactive Shiny dashboard, completed while learning R from scratch with prior Fortran and Python experience.",
+    "explanation": "The internship provided practical experience in clinical data engineering, R package development, and software verification under German healthcare compliance (GDPR/BDSG).",
+    "trap": "Describing the role as a permanent staff position or claiming years of prior professional R experience. R was learned from scratch during the 10.5-week Praktikum.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/01_executive_summary.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 1020,
+    "requires": []
+  },
+  {
+    "id": "clin-l1-001",
+    "ladder": "clinical-project",
+    "level": 1,
+    "topic": "externalizing rules to config csvs in d3",
+    "question": "What specific business rules were externalized into CSV configuration files during Directive 3 (D3)?",
+    "answer": "241 hardcoded rules were moved into 7 CSV files: excluded_customers.csv (20 excluded clinics), clinic_id_mapping.csv (5 clinic mergers), title_corrections.csv (6 salutation cleanups), module_corrections.csv (31 module reassignment rules with 3 match types and 3 order-dependent chains), intervention_label_mapping.csv (27 priority-ordered regex patterns), registercolumns.csv (93 columns), and paecolumns.csv (59 columns).",
+    "explanation": "Externalizing rules into CSVs decoupled business logic from code execution, allowing non-programmers to update clinic mapping rules and eliminate cross-file duplication without modifying R source files.",
+    "trap": "Thinking the CSVs contained static patient records. They contained configuration rules, schema subsets, and transformation regex patterns used by the ETL pipeline.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/03_directive_d3.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 1060,
+    "requires": [
+      "clin-l0-004"
+    ]
+  },
+  {
+    "id": "clin-l1-002",
+    "ladder": "clinical-project",
+    "level": 1,
+    "topic": "refactoring repetitive logic in directive d2",
+    "question": "How was repetitive complication grading and clinical success logic refactored in Directive 2 (D2)?",
+    "answer": "21 copy-pasted code blocks implementing 7 SIR severity grades across 3 complication slots (K1, K2, K3) were consolidated into the parameterized grade_complication() function (124 lines replaced by 3 calls). For success criteria across 26 intervention types, 16 simple single-column rules were externalized into success_criteria.csv, while 10 complex multi-column/regex rules remained in code.",
+    "explanation": "The refactoring established a clear expressibility boundary: straightforward clinical rules moved to configuration CSVs, while complex conditional logic remained in R functions.",
+    "trap": "Assuming all 26 success criteria were forced into CSV files. Complex multi-condition rules (such as EVAR, Karotis, and Aneurysma) required R expressions and remained in code.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/04_directive_d2.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 1140,
+    "requires": [
+      "clin-l0-004"
+    ]
+  },
+  {
+    "id": "clin-l1-003",
+    "ladder": "clinical-project",
+    "level": 1,
+    "topic": "codebase reduction and maintenance impact of d3 and d2",
+    "question": "What was the quantitative code reduction and maintainability gain from the combined D3 and D2 refactoring?",
+    "answer": "The main script import.R was reduced from 1,834 to 1,349 lines (-26.5%, or -485 lines) through externalizing 257 total entries into 8 CSV config files and consolidating repeated logic, eliminating cross-file column duplication while guaranteeing zero change to output data.",
+    "explanation": "D3 reduced 268 lines (1,834 to 1,566) and D2 reduced 218 lines (1,566 to 1,349). Routine clinical updates like clinic mergers or module rules now require editing CSVs rather than touching production R code.",
+    "trap": "Believing that refactoring outputted a different data schema. The ETL output remained byte-for-byte identical while dramatically reducing code volume and maintenance friction.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/04_directive_d2.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/03_directive_d3.md"
+    ],
+    "difficulty": 1210,
+    "requires": [
+      "clin-l0-002",
+      "clin-l0-004"
+    ]
+  },
+  {
+    "id": "clin-l2-001",
+    "ladder": "clinical-project",
+    "level": 2,
+    "topic": "the identical function and byte level verification",
+    "question": "How was R's identical() function used to enforce verification discipline across all pipeline changes?",
+    "answer": "Before any refactoring, baseline RDS files were saved from the unmodified pipeline. After every single commit and extraction step, identical(rawdata_new, rawdata_baseline) and identical(orgdata_new, orgdata_baseline) were evaluated; both had to return TRUE to ensure zero numerical, structural, or attribute divergence.",
+    "explanation": "identical() tests exact byte-level equality in R. If a single floating-point calculation shifts, a factor level order changes, or a column moves, identical() returns FALSE.",
+    "trap": "Assuming verification relied on row counts or summary aggregations. Aggregates can easily mask swapped columns, factor level alterations, or cancelled-out errors.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/07_bugs_verification.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 1230,
+    "requires": [
+      "clin-l0-002",
+      "clin-l0-003"
+    ]
+  },
+  {
+    "id": "clin-l2-002",
+    "ladder": "clinical-project",
+    "level": 2,
+    "topic": "why byte identical output matters in clinical governance",
+    "question": "Why was strict byte-identical verification essential for the DeGIR quality registry pipeline?",
+    "answer": "The pipeline outputs feed official quality reports, complication rates, and accreditation benchmarks distributed to ~300 clinic directors and the DeGIR executive medical board. Any unnoticed numerical or structural drift could alter clinical quality rankings or governance decisions.",
+    "explanation": "In healthcare data engineering, refactoring must be strictly behavior-preserving (changing code structure without altering data behavior) to maintain clinical trust and auditability.",
+    "trap": "Treating refactoring as an opportunity to tweak clinical formulas without authorization. In regulated clinical governance, all changes must be verified against established baselines.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/02_pipeline_context.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/13_professional_skills.md"
+    ],
+    "difficulty": 1290,
+    "requires": [
+      "clin-l0-001",
+      "clin-l0-003"
+    ]
+  },
+  {
+    "id": "clin-l2-003",
+    "ladder": "clinical-project",
+    "level": 2,
+    "topic": "report rendering blind spots and the names sort discovery",
+    "question": "What critical verification blind spot was discovered during Directive 4 (D4), and how was silent column reordering prevented?",
+    "answer": "identical() only verified import.R data outputs, not downstream Rmd report rendering. When replacing spread() with pivot_wider() across 86 report sites, pivot_wider() would default to first-appearance ordering instead of alphabetical factor sorting, which would silently reorder table columns in PDF reports. Adding names_sort = TRUE preserved exact original table layouts.",
+    "explanation": "Caught through meticulous pre-implementation code review rather than testing, this prevented silent column reordering across hundreds of published clinical report tables.",
+    "trap": "Assuming that passing tests on ETL output guarantees that downstream PDF reporting templates will render identically.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/05_directive_d4.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/07_bugs_verification.md"
+    ],
+    "difficulty": 1340,
+    "requires": [
+      "clin-l1-003",
+      "clin-l0-004"
+    ]
+  },
+  {
+    "id": "clin-l3-001",
+    "ladder": "clinical-project",
+    "level": 3,
+    "topic": "degir dashboard architecture and modular design",
+    "question": "What is the architectural structure, codebase scale, and component breakdown of the DeGIR Shiny dashboard?",
+    "answer": "The dashboard contains 1,468 lines of R code across 10 files using bslib and Plotly, structured into 6 interactive modules (Overview, Interventions, Complications, Success, Doses, About) and 3 utility files (utils_i18n.R, utils_plots.R, utils_filters.R), deployed live on shinyapps.io.",
+    "explanation": "Each module encapsulates its own UI and server logic, communicating via shared reactive expressions to filter data and display interactive benchmarks against national clinical averages.",
+    "trap": "Assuming the dashboard was written as a single monolithic script. It employs modular Shiny architecture with separated concerns for filtering, plotting, and internationalization.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/08_degir_dashboard.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 1420,
+    "requires": [
+      "clin-l0-001",
+      "clin-l0-003"
+    ]
+  },
+  {
+    "id": "clin-l3-002",
+    "ladder": "clinical-project",
+    "level": 3,
+    "topic": "dashboard gdpr compliance and internationalization",
+    "question": "How were GDPR/DSGVO compliance and bilingual internationalization implemented in the DeGIR Dashboard?",
+    "answer": "The public dashboard runs exclusively on GDPR-compliant synthetic data with zero real patient information, and features a complete bilingual German/English internationalization dictionary of 224 lines in utils_i18n.R that translates UI controls, metric labels, and provides English tooltips for German clinical terms.",
+    "explanation": "Healthcare regulations (GDPR/BDSG and medical confidentiality) strictly prohibit deploying real patient data publicly; synthetic datasets allow public demonstration of full clinical visualization capabilities.",
+    "trap": "Believing the public Shiny dashboard queries the live production registry database with masked patient identifiers. No real patient data ever leaves the secure local environment.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/08_degir_dashboard.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/14_domain_knowledge.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 1470,
+    "requires": [
+      "clin-l0-001",
+      "clin-l0-005"
+    ]
+  },
+  {
+    "id": "clin-l3-003",
+    "ladder": "clinical-project",
+    "level": 3,
+    "topic": "tidymodels machine learning teaching deliverable",
+    "question": "What was the objective, technical content, and educational impact of the Introduction to Tidymodels script?",
+    "answer": "A 302-line Quarto (.qmd) teaching document using the Palmer Penguins dataset that modernized HealthTwiSt's machine learning curriculum from caret to tidymodels (covering recipes, parsnip, workflows, rsample, yardstick for regression and classification), reviewed and accepted by Dr. Busjahn for training subsequent student cohorts.",
+    "explanation": "Written during the first week of the internship, this deliverable established baseline R proficiency and became permanent training courseware at HealthTwiSt.",
+    "trap": "Claiming the tidymodels script was a production predictive model deployed on clinical registry data. It was an educational curriculum deliverable on open benchmark data.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/09_tidymodels.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 1510,
+    "requires": [
+      "clin-l0-005"
+    ]
+  },
+  {
+    "id": "clin-l4-001",
+    "ladder": "clinical-project",
+    "level": 4,
+    "topic": "pre-existing bug 1 complication column inconsistency",
+    "question": "What was Pre-existing Bug 1 found during Directive 2, how was it detected, and how was it resolved?",
+    "answer": "During code analysis of complication grading, review showed that Major_K1 checked 3 grade columns while individual severity grades checked 4 (adding b4_ke_komplikationsgrad). D2 unified the logic to check 4 columns, confirmed identical() still passed because no patient in the 2025 dataset populated that 4th column, and documented the discrepancy for the supervisor.",
+    "explanation": "The inconsistency was a logical flaw that had remained dormant in 2025 data, allowing clean unification while maintaining byte-level output equality.",
+    "trap": "Assuming Bug 1 caused immediate data corruption in 2025 reports. In the 2025 data, the 4th column was unpopulated, but identifying the logic gap ensured robust future handling.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/07_bugs_verification.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/04_directive_d2.md"
+    ],
+    "difficulty": 1560,
+    "requires": [
+      "clin-l1-002",
+      "clin-l2-001"
+    ]
+  },
+  {
+    "id": "clin-l4-002",
+    "ladder": "clinical-project",
+    "level": 4,
+    "topic": "pre-existing bug 2 karotis operator precedence",
+    "question": "What was Pre-existing Bug 2 in the clinical success criteria, and why was existing behavior preserved rather than changed?",
+    "answer": "In Karotis Stenting success criteria, operator precedence (& binding tighter than |) meant Teilerfolg and Misserfolg conditions lacked an Intervention filter. Because refactoring must preserve historical behavior and avoid unauthorized changes to clinical metrics, the exact logic was preserved with an inline explanatory comment and flagged for supervisor review.",
+    "explanation": "The bug was practically harmless because the evaluated columns were only populated for Karotis patients, but preserving exact behavior adhered strictly to refactoring governance.",
+    "trap": "Silently adding parentheses to fix the operator precedence without logging or supervisor consultation. Unilateral changes to clinical endpoint logic violate data governance standards.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/07_bugs_verification.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/04_directive_d2.md"
+    ],
+    "difficulty": 1640,
+    "requires": [
+      "clin-l1-002",
+      "clin-l2-002"
+    ]
+  },
+  {
+    "id": "clin-l4-003",
+    "ladder": "clinical-project",
+    "level": 4,
+    "topic": "refactoring discipline on preserving legacy behavior",
+    "question": "What core engineering and data governance principle dictated the handling of pre-existing bugs during the refactoring?",
+    "answer": "Refactoring changes code structure, not observable behavior. Discovered bugs were formally documented, analyzed for data impact, flagged for supervisor discussion, and preserved or unified only when verified byte-identical against baseline RDS outputs rather than silently rewritten.",
+    "explanation": "In regulated clinical registries, changing output values alters historical comparability across annual reports and breaches auditability; changes to business rules require clinical stakeholder sign-off.",
+    "trap": "Believing a software engineer should fix every perceived bug on the spot during a refactoring pass without regression baselines or domain stakeholder consultation.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/07_bugs_verification.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/13_professional_skills.md"
+    ],
+    "difficulty": 1720,
+    "requires": [
+      "clin-l2-001",
+      "clin-l2-002"
+    ]
+  },
+  {
+    "id": "clin-l5-001",
+    "ladder": "clinical-project",
+    "level": 5,
+    "topic": "interview summary of clinical data engineering and honest limits",
+    "question": "How do you structure an honest, compelling interview response about the HealthTwiSt clinical data engineering internship?",
+    "answer": "During a 10.5-week internship at HealthTwiSt GmbH, I refactored a production R ETL pipeline for the DeGIR quality registry (~143,000 patient records/year across ~300 German clinics), externalizing 257 rules into 8 CSVs, replacing 360 deprecated calls, extracting a 9-function R package (degirtools), and building a 6-module Shiny dashboard on synthetic data, with byte-identical output verified via identical(). The work demonstrates rigorous data engineering, legacy refactoring, and quality assurance—it does not demonstrate clinical trial design, direct medical decision-making, or complex statistical modeling of patient outcomes.",
+    "explanation": "This response articulates concrete technical achievements (26.5% main script reduction, package development, rigorous verification) while transparently clarifying that the role was a 10.5-week Praktikum focused on software quality and data engineering.",
+    "trap": "Overselling the internship as clinical trial biostatistics, patient diagnosis, or proprietary ML algorithm development. The project is an example of production ETL data engineering, software quality, and reproducibility.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/01_executive_summary.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/07_bugs_verification.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/18_certificate_text.md"
+    ],
+    "difficulty": 1850,
+    "requires": [
+      "clin-l0-005",
+      "clin-l1-003",
+      "clin-l2-001",
+      "clin-l3-001",
+      "clin-l4-003"
+    ]
+  },
+  {
+    "id": "clin-l4-004",
+    "ladder": "clinical-project",
+    "level": 4,
+    "topic": "\"tell me about the machine learning workflows you implemented\"",
+    "question": "Your training contract is titled \"Implementation of Machine Learning Workflows using the Tidymodels Framework in R\". They have read it. They ask: \"tell me about the machine learning workflows you implemented.\" Answer it.",
+    "answer": "Correct the framing before they discover it, and do it without apologising. \"That is the contract title, and it describes the first assignment rather than the internship. The machine learning part was a teaching script - I wrote HealthTwiSt's introduction to tidymodels, which replaced their older caret material and is now used to train their students. It is a real deliverable but it runs on Palmer Penguins, not on patient data. The other nine weeks were production data engineering: refactoring the DeGIR pipeline with byte-identical verification at every commit. If you want the machine learning story, it is that I taught the framework; if you want the engineering story, it is much bigger.\"",
+    "explanation": "Gemini's audit of the internship documents surfaced this and no card covered it. It is the sharpest overclaim risk in the whole application, because the title is on a certificate they can read, and it says the two words the post is about. Nobody wrote that title to flatter him - it was the contract subject - but a panel encountering it will form an expectation that nine weeks of ETL does not meet, and the difference is much better volunteered than discovered.",
+    "trap": "Letting the title stand and describing the teaching script as though it were production ML. It runs on an open teaching dataset, so one question about the data, the target or the validation ends it. The opposite trap is dismissing the script as trivial - it replaced the existing curriculum, was reviewed as ready for the next cohort, and he wrote it in R having never used R before.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/01_executive_summary.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/09_tidymodels.md"
+    ],
+    "difficulty": 1720,
+    "requires": [
+      "clin-l3-003"
+    ]
+  }
+]
