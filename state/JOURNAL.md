@@ -16,6 +16,70 @@ Template:
 
 ---
 
+## 2026-09-01 (evening) — Thejus's steering idea recorded, round table 1 held; and the sacrifice drill is DEAD
+
+**⚑ Live defect found by running the feature rather than reading about it.** `build_sac_session()`
+returns **0**. Proven:
+
+```
+profile loaded  : True | steer_findings: 562
+sharp findings  : 0
+sac session size: 0
+```
+
+`data/training/profile.json` was generated **2026-07-26** and its findings carry the old key
+`had_tal_move` (176 True). `sac_drill._get_sharp_findings` selects on `had_sharp_move`, which
+**zero findings have**. The rename landed in `9842f98` and the profile was never regenerated
+behind it. No exception, no failing test, an empty list served as an answer — the house failure
+mode again.
+
+**Why 29 green tests miss it:** `test_sac_drill.py` monkeypatches `store.TRAINING_DIR` to a tmp
+dir and builds a synthetic profile in the NEW format. Nothing tests the selector against the data
+on disk. Also `steer_summary` has the ECO key `"???"`, so the drill's `eco` filter can never match.
+
+**Not fixed yet — it needs a decision from Thejus** (corpus scope for regeneration, and whether
+sharpness is now material-grounded). Recorded so it cannot be forgotten.
+
+**Recorded his idea verbatim** in `ideas/2026-09-01_steering_to_tal_configurations.md` §1, as the
+immutable source of record, and held round table 1 (constructed simulation: leader, a DeepMind
+composite, an AlphaZero composite, and Tal — labelled, since Tal died in 1992).
+
+**The idea:** change the unit of reasoning from **move** to **configuration**. `steer_candidates`
+asks a local one-ply question and can only find sharpness already present at this node; he wants
+*"is this quiet position one from which a Tal position can be built, and how do I get there?"*
+
+**Inventory that makes it feasible, measured today:** `data/puzzles/puzzles.sqlite` holds
+**5,527,851 puzzles** with `fen, moves, rating, themes, opening_tags`, plus `puzzle_flags`
+(1,472,045 rows, incl. `quiet_first`). **The `moves` column is the solution line, so precursor
+positions are free — roll back k plies.**
+
+**Three changes the round table made to the proposal:**
+1. **Generation → retrieval.** Do not conceive arrangements freely; mine a library of attacking
+   configurations from the 5.5M puzzles in the vocabulary `relational_facts.py` already speaks,
+   then rank by distance from the position in hand. Turns the hardest part into nearest-neighbour.
+2. **Label = defender difficulty, not engine approval.** Tal's objection is precisely the failure
+   that produced "London is sharp": a configuration can be sound and harmless, or dubious and
+   winning. Target how hard the position is to *hold*.
+3. **Probe before train.** The learned-look-ahead literature says BT3's middle layers already carry
+   board states 3–7 plies ahead, linear-probe recoverable. We have the hooks. If "a combination is
+   reachable" is linearly readable from activations we already capture, the detector is a probe,
+   not a training run — cheap, falsifiable, no GPU, and the north star in its purest form.
+
+**The crux, flagged:** the negative set. Matched on phase, material and evaluation, differing only
+in whether a combination arrives within k plies. Done lazily it yields a confident useless model
+and nobody finds out until a human looks.
+
+**Next per his sequence:** brief to Gemini → round table 2 → implementation plan. Seven open
+questions are listed in §6; **question 7 is the falsification test and should be answered first.**
+
+**Also audited Gemini's doc-21 corrections: ACCEPT.** All nine applied; the three forbidden strings
+are gone, both arXiv ids present, the new limitations section carries the measured OOD failure with
+the numbers grepped from `RESULTS.md` (line 202 of its report shows the grep). **One scope
+deviation:** it also edited `00_START_HERE.md` to index doc 21 — benign and correct, but the brief
+said one file. Third delivery running with clean substance.
+
+---
+
 ## 2026-09-01 (09:10, Interview prep block) — clinical deck audited and installed; 250 cards
 
 **Working to the timetable.** 09:00–10:30 is Interview prep, so this is interview work.
