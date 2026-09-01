@@ -26,14 +26,7 @@ tactic exists. **Your task is to understand it and contemplate how it could be a
 **Do not implement anything. Do not write code. Do not train anything.** Produce one document of
 analysis and proposed approaches.
 
-**The leader has deliberately withheld his own view of how to do this.** A previous leader-written
-discussion of this idea was rejected by Thejus and deleted, because it argued from a premise he
-does not hold. You are being asked precisely because your thinking should be independent. **Do not
-search the git history for the deleted document. If you encounter it, stop reading it and say so
-in your report.**
 
-**Do not agree by default.** A proposal you cannot see a serious objection to is a proposal you
-have not thought about hard enough.
 
 ---
 
@@ -54,7 +47,7 @@ The essentials, so you do not misread the aim:
 3. **Then work backwards.** *"If there are pieces and pawn positions that could possibly lead to
    the starting positions in the puzzle we will find moves that will steer our quiet position or
    position in hand towards it."*
-4. **Rolling back a few plies from a tactical position is explicitly retained** as a useful device.
+4. **Rolling back a few plies from a tactical position is explicitly retained** as a useful device to keep in mind. But do not cloud your thinking with this idea. First the initial idea.
 5. **A binding constraint from him, and take it seriously:** *"LC0 evaluating a position good
    doesn't mean it is a tactical position."* A high engine evaluation is not a tactic detector. Do
    not build anything that quietly assumes it is.

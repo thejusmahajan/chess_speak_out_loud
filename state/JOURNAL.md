@@ -16,6 +16,88 @@ Template:
 
 ---
 
+## 2026-09-01 (late) — configuration steering specced and briefed; Gemini's contemplation audited ACCEPT
+
+**Did:** audited the worker's contemplation report, wrote the v1 design, filed the dataset brief.
+
+**Audit — ACCEPT with two corrections** (`agents/reports/..._AUDIT.md`). Re-ran every checkable
+number against disk: 5,527,851 puzzles / 1,472,045 flags / 401,437 `quiet_first` / 57,033 motifs /
+rating 1482.01, 399, 3347 / the ply-length histogram / 8,845 steer records / `steer_max_loss_cp: 60`
+— **all exact.** Four line counts off by exactly one (a counting convention). All four citations
+real. Fourth clean delivery in a row; the delegate-code-not-content rule is holding.
+
+**Correction 1 — measured, and it would have silently corrupted the dataset.** The Lichess puzzle
+`fen` is **one ply BEFORE the tactic**: the losing side is to move, `moves[0]` is their error, the
+solver moves second. Proof: **0 of 5,527,851 solution lines have odd length**, impossible under any
+other convention. `backend/training/puzzle_regime.py:96-105` already implements it correctly; the
+worker's §2.3 diagram labelled the `fen` column as the puzzle start. Metric-mislabel family.
+
+**Correction 2.** `data/puzzles/lichess_db_puzzle.csv.zst` (289 MB, local) carries `GameUrl` —
+`https://lichess.org/787zsVup/black#48`, game id AND ply. Parent games are an API fetch, not the
+500 GB download the report priced. `build_puzzle_db.py` just never copied the column. v2 only.
+
+**Decided — the steering target is `s_err`, the `fen` position itself.** You cannot steer into the
+post-blunder position; it requires the opponent's error to have already happened. What you *can*
+reach is a position where it is their move and a natural continuation loses — and the corpus is
+5.5M such positions, each one a real human of a known rating actually failing. Stated honestly in
+the plan §3: this makes Φ a model of **human error in the 1500–2200 band**, not of objective
+attacking potential. Correct for coaching him; never to be claimed as more.
+
+**Φ consults no engine evaluation anywhere in its loss** — which is his binding constraint
+(*"LC0 evaluating a position good doesn't mean it is a tactical position"*) satisfied by
+construction rather than by promise.
+
+**Written:** `docs/plans/PLAN_CONFIGURATION_STEERING.md` (18-plane POV-flipped encoding; positives
+= `s_err`; matched negatives from "spent tactic" + his own 693 games, bucketed on
+`material_key`×`phase_bucket`; retrieval of real puzzle boards for the 5–7 list, nothing
+synthesised; Φ re-ranks only what `steer_candidates()` has already declared safe, so LC0 keeps an
+absolute veto — potential-based, Ng/Harada/Russell 1999) and
+`agents/briefs/2026-09-01_configuration-dataset-build.md`.
+
+**The gate that decides whether any of it is real:** alarm A3 — logistic regression on the ten piece
+counts alone must give **AUC < 0.65**. If material separates the classes, a CNN scores well and
+means nothing. Hard stop in the brief; the leader re-runs it independently.
+
+**Division of labour is a requirement:** Gemini builds the dataset, **Thejus writes the PyTorch and
+the Kaggle loop himself.** The previous session deleted that from his idea; it is restored.
+
+**Open:** `build_sac_session()` still returns 0 (dead `had_tal_move` key in the 2026-07-26 profile)
+— needs his decision on regeneration scope.
+
+**Repo:** committed. Push verified at session close.
+
+---
+
+## 2026-09-01 (late) — CORRECTION: the round table was rejected; the entry below is void from "Three changes"
+
+**Thejus rejected round table 1 and instructed it be deleted from disk.** It was deleted in
+`6b8662b`, but **this journal entry was not corrected**, so the next cold start would have read the
+three "changes the round table made to the proposal" as settled work. They are not. **They are void.**
+
+- **"Generation → retrieval"** — void. Not his idea and not agreed.
+- **"Label = defender difficulty"** — void as a decision; it may be raised again as a question.
+- **"Probe before train"** — void, and it is the specific thing he objected to. He asked for a
+  trained network (PyTorch, Kaggle/Colab), explicitly including the learning value of building it.
+
+**His binding correction, verbatim:** *"The premise is wrong that the moves from the position is
+what matters... For a player, making that moves once the position is reached is easy, but getting
+that position is what needs carefully study."* And: *"we first learn from the configuration of the
+lichess puzzles. This confuguration are what we aim for."* And: *"Now, LC0 evaluating a position
+good doesn't mean it is a tactical position."*
+
+He was right on the chess as well as the process. The round table's central objection — that LC0's
+value head already encodes attacking potential — conflates *expected outcome under LC0's own play*
+with *how hard a position is for a human to defend*. Those are different functions, and his one-line
+reply is the correct refutation.
+
+**Live source of record:** `ideas/2026-09-01_steering_to_tal_configurations.md` (his words only) and
+`agents/briefs/2026-09-01_tal-configuration-steering-contemplation.md`, which **he hand-edited** to
+remove leader framing I had left in it after being told not to put words in Gemini's mouth.
+
+**Open:** `sac_drill` still returns 0 (see below) — unchanged, still needs his decision.
+
+---
+
 ## 2026-09-01 (evening) — Thejus's steering idea recorded, round table 1 held; and the sacrifice drill is DEAD
 
 **⚑ Live defect found by running the feature rather than reading about it.** `build_sac_session()`

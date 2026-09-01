@@ -41,6 +41,20 @@ Every brief and report path below is relative to
 
 ### If your workspace is `chess_speak_out_loud`
 
+**0. `briefs/2026-09-01_configuration-dataset-build.md` — ⛑ ACTIVE. Execute this one.**
+*Why this before the interview?* Thejus asked for the steering direction to be taken forward
+today, it is the chess project's north-star work, and it costs no compute and no engine — CPU,
+local disk, one new package. The interview remains the live item.
+Spec: `docs/plans/PLAN_CONFIGURATION_STEERING.md`. Aim, in his words:
+`ideas/2026-09-01_steering_to_tal_configurations.md`.
+**Trap named in the brief §2 — the puzzle `fen` is one ply BEFORE the tactic; it is the positive
+class unmodified.** Alarm A3 (material-only AUC ≥ 0.65) is a hard stop, not a tuning knob.
+
+**0b. `briefs/2026-09-01_tal-configuration-steering-contemplation.md` — ✅ DELIVERED, AUDITED,
+ACCEPT with two corrections** (`reports/..._AUDIT.md`). Every DB number re-run and exact; citations
+real. Corrections: the puzzle-FEN parity, and precursor games cost an API fetch (`GameUrl` is in
+the local `.csv.zst`), not a 500 GB download. Do not re-run it.
+
 **1. `briefs/2026-08-27_aeon-up-talk-deck.md` — ⚑ SUPERSEDED. Do NOT execute it.**
 
 **The leader built the deck directly on 2026-08-28**, at Thejus's instruction. It exists:

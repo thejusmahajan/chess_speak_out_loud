@@ -1,6 +1,6 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-08-30 (evening) by the leader (Opus 5) — see §8, the timetable
+**Last updated:** 2026-09-01 (late) by the leader (Opus 5) — see §9, configuration steering
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
 
 ---
@@ -602,3 +602,39 @@ adherence record — the only honest answer to *"did I actually keep the schedul
 the mech-interp slot — in a repo that stays public. Much milder than what §0 already lists, and
 `trainer/` is on the §0b removal list already, so the timetable leaves with it. Noted, not a
 blocker on the feature.
+
+---
+
+## ⛑ 9. Configuration steering — Thejus's idea, taken forward 2026-09-01
+
+**The aim is his and is not to be paraphrased away:**
+`ideas/2026-09-01_steering_to_tal_configurations.md` holds his words and nothing else.
+**Spec:** `docs/plans/PLAN_CONFIGURATION_STEERING.md`. **Worker brief (ACTIVE):**
+`agents/briefs/2026-09-01_configuration-dataset-build.md`.
+
+**The design decision, in one line:** the position we steer toward is the puzzle's `fen` column —
+**`s_err`, where the opponent is to move and is about to go wrong** — not the position after their
+error. You cannot steer into a position that requires their blunder to have already happened. 5.5M
+recorded human failures, each stamped with the rating of the player who failed.
+
+**Measured on disk 2026-09-01, both new:**
+1. The puzzle `fen` is **one ply before the tactic** — proof: 0 of 5,527,851 solution lines are of
+   odd length. `puzzle_regime.puzzle_position()` already does this correctly; a naive dataset build
+   would have been off by one ply on every sample.
+2. `data/puzzles/lichess_db_puzzle.csv.zst` (289 MB, local) carries **`GameUrl`** with game id and
+   ply, so parent games cost a targeted API fetch, not the 500 GB archive download the worker
+   report assumed. v2 only — Thejus demoted the roll-back idea himself.
+
+**Division of labour, and it is a requirement not a preference:** Gemini builds the dataset;
+**Thejus writes the PyTorch model and the Kaggle training loop himself** (*"this will also be a
+great learning experience"*); the leader specs and audits. The previous session deleted that part
+of his idea and was corrected for it.
+
+**Gate before anything is trained:** alarm A3 in the brief — a logistic regression on the ten piece
+counts alone must score **AUC < 0.65** on the built dataset. If piece counts separate the classes,
+the CNN would score well and mean nothing. Hard stop, not a tuning knob. The leader re-runs A3
+independently.
+
+**Still open, unchanged:** `build_sac_session()` returns **0** — `data/training/profile.json` was
+generated 2026-07-26 and carries the dead key `had_tal_move`; `sac_drill._get_sharp_findings`
+selects on `had_sharp_move`. Needs Thejus's decision on corpus scope for regeneration.
