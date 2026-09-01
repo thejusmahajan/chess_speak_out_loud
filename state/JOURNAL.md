@@ -32,8 +32,15 @@ from a stale memory of `...2026-07-19.pgn`, which is not on disk. My error, carr
 
 **Correction 2 — it cannot run here.** LC0 on this box is **BLAS/DNNL, 2 cores, ≈100 nodes/s**:
 400 nodes → 3.64 s/position, 800 → 9.66 s, 1600 → 20.77 s. Stage B measured at **10.2 s per flagged
-move** over 77 timed confirmations. Cold cost ≈ **8.2 min/game** — 100 games ≈ 14 h (which is what
-the existing profile cost), 693 games ≈ 4 days, **9,000 games ≈ 51 days**.
+move** over 77 timed confirmations.
+
+**Precision, because the distinction matters:** Stage A and Stage B are *timed*. The TS2 steering
+stage is *projected* (731 nodes × up to 4 candidates × ~3 s) — the run was stopped before TS2
+started, so **≈8.2 min/game is a projection, not a measurement**, and only the ≈1.4 min/game
+Stage A+B part is measured. A second anchor supports the shape: the 2026-07-20 overnight run did
+693 games in ~9.3 h (≈0.8 min/game) **with no TS2 stage at all**. So: 100 games ≈ 14 h (which is
+what the existing profile cost), 693 games ≈ 4 days, **9,000 games ≈ 51 days** — all three carrying
+the projected TS2 term.
 
 **His answer: Kaggle GPU. Correct, and the bundle already exists** (`kaggle_files/`, gitignored,
 EnginePool over 2×T4). But the decisive point is not the GPU: **the budgets are time-limited, and a
