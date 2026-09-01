@@ -16,6 +16,51 @@ Template:
 
 ---
 
+## 2026-09-01 (late, 2) — profile regeneration: the fix is proven, the hardware is not
+
+**Thejus decided: regenerate the profile from the full corpus.** Executed as far as the hardware
+allows, which is not far, and both premises turned out to be wrong in ways only measurement showed.
+
+**Proven, by actually running it — regeneration IS the right fix.** A real 25-game diagnosis
+against a live LC0 produced a profile whose `steer_findings[0]` carries **`had_sharp_move`**, and
+whose `steer_summary` carries **real ECO keys** (`A40`, `A46`, `A48`, `C20`). Both bugs recorded in
+the earlier entry die on regeneration. Nothing was inferred from reading the code.
+
+**Correction 1 — the corpus is 9,000 games, not 693.** 8,617 are 2+1 bullet; 210 at 5+3; 148 at
+1+0. **228,020** decision nodes survive the 20 s clock filter (of 272,974 user moves). The 693 came
+from a stale memory of `...2026-07-19.pgn`, which is not on disk. My error, carried unverified.
+
+**Correction 2 — it cannot run here.** LC0 on this box is **BLAS/DNNL, 2 cores, ≈100 nodes/s**:
+400 nodes → 3.64 s/position, 800 → 9.66 s, 1600 → 20.77 s. Stage B measured at **10.2 s per flagged
+move** over 77 timed confirmations. Cold cost ≈ **8.2 min/game** — 100 games ≈ 14 h (which is what
+the existing profile cost), 693 games ≈ 4 days, **9,000 games ≈ 51 days**.
+
+**His answer: Kaggle GPU. Correct, and the bundle already exists** (`kaggle_files/`, gitignored,
+EnginePool over 2×T4). But the decisive point is not the GPU: **the budgets are time-limited, and a
+GPU does not make a 6-second search finish sooner — it makes it deeper.** With time budgets the only
+gain is 8× worker parallelism: 51 days → ~6 days, still past the 12-hour session cap. Node-limited
+search is what turns GPU speed into wall-clock savings, and §4 of the Bible decided that long ago
+for exactly this reason. `analyze(nodes=N)` and the `*_nodes` config fields already exist, unset.
+
+**Not changed, deliberately:** `metrics.py` node budgets. The right value depends on measured T4
+throughput, which nobody has. Guessing it and then discovering the EPD cache is budget-blind (§5
+cache-key family, 8,845 entries at 6 s/3 s) is how this project has historically lost a week.
+
+**Filed:** `agents/briefs/2026-09-01_kaggle-gpu-profile-regeneration.md` — rehearsal only, QUEUED
+behind the config-steering dataset build to respect the one-non-interview-brief WIP limit. Its real
+deliverable is two throughput tables. Named trap carried forward: Kaggle unpacks loose `.gz` uploads
+into directories, lc0 hangs on "Is a directory", and the 2026-07-25 fix was never confirmed.
+
+**State left clean:** backend stopped; `profile.json` restored to the original 100-game file;
+backup at `data/training/profiles/profile_pre_regen_20260901.json`.
+
+**Noticed, not acted on:** `backend/training/config_steering/` (encode/build_dataset/load) now
+exists untracked — Gemini is mid-delivery on the dataset brief. No report yet; not audited.
+
+**Repo:** committed and pushed.
+
+---
+
 ## 2026-09-01 (late) — configuration steering specced and briefed; Gemini's contemplation audited ACCEPT
 
 **Did:** audited the worker's contemplation report, wrote the v1 design, filed the dataset brief.

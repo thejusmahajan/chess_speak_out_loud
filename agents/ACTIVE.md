@@ -41,6 +41,14 @@ Every brief and report path below is relative to
 
 ### If your workspace is `chess_speak_out_loud`
 
+**0a. `briefs/2026-09-01_kaggle-gpu-profile-regeneration.md` — QUEUED (WIP limit: 0 is in
+flight). Do not start until 0 is delivered.**
+Profile regeneration cannot be done on Thejus's laptop: LC0 runs there on **BLAS/DNNL, 2 cores,
+≈100 nodes/s**, and the full 9,000-game corpus projects to **≈51 days** of engine time. The brief
+prepares the Kaggle GPU bundle and, above all, **measures T4 throughput** so the leader can set node
+budgets. Named trap: Kaggle unpacks loose `.gz` uploads into directories and lc0 hangs on
+"Is a directory" — the 2026-07-25 fix was never confirmed. Rehearsal only; not the full run.
+
 **0. `briefs/2026-09-01_configuration-dataset-build.md` — ⛑ ACTIVE. Execute this one.**
 *Why this before the interview?* Thejus asked for the steering direction to be taken forward
 today, it is the chess project's north-star work, and it costs no compute and no engine — CPU,

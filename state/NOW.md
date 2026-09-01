@@ -1,6 +1,6 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-09-01 (late) by the leader (Opus 5) — see §9, configuration steering
+**Last updated:** 2026-09-01 (late) by the leader (Opus 5) — see §9 and §10
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
 
 ---
@@ -638,3 +638,41 @@ independently.
 **Still open, unchanged:** `build_sac_session()` returns **0** — `data/training/profile.json` was
 generated 2026-07-26 and carries the dead key `had_tal_move`; `sac_drill._get_sharp_findings`
 selects on `had_sharp_move`. Needs Thejus's decision on corpus scope for regeneration.
+
+---
+
+## ⛑ 10. Profile regeneration — decided by Thejus, blocked on hardware, moving to Kaggle
+
+**He decided 2026-09-01: regenerate the profile.** Regeneration is confirmed to be the correct fix
+— a real 25-game run produced `had_sharp_move` (not the dead `had_tal_move`) **and** real ECO keys
+in `steer_summary` (`A40`, `A46`, `A48`, `C20`, not `"???"`). Both journal-recorded bugs die on
+regeneration.
+
+**⚠ Two premises corrected, both measured:**
+1. **The corpus is 9,000 games, not 693.** `games_of_derdiedasdie/lichess_derdiedasdie_2026-07-21.pgn`
+   — 8,617 of them 2+1 **bullet**, 210 at 5+3, 148 at 1+0. The 693 figure came from a stale memory of
+   `...2026-07-19.pgn`, which is no longer on disk. **228,020** decision nodes survive the 20 s clock
+   filter, of 272,974 user moves.
+2. **It cannot be run on this laptop.** LC0 here is **BLAS/DNNL on 2 cores ≈ 100 nodes/s**
+   (measured: 400 nodes → 3.64 s/position). Stage B costs **10.2 s per flagged move**; cold cost
+   ≈ **8.2 min/game**. 100 games ≈ 14 h. 693 games ≈ 4 days. **9,000 games ≈ 51 days.**
+
+**The lever, and it is already decided doctrine.** The budgets are *time*-limited
+(`confirm_best_seconds: 6.0`, `confirm_played_seconds: 3.0`), and a GPU does not make a 6-second
+search finish sooner — it makes it deeper. Only **node**-limited search converts GPU speed into
+wall-clock savings (`LEADER_BIBLE.md` §4). `analyze(..., nodes=N)` and
+`confirm_best_nodes`/`confirm_played_nodes` already exist; the node fields are `None`.
+
+**⚠ The EPD cache is keyed by position only, not by budget** (§5 cache-key family). The 8,845
+cached entries were computed at 6 s/3 s; switching to node budgets makes them a different
+measurement under the same key. **Clear the cache when the budget changes** — leader's call, after
+the T4 numbers land.
+
+**Next:** `agents/briefs/2026-09-01_kaggle-gpu-profile-regeneration.md` — rehearsal + throughput
+measurement, QUEUED behind the config-steering dataset build. Thejus runs the notebook; Gemini
+prepares it; the leader sets the node budgets from the measured T4 throughput and only then specs
+the full run.
+
+**State right now:** `data/training/profile.json` is **unchanged** — the original 100-game profile
+(646 findings, 562 steer, dead `had_tal_move` key). Backup of it at
+`data/training/profiles/profile_pre_regen_20260901.json`. The backend is stopped.
