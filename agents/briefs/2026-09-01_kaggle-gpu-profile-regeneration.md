@@ -147,6 +147,55 @@ throughput — parallel scaling on 2×T4 is the number that sizes the whole run,
 
 ---
 
+### Step 4b — ⛑ AMENDMENT 2026-09-02: fix the GPU-affinity bug BEFORE measuring anything
+
+An expert review found, and the leader verified in the code, that **the 8-worker benchmark binds
+every worker to GPU 0.**
+
+```
+diagnose_on_kaggle.py:342  def make_engine_instance(worker_idx: int = 0)
+diagnose_on_kaggle.py:347      uci_opts["Gpu"] = worker_idx % gpu_count
+diagnose_on_kaggle.py:434  pool = EnginePool(8, lambda: make_engine_instance(0))   # <- hardcoded 0
+backend/engine_pool.py:24  self._workers = [engine_factory() for _ in range(n)]    # <- no index passed
+```
+
+The second T4 idles while the session bills for it — and, worse, **Table 2 would report roughly half
+the true parallel scaling**, which is the number the leader uses to set node budgets. A wrong
+instrument, not just a slow one.
+
+**Fix it in the caller. Do NOT change `EnginePool`'s signature** — `Callable[[], Any]` is what
+`backend/tests/test_engine_pool.py` constructs against, and changing it breaks passing tests to fix
+a caller:
+
+```python
+_worker_seq = itertools.count()
+pool = EnginePool(8, lambda: make_engine_instance(next(_worker_seq)))
+```
+
+**Then prove it.** Before the benchmark runs, print each worker's resolved `Gpu` UCI option and
+**abort** if the number of distinct GPU ids is less than `torch.cuda.device_count()`. An affinity bug
+that cannot be seen is the same bug again.
+
+**Also, and this is ours:** `kaggle_files/` is gitignored (`.gitignore:63`) with no git history, so
+a fix applied inside the bundle is untracked and dies on the next rebuild. **Move
+`diagnose_on_kaggle.py` into the tracked tree** (`scripts/`) and have `scripts/build_kaggle_bundle.py`
+copy it into the bundle.
+
+**Two more corrections to fold in while you are there:**
+
+- **`bfloat16` must not be used.** Kaggle's T4 is Turing (SM 7.5) and the P100 is Pascal (SM 6.0);
+  hardware bf16 starts at Ampere. Half precision here means **`float16` via
+  `torch.autocast('cuda', dtype=torch.float16)` with fp32 parameters and a `GradScaler`** — never
+  `model.half()` handed to Adam, which underflows both the weight update and Adam's epsilon and
+  degrades silently.
+- **Add an 11h15m watchdog** to any long run: stop taking new games, flush the cache, write the
+  profile, `sys.exit(0)`. Kaggle's hard 12-hour kill discards the working directory, so an
+  ungraceful stop loses every warmed position.
+
+Full reasoning: `discussions/ROUNDTABLE_2026-09-02_training_optimization_EXPERT_REVIEW_AUDIT.md`.
+
+---
+
 ### Step 5 — the rehearsal run
 
 `LC0_WORKERS=1`, `MAX_GAMES=30`, **time budgets unchanged** (do not set node budgets yet — this run

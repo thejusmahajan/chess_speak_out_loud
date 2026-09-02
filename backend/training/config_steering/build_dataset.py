@@ -1,16 +1,24 @@
-"""Dataset builder for configuration steering.
+"""Dataset builder for configuration steering (Rebuild 2026-09-02).
 
 Builds the training dataset for configuration steering:
   - Positive class (s_err): 200,000 unmodified puzzle FENs (rating 1500..2200)
-  - Negative pool N1 (n1_spent): spent tactic positions (replaying full solution line from disjoint puzzles)
-  - Negative pool N2 (n2_quiet): real quiet play positions from lichess_derdiedasdie_2026-07-21.pgn (plies 9 to T-10, step 6)
-  - Matching: exact (material_key, phase_bucket, is_white_to_move) matching without replacement, preferring N2 over N1
+  - Negative pool N1 (n1_spent): spent tactic positions, excluding:
+      * post-solution positions in check (board.is_check())
+      * puzzles whose themes contain 'mate'
+  - Negative pool N2 (n2_quiet): real quiet play positions from lichess_derdiedasdie_2026-07-21.pgn
+      * sampled at every 3rd ply (plies 9 to T-10, step 3)
+  - Matching:
+      * Extended key: (material_key, phase_bucket, in_check, mobility_bucket)
+      * mobility_bucket = len(list(board.legal_moves)) // 6
+      * Exact bucket matching without replacement, partitioned by turn (WTM/BTM)
+      * Priority: N2 over N1. Unmatched positives dropped, never back-filled.
   - Alarms:
       A1: side-to-move balance (50 +- 2% in both classes)
       A2: material_key overlap (positives vs negatives top-10)
       A3: 10-feature material-only Logistic Regression AUC on val (< 0.65)
+      A4: 14-feature cheap-tactical + material Logistic Regression AUC on val (< 0.60)
   - Exports:
-      train.npz, val.npz, test.npz, manifest.json, STATS.md
+      train.npz, val.npz, test.npz (with arrays: bb, y, motif, source), manifest.json, STATS.md
 """
 
 from __future__ import annotations
@@ -74,6 +82,19 @@ def compute_material_and_phase(
     return material_key, phase_bucket, piece_counts
 
 
+def compute_tactical_features(
+    board: chess.Board,
+) -> tuple[bool, int, float, int, int]:
+    """Compute (in_check, n_legal_moves, capture_available, n_checks_available, mobility_bucket)."""
+    in_check = board.is_check()
+    legal_moves = list(board.legal_moves)
+    n_legal_moves = len(legal_moves)
+    capture_available = 1.0 if any(board.is_capture(m) for m in legal_moves) else 0.0
+    n_checks_available = sum(1 for m in legal_moves if board.gives_check(m))
+    mobility_bucket = n_legal_moves // 6
+    return in_check, n_legal_moves, capture_available, n_checks_available, mobility_bucket
+
+
 def get_split_name(identifier: str) -> str:
     """Deterministic hash split: <80 train, 80-89 val, >=90 test."""
     val = int(hashlib.md5(identifier.encode("utf-8")).hexdigest(), 16) % 100
@@ -115,8 +136,8 @@ def fit_logistic_regression_and_auc(
     X_val: np.ndarray,
     y_val: np.ndarray,
     seed: int = RANDOM_SEED,
-) -> float:
-    """Fit logistic regression on 10 piece features and return held-out AUC on validation set."""
+) -> tuple[float, np.ndarray]:
+    """Fit logistic regression and return held-out AUC on validation set alongside predicted probabilities."""
     try:
         from sklearn.linear_model import LogisticRegression
         from sklearn.metrics import roc_auc_score
@@ -124,16 +145,20 @@ def fit_logistic_regression_and_auc(
         clf = LogisticRegression(max_iter=1000, random_state=seed)
         clf.fit(X_train, y_train)
         val_probs = clf.predict_proba(X_val)[:, 1]
-        return float(roc_auc_score(y_val, val_probs))
+        return float(roc_auc_score(y_val, val_probs)), val_probs
     except ImportError:
         import torch
         import torch.nn as nn
         import torch.optim as optim
 
         torch.manual_seed(seed)
-        X_t = torch.tensor(X_train, dtype=torch.float32)
+        # Normalize features with train mean/std to ensure fast L-BFGS convergence
+        mean = torch.tensor(np.mean(X_train, axis=0, keepdims=True), dtype=torch.float32)
+        std = torch.tensor(np.std(X_train, axis=0, keepdims=True) + 1e-6, dtype=torch.float32)
+
+        X_t = (torch.tensor(X_train, dtype=torch.float32) - mean) / std
         y_t = torch.tensor(y_train, dtype=torch.float32).unsqueeze(1)
-        X_v = torch.tensor(X_val, dtype=torch.float32)
+        X_v = (torch.tensor(X_val, dtype=torch.float32) - mean) / std
 
         model = nn.Linear(X_train.shape[1], 1)
         optimizer = optim.LBFGS(
@@ -155,7 +180,7 @@ def fit_logistic_regression_and_auc(
             val_logits = model(X_v).squeeze(1)
             val_probs = torch.sigmoid(val_logits).numpy()
 
-        return compute_roc_auc(y_val, val_probs)
+        return compute_roc_auc(y_val, val_probs), val_probs
 
 
 def build_dataset(
@@ -167,7 +192,7 @@ def build_dataset(
     rating_max: int = 2200,
     seed: int = RANDOM_SEED,
 ) -> dict[str, Any]:
-    """Build the configuration steering dataset and write output files."""
+    """Build the rebuilt configuration steering dataset and write output files."""
     start_time_all = time.time()
     random.seed(seed)
     np.random.seed(seed)
@@ -220,17 +245,25 @@ def build_dataset(
                 board = chess.Board(fen)
                 bb = encode(board)
                 mat_key, phase_bucket, counts = compute_material_and_phase(board)
+                in_check, n_legal, cap_avail, n_checks, mobility_bucket = compute_tactical_features(board)
+                features_14 = counts + (float(in_check), float(n_legal), float(cap_avail), float(n_checks))
                 is_wtm = (board.turn == chess.WHITE)
-                
+
                 if is_wtm and len(positives_w) < target_per_turn:
                     positives_w.append({
                         "puzzle_id": pid,
                         "bb": bb,
                         "label": 1,
-                        "source": "s_err",
+                        "source": 0,  # 0 = s_err
                         "material_key": mat_key,
                         "phase_bucket": phase_bucket,
+                        "in_check": in_check,
+                        "n_legal_moves": n_legal,
+                        "capture_available": cap_avail,
+                        "n_checks_available": n_checks,
+                        "mobility_bucket": mobility_bucket,
                         "piece_counts": counts,
+                        "features_14": features_14,
                         "rating": rating,
                         "themes": themes,
                         "is_white_to_move": True,
@@ -241,19 +274,29 @@ def build_dataset(
                         "puzzle_id": pid,
                         "bb": bb,
                         "label": 1,
-                        "source": "s_err",
+                        "source": 0,  # 0 = s_err
                         "material_key": mat_key,
                         "phase_bucket": phase_bucket,
+                        "in_check": in_check,
+                        "n_legal_moves": n_legal,
+                        "capture_available": cap_avail,
+                        "n_checks_available": n_checks,
+                        "mobility_bucket": mobility_bucket,
                         "piece_counts": counts,
+                        "features_14": features_14,
                         "rating": rating,
                         "themes": themes,
                         "is_white_to_move": False,
                     })
                     positive_ids_set.add(pid)
-                elif len(n1_candidates_rows) < 450000:
+                elif len(n1_candidates_rows) < 800000:
+                    # §2.1: filter out 'mate' theme before queuing
+                    if "mate" not in (themes or "").lower().split():
+                        n1_candidates_rows.append((pid, fen, moves, rating, themes))
+            elif len(n1_candidates_rows) < 800000:
+                # §2.1: filter out 'mate' theme before queuing
+                if "mate" not in (themes or "").lower().split():
                     n1_candidates_rows.append((pid, fen, moves, rating, themes))
-            elif len(n1_candidates_rows) < 450000:
-                n1_candidates_rows.append((pid, fen, moves, rating, themes))
             row_idx += 1
 
     conn.close()
@@ -273,38 +316,56 @@ def build_dataset(
     # -------------------------------------------------------------------------
     print("=" * 70)
     print("STEP 3: Extracting Negative Pools (N1 spent & N2 quiet)...")
-    
-    # Pool N1: spent tactic
+
+    # Pool N1: spent tactic (§2.1 exclusions: drop in_check, drop mate)
     t0_n1 = time.time()
     n1_negatives: list[dict[str, Any]] = []
+    n1_dropped_check = 0
+
     for pid, fen, moves_str, rating, themes in n1_candidates_rows:
         if pid in positive_ids_set:
             continue
         board = chess.Board(fen)
         for m_str in moves_str.split():
             board.push(chess.Move.from_uci(m_str))
+
+        # §2.1: Drop if side to move in post-solution position is in check
+        if board.is_check():
+            n1_dropped_check += 1
+            continue
+
         bb = encode(board)
         mat_key, phase_bucket, counts = compute_material_and_phase(board)
+        in_check, n_legal, cap_avail, n_checks, mobility_bucket = compute_tactical_features(board)
+        features_14 = counts + (float(in_check), float(n_legal), float(cap_avail), float(n_checks))
         is_white_to_move = (board.turn == chess.WHITE)
+
         n1_negatives.append({
             "puzzle_id": pid,
             "bb": bb,
             "label": 0,
-            "source": "n1_spent",
+            "source": 1,  # 1 = n1_spent
             "material_key": mat_key,
             "phase_bucket": phase_bucket,
+            "in_check": in_check,
+            "n_legal_moves": n_legal,
+            "capture_available": cap_avail,
+            "n_checks_available": n_checks,
+            "mobility_bucket": mobility_bucket,
             "piece_counts": counts,
+            "features_14": features_14,
             "rating": rating,
             "themes": themes,
             "is_white_to_move": is_white_to_move,
         })
     t_n1 = time.time() - t0_n1
-    print(f"Pool N1 (n1_spent) size: {len(n1_negatives)} ({t_n1:.2f}s)")
+    print(f"Pool N1 (n1_spent) size after exclusions: {len(n1_negatives)} (dropped {n1_dropped_check} in-check post-solution) ({t_n1:.2f}s)")
 
-    # Pool N2: real quiet play
+    # Pool N2: real quiet play (§2.3: every 3rd ply)
     t0_n2 = time.time()
     n2_negatives: list[dict[str, Any]] = []
     total_n2_positions_found = 0
+
     with open(pgn_path, "r", encoding="utf-8", errors="ignore") as f:
         game_idx = 0
         while True:
@@ -313,10 +374,8 @@ def build_dataset(
                 break
             moves = list(game.mainline_moves())
             total_plies = len(moves)
-            # Skip first 8 plies (1..8) and last 10 plies (T-9..T)
-            # Alternate start offset (9 vs 10) across games to ensure balanced turn parity
-            start_offset = 9 if (game_idx % 2 == 0) else 10
-            valid_plies = set(range(start_offset, total_plies - 10 + 1, 6))
+            # §2.3: Sample at every 3rd ply, skipping first 8 and last 10 plies
+            valid_plies = set(range(9, total_plies - 10 + 1, 3))
             total_n2_positions_found += len(valid_plies)
 
             if valid_plies:
@@ -328,47 +387,55 @@ def build_dataset(
                     if ply in valid_plies:
                         bb = encode(board)
                         mat_key, phase_bucket, counts = compute_material_and_phase(board)
+                        in_check, n_legal, cap_avail, n_checks, mobility_bucket = compute_tactical_features(board)
+                        features_14 = counts + (float(in_check), float(n_legal), float(cap_avail), float(n_checks))
                         is_white_to_move = (board.turn == chess.WHITE)
                         n2_negatives.append({
                             "puzzle_id": f"game_{game_idx}_ply_{ply}",
                             "game_idx": game_idx,
                             "bb": bb,
                             "label": 0,
-                            "source": "n2_quiet",
+                            "source": 2,  # 2 = n2_quiet
                             "material_key": mat_key,
                             "phase_bucket": phase_bucket,
+                            "in_check": in_check,
+                            "n_legal_moves": n_legal,
+                            "capture_available": cap_avail,
+                            "n_checks_available": n_checks,
+                            "mobility_bucket": mobility_bucket,
                             "piece_counts": counts,
+                            "features_14": features_14,
                             "rating": None,
                             "themes": "",
                             "is_white_to_move": is_white_to_move,
                         })
             game_idx += 1
     t_n2 = time.time() - t0_n2
-    print(f"Total N2 positions in PGN: {total_n2_positions_found}")
+    print(f"Total N2 positions in PGN at step 3: {total_n2_positions_found}")
     print(f"Pool N2 (n2_quiet) size: {len(n2_negatives)} ({t_n2:.2f}s)")
 
     # -------------------------------------------------------------------------
-    # STEP 4: Matching (without replacement, exact bucket, prefer N2)
+    # STEP 4: Matching (§2.2: Extended matching key)
     # -------------------------------------------------------------------------
     print("=" * 70)
-    print("STEP 4: Matching Negatives to Positives...")
+    print("STEP 4: Matching Negatives to Positives under Extended Key...")
     t0_match = time.time()
 
-    # Bucket negatives by (material_key, phase_bucket) and is_white_to_move
-    # Separate N2 and N1
-    n2_buckets: dict[tuple[str, int], dict[bool, list[dict[str, Any]]]] = (
+    # Bucket negatives by extended 4-tuple key: (material_key, phase_bucket, in_check, mobility_bucket)
+    # and partitioned by is_white_to_move to preserve side-to-move parity
+    n2_buckets: dict[tuple[str, int, bool, int], dict[bool, list[dict[str, Any]]]] = (
         collections.defaultdict(lambda: {True: [], False: []})
     )
     for neg in n2_negatives:
-        key = (neg["material_key"], neg["phase_bucket"])
-        n2_buckets[key][neg["is_white_to_move"]].append(neg)
+        k = (neg["material_key"], neg["phase_bucket"], neg["in_check"], neg["mobility_bucket"])
+        n2_buckets[k][neg["is_white_to_move"]].append(neg)
 
-    n1_buckets: dict[tuple[str, int], dict[bool, list[dict[str, Any]]]] = (
+    n1_buckets: dict[tuple[str, int, bool, int], dict[bool, list[dict[str, Any]]]] = (
         collections.defaultdict(lambda: {True: [], False: []})
     )
     for neg in n1_negatives:
-        key = (neg["material_key"], neg["phase_bucket"])
-        n1_buckets[key][neg["is_white_to_move"]].append(neg)
+        k = (neg["material_key"], neg["phase_bucket"], neg["in_check"], neg["mobility_bucket"])
+        n1_buckets[k][neg["is_white_to_move"]].append(neg)
 
     # Shuffle buckets deterministically
     for key, subdict in n2_buckets.items():
@@ -388,24 +455,23 @@ def build_dataset(
     random.shuffle(positives_order)
 
     for pos in positives_order:
-        key = (pos["material_key"], pos["phase_bucket"])
+        k = (pos["material_key"], pos["phase_bucket"], pos["in_check"], pos["mobility_bucket"])
         wtm = pos["is_white_to_move"]
 
-        # Exact matching: same material_key, phase_bucket, and side-to-move
-        # Priority 1: N2
-        if n2_buckets[key][wtm]:
-            neg = n2_buckets[key][wtm].pop()
+        # Priority 1: N2 (quiet play) with same turn
+        if n2_buckets[k][wtm]:
+            neg = n2_buckets[k][wtm].pop()
             matched_positives.append(pos)
             matched_negatives.append(neg)
             matched_n2_count += 1
-        # Priority 2: N1
-        elif n1_buckets[key][wtm]:
-            neg = n1_buckets[key][wtm].pop()
+        # Priority 2: N1 (spent tactic) with same turn
+        elif n1_buckets[k][wtm]:
+            neg = n1_buckets[k][wtm].pop()
             matched_positives.append(pos)
             matched_negatives.append(neg)
             matched_n1_count += 1
         else:
-            # Drop positive with no match — never back-fill
+            # Positive dropped with no match — never backfilled
             pass
 
     match_rate = len(matched_positives) / len(positives)
@@ -423,7 +489,7 @@ def build_dataset(
         )
 
     # -------------------------------------------------------------------------
-    # STEP 5: Split & Write
+    # STEP 5: Split & Write (§2.5: Store source array)
     # -------------------------------------------------------------------------
     print("=" * 70)
     print("STEP 5: Splitting and Exporting Datasets...")
@@ -449,22 +515,22 @@ def build_dataset(
                     vec[theme_to_idx[t]] = 1
         return vec
 
-    # Assign split and motif vector
+    # Assign split, motif vector, and source
     splits_data: dict[str, list[dict[str, Any]]] = {
         "train": [],
         "val": [],
         "test": [],
     }
 
-    # Add positives
+    # Add positives (source = 0)
     for pos in matched_positives:
         s_name = get_split_name(pos["puzzle_id"])
         pos["motif"] = make_motif(pos["themes"])
         splits_data[s_name].append(pos)
 
-    # Add negatives
+    # Add negatives (source = 1 for N1, 2 for N2)
     for neg in matched_negatives:
-        if neg["source"] == "n2_quiet":
+        if neg["source"] == 2:
             s_name = get_split_name(f"game_{neg['game_idx']}")
         else:
             s_name = get_split_name(neg["puzzle_id"])
@@ -485,15 +551,16 @@ def build_dataset(
         bb_arr = np.stack([r["bb"] for r in recs]).astype(np.uint64)
         y_arr = np.array([r["label"] for r in recs], dtype=np.uint8)
         motif_arr = np.stack([r["motif"] for r in recs]).astype(np.uint8)
+        source_arr = np.array([r["source"] for r in recs], dtype=np.uint8)
 
         npz_file = output_dir / f"{s_name}.npz"
-        np.savez(npz_file, bb=bb_arr, y=y_arr, motif=motif_arr)
+        np.savez(npz_file, bb=bb_arr, y=y_arr, motif=motif_arr, source=source_arr)
 
         n_pos = sum(1 for r in recs if r["label"] == 1)
         n_neg = sum(1 for r in recs if r["label"] == 0)
-        n_s_err = sum(1 for r in recs if r["source"] == "s_err")
-        n_n1 = sum(1 for r in recs if r["source"] == "n1_spent")
-        n_n2 = sum(1 for r in recs if r["source"] == "n2_quiet")
+        n_s_err = sum(1 for r in recs if r["source"] == 0)
+        n_n1 = sum(1 for r in recs if r["source"] == 1)
+        n_n2 = sum(1 for r in recs if r["source"] == 2)
 
         manifest_counts[s_name] = {
             "total": len(recs),
@@ -531,16 +598,15 @@ def build_dataset(
     t_split = time.time() - t0_split
 
     # -------------------------------------------------------------------------
-    # STEP 6: The Three Alarms
+    # STEP 6: Alarms A1, A2, A3, and A4
     # -------------------------------------------------------------------------
     print("=" * 70)
-    print("STEP 6: Evaluating Alarms (A1, A2, A3)...")
+    print("STEP 6: Evaluating Alarms (A1, A2, A3, A4)...")
     t0_alarms = time.time()
 
     # Alarm A1: Side-to-move balance
     pos_w_ratio = sum(1 for r in matched_positives if r["is_white_to_move"]) / len(matched_positives)
     neg_w_ratio = sum(1 for r in matched_negatives if r["is_white_to_move"]) / len(matched_negatives)
-
     a1_pass = (abs(pos_w_ratio - 0.50) <= 0.02) and (abs(neg_w_ratio - 0.50) <= 0.02)
 
     # Alarm A2: Top-10 material_key overlap
@@ -556,19 +622,56 @@ def build_dataset(
     train_recs = splits_data["train"]
     val_recs = splits_data["val"]
 
-    X_train = np.array([r["piece_counts"] for r in train_recs], dtype=np.float32)
+    X_train_mat = np.array([r["piece_counts"] for r in train_recs], dtype=np.float32)
     y_train = np.array([r["label"] for r in train_recs], dtype=np.uint8)
 
-    X_val = np.array([r["piece_counts"] for r in val_recs], dtype=np.float32)
+    X_val_mat = np.array([r["piece_counts"] for r in val_recs], dtype=np.float32)
     y_val = np.array([r["label"] for r in val_recs], dtype=np.uint8)
 
-    a3_auc = fit_logistic_regression_and_auc(X_train, y_train, X_val, y_val, seed=seed)
+    a3_auc, _ = fit_logistic_regression_and_auc(X_train_mat, y_train, X_val_mat, y_val, seed=seed)
     a3_pass = a3_auc < 0.65
+
+    # Alarm A4: 14-feature Logistic Regression AUC on val
+    X_train_14 = np.array([r["features_14"] for r in train_recs], dtype=np.float32)
+    X_val_14 = np.array([r["features_14"] for r in val_recs], dtype=np.float32)
+
+    a4_auc_overall, val_probs_14 = fit_logistic_regression_and_auc(X_train_14, y_train, X_val_14, y_val, seed=seed)
+    a4_pass = a4_auc_overall < 0.60
+
+    # A4 broken down by negative source on val set
+    val_sources = np.array([r["source"] for r in val_recs], dtype=np.uint8)
+    # N1-only subset: positives (source 0) + N1 negatives (source 1)
+    mask_n1 = (val_sources == 0) | (val_sources == 1)
+    a4_auc_n1 = compute_roc_auc(y_val[mask_n1], val_probs_14[mask_n1])
+
+    # N2-only subset: positives (source 0) + N2 negatives (source 2)
+    mask_n2 = (val_sources == 0) | (val_sources == 2)
+    a4_auc_n2 = compute_roc_auc(y_val[mask_n2], val_probs_14[mask_n2])
+
+    # Single-feature AUCs on validation split
+    # Feature indices in 14: 10=in_check, 11=n_legal_moves, 12=capture_available, 13=n_checks_available
+    auc_in_check = compute_roc_auc(y_val, X_val_14[:, 10])
+    auc_n_legal = compute_roc_auc(y_val, X_val_14[:, 11])
+    auc_cap_avail = compute_roc_auc(y_val, X_val_14[:, 12])
+    auc_n_checks = compute_roc_auc(y_val, X_val_14[:, 13])
+
+    # Means comparison on validation split (Check, Legal Moves, Capture Available)
+    pos_mask_val = (y_val == 1)
+    neg_mask_val = (y_val == 0)
+
+    val_pos_check_mean = float(np.mean(X_val_14[pos_mask_val, 10])) * 100
+    val_neg_check_mean = float(np.mean(X_val_14[neg_mask_val, 10])) * 100
+
+    val_pos_legal_mean = float(np.mean(X_val_14[pos_mask_val, 11]))
+    val_neg_legal_mean = float(np.mean(X_val_14[neg_mask_val, 11]))
+
+    val_pos_cap_mean = float(np.mean(X_val_14[pos_mask_val, 12])) * 100
+    val_neg_cap_mean = float(np.mean(X_val_14[neg_mask_val, 12])) * 100
 
     t_alarms = time.time() - t0_alarms
 
     # Write STATS.md
-    stats_md_content = f"""# Configuration Steering Dataset Build — STATS.md
+    stats_md_content = f"""# Configuration Steering Dataset Rebuild — STATS.md
 
 **Build Date:** {manifest_data["build_timestamp"]}
 **Seed:** {seed}
@@ -588,17 +691,41 @@ def build_dataset(
 
 ---
 
-## 2. The Three Leakage Alarms
+## 2. Tactical Balance Table (Audit Checkpoint 5)
+
+Comparison of tactical leak features on the held-out validation set:
+
+| Feature | Positives (s_err) | Negatives (Matched) | Delta | Audit Baseline (Old Build) |
+|---|---|---|---|---|
+| **In check** | {val_pos_check_mean:.2f}% | {val_neg_check_mean:.2f}% | {abs(val_pos_check_mean - val_neg_check_mean):.2f}% | Pos: 11.2% vs Neg: 36.7% |
+| **Mean legal moves** | {val_pos_legal_mean:.2f} | {val_neg_legal_mean:.2f} | {abs(val_pos_legal_mean - val_neg_legal_mean):.2f} | Pos: 28.3 vs Neg: 19.4 |
+| **Capture available** | {val_pos_cap_mean:.2f}% | {val_neg_cap_mean:.2f}% | {abs(val_pos_cap_mean - val_neg_cap_mean):.2f}% | Pos: 77.9% vs Neg: 51.6% |
+
+---
+
+## 3. The Four Alarms
 
 | Alarm | Measurement | Target / Threshold | Status |
 |---|---|---|---|
 | **A1 Side-to-move balance** | Positives: {pos_w_ratio * 100:.2f}% WTM<br>Negatives: {neg_w_ratio * 100:.2f}% WTM | 50 ± 2% in both classes | **{"PASS" if a1_pass else "FAIL"}** |
 | **A2 Material key overlap** | Top 10 overlap: {overlap_count}/10 shared | Substantial overlap | **{"PASS" if a2_pass else "FAIL"}** |
-| **A3 Material-only AUC** | Logistic regression on 10 piece counts: **AUC = {a3_auc:.4f}** | **AUC < 0.65** | **{"PASS" if a3_pass else "FAIL"}** |
+| **A3 Material-only AUC** | 10 piece counts: **AUC = {a3_auc:.4f}** | **AUC < 0.65** | **{"PASS" if a3_pass else "FAIL"}** |
+| **A4 Cheap-tactical + material AUC** | 14 features: **AUC = {a4_auc_overall:.4f}**<br>• N1-only: {a4_auc_n1:.4f}<br>• N2-only: {a4_auc_n2:.4f} | **AUC < 0.60** | **{"PASS" if a4_pass else "FAIL"}** |
 
 ---
 
-## 3. A2 Material Key Comparison (Top 10)
+## 4. Single-Feature AUCs (Validation Split)
+
+| Feature | Single-Feature ROC AUC | Notes |
+|---|---|---|
+| `in_check` | {auc_in_check:.4f} | Exactly matched |
+| `n_legal_moves` | {auc_n_legal:.4f} | Mobility bucket matched |
+| `capture_available` | {auc_cap_avail:.4f} | Informative / balanced |
+| `n_checks_available` | {auc_n_checks:.4f} | Tactical check threat |
+
+---
+
+## 5. A2 Material Key Comparison (Top 10)
 
 | Rank | Positives (s_err) | Count | Negatives (Matched) | Count |
 |---|---|---|---|---|
@@ -611,7 +738,7 @@ def build_dataset(
     stats_md_content += f"""
 ---
 
-## 4. Top 20 Motif Themes (Vocabulary)
+## 6. Top 20 Motif Themes (Vocabulary)
 
 {", ".join(f"`{t}`" for t in top20_themes)}
 """
@@ -622,10 +749,11 @@ def build_dataset(
     print(f"Alarm A1 (Side balance): Positives={pos_w_ratio:.4f}, Negatives={neg_w_ratio:.4f} -> {'PASS' if a1_pass else 'FAIL'}")
     print(f"Alarm A2 (Material overlap): {overlap_count}/10 in top 10 -> {'PASS' if a2_pass else 'FAIL'}")
     print(f"Alarm A3 (Material-only AUC): {a3_auc:.4f} (threshold < 0.65) -> {'PASS' if a3_pass else 'FAIL'}")
+    print(f"Alarm A4 (14-feature AUC): {a4_auc_overall:.4f} (N1-only: {a4_auc_n1:.4f}, N2-only: {a4_auc_n2:.4f}) (threshold < 0.60) -> {'PASS' if a4_pass else 'FAIL'}")
 
-    if not a3_pass:
+    if not a4_pass:
         raise RuntimeError(
-            f"Alarm A3 FIRED: Material-only AUC {a3_auc:.4f} >= 0.65 threshold! Stop and report."
+            f"Alarm A4 FIRED: 14-feature AUC {a4_auc_overall:.4f} >= 0.60 threshold! Stop and report."
         )
 
     wall_clock_total = time.time() - start_time_all
@@ -665,6 +793,24 @@ def build_dataset(
             "a2_pass": a2_pass,
             "a3_auc": a3_auc,
             "a3_pass": a3_pass,
+            "a4_auc_overall": a4_auc_overall,
+            "a4_auc_n1": a4_auc_n1,
+            "a4_auc_n2": a4_auc_n2,
+            "a4_pass": a4_pass,
+            "single_features": {
+                "in_check": auc_in_check,
+                "n_legal_moves": auc_n_legal,
+                "capture_available": auc_cap_avail,
+                "n_checks_available": auc_n_checks,
+            },
+        },
+        "tactical_means": {
+            "val_pos_check": val_pos_check_mean,
+            "val_neg_check": val_neg_check_mean,
+            "val_pos_legal": val_pos_legal_mean,
+            "val_neg_legal": val_neg_legal_mean,
+            "val_pos_cap": val_pos_cap_mean,
+            "val_neg_cap": val_neg_cap_mean,
         },
         "stats_md": stats_md_content,
     }
