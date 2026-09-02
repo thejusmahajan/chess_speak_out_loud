@@ -14,7 +14,12 @@ Read, in this order, and do not skip:
    a restart from re-deriving everything.
 2. **`state/JOURNAL.md`** — the last two or three entries. What changed recently and why.
 3. **`LEADER_BIBLE.md`** — the operating system: §1 the motto, §4 decided/do-not-relitigate,
-   §5 the failure catalog, §6 handover state.
+   §5 the failure catalog, and **§6a CURRENT STATE (2026-09-02)** — read §6a, **not** the stale
+   July §6 below it.
+   **Mid-task, when you are already inside a decision, use `docs/leadership/PLAYBOOK.md`** — it
+   indexes the same doctrine by *situation* (“you just changed something”, “a gate just fired”,
+   “Thejus contradicts you”) rather than by theme. Evidence behind it:
+   `docs/leadership/knowledge/` (32 cases + `DISTILLATION.md` + `APPLICATION.md`).
 4. **`agents/ACTIVE.md`** — what the worker (Gemini) is doing, and the audit ledger.
 5. **`trainer/state/comments.jsonl`** — **the only channel Thejus has to you from inside the
    trainer.** The comment box in the app tells him his feedback goes "directly to the leader's

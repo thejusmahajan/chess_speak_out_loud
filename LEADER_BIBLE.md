@@ -7,11 +7,13 @@
 
 Written by Fable 5 while leading this project; carried forward by successive leaders
 (now Opus 5). This file is not background — it is **your operating system**. Read it
-fully, then `MEMORY.md` (auto-memory). **The compute campaign is DONE** — a clean
-100-game diagnosis profile landed (646 findings / 562 steer_findings, ECOs backfilled;
-`data/training/profile.json`). The live campaign is now **building the training features**
-per `GOAL_BOOK.md` (the product-vision anchor — read it before any feature work) and the
-**theme-tagger correctness fix** in flight (see §6). Kaggle/A100 history lives in the
+fully, then `MEMORY.md` (auto-memory). ~~**The compute campaign is DONE** — a clean 100-game diagnosis profile landed… the live
+campaign is now building the training features…~~
+> **SUPERSEDED 2026-09-02.** That profile is now **five weeks stale and partly dead**:
+> `build_sac_session()` returns **0**, because the profile was generated 2026-07-26 carrying
+> `had_tal_move` while the selector reads `had_sharp_move`. Regeneration is confirmed to fix it and
+> is blocked on hardware — see §6a. **Do not read a campaign status out of this header**; §6a and
+> `state/NOW.md` are current, this paragraph is history. Kaggle/A100 history lives in the
 `kaggle-run-state` memory, `KAGGLE_BEST_PRACTICES.md`, and `archive/` — pull on demand.
 
 ---
@@ -90,6 +92,36 @@ Tal persona; research note `docs/research_learned_lookahead.md` — the
    discard the vision-overreach, and never relitigate a decided aim on a clever outsider
    argument. **Decide, don't hedge** — the user chose a captain, not a survey generator.
 
+8. **Someone already knows — build the channel.** The strongest finding across
+   thirty-two studied leadership failures is that almost none were caused by missing
+   information; in nearly every one the knowledge was present and the *mechanism to act
+   on it* was absent. Thiokol's engineers said it the night before; the Vasa's stability
+   test was run, failed, and the ship sailed. **Our instance:** a user comment reading
+   *"I don't see the question here!"* sat unread for ten hours while six of his comments
+   were committed without one being read. `CLAUDE.md` Step 0 now mandates the comment
+   queue. When something goes wrong here, the first question is not *who was wrong* but
+   *what stopped what was already known from arriving.*
+   (`docs/leadership/knowledge/DISTILLATION.md`.)
+9. **Write the rule before the moment; obey it the first time it hurts.** Gates written in
+   a quiet room are the only representative of calm judgement when the schedule is loud.
+   **And a test whose failing result you will not act on is worse than no test** — it
+   converts a warning into a completed ritual. A fired alarm is a stop, not a parameter.
+   *Proven here:* alarm A4 fired at 0.6637 and 301,116 dataset rows were discarded rather
+   than the threshold argued down.
+10. **A gate belongs to the decision it governs.** A threshold imported from another phase
+    is worse than none, because it carries the authority of having been pre-registered.
+    *Our instance (2026-09-02):* the final falsification gate F1 was applied to the B1
+    *diagnostic* rung, which would have aborted a Kaggle session on a **good** B1 of 0.66.
+11. **When the burden of proof inverts, stop.** If the argument has become "you cannot
+    prove this optimisation is harmful", the answer is no until a measurement says
+    otherwise. *Our instance:* a proposal to prune candidate moves on low policy prior and
+    poor static evaluation — both of which select **against sacrifices**, the thing this
+    project exists to find.
+12. **Move checks out of review and into the code.** A defect caught at review is a defect
+    the process was built to allow. Prefer *impossible* to *caught*: `resolve_data_dir`
+    raising on ambiguity beats a reviewer noticing `nested[0]`; `evaluate.py` refusing
+    across dataset builds beats remembering to check.
+
 ## 4. Decisions already made — DO NOT RELITIGATE (with the why)
 
 | Decision | Why |
@@ -105,8 +137,17 @@ Tal persona; research note `docs/research_learned_lookahead.md` — the
 | **Steer/Tal is a CORE aim — hone, never fold** | It is the *aspirational* training axis (steer the user toward the sharp, dangerous-but-sound chess they want), complementary to **Critical Points** (the *corrective* axis: where you went wrong by eval swing) — not a rival. The `had_tal` episode was a labeling bug (fixed), never a reason to question the aim. Chip it to perfection (sculpture); do not delete it. |
 | Opt #2 value-screen pruning: prune when **the mover** is lost (`-value < floor`, i.e. post-move side-to-move value > +0.60) | `fen_after` is opponent-to-move; raw `value < -0.60` prunes the mover's *winning* moves. Spec approved with this correction; not yet implemented. |
 | Big lc0 caches via **env only** (`LC0_NN_CACHE_SIZE`, `LC0_RAM_LIMIT_MB`), modest defaults in code | The user's local box must never OOM from Colab-sized defaults. |
+| **The Φ steering target is `s_err` — the Lichess puzzle `fen` itself**, not the position after the blunder | You cannot steer into a position that requires the opponent's error to have *already happened*. `fen` is the position where it is **their** move and a natural continuation loses. Proof the `fen` is one ply early: **0 of 5,527,851 solution lines have odd length.** (2026-09-01) |
+| **Φ consults no engine evaluation anywhere in its labels or its loss** | It satisfies the user's binding constraint *"LC0 evaluating a position good doesn't mean it is a tactical position"* **by construction rather than by promise.** The label is a real human of a known rating having lost the thread. |
+| **Φ learns human error in the 1500–2200 band — never claim more** | It is not objective attacking potential. Correct for coaching his opponents; an overclaim anywhere, including a job application, and the career story stops being true. |
+| **A screen may choose what gets SEARCHED; it may never produce a REPORTED number; its miss rate is measured on `had_sharp_move` positions before adoption** | A wrong screen then costs a missed candidate, never a wrong figure. Without this the `had_tal_move` failure returns with better manners. (2026-09-02) |
+| **A round table is convened when Thejus asks for one, and is aimed at our engineering — never at adjudicating his aim** | On 2026-09-01 the leader ran one unbidden against a fresh idea of his, staffed with constructed voices that argued against it. He rejected it and had it deleted. The *form* was never the problem; pointing it at his aim was. |
 
 ## 5. The failure catalog (patterns that WILL recur — recognize instantly)
+
+> **Also read §5b, which sits below §6 in this file** — the Kaggle failure family.
+> **And **, which indexes these by the *situation you are in* rather
+> than by the family, for use mid-task.
 
 - **Stale-runtime family** (bit us 4×): Colab keeps `/content/repo` across restarts
   (Cell 3 now force-pulls and prints `repo at: <hash>` — ALWAYS check it); Python
@@ -144,6 +185,79 @@ Tal persona; research note `docs/research_learned_lookahead.md` — the
   poisons comparisons.
 - **Colab quirks**: `files.download` hangs (outputs go to Drive); `GH_TOKEN` in
   Colab Secrets; validated-lc0 binary cached on Drive per GPU type.
+
+- **Seam family / partial application** (added 2026-09-02, **four instances in one day**): a change
+  made in one place and not in the place that references it. `--no-amp` added to `train.py` and never
+  threaded into `predict()`; the `sys.path` repair applied to `run_kaggle.py` and not its sibling
+  `evaluate.py`; `--no-amp` never exposed on `run_kaggle.py`, the only entry point where it matters;
+  the how-to's launch command fixed and then the notebook written with a *different* mechanism.
+  **A change applied to some of the places it belongs is more dangerous than one applied to none**,
+  because the system is now inconsistent in a way nobody has modelled — Knight Capital deployed to
+  seven servers of eight and lost the firm in 45 minutes. **This family is not fixed by care. It is
+  fixed by `grep -n <identifier>` across the tree and opening every call site**
+  (`LEADER_GROUNDING.md` §7).
+- **Reuse-carries-its-environment family**: a component, cache, label or number is valid *in the
+  environment that produced it* and that precondition is undocumented. Ariane 5 destroyed itself
+  reusing proven Ariane 4 software whose range assumption was true of a different rocket. **Ours:**
+  the EPD cache is keyed by position and **not** by node budget or net, so 8,845 entries computed at
+  6 s/3 s become a different measurement under the same key the moment budgets change; the N1
+  negatives *inherit their puzzle's themes*, true of the position before the solution and false
+  after it; the 20 motif outputs are positional against one build's `manifest.json`. **Rule: when
+  reusing anything, write down which environment made it valid and store that record WITH the
+  artefact** — which is why the manifest now travels inside every checkpoint.
+- **Stale-artefact-mask family**: a leftover output from an earlier run is read as this run's
+  result. Commit `33ff814` (2026-07-26): a crashed 100-game Kaggle run left an earlier **2-game**
+  `profile.json` on disk and the completion check printed `[DONE] REAL run: games=2` — 98 games never
+  analysed, and it looked like success. It recurred on 2026-09-02 in `phi_net`, where a surviving
+  `phi_b2.pt` would have been scored by the evaluation cell after a failed training run. **Rule:
+  delete this run's target artefacts BEFORE the run**, so a crash leaves nothing to mistake for a
+  result (`clear_stale_outputs()`).
+- **Gate-at-the-wrong-altitude family**: a threshold imported from a different phase of the work,
+  carrying the authority of having been pre-registered. The final falsification gate F1 (AUC > 0.70)
+  was applied to the B1 *diagnostic* rung and would have aborted a Kaggle session on a **good**
+  result. **Rule: before writing any threshold, state which decision it governs and at what
+  altitude.** Mission rules are written per phase.
+
+## 6a. CURRENT STATE — 2026-09-02 (this supersedes §6 wherever they disagree)
+
+**§6 below is the July handover and is kept as history. Read this block first, then `state/NOW.md`,
+which is the file that is actually maintained.**
+
+- **The live deadline item is still the AEON-UP interview.** Application SENT and confirmed
+  2026-08-27. `agents/ACTIVE.md` caps non-interview work at one active brief; honour it.
+- **`build_sac_session()` returns 0.** `data/training/profile.json` was generated 2026-07-26 and
+  carries the dead key `had_tal_move`; `sac_drill._get_sharp_findings` selects on `had_sharp_move`.
+  Regeneration is **confirmed** to fix this *and* the `"???"` ECO keys in `steer_summary` — verified
+  by an actual 25-game run, not by reading the code.
+- **⚠ Regeneration cannot be done on Thejus's laptop.** Measured 2026-09-01: LC0 runs there on
+  **BLAS/DNNL, 2 cores, ≈100 nodes/s** (400 nodes → 3.64 s/position). Stage B costs **10.2 s per
+  flagged move**. The corpus is **9,000 games — not 693**, of which **8,617 are 2+1 bullet**, giving
+  **228,020** decision nodes after the 20 s clock filter. Full regeneration projects to **≈51 days**
+  of engine time. *(Stage A+B ≈1.4 min/game is measured; the ≈8.2 min/game total carries a projected
+  TS2 term — do not quote 8.2 as measured.)*
+- **The lever is node budgets, not a GPU.** The budgets are *time*-limited, and a GPU makes a
+  6-second search **deeper, not sooner**. `analyze(..., nodes=N)` and `confirm_best_nodes` /
+  `confirm_played_nodes` already exist and are `None`. Changing them invalidates the EPD cache
+  (position-keyed, not budget-keyed) — decision deliberately deferred until the T4 rehearsal
+  produces a real number.
+- **Φ / configuration steering is BUILT to the training step.** Dataset audited and clean:
+  `data/training/config_steering/`, **261,748 rows**, leader-reverified **A3 = 0.4884, A4 = 0.5298**.
+  The first build was rebuilt after leaking at AUC 0.6637 on check status and mobility. Trainer,
+  gates and Kaggle notebook are in `phi_net/`; archives in `dist/`. **Nobody has trained it yet.**
+  Spec: `docs/plans/PLAN_CONFIGURATION_STEERING.md`.
+- **⚠ The dataset exists in exactly one place.** `data/` is gitignored in full, so
+  `config_steering` lives on one laptop with no backup. Uploading it to Kaggle is the backup.
+- **⚠ Untested by anyone:** the mixed-precision path in `phi_net` has been reviewed twice and
+  executed zero times. `--no-amp` bypasses all of it.
+- **⚠ Still only specified, not applied:** `kaggle_files/diagnose_on_kaggle.py:434` binds all 8 LC0
+  workers to GPU 0 (`lambda: make_engine_instance(0)`). The fix is written in
+  `agents/briefs/2026-09-01_kaggle-gpu-profile-regeneration.md` §4b. A report has described it in the
+  past tense; **it is not in the code.**
+- **Leadership corpus:** `docs/leadership/knowledge/` (32 cases + distillation + application), and
+  `docs/leadership/PLAYBOOK.md` for the decision-moment version. `LEADER_GROUNDING.md` §7 carries
+  the mechanical seam checks, which prevent more damage than anything else on this page.
+
+---
 
 ## 6. State at handover (2026-07-29 — verify then proceed)
 
