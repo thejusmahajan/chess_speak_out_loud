@@ -70,3 +70,4 @@ applications/
 trainer/state/schedule_daemon.json
 trainer/state/schedule_daemon.tmp
 trainer/state/schedule_log.jsonl
+dist/
