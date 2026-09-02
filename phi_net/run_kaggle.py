@@ -155,18 +155,7 @@ def main() -> None:
         rung_args.batch_size = args.batch_size
         rung_args.compile = args.compile
         rung_args.no_amp = args.no_amp
-    # Clean stale checkpoints from earlier attempts so a failed or aborted run
-    # cannot leave a misleading artifact for evaluate.py to read.
-    out_dir = Path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    for stale in (out_dir / "phi_b1.pt", out_dir / "phi_b2.pt",
-                  out_dir / "phi_b1_metrics.json", out_dir / "phi_b2_metrics.json",
-                  out_dir / "phi_b2_test.json"):
-        try:
-            if stale.exists():
-                stale.unlink()
-        except OSError:
-            pass
+        return train(rung_args)
 
     b1 = rung("b1", args.b1_limit, args.b1_epochs)
     proceed, message = b1_verdict(b1["best"]["auc"], b1["material_auc"])

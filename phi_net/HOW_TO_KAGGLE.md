@@ -15,10 +15,19 @@ answer is to cut the game count first.
 `data/` is gitignored in its entirety, so the built dataset exists **only on your machine and is
 not backed up**. Uploading it to Kaggle fixes both problems at once.
 
-1. Zip the five files in `data/training/config_steering/` (~44 MB — well inside any limit).
+1. Upload `dist/config_steering_dataset.zip` (**6.2 MB**, built for you — the five files flat,
+   with no folder inside the archive).
 2. Kaggle → **Datasets** → **New Dataset** → upload the zip. Name it something stable, e.g.
    `config-steering`. Private is fine.
 3. Note the mount path it gets: `/kaggle/input/config-steering/`.
+
+**Whatever Kaggle does with the archive, the run copes.** It may expand the zip into loose files,
+or leave it intact — this project has notes recording both behaviours
+(`docs/guides/KAGGLE_BEST_PRACTICES.md` §5). `data.resolve_data_dir()` handles all three shapes:
+files at the mount root, files one directory down, or a single unexpanded `.zip` (which it extracts
+once to `/kaggle/working/_dataset` and says so). Two dataset versions or two archives on one mount
+make it **raise rather than guess** — picking one silently is how a stale artefact gets reported as
+a result.
 
 Re-upload as a **new version** whenever the dataset is rebuilt, and write down which version a run
 used. Two runs on two dataset versions are not comparable.
@@ -27,12 +36,12 @@ used. Two runs on two dataset versions are not comparable.
 
 ## Step 2 — get the code there
 
-Easiest is a second small dataset containing the `phi_net/` folder — six Python files, a few KB.
-Upload it the same way (call it `phi-net-code`), then in the notebook:
+Upload `dist/phi_net_code.zip` (**32 KB** — seven `.py` files and the docs, flat) as a second
+dataset called `phi-net-code`, then in the notebook:
 
 ```python
 !mkdir -p /kaggle/working/phi_net
-!cp /kaggle/input/phi-net-code/*.py /kaggle/working/phi_net/
+!cp /kaggle/input/phi-net-code/*.py /kaggle/working/phi_net/ 2>/dev/null || cp /kaggle/input/phi-net-code/*/*.py /kaggle/working/phi_net/
 ```
 
 Or paste the files into notebook cells and write them out with `%%writefile`. Either is fine; the

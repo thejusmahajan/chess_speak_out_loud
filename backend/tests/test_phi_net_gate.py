@@ -108,3 +108,61 @@ def test_run_deletes_its_own_stale_outputs(tmp_path):
     removed = clear_stale_outputs(str(tmp_path), ("b1", "b2"))
     assert len(removed) == 3
     assert [p.name for p in tmp_path.iterdir()] == ["unrelated.txt"]
+
+
+def test_run_kaggle_main_wiring(monkeypatch, tmp_path):
+    """Verify that run_kaggle.main() executes without NameError or TypeError,
+    clears stale outputs, and runs both B1 and B2 rungs cleanly."""
+    import sys
+    import phi_net.run_kaggle as r
+
+    monkeypatch.setattr(r, "preflight", lambda require_gpu=True: None)
+    called_rungs = []
+
+    def fake_train(args):
+        called_rungs.append(args.tag)
+        return {
+            "best": {"auc": 0.60, "epoch": 1},
+            "material_auc": 0.488,
+            "total_seconds": 1.0,
+        }
+
+    monkeypatch.setattr(r, "train", fake_train)
+    monkeypatch.setattr(sys, "argv", ["run_kaggle.py", "--out-dir", str(tmp_path), "--allow-cpu"])
+
+    r.main()
+    assert called_rungs == ["b1", "b2"]
+
+
+def test_unexpanded_zip_mount_is_extracted(tmp_path, monkeypatch):
+    """Kaggle may leave a multi-file .zip intact rather than expanding it
+    (docs/guides/KAGGLE_BEST_PRACTICES.md section 5). The run must not die on
+    that; it should extract once and carry on."""
+    import zipfile
+    from phi_net.data import resolve_data_dir
+
+    payload = tmp_path / "payload"
+    payload.mkdir()
+    (payload / "train.npz").write_bytes(b"stub")
+    mount = tmp_path / "mount"
+    mount.mkdir()
+    with zipfile.ZipFile(mount / "dataset.zip", "w") as z:
+        z.write(payload / "train.npz", arcname="train.npz")
+
+    unzip_to = tmp_path / "unzipped"
+    monkeypatch.setenv("CSZERO_UNZIP_DIR", str(unzip_to))
+    assert resolve_data_dir(mount) == unzip_to
+    assert (unzip_to / "train.npz").exists()
+
+
+def test_two_archives_on_the_mount_are_refused(tmp_path, monkeypatch):
+    import pytest
+    import zipfile
+    from phi_net.data import resolve_data_dir
+
+    for name in ("a.zip", "b.zip"):
+        with zipfile.ZipFile(tmp_path / name, "w") as z:
+            z.writestr("train.npz", "stub")
+    monkeypatch.setenv("CSZERO_UNZIP_DIR", str(tmp_path / "out"))
+    with pytest.raises(FileNotFoundError, match="Refusing to guess"):
+        resolve_data_dir(tmp_path)

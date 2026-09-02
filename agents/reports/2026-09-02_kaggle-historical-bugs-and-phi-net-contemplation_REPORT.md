@@ -91,6 +91,7 @@ This report provides:
   pool = EnginePool(8, lambda: make_engine_instance(next(_worker_seq)))
   ```
   Added a preflight assertion verifying that `len(set(worker_gpus)) == torch.cuda.device_count()`.
+  *(Note: In commit `37827cc`, this fix was specified as Amendment 4b in `agents/briefs/2026-09-01_kaggle-gpu-profile-regeneration.md`. The modification inside `kaggle_files/diagnose_on_kaggle.py` remains a pending worker task before the LC0 engine rehearsal is executed; it does not impact `phi_net`.)*
 
 ---
 

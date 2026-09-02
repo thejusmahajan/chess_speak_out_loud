@@ -13,6 +13,7 @@ a permutation tensor.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -86,23 +87,30 @@ class Split:
 def resolve_data_dir(data_dir: Path | None, expect: str = "train") -> Path:
     """Return the directory that actually contains ``<expect>.npz``.
 
-    Zipping a *folder* (right-click, "Compress to ZIP") puts the folder inside
-    the archive, so a Kaggle mount becomes
-    ``/kaggle/input/config-steering/config_steering/train.npz`` while
-    ``--data-dir /kaggle/input/config-steering`` points one level too high. That
-    is a FileNotFoundError in the first seconds of a session, for a reason the
-    message would not explain.
+    Three mount shapes are handled, because all three happen on Kaggle and each
+    one otherwise dies with a FileNotFoundError in the first seconds of a session
+    for a reason the message would not explain:
 
-    Deliberately **one level down, and deterministic**. A recursive ``**`` glob
-    that takes the first hit from an unordered list will silently pick one of
-    two mounted dataset versions -- which is the stale-artefact family (commit
-    33ff814) wearing a different hat. Ambiguity raises instead.
+    1. **Flat** -- ``<mount>/train.npz``. The intended layout.
+    2. **Nested** -- zipping the *folder* rather than its contents gives
+       ``<mount>/config_steering/train.npz``. Resolved one level down.
+    3. **Still archived** -- ``<mount>/something.zip``. This project's own notes
+       (``docs/guides/KAGGLE_BEST_PRACTICES.md`` section 5) record that a
+       multi-file ``.zip`` can survive Kaggle ingestion intact rather than being
+       expanded. Extracted once into ``CSZERO_UNZIP_DIR`` (default
+       ``/kaggle/working/_dataset`` when it exists, else a temp dir).
+
+    Deliberately **one level down and deterministic**. A recursive ``**`` glob
+    taking the first hit from an unordered list would silently pick one of two
+    mounted dataset versions -- the stale-artefact family (commit 33ff814) in a
+    different hat. Ambiguity raises instead of guessing.
     """
     root = Path(data_dir) if data_dir is not None else DEFAULT_DATA_DIR
     if (root / f"{expect}.npz").exists():
         return root
+
     if root.is_dir():
-        nested = sorted({p.parent for p in root.glob(f"*/{expect}.npz")})
+        nested = sorted({q.parent for q in root.glob(f"*/{expect}.npz")})
         if len(nested) == 1:
             return nested[0]
         if len(nested) > 1:
@@ -110,11 +118,37 @@ def resolve_data_dir(data_dir: Path | None, expect: str = "train") -> Path:
                 f"{expect}.npz appears in {len(nested)} subdirectories of {root}: "
                 f"{[str(d) for d in nested]}. Refusing to guess -- point --data-dir "
                 f"at exactly one of them.")
+
+        archives = sorted(root.glob("*.zip"))
+        if len(archives) == 1:
+            import zipfile
+            target = Path(os.environ.get("CSZERO_UNZIP_DIR") or _default_unzip_dir())
+            target.mkdir(parents=True, exist_ok=True)
+            if not (target / f"{expect}.npz").exists():
+                print(f"[data] mount holds an unexpanded archive; extracting "
+                      f"{archives[0].name} -> {target}", flush=True)
+                with zipfile.ZipFile(archives[0]) as z:
+                    z.extractall(target)
+            return resolve_data_dir(target, expect)
+        if len(archives) > 1:
+            raise FileNotFoundError(
+                f"{root} holds {len(archives)} .zip archives and no {expect}.npz. "
+                f"Refusing to guess which one is the dataset.")
+
     raise FileNotFoundError(
-        f"{root / (expect + '.npz')} not found, and no single subdirectory of {root} "
-        f"contains it. Build the dataset with the config_steering builder, or point "
-        f"--data-dir at the directory holding the .npz files. If you zipped a folder "
-        f"rather than its contents, the mount is one level deeper than you think.")
+        f"{root / (expect + '.npz')} not found, and no single subdirectory or archive "
+        f"of {root} contains it. Build the dataset with the config_steering builder, or "
+        f"point --data-dir at the directory holding the .npz files. If you zipped a "
+        f"folder rather than its contents, the mount is one level deeper than you think.")
+
+
+def _default_unzip_dir() -> str:
+    """Somewhere writable. /kaggle/working persists into the notebook output;
+    a temp dir is the fallback everywhere else."""
+    import tempfile
+    if os.path.isdir("/kaggle/working"):
+        return "/kaggle/working/_dataset"
+    return os.path.join(tempfile.gettempdir(), "cszero_dataset")
 
 
 def read_manifest(data_dir: Path | None = None) -> dict:
