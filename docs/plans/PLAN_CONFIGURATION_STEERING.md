@@ -204,6 +204,37 @@ cannot run until F1 passes.
 
 ---
 
+## 8b. Batching — and why none of this needs paid compute
+
+**The dataset is already a batch, by construction.** §5 samples **200,000** positives from the
+5,527,851 with a stride across the whole table — it never touches the full corpus. At 18 uint64 per
+position, 400,000 samples is **57.6 MB**. The build is CPU-only and runs in minutes.
+
+**Train in a ladder, not in one shot.** The built dataset is subsettable for free, so:
+
+| batch | size | question it answers |
+|---|---|---|
+| **B0** | the whole built set, no training | **F0 / alarm A3** — is the dataset trivially separable? Seconds, CPU. |
+| **B1** | 50k pos + 50k neg | does Φ learn anything at all? Minutes on a T4. |
+| **B2** | the full 200k + 200k | does it hold up at scale, and what is the held-out AUC (**F1**)? |
+
+Each stage can kill the next, and B0 costs nothing. Do not build a smaller dataset to do this —
+build the 200k once and subset it.
+
+**Compute: Kaggle's free tier is sufficient, and Colab units should not be spent here.** The model
+is a small CNN over an 18×8×8 input on ~58 MB of data — an epoch is minutes on a free T4, not
+hours (estimate; the first run replaces it with a real number). Kaggle gives ~30 GPU-hours a week
+at no cost.
+
+**The only thing in this project that could justify paid compute is LC0 search** for the profile
+regeneration — not Φ. And if Kaggle's weekly quota turns out to be too small for that, the correct
+response is to cut the game count or the node budget, **not** to spend borrowed money. Colab Pro
+units stay in reserve for one specific case: a contiguous run that genuinely cannot be split across
+12-hour sessions. The batching scheme in
+`agents/briefs/2026-09-01_kaggle-gpu-profile-regeneration.md` §7 exists so that case does not arise.
+
+---
+
 ## 9. Who does what
 
 | | |

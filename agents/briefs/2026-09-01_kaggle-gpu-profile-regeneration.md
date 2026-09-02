@@ -39,7 +39,8 @@ Taken on Thejus's machine, 2026-09-01, not recalled:
 | LC0 backend here | **BLAS / DNNL, 2 cores, 4 threads. No GPU.** |
 | throughput | 400 nodes → **3.64 s/position**; 800 → 9.66 s; 1600 → 20.77 s (**≈ 100 nodes/s**) |
 | production budgets | `confirm_best_seconds: 6.0` + `confirm_played_seconds: 3.0` per flagged move |
-| cold cost, 25 games | Stage A 95 s; Stage B **10.2 s per flagged move** (77 timed); ≈ 8.2 min/game |
+| cold cost, 25 games | Stage A 95 s; Stage B **10.2 s per flagged move** (77 timed) — both measured |
+| per-game cold cost | Stage A+B ≈ 1.4 min/game **measured**; ≈ 8.2 min/game **including a PROJECTED TS2 term** (731 nodes × 4 candidates × ~3 s). TS2 was never timed — the run was stopped before it began. Do not quote 8.2 as measured. |
 | corpus | `lichess_derdiedasdie_2026-07-21.pgn` = **9,000 games**, 8,617 of them 2+1 bullet |
 | decision nodes after the 20 s clock filter | **228,020** of 272,974 user moves |
 | full-corpus projection on this machine | **≈ 51 days of continuous engine time** |
@@ -153,7 +154,9 @@ must be comparable to the local one). Diagnose the newest 30 games of `derdiedas
 
 Then **stop**. Report:
 
-- wall clock for the 30 games, and the same per-game figure this laptop produces (8.2 min/game);
+- wall clock for the 30 games, split by stage, against this laptop's **measured** Stage A+B
+  ≈1.4 min/game (the ≈8.2 min/game total carries a projected TS2 term — your run is what finally
+  measures it);
 - `games_analyzed`, `len(findings)`, `len(steer_findings)`, `steer_budget_exhausted`;
 - whether `steer_findings[0]` carries `had_sharp_move` (it must) and **not** `had_tal_move`;
 - the ECO keys present in `steer_summary` (they must be real ECO codes, not `"???"`).
@@ -173,6 +176,37 @@ span sessions. Implement, and describe in the report:
 Because the EPD cache makes repeats free, a resumed session then costs nothing for what is already
 done. **Verify the count printed matches the file** — a resume that silently restores 0 entries
 looks identical to a fast run.
+
+---
+
+### Step 7 — how the full run is batched (design it now, do not run it)
+
+A Kaggle GPU session is capped at ~12 h, so the full run must span sessions. **The batching scheme
+is not "one profile per chunk" — that would produce N unmerged profiles.** It is:
+
+1. **Warming sessions.** Each session diagnoses a disjoint chunk of games. Its only purpose is to
+   fill the EPD cache. Its profile output is discarded.
+2. **One assembly pass.** The last session submits **all** the games at once. Every position is a
+   cache hit, so it does no engine work and emits a single coherent profile.
+
+This is sound because cached positions cost nothing and do not consume `steer_search_budget` —
+`try_reserve_search()` is only reached on a cache miss (`pipeline.py`, TS2 node body).
+
+**Measured anchor for the assembly pass:** a fully-cached 25-game diagnosis on Thejus's *laptop*
+took **32.4 s** end to end. Extrapolated, 9,000 games ≈ **3.2 h** warm. Treat that as an
+extrapolation, not a measurement, and report the real figure when it happens.
+
+**Two things to size and state in your report, both consequences of scale:**
+
+- **Cache volume.** 8,845 entries = 35 MB today. The full corpus implies roughly 900k entries
+  ≈ **3.6 GB** to shuttle in and out of Kaggle each session. State whether that fits the notebook
+  output limit and how long the copy takes.
+- **Profile size.** 100 games → 1.9 MB. 9,000 games extrapolates to **~170 MB** of
+  `profile.json`, loaded whole by `store.load_profile()`. Say whether anything downstream chokes
+  on that; do not fix it, just report it.
+
+**Batching solves the session cap. It does not make the run cheaper** — the total engine work is
+unchanged. Cost is reduced only by node budgets and GPU throughput, which is what Step 4 measures.
 
 ---
 
