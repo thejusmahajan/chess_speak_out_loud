@@ -65,6 +65,12 @@ def build_bundle() -> dict[str, str]:
     print(f"=== Rebuilding Kaggle Bundle at: {BUNDLE_DIR} ===")
     BUNDLE_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Clean any stale __pycache__ in bundle
+    for root, dirs, _ in os.walk(BUNDLE_DIR):
+        for d in dirs:
+            if d in ("__pycache__", ".pytest_cache"):
+                shutil.rmtree(Path(root) / d, ignore_errors=True)
+
     # 1. Sync backend/
     print("Syncing backend/ ...")
     copy_tree_filtered(REPO_ROOT / "backend", BUNDLE_DIR / "backend")

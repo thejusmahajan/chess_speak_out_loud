@@ -152,6 +152,22 @@ cheapest way to pass a gate is to not do the work, and I am the one specifying t
 | side-to-move balance per class | must be 50 ± 2% | the net can read the class off whose turn it is |
 | top-10 `material_key` distributions, positive vs negative | must overlap | matching failed; the net will learn material |
 | **material-only logistic regression AUC** (10 features: the piece counts, nothing else) | **must be < 0.65** | the dataset is trivially separable. **Stop.** A CNN trained on this would score well and mean nothing. |
+| **A4 — cheap-tactical-features AUC** (the 10 counts **plus** `in_check`, `n_legal_moves`, `capture_available`, `n_checks_available`) | **must be < 0.60** | the same failure through a different door. **Stop.** |
+
+**⛑ A4 exists because the first build passed A1–A3 and was still unusable** (2026-09-02 audit).
+The N1 "spent tactic" negative is the position *after* the full solution line, and puzzle solutions
+disproportionately end in check or mate — so N1 was systematically low-mobility and in check:
+positives 11.2% in check / 28.3 legal moves, negatives **36.7% / 19.4**. `n_legal` alone gave
+AUC 0.6621; the three together 0.6637. Three alarms that all interrogated material could not see it.
+
+**Consequences, now part of the spec:** N1 candidates are dropped when the side to move is in check
+or the puzzle's themes contain `mate`; the matching key is
+`(material_key, phase_bucket, in_check, mobility_bucket)`; N2 is sampled every 3rd ply to make up
+the volume; and every row stores its `source` so F1 can be run against N1 and N2 separately.
+
+**The general lesson, and it is mine:** I asked *"what is the cheapest way to pass this gate without
+doing the work?"* about material, and stopped there. Ask it about **every** axis the label could
+correlate with, not the one that came to mind first.
 
 The third one is the whole audit in a single number. It costs seconds and it is not fakeable.
 
