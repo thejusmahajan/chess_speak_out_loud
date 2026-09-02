@@ -29,15 +29,19 @@ def load_split(name: str, data_dir: Path | str | None = None) -> dict:
         bb = data["bb"]
         y = data["y"]
         motif = data["motif"]
+        source = data["source"] if "source" in data else None
 
     meta = {}
     if manifest_path.exists():
         with open(manifest_path, "r", encoding="utf-8") as f:
             meta = json.load(f)
 
-    return {
+    result = {
         "bb": bb,
         "y": y,
         "motif": motif,
         "meta": meta,
     }
+    if source is not None:
+        result["source"] = source
+    return result

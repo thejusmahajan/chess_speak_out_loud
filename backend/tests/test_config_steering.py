@@ -14,8 +14,10 @@ import pytest
 from backend.training.config_steering.encode import decode, encode, unpack
 from backend.training.config_steering.build_dataset import (
     compute_material_and_phase,
+    compute_tactical_features,
     get_split_name,
 )
+from backend.training.config_steering.load import load_split
 from backend.training.puzzle_regime import puzzle_position
 
 DB_PATH = Path("data/puzzles/puzzles.sqlite")
@@ -107,7 +109,7 @@ def test_puzzle_parity():
 
 
 def test_matching_invariant():
-    """Matching invariant: every kept positive has a negative with identical (material_key, phase_bucket)."""
+    """Matching invariant: every kept positive has a negative with identical (material_key, phase_bucket, in_check, mobility_bucket)."""
     # Create synthetic pool of positives and negatives
     rows = get_sample_puzzle_rows(100)
     positives = []
@@ -116,41 +118,54 @@ def test_matching_invariant():
     for i, r in enumerate(rows):
         b_pos = chess.Board(r["fen"])
         mat_pos, phase_pos, _ = compute_material_and_phase(b_pos)
+        in_check_pos, _, _, _, mob_pos = compute_tactical_features(b_pos)
         positives.append({
             "id": f"pos_{i}",
             "board": b_pos,
             "material_key": mat_pos,
             "phase_bucket": phase_pos,
+            "in_check": in_check_pos,
+            "mobility_bucket": mob_pos,
         })
 
-        # Create spent tactic negative
+        # Create spent tactic negative (excluding mate)
+        if "mate" in r["themes"].lower().split():
+            continue
         b_neg = chess.Board(r["fen"])
         for m in r["moves"].split():
             b_neg.push_uci(m)
+        if b_neg.is_check():
+            continue
         mat_neg, phase_neg, _ = compute_material_and_phase(b_neg)
+        in_check_neg, _, _, _, mob_neg = compute_tactical_features(b_neg)
         negatives.append({
             "id": f"neg_{i}",
             "board": b_neg,
             "material_key": mat_neg,
             "phase_bucket": phase_neg,
+            "in_check": in_check_neg,
+            "mobility_bucket": mob_neg,
         })
 
-    # Bucket negatives
+    # Bucket negatives by extended 4-tuple key
     buckets = collections.defaultdict(list)
     for n in negatives:
-        buckets[(n["material_key"], n["phase_bucket"])].append(n)
+        k = (n["material_key"], n["phase_bucket"], n["in_check"], n["mobility_bucket"])
+        buckets[k].append(n)
 
     matched_pairs = []
     for p in positives:
-        key = (p["material_key"], p["phase_bucket"])
-        if buckets[key]:
-            matched_neg = buckets[key].pop()
+        k = (p["material_key"], p["phase_bucket"], p["in_check"], p["mobility_bucket"])
+        if buckets[k]:
+            matched_neg = buckets[k].pop()
             matched_pairs.append((p, matched_neg))
 
     # Test invariant on all matched pairs
     for p, n in matched_pairs:
         assert p["material_key"] == n["material_key"]
         assert p["phase_bucket"] == n["phase_bucket"]
+        assert p["in_check"] == n["in_check"]
+        assert p["mobility_bucket"] == n["mobility_bucket"]
 
 
 def test_split_disjointness():
