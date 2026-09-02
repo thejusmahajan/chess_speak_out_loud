@@ -16,6 +16,69 @@ Template:
 
 ---
 
+## 2026-09-02 — the Φ dataset is built, audited and clean; a round table, and a real bug in it
+
+**⛑ The dataset is READY.** `data/training/config_steering/`, 261,748 rows. Every gate re-run by
+the leader from the `.npz` with his own logistic regression and decoder, not read from the report:
+**A3 = 0.4884** (reported 0.4870) and **A4 = 0.5298** (reported 0.5270), against thresholds 0.65
+and 0.60. Match rate 65.44%, no key widening. `source` present, counts matching `STATS.md` exactly.
+
+**The leak that killed the first build is gone.** Decoding 9,000 val positions: in check
+**1.97% vs 2.01%**, legal moves **30.20 vs 30.23**, against 11.2%/36.7% and 28.3/19.4 before.
+`n_legal` alone fell from AUC 0.6621 to 0.4971.
+
+**Mutation-checked the frame guard**, because a passing test is nothing. Disabling the colour flip
+at `encode.py:39` reddens `test_colour_invariance` and `test_encode_decode_round_trip`; restored,
+diff clean, 5 passed. That is the `saliency()` bug class, now actually defended.
+
+**Cost of the fix:** match rate 75.28% → 65.44%, so 301,116 rows → 261,748. Fewer rows of an
+honest dataset beats more rows of an artefact.
+
+**Two findings the brief did not ask for** (audit §4), neither blocking: the en-passant plane is
+set in 2.4% of negatives and 0.1% of positives — a pure leak channel worth zeroing, since ep
+carries no configuration information; and 182 boards (0.695% of val) recur in train, 5 with
+contradictory labels, because the split is by puzzle id and cannot see two different puzzles that
+transpose. That case is genuine and irreducible — the same board really can be a puzzle `s_err` in
+one game and quiet play in another — which puts Φ's ceiling below 1.0 by construction.
+
+**Round table on training optimisation, convened by Thejus** —
+`discussions/ROUNDTABLE_2026-09-02_training_optimization.md`. Grounded in measured numbers: the
+train split is 34.6 MB resident as int64 and the vectorised unpack takes 27.45 s on this laptop,
+which is the argument for pushing everything to VRAM once and deleting the DataLoader entirely.
+Seven agreements, one left open. `discussions/README.md` now records when this device is
+appropriate — convened when he asks, aimed at our engineering, never at adjudicating his aim.
+
+**His expert review of it: audited, mostly accepted, and its headline is REAL.** Verified in code:
+`diagnose_on_kaggle.py:434` passes `lambda: make_engine_instance(0)` while `engine_pool.py:24`
+calls `engine_factory()` with no index, so **all 8 workers bind to GPU 0**. That matters less for
+throughput than for measurement — Table 2 IS parallel scaling, so the rehearsal would have
+reported half the truth and the node budgets would have been set from a wrong number. Fixed in the
+caller, not by changing `EnginePool`'s signature, which `test_engine_pool.py` constructs against.
+
+**It corrected me:** my round table said “AMP with bfloat16 or float16”. Kaggle is T4 Turing
+SM 7.5 / P100 Pascal SM 6.0, and hardware bf16 starts at Ampere. My error.
+
+**Three things in it rejected.** Its own training code contradicts its own table — `model.half()`
+into AdamW with no `GradScaler`, which underflows both the weight update and Adam's eps and
+degrades silently rather than crashing. `torch.compile(mode="reduce-overhead")` captures
+shape-static CUDA graphs while the last batch is ragged at 2,792 of 8,192. And the one that
+mattered: it proposed pruning candidates on **low policy prior and bad static value**, which is a
+well-designed Tal detector used as a rule for throwing Tal moves away — a sacrifice has bad static
+value by construction, and `steer_w_policy_trap` already treats a low prior as a danger *signal*.
+The round table's rule stands: a screen may choose what gets searched, may never produce a
+reported number, and its miss rate is measured on `had_sharp_move` positions before adoption.
+
+**Next:** Thejus writes the PyTorch model and the Kaggle training loop (B1, then B2). The Kaggle
+regeneration brief is now ACTIVE, but its earlier delivery predates the §4b amendment and must be
+re-run against it.
+
+**Open, unchanged:** `build_sac_session()` returns 0 until a profile is regenerated, which needs
+the GPU path.
+
+**Repo:** committed and pushed.
+
+---
+
 ## 2026-09-01 (late, 2) — profile regeneration: the fix is proven, the hardware is not
 
 **Thejus decided: regenerate the profile from the full corpus.** Executed as far as the hardware

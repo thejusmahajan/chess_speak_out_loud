@@ -1,6 +1,6 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-09-01 (late) by the leader (Opus 5) — see §9 and §10
+**Last updated:** 2026-09-02 by the leader (Opus 5) — see §9 (dataset READY) and §10
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
 
 ---
@@ -638,6 +638,23 @@ independently.
 **Still open, unchanged:** `build_sac_session()` returns **0** — `data/training/profile.json` was
 generated 2026-07-26 and carries the dead key `had_tal_move`; `sac_drill._get_sharp_findings`
 selects on `had_sharp_move`. Needs Thejus's decision on corpus scope for regeneration.
+
+---
+
+**✅ STATUS 2026-09-02: the Φ dataset is BUILT, AUDITED and READY TO TRAIN ON.**
+`data/training/config_steering/` — 261,748 rows (train 209,036 / val 26,222 / test 26,490),
+34.7 MB train split; arrays `bb` (18 uint64), `y`, `motif` (20), `source`.
+Leader's independent re-runs: **A3 = 0.4884**, **A4 = 0.5298** (thresholds 0.65 / 0.60). The
+in-check/mobility leak that killed the first build is gone — 1.97% vs 2.01% in check, 30.20 vs
+30.23 legal moves. Colour-flip guard mutation-checked: breaking `encode.py:39` reddens two tests.
+
+**Next is Thejus's:** the PyTorch model and the Kaggle loop — B1 (50k+50k) then B2 (full,
+held-out AUC = F1), per `PLAN_CONFIGURATION_STEERING.md` §8b. Nothing needs a GPU until he starts.
+
+Two minor open items from the audit §4: zero the en-passant plane before the final run (set in
+2.4% of negatives vs 0.1% of positives), and 182 boards (0.695% of val) recur in train with 5
+carrying contradictory labels — irreducible, and a reminder that Φ's ceiling is below 1.0 by
+construction.
 
 ---
 
