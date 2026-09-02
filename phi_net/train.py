@@ -97,9 +97,16 @@ def train(args: argparse.Namespace) -> dict:
              f"{torch.cuda.device_count()} visible)" if device.type == "cuda" else ""))
 
     t0 = time.perf_counter()
-    train_split = data_mod.load_split("train", device, args.data_dir, limit=args.limit)
+    train_split = data_mod.load_split("train", device, args.data_dir,
+                                      limit=args.limit, seed=args.seed)
     val_split = data_mod.load_split("val", device, args.data_dir)
+    manifest = data_mod.read_manifest(args.data_dir)
     print(f"loaded in {time.perf_counter() - t0:.1f}s")
+    if manifest:
+        print(f"  dataset built {manifest.get('build_timestamp', '?')} "
+              f"seed {manifest.get('seed', '?')} stride {manifest.get('sampling_stride', '?')}")
+    else:
+        print("  !! no manifest.json beside the .npz -- dataset identity unrecorded")
     print("  " + train_split.describe())
     print("  " + val_split.describe())
 
@@ -109,7 +116,9 @@ def train(args: argparse.Namespace) -> dict:
                                 val_split.material_counts(), val_split.y)
     print(f"material-only baseline AUC: {material_auc:.4f}  (audited value ~0.488)")
 
-    model = build_model(channels=args.channels, blocks=args.blocks).to(device)
+    n_motifs = int(train_split.motif.shape[1])
+    model = build_model(channels=args.channels, blocks=args.blocks,
+                        n_motifs=n_motifs).to(device)
     print(f"model: {model.n_params():,} parameters")
     forward = model
     if args.compile:
@@ -120,12 +129,17 @@ def train(args: argparse.Namespace) -> dict:
 
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     steps_per_epoch = len(train_split) // args.batch_size
+    if steps_per_epoch == 0:
+        raise SystemExit(
+            f"batch_size {args.batch_size} exceeds the {len(train_split)} training rows, so "
+            f"every epoch would be empty (the ragged last batch is dropped by design). "
+            f"Lower --batch-size or raise --limit.")
     sched = torch.optim.lr_scheduler.OneCycleLR(
         opt, max_lr=args.lr, total_steps=max(args.epochs * steps_per_epoch, 1),
         pct_start=0.25)
     scaler = _make_scaler(device)
     use_amp = device.type == "cuda" and not args.no_amp
-    generator = torch.Generator(device=device).manual_seed(args.seed)
+    generator = torch.Generator().manual_seed(args.seed)   # CPU generator; see data.batches
 
     history, best = [], {"auc": -1.0}
     out_dir = Path(args.out_dir)
@@ -159,8 +173,8 @@ def train(args: argparse.Namespace) -> dict:
             scaler.step(opt)
             scaler.update()
             sched.step()
-            tot_phi += float(loss_phi)
-            tot_motif += float(loss_motif)
+            tot_phi += float(loss_phi.detach())
+            tot_motif += float(loss_motif.detach())
 
         stats = evaluate_split(model, val_split, material_auc)
         stats.update(epoch=epoch, loss_phi=tot_phi / steps_per_epoch,
@@ -173,10 +187,15 @@ def train(args: argparse.Namespace) -> dict:
               f"n2 {stats.get('auc_vs_n2', float('nan')):.4f})  "
               f"{stats['seconds']:.1f}s")
 
+        if not (stats["auc"] == stats["auc"]):   # NaN guard: a split with one class
+            raise SystemExit("validation AUC is NaN -- the split has only one class. "
+                             "Check --data-dir and the .npz files.")
         if stats["auc"] > best["auc"]:
             best = dict(stats)
             torch.save({"model": model.state_dict(), "args": vars(args),
-                        "val": stats}, out_dir / f"phi_{args.tag}.pt")
+                        "val": stats, "n_motifs": n_motifs,
+                        "dataset_manifest": manifest},
+                       out_dir / f"phi_{args.tag}.pt")
 
     total = time.perf_counter() - wall0
     table, passed = gate_report(best["auc"], material_auc)

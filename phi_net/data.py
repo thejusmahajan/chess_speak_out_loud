@@ -83,6 +83,22 @@ class Split:
                 f"| sources {by_src} | {mb:.0f} MB resident")
 
 
+def read_manifest(data_dir: Path | None = None) -> dict:
+    """The dataset's manifest, or {} if absent.
+
+    Recorded into every checkpoint. The 20 motif outputs are positional, so a
+    rebuild that reorders ``theme_vocabulary_20`` silently changes what each
+    output means -- with no shape change and no error. The manifest is how a
+    later reader can tell.
+    """
+    import json
+    data_dir = Path(data_dir) if data_dir is not None else DEFAULT_DATA_DIR
+    path = data_dir / "manifest.json"
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def load_split(name: str, device: torch.device, data_dir: Path | None = None,
                limit: int | None = None, seed: int = 20260901) -> Split:
     """Load one split and move it, unpacked, onto ``device``.
@@ -130,7 +146,9 @@ def batches(n: int, batch_size: int, generator: torch.Generator,
     ~25 batches an epoch, dropping a few thousand rows from a freshly reshuffled
     permutation costs nothing.
     """
-    perm = torch.randperm(n, generator=generator, device=device)
+    # Generated on CPU and moved: torch.randperm with a *CUDA* generator has been
+    # version-sensitive, and a 200k permutation costs microseconds either way.
+    perm = torch.randperm(n, generator=generator).to(device)
     stop = (n // batch_size) * batch_size if drop_last else n
     for start in range(0, stop, batch_size):
         yield perm[start:start + batch_size]

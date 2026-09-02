@@ -137,8 +137,25 @@ separates one and not the other, that is information about the data, not about t
 
 It is the potential in a potential-based re-ranking of moves LC0 has **already declared safe**.
 `metrics.steer_candidates()` keeps only moves costing ≤ 60 cp against best and never landing below
-−60 cp; Φ then ranks that surviving set by `Φ(after) − Φ(before)`. **LC0 keeps an absolute veto over
+−60 cp; Φ then ranks that surviving set. **LC0 keeps an absolute veto over
 blunders. Φ never overrides it — it only re-orders what is already sound.**
 
 Shaping by a potential difference cannot change which policy is optimal, only which one is found
 first (Ng, Harada & Russell, ICML 1999).
+
+### ⛑ Φ's meaning flips with the side to move — rank, do not subtract across a ply
+
+Φ is defined on the **side to move**: “the player to move here is about to go wrong”. So:
+
+* `Φ(position in hand)` — *I* am to move. It scores **my own** error-proneness.
+* `Φ(position after my move)` — the **opponent** is to move. It scores **theirs**.
+
+These are different questions, and `Φ(after) − Φ(before)` subtracts one from the
+other. For *ranking candidate moves* it is harmless, because `Φ(before)` is the same constant
+for every candidate and the ordering is identical — so **rank by `Φ(after)` and do not write
+the subtraction down at all.**
+
+Where it would genuinely bite is any comparison **across plies**. Gate F3 asks whether the
+Φ-max move “raises Φ four plies later”; four plies preserves the parity, so that is
+legitimate. A three- or five-ply comparison would not be, and would produce a confident,
+meaningless number. **Any Φ difference must be between positions with the same side to move.**

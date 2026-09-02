@@ -35,6 +35,8 @@ DEFAULT_LADDER_RATINGS: Dict[str, float] = {
     "statistics": 950.0,
     # The clinical-project ladder is recall of his own work, so the usual baseline applies.
     "clinical-project": 820.0,
+    # General interview ladder covering postdoc (GOTM-FABM, JAX, IBM) and HealthTwiSt clinical data/stats
+    "general-interview": 820.0,
 }
 
 

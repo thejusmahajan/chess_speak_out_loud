@@ -30,17 +30,19 @@ def roc_auc(y_true: torch.Tensor, score: torch.Tensor) -> float:
     if n_pos == 0 or n_neg == 0:
         return float("nan")
     order = torch.argsort(s)
-    ranks = torch.empty_like(s)
-    ranks[order] = torch.arange(1, len(s) + 1, dtype=s.dtype, device=s.device)
-    # average ranks within tied groups
     sorted_s = s[order]
-    start = 0
-    for i in range(1, len(sorted_s) + 1):
-        if i == len(sorted_s) or sorted_s[i] != sorted_s[start]:
-            if i - start > 1:
-                idx = order[start:i]
-                ranks[idx] = ranks[idx].mean()
-            start = i
+    # Average ranks within tied groups, vectorised. Ties are NOT hypothetical:
+    # the material baseline is fit on ten integer piece counts, so thousands of
+    # rows share a score exactly. Doing this with a Python loop costs ~1.2 s per
+    # call on CPU and one device sync per element on CUDA, which would swamp an
+    # epoch that is meant to take seconds.
+    _, counts = torch.unique_consecutive(sorted_s, return_counts=True)
+    ends = counts.cumsum(0)
+    starts = ends - counts
+    group_mean_rank = (starts + ends + 1).to(s.dtype) / 2.0
+    ranks_sorted = group_mean_rank.repeat_interleave(counts)
+    ranks = torch.empty_like(s)
+    ranks[order] = ranks_sorted
     return float((ranks[y == 1].sum() - n_pos * (n_pos + 1) / 2) / (n_pos * n_neg))
 
 

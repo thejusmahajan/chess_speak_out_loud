@@ -183,8 +183,16 @@ never overrides it, it only re-ranks what LC0 has already declared safe.**
 v1 is one field: `steer_candidates` currently ranks the playable set by `complexity`. Rank instead by
 
 ```
-gain(move) = Φ(position after move) − Φ(position in hand)
+score(move) = Φ(position after move)
 ```
+
+**⛑ Corrected 2026-09-02.** This originally read `Φ(after) − Φ(before)`, which is a
+frame error. Φ is defined on the *side to move*, so `Φ(before)` scores **my own**
+error-proneness while `Φ(after)` scores the **opponent's** — different questions. For ranking
+candidates the subtraction is harmless (`Φ(before)` is constant across them) but it must not be
+written down, because it invites cross-ply differences that are meaningless. **Any Φ difference
+must be between positions with the same side to move.** Gate F3's four-ply comparison preserves
+parity and is fine; a three- or five-ply one would not be.
 
 That is a **potential-based** re-ranking, which is the one form of steering with a proof attached
 (Ng, Harada & Russell, ICML 1999): shaping by a potential difference cannot change which policy is

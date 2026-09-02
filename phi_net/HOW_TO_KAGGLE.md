@@ -51,14 +51,19 @@ Create a new **Notebook**, and in the sidebar:
 Then one cell:
 
 ```python
-import sys, os
+import os
 os.chdir('/kaggle/working')
-sys.path.insert(0, '/kaggle/working')
 
-!python /kaggle/working/phi_net/run_kaggle.py \
+!cd /kaggle/working && python -m phi_net.run_kaggle \
     --data-dir /kaggle/input/config-steering \
     --out-dir /kaggle/working/phi_runs
 ```
+
+**Use the `-m` form.** Running `python /kaggle/working/phi_net/run_kaggle.py` instead puts the *script's*
+directory on `sys.path` rather than the package's parent, and the run dies immediately with
+`ModuleNotFoundError: No module named 'phi_net'`. That was **verified, not guessed** -- it would
+have stopped the very first cell. (`run_kaggle.py` now repairs `sys.path` itself so both forms
+work, but `-m` from `/kaggle/working` is the one to type.)
 
 `run_kaggle.py` will:
 
@@ -75,7 +80,8 @@ sys.path.insert(0, '/kaggle/working')
 Then, in a second cell, once:
 
 ```python
-!python -m phi_net.evaluate --checkpoint /kaggle/working/phi_runs/phi_b2.pt \
+!cd /kaggle/working && python -m phi_net.evaluate \
+    --checkpoint /kaggle/working/phi_runs/phi_b2.pt \
     --data-dir /kaggle/input/config-steering
 ```
 

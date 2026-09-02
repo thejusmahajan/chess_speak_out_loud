@@ -1,0 +1,339 @@
+[
+  {
+    "id": "gen-l0-001",
+    "ladder": "general-interview",
+    "level": 0,
+    "topic": "postdoctoral research overview",
+    "question": "Can you summarize your postdoctoral research at Universitaet Hamburg in 60 seconds?",
+    "answer": "At Universitaet Hamburg, I worked on two complementary modeling tracks: (1) A 0-D Lagrangian individual-based model (IBM) of phytoplankton trait evolution based on Beckmann et al. (2019), tracking discrete particles with mutating temperature optima under warming, which I ported from Fortran/OpenMP to Google JAX for GPU acceleration; and (2) A 1-D Eulerian water-column ecosystem model in GOTM-FABM, simulating concentration dynamics across vertical layers driven by atmospheric forcing and NetCDF output on Linux HPC clusters.",
+    "explanation": "This is your primary elevator pitch for the postdoc. It clearly distinguishes the 0-D particle model (evolutionary trait dynamics in JAX) from the 1-D water-column model (Eulerian concentration dynamics in GOTM-FABM).",
+    "trap": "Claiming the Lagrangian particle model was coupled into GOTM-FABM as a 1-D model. GOTM-FABM solves 1-D Eulerian concentrations; the Lagrangian IBM was a 0-D model tracking large particle ensembles.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 820,
+    "requires": []
+  },
+  {
+    "id": "gen-l0-002",
+    "ladder": "general-interview",
+    "level": 0,
+    "topic": "healthtwist and degir project overview",
+    "question": "What was HealthTwiSt GmbH, and what was the DeGIR project you worked on during your internship?",
+    "answer": "HealthTwiSt GmbH, led by Dr. Andreas Busjahn in Berlin, provides clinical research, data science, and statistical consulting. During my 10.5-week internship, I refactored the production R/tidyverse ETL pipeline for Germany's DeGIR interventional radiology quality registry (143,143 patient records across ~300 clinics), modularized core logic into the degirtools R package, and built an interactive R Shiny dashboard on synthetic GDPR-compliant data.",
+    "explanation": "Summarizes the HealthTwiSt experience with exact institutional context, data scale, and concrete software deliverables under German medical compliance.",
+    "trap": "Describing it as an AI diagnostics project or clinical research trial. It was production clinical data engineering, ETL refactoring, and quality governance reporting.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/01_executive_summary.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 840,
+    "requires": []
+  },
+  {
+    "id": "gen-l0-003",
+    "ladder": "general-interview",
+    "level": 0,
+    "topic": "0-d lagrangian ibm vs 1-d eulerian gotm-fabm",
+    "question": "What is the difference between your 0-D Lagrangian model and your 1-D Eulerian model at Universitaet Hamburg?",
+    "answer": "The 0-D Lagrangian model is an individual-based model (IBM) based on Beckmann et al. (2019) that tracks thousands of discrete 'super-individual' particles, each carrying an optimal growth temperature trait that mutates and undergoes selection. The 1-D GOTM-FABM model is an Eulerian compartment model that solves partial differential equations for continuous biomass and nutrient concentrations across vertical depth layers. They serve different purposes: 0-D Lagrangian for evolutionary trait dynamics, and 1-D Eulerian for physical mixing and water-column concentration profiles.",
+    "explanation": "In marine science, coupling an IBM directly into a 1-D turbulent water column is computationally prohibitive due to vertical random-walk dispersion. Distinguishing the 0-D IBM from the 1-D Eulerian GOTM-FABM model shows exact domain clarity.",
+    "trap": "Confusing the two modeling tracks or claiming the 1-D GOTM-FABM model was individual-based.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 880,
+    "requires": []
+  },
+  {
+    "id": "gen-l0-004",
+    "ladder": "general-interview",
+    "level": 0,
+    "topic": "the four refactoring directives at healthtwist",
+    "question": "What were the four refactoring directives assigned to you for modernizing the DeGIR pipeline?",
+    "answer": "Directive 1 (D1): Extract reusable clinical processing functions into a documented R package (degirtools, 9 functions). Directive 2 (D2): Consolidate duplicated complication grading and success criteria logic. Directive 3 (D3): Externalize 241 hardcoded correction rules into 7 CSV configuration files. Directive 4 (D4): Eliminate 360 deprecated tidyverse function calls across 4 pipeline scripts.",
+    "explanation": "These four directives structured your entire refactoring effort, turning a monolithic 1,834-line script into modular, maintainable, production-ready software.",
+    "trap": "Vaguely saying you 'cleaned up the R code'. Citing the 4 structured directives shows engineering discipline and adherence to professional project management.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/01_executive_summary.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 920,
+    "requires": []
+  },
+  {
+    "id": "gen-l1-001",
+    "ladder": "general-interview",
+    "level": 1,
+    "topic": "porting the 0-d ibm from fortran to google jax",
+    "question": "Why and how did you port the 0-D individual-based model to Google JAX?",
+    "answer": "The 0-D Lagrangian model (Beckmann et al. 2019) tracks a large ensemble of particles undergoing stochastic trait mutation and growth. The original CPU-parallelized Fortran/OpenMP code hit scaling limits for large populations. Because the particle updates are uniform across the ensemble, Google JAX was ideal: using jax.vmap to vectorize agent updates and jax.jit for XLA GPU compilation. I ported the 0-D model to JAX and systematically verified the GPU outputs against the CPU-parallelized Fortran baseline.",
+    "explanation": "Tracking large particle ensembles in 0-D is an embarrassingly parallel problem, which is why JAX GPU vectorization provided high throughput.",
+    "trap": "Claiming you wrote a 1-D spatial particle tracking model in JAX, or claiming deep expertise in JAX internals. You used JAX as an accelerated array and vectorization tool for a verified 0-D physical model.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1080,
+    "requires": [
+      "gen-l0-001",
+      "gen-l0-003"
+    ]
+  },
+  {
+    "id": "gen-l1-002",
+    "ladder": "general-interview",
+    "level": 1,
+    "topic": "config-driven architecture in the degir pipeline",
+    "question": "How did you implement a config-driven design in the DeGIR pipeline, and why was it an improvement?",
+    "answer": "Originally, 241 data correction rules (clinic exclusions, clinic ID mergers, salutation cleanups, module reassignments, and column filters) were hardcoded as imperative if/else and case_when blocks inside import.R. I extracted these rules into 7 structured CSV configuration files. The ETL script became a generic processor reading configuration tables. This decoupled business logic from code execution, allowing clinical coordinators to inspect and update rules without modifying code.",
+    "explanation": "Separating configuration from implementation is a cornerstone of professional software engineering and eliminates code duplication across multiple reporting pipelines.",
+    "trap": "Saying you stored patient records in CSVs. Patient data remained in secure RDS/database storage; only transformation metadata and clinical business rules moved to CSVs.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/03_directive_d3.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 1120,
+    "requires": [
+      "gen-l0-002",
+      "gen-l0-004"
+    ]
+  },
+  {
+    "id": "gen-l1-003",
+    "ladder": "general-interview",
+    "level": 1,
+    "topic": "byte-identical output verification discipline",
+    "question": "When refactoring the production clinical data pipeline at HealthTwiSt, how did you prove you introduced zero regressions?",
+    "answer": "Because annual clinical benchmark reports and hospital accreditations depend on DeGIR outputs, silent data drift is unacceptable. At every refactoring step, I saved the output of the legacy pipeline as a golden master and used R's identical() function to compare the refactored dataframe. The refactored pipeline reduced the codebase from 1,834 to 1,349 lines (-26.5%) while producing byte-identical parity verified across all 143,120 output rows and 216 columns.",
+    "explanation": "Byte-identical verification via identical() checks exact type, attribute, and numeric equality, guaranteeing that speed and structure improvements introduced zero calculation drift.",
+    "trap": "Relying on unit tests or simply checking that the script ran without raising errors. Silent numerical drift is the primary failure mode of pipeline refactoring.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/07_bugs_verification.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 1150,
+    "requires": [
+      "gen-l0-002",
+      "gen-l0-004"
+    ]
+  },
+  {
+    "id": "gen-l1-004",
+    "ladder": "general-interview",
+    "level": 1,
+    "topic": "gotm-fabm 1-d eulerian framework",
+    "question": "What is the GOTM-FABM framework, and how did you use it as a 1-D Eulerian model?",
+    "answer": "In the 1-D water-column track, GOTM (General Ocean Turbulence Model) provides vertical hydrodynamics and turbulence closure, while FABM (Framework for Aquatic Biogeochemical Models) couples biogeochemical reaction kinetics (e.g. ERGOM / NPZD). It is an Eulerian compartment model solving advection-diffusion-reaction PDEs for concentrations across vertical layers ($z$). Operator splitting decouples physical transport (turbulent mixing $K_z$ and settling $w$) from biological source/sink kinetics ($R$).",
+    "explanation": "GOTM-FABM operates strictly on concentrations (Eulerian), not discrete agents. It connects physical forcing (wind, heat flux) to vertical concentration distributions.",
+    "trap": "Calling GOTM-FABM an individual-based or particle-tracking model.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1180,
+    "requires": [
+      "gen-l0-001",
+      "gen-l0-003"
+    ]
+  },
+  {
+    "id": "gen-l2-001",
+    "ladder": "general-interview",
+    "level": 2,
+    "topic": "managing netcdf archives and slurm on hpc",
+    "question": "How did you manage and analyze large simulation outputs on the Linux HPC cluster during your postdoc?",
+    "answer": "Multi-year climate hindcasts and IPCC warming projections generated multidimensional, gridded time series stored in self-describing NetCDF files. Workflows were orchestrated on the Linux HPC cluster using SLURM batch scripts. To avoid memory bottlenecks when analyzing tens of gigabytes across simulation runs, I used Python with NumPy, xarray, and Dask to lazily slice variables along vertical and temporal coordinates without loading unneeded spatial volumes into RAM.",
+    "explanation": "Demonstrates practical HPC literacy: batch scheduling (SLURM), standardized scientific file formats (NetCDF), and memory-efficient chunked array processing in Python.",
+    "trap": "Claiming you downloaded gigabytes of raw simulation files to your personal laptop to run pandas or desktop spreadsheets.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1280,
+    "requires": [
+      "gen-l1-001",
+      "gen-l1-004"
+    ]
+  },
+  {
+    "id": "gen-l2-002",
+    "ladder": "general-interview",
+    "level": 2,
+    "topic": "handling pre-existing legacy bugs in production code",
+    "question": "You discovered two pre-existing bugs during the HealthTwiSt refactor. How did you handle them, and why did you not fix them immediately?",
+    "answer": "Through systematic code review, I found two pre-existing bugs in the legacy pipeline where implementation drifted from intended clinical definitions. Instead of silently 'fixing' the code—which would have altered historical complication statistics published in previous annual reports—I documented both discrepancies, preserved the legacy execution behavior in the pipeline to maintain report continuity, and submitted a formal review memo to CEO Dr. Busjahn for medical committee evaluation.",
+    "explanation": "In production clinical data systems, unapproved silent fixes destroy historical comparability and create legal and audit liability. Preserving behavior while documenting defects shows engineering maturity.",
+    "trap": "Saying 'I immediately pushed a fix to production because a bug is a bug'. Production clinical governance requires change approval and historical continuity.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/07_bugs_verification.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 1320,
+    "requires": [
+      "gen-l1-002",
+      "gen-l1-003"
+    ]
+  },
+  {
+    "id": "gen-l2-003",
+    "ladder": "general-interview",
+    "level": 2,
+    "topic": "variable classification and ordinal complication grading",
+    "question": "In clinical quality data, why is it invalid to report mean and standard deviation for complication grades (e.g. Grades 1 to 4)?",
+    "answer": "Complication grades (e.g. CIRSE/DeGIR grades 1: minor therapy, 2: overnight stay, 3: major surgical intervention, 4: death/permanent damage) are ordinal variables. The ranks are strictly ordered, but the intervals between grades are not equal. Computing an arithmetic mean (e.g. 'mean complication grade 1.8') calculates the mean of an arbitrary numerical coding that has no clinical meaning. Ordinal outcomes must be reported using counts, proportions, medians, or rank-based non-parametric tests.",
+    "explanation": "Classifying variables into nominal, ordinal, interval, and ratio determines which statistical operators are mathematically valid. This is chapter 07 of the RStatsbook.",
+    "trap": "Treating ordinal integer codes as continuous numbers and reporting mean $\\pm$ SD out of habit.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook",
+      "../bioinformatics_project/job_search/work_done_during_internship/14_domain_knowledge.md"
+    ],
+    "difficulty": 1350,
+    "requires": [
+      "gen-l0-002"
+    ]
+  },
+  {
+    "id": "gen-l2-004",
+    "ladder": "general-interview",
+    "level": 2,
+    "topic": "observational registry data vs randomized controlled trials",
+    "question": "What is the fundamental difference between analyzing an observational clinical registry (like DeGIR) versus a Randomized Controlled Trial (RCT)?",
+    "answer": "In an RCT, random assignment balances both observed and unobserved confounders across study arms, allowing observed differences in outcome to be attributed causally to the intervention. In an observational quality registry, treatment allocation is non-random: sicker or older patients are systematically selected for more invasive or novel procedures (confounding by indication). Raw outcome comparisons between clinics or procedures without multivariable risk adjustment will reflect patient case-mix rather than surgical quality.",
+    "explanation": "Understanding confounding by indication and selection bias is essential whenever working with real-world clinical registry data.",
+    "trap": "Assuming that a registry with 143,000 patients can establish direct causal treatment efficacy simply because the sample size is large.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook",
+      "../bioinformatics_project/job_search/work_done_during_internship/14_domain_knowledge.md"
+    ],
+    "difficulty": 1390,
+    "requires": [
+      "gen-l0-002"
+    ]
+  },
+  {
+    "id": "gen-l3-001",
+    "ladder": "general-interview",
+    "level": 3,
+    "topic": "multiple testing correction in multi-center benchmarks",
+    "question": "When benchmarking complication rates across ~300 clinics against a national standard, why is multiple testing correction essential?",
+    "answer": "If you perform 300 independent statistical tests at a standard significance level of $\\alpha = 0.05$, the probability of at least one false positive is $1 - (1 - 0.05)^{300} \\approx 0.9999998$, and you expect approximately $300 \\times 0.05 = 15$ clinics to be falsely flagged as significant outliers purely by chance. To control false accusations in clinical governance, we either control Family-Wise Error Rate using Bonferroni (conservative: $\\alpha / 300$) or control False Discovery Rate using Benjamini-Hochberg.",
+    "explanation": "In hospital quality assurance, falsely flagging a compliant clinic damages reputations and incurs costly audits, making FDR control standard practice.",
+    "trap": "Testing 300 hospital sites simultaneously with unadjusted p-values and treating all p < 0.05 results as true quality deficits.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook",
+      "../bioinformatics_project/job_search/work_done_during_internship/14_domain_knowledge.md"
+    ],
+    "difficulty": 1460,
+    "requires": [
+      "gen-l2-004"
+    ]
+  },
+  {
+    "id": "gen-l3-002",
+    "ladder": "general-interview",
+    "level": 3,
+    "topic": "missing data mechanisms in registry pipelines",
+    "question": "How do you diagnose and handle missing clinical observations in a data pipeline, and what are MCAR, MAR, and MNAR?",
+    "answer": "Missing data falls into three categories: Missing Completely at Random (MCAR: missingness independent of all variables), Missing at Random (MAR: missingness depends on observed variables, e.g. younger patients skipping blood pressure checks), and Missing Not at Random (MNAR: missingness depends on unobserved values, e.g. severe complications unreported due to liability). In DeGIR, records missing basic intervention keys were dropped because they lacked an anchor (23 records), while missing covariates were tracked explicitly rather than naively imputed.",
+    "explanation": "Imputing missing values with column means or dropping missing rows blindly introduces severe bias unless the underlying missingness mechanism is understood.",
+    "trap": "Assuming all missing data can be replaced with mean or median values. Mean imputation artificially deflates variance and distorts correlations.",
+    "sources": [
+      "https://github.com/abusjahn/RStatsbook",
+      "../bioinformatics_project/job_search/work_done_during_internship/16_metrics.md"
+    ],
+    "difficulty": 1510,
+    "requires": [
+      "gen-l2-004"
+    ]
+  },
+  {
+    "id": "gen-l3-003",
+    "ladder": "general-interview",
+    "level": 3,
+    "topic": "practical jax experience and fortran comparison",
+    "question": "How do you explain your practical experience with Google JAX, and why did you use it over Fortran?",
+    "answer": "I am practical and honest about my JAX experience: I used JAX as a high-performance vectorization and array engine to port an existing, verified CPU-parallelized Fortran/OpenMP 0-D particle model to GPUs. The 0-D model tracked large particle ensembles where loops in Fortran/OpenMP were compute-intensive. With JAX, jax.vmap allowed vectorizing particle updates across GPU cores, which I verified against the Fortran ground truth. I don't claim to be an abstract JAX compiler engineer; I use it effectively as a tool for GPU acceleration of physical algorithms.",
+    "explanation": "Candor in technical interviews builds immense credibility. Saying you ported a working Fortran model to JAX using vectorization and verified numerical equivalence is far more impressive and defensible than pretending to know every JAX internal.",
+    "trap": "Overclaiming deep JAX compiler knowledge or claiming you wrote a new machine learning framework from scratch.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1550,
+    "requires": [
+      "gen-l1-001"
+    ]
+  },
+  {
+    "id": "gen-l3-004",
+    "ladder": "general-interview",
+    "level": 3,
+    "topic": "explaining parental leave and career transitions",
+    "question": "How do you explain the 2024 gap on your CV and your transitions from Astrochemistry to Marine Modelling, Clinical Data, and AI?",
+    "answer": "From 01/2024 to 12/2024, I took one full year of parental leave (Elternzeit) to care for my child. Following my leave, I returned to Hereon as a Guest Scientist (05/2025 - 10/2025) to finalize my marine simulation framework for peer-reviewed publication. My career progression reflects a single continuous thread: ten years of computational modelling, differential equations, and data pipeline engineering across physical, biological, and clinical domains, culminating in my dedicated transition to machine learning and AI pipeline engineering.",
+    "explanation": "In Germany, parental leave (Elternzeit) is legally protected and culturally respected. Framing your diverse domain experience around an unbroken spine of computational and mathematical modeling turns varied experience into an asset.",
+    "trap": "Being defensive or apologetic about taking parental leave, or describing your career moves as random pivots rather than an expanding computational engineering trajectory.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1580,
+    "requires": [
+      "gen-l0-001",
+      "gen-l0-002"
+    ]
+  },
+  {
+    "id": "gen-l4-001",
+    "ladder": "general-interview",
+    "level": 4,
+    "topic": "bridging scientific modelling and ai engineering",
+    "question": "Why is your background in physical and clinical simulation an advantage for an AI Engineer role compared to a candidate with a pure computer science degree?",
+    "answer": "Pure computer science candidates often view machine learning as a pure curve-fitting exercise on static arrays or images, accepting confident black-box outputs. Having spent a decade building physical models (differential equations, turbulence, mass conservation) and clinical pipelines (patient risk, confounding), I know that models are frequently 'confidently wrong' on out-of-distribution inputs. I build AI pipelines with rigorous validation discipline, uncertainty awareness, and deep interpretability—such as extracting internal attention weights and verifying byte-identical pipeline parity.",
+    "explanation": "Combines your 10 years of mathematical domain modeling with modern AI engineering, positioning you as someone who builds robust, verifiable systems rather than naive black-box scripts.",
+    "trap": "Belittling computer science fundamentals. The goal is to show complementary strengths: pairing rigorous mathematical and scientific modeling intuition with modern deep learning tooling.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex",
+      "docs/writeup_attention_frame_bug.md"
+    ],
+    "difficulty": 1680,
+    "requires": [
+      "gen-l3-003",
+      "gen-l3-004"
+    ]
+  },
+  {
+    "id": "gen-l4-002",
+    "ladder": "general-interview",
+    "level": 4,
+    "topic": "diagnosing and resolving subtle pipeline errors",
+    "question": "Can you describe a challenging technical bug you personally diagnosed in your modelling or pipeline work, and how you resolved it?",
+    "answer": "While building an attention-extraction toolchain for a 15-layer transformer network (Leela Chess Zero), my PyTorch forward-hook pipeline produced smooth, plausible attention heatmaps that raised no exceptions and passed all automated tensor shape tests. However, thorough validation against game coordinates revealed that a coordinate-frame mismatch was silently mirroring half of the attention maps. I diagnosed the tensor transposition error, rewrote the extraction logic, verified the corrected attention patterns, and published a public correction of my earlier findings.",
+    "explanation": "This is your signature technical story ('The Mirror in the Machine'). It proves forensic debugging skills, mathematical rigor, and the intellectual honesty required in production research.",
+    "trap": "Describing a trivial syntax error or claiming you never make mistakes. Interviewers want to see how you detect silent correctness errors that don't throw exceptions.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex"
+    ],
+    "difficulty": 1720,
+    "requires": [
+      "gen-l2-002"
+    ]
+  },
+  {
+    "id": "gen-l5-001",
+    "ladder": "general-interview",
+    "level": 5,
+    "topic": "the comprehensive walk me through your cv response",
+    "question": "Walk me through your CV: how do your PhD, your postdoc, your clinical work, and your AI engineering projects connect into a coherent profile?",
+    "answer": "I am a Computational Scientist with ten years of experience building, optimizing, and validating computational models. I earned my PhD in Astrochemistry at Paris-Saclay, processing terabytes of tandem accelerator collision data in C++ and Fortran. During my postdoc at Universitaet Hamburg, I worked on two major modelling tracks: developing a 0-D Lagrangian individual-based model of phytoplankton trait evolution (based on Beckmann et al. 2019) ported from Fortran to Google JAX for GPU parallelization, alongside 1-D Eulerian water-column ecosystem modelling in GOTM-FABM with NetCDF on Linux HPC clusters. At HealthTwiSt GmbH, I engineered production data pipelines for Germany's DeGIR clinical registry (143k patient records), refactoring the codebase by 26.5% with byte-identical output verification and shipping an R package and interactive Shiny dashboard. Over recent months, I have channeled this modeling and pipeline engineering foundation into deep learning: building PyTorch analysis toolchains for 15-layer transformer networks, capturing internal attention, and developing deployable AI workflows. Across all these domains, my core strength is engineering reliable, high-throughput computational pipelines that model complex real-world data and remain robust against silent errors.",
+    "explanation": "This is the master level-5 interview answer that synthesizes your entire career into an unassailable, forward-looking narrative. Deliver it with calm confidence in 90 seconds.",
+    "trap": "Reciting a chronological list of employers and dates off your resume. An interview opener must be a unified thematic narrative showing intellectual growth, mathematical depth, and production engineering discipline.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/hereon_aeon_up/cv_hereon_aeon_up.tex",
+      "../bioinformatics_project/job_search/work_done_during_internship/01_executive_summary.md",
+      "docs/writeup_attention_frame_bug.md"
+    ],
+    "difficulty": 1880,
+    "requires": [
+      "gen-l4-001",
+      "gen-l4-002"
+    ]
+  }
+]

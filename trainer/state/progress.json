@@ -1,5 +1,5 @@
 {
-  "user_rating": 801.19,
+  "user_rating": 823.36,
   "cards": {
     "pyt-l1-001": {
       "rating": 977.59,
@@ -2897,6 +2897,23 @@
           "card_rating": 906.04
         }
       ]
+    },
+    "gen-l0-004": {
+      "rating": 918.88,
+      "ease": 2.35,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-09-02T17:31:08.186521+00:00",
+      "due_date": "2026-09-03T17:31:08.186521+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-09-02T17:31:08.186521+00:00",
+          "score": 0.5,
+          "user_rating": 823.36,
+          "card_rating": 918.88
+        }
+      ]
     }
   },
   "ladder_ratings": {
@@ -2910,14 +2927,10 @@
     "de-konnektoren": 1237.69,
     "hereon-aeon-up": 1205.08,
     "bridge": 838.5,
-    "statistics": 801.19
+    "statistics": 801.19,
+    "general-interview": 823.36
   },
   "recent": [
-    "her-l0-004",
-    "her-l0-004",
-    "her-l0-003",
-    "her-l0-004",
-    "her-l0-003",
     "her-l0-003",
     "her-l1-003",
     "her-l1-001",
@@ -2932,6 +2945,11 @@
     "stat-l0-001",
     "stat-l0-004",
     "stat-l0-006",
-    "stat-l0-003"
+    "stat-l0-003",
+    "clin-l0-001",
+    "gen-l0-004",
+    "gen-l0-001",
+    "gen-l0-003",
+    "gen-l0-002"
   ]
 }

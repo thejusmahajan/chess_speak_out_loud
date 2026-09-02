@@ -28,7 +28,11 @@ def reliability(y: torch.Tensor, prob: torch.Tensor, bins: int = 10) -> list[dic
     rows = []
     edges = torch.linspace(0, 1, bins + 1, device=prob.device)
     for i in range(bins):
-        mask = (prob >= edges[i]) & (prob < edges[i + 1] if i < bins - 1 else prob <= 1.0)
+        upper_inclusive = (i == bins - 1)
+        if upper_inclusive:
+            mask = (prob >= edges[i]) & (prob <= edges[i + 1])
+        else:
+            mask = (prob >= edges[i]) & (prob < edges[i + 1])
         n = int(mask.sum())
         if n == 0:
             continue
@@ -44,7 +48,17 @@ def main(args) -> dict:
     ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
     saved = ckpt.get("args", {})
     model = build_model(channels=saved.get("channels", 64),
-                        blocks=saved.get("blocks", 6)).to(device)
+                        blocks=saved.get("blocks", 6),
+                        n_motifs=ckpt.get("n_motifs", 20)).to(device)
+
+    # A checkpoint trained on one dataset build and evaluated against another is
+    # a silent category error: the motif outputs are positional and the splits
+    # differ. Compare identities and refuse rather than print a plausible number.
+    trained_on = (ckpt.get("dataset_manifest") or {}).get("build_timestamp")
+    here = data_mod.read_manifest(args.data_dir).get("build_timestamp")
+    if trained_on and here and trained_on != here:
+        raise SystemExit(f"checkpoint was trained on dataset built {trained_on} but "
+                         f"{here} is mounted. Refusing to report a number across builds.")
     model.load_state_dict(ckpt["model"])
     model.eval()
 

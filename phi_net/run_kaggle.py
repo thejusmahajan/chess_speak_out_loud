@@ -12,8 +12,15 @@ there are no numbers baked into this file.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import time
+
+# Work whether launched as ``python -m phi_net.run_kaggle`` or as
+# ``python /path/to/phi_net/run_kaggle.py``. In the second form Python puts the
+# *script's* directory on sys.path, not the package's parent, so the import
+# below fails -- which is exactly how a Kaggle session dies in its first cell.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch
 
