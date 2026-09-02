@@ -51,6 +51,19 @@ dataset route means you edit locally, re-upload, and the notebook stays one cell
 
 ## Step 3 — the notebook
 
+**There is a ready-made notebook: `dist/kaggle_phi_net.ipynb`** (source of record:
+`phi_net/kaggle_phi_net.ipynb`). In Kaggle: **New Notebook → File → Import Notebook**, upload it,
+add both datasets as inputs in the sidebar, set the accelerator, and run all.
+
+It finds the two mounts **by what they contain**, not by dataset slug, so the names you give the
+datasets do not matter. It copes with the archives being expanded by Kaggle or left intact, and it
+**refuses to run if two mounts match** rather than guessing between dataset versions. The discovery
+cell was executed locally against simulated mounts with both archives still zipped.
+
+The rest of this section describes doing it by hand, which is still fine.
+
+### Doing it by hand
+
 Create a new **Notebook**, and in the sidebar:
 
 - **Accelerator → a SINGLE GPU.** `GPU P100` for preference. Φ trains on `cuda:0` and has no
