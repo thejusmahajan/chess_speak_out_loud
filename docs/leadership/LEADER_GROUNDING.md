@@ -228,3 +228,57 @@ Before handing over a brief:
 
 If any number in it is unmeasured, any file claim unread, any scope unchecked — the answer is no,
 and it is not ready.
+
+---
+
+## 7. The seam checks — added 2026-09-02, after eight defects in one day
+
+Everything above this section is about *judgement*: whether a claim is verified, whether a gate is
+real, whether a number was measured. On 2026-09-02 an independent audit found eight defects in my
+work and **seven of them were not judgement failures at all.** They were failures of mechanical
+thoroughness at the seam — a thing changed in one place and not in the place that referenced it.
+
+| defect | what would have caught it |
+|---|---|
+| `--no-amp` added to `train.py`, never threaded into `predict()` | `grep` |
+| `sys.path` repair applied to `run_kaggle.py` and not its sibling `evaluate.py` | `grep` |
+| `--no-amp` never exposed on `run_kaggle.py`, the only entry point where it matters | `grep` |
+| the how-to's launch command fixed, then the notebook written with a *different* mechanism | running it |
+| `subprocess.call` output invisible in a notebook cell | running it |
+| `roc_auc` walking sorted scores in Python — 1.22 s per call, three calls an epoch | timing it |
+| `bfloat16` recommended for a Turing card | checking the hardware |
+
+These are not fixed by care. The Knight Capital technician who deployed to seven servers of eight
+was being careful. They are fixed by tools.
+
+**S1. Change one thing → grep the identifier.** Every new flag, parameter, function, or config key
+gets `grep -n "<name>"` across the tree before the work is called done, and every call site is
+opened. A change applied to some of the places it belongs is **more dangerous** than a change
+applied to none, because the system is now inconsistent in a way nobody has modelled.
+
+**S2. Fix a file → name its sibling.** `train.py`/`evaluate.py`. README/how-to. notebook/how-to.
+source/`dist` copy. Same-class files are checked as a set, never singly.
+
+**S3. Every invocation written in a document is executed exactly as written**, before that document
+is committed. Not a similar command — that one. This is the most common way a README lies, and I
+learned it at 18:00 on 2026-09-02 and violated it by 21:50.
+
+**S4. Anything on a per-epoch or per-request path gets timed once.** Not reasoned about. The
+tie-handling in `roc_auc` was correct and 91x too slow, and on CUDA it was one host-device
+synchronisation per element.
+
+**S5. Edit the source, never the build artefact.** `dist/` is output. A fix applied to a generated
+copy is discarded by the next rebuild, silently.
+
+**S6. Reuse carries its environment.** When reusing a cache, a label, a benchmark number or a
+component, write down which environment made it valid and store that record *with* the artefact.
+The EPD cache is keyed by position and not by node budget; the motif labels are true of the position
+before the solution and false after it; the theme vocabulary is positional against one build's
+manifest. Each of those is a valid assumption from a retired context — the Ariane 5 shape.
+
+**The general form, and why it belongs in this file rather than in a corpus:** my review instinct is
+*semantic* — does this make sense, is this claim true, is this frame right — and it is genuinely
+good at that. It is not exhaustive. It does not enumerate. So the enumeration has to be done by
+something that is not me judging, which means a command.
+
+Evidence and the cases behind each rule: `docs/leadership/knowledge/APPLICATION.md` Part A.
