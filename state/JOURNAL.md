@@ -16,6 +16,86 @@ Template:
 
 ---
 
+## 2026-09-02 (late) — Φ built and shipped to the launch pad; 18 defects caught; leadership corpus
+
+**Did:** wrote `phi_net`, self-reviewed it, had it independently audited twice, built the upload
+archives and the notebook, then built a leadership knowledge base and applied it to the Bible.
+
+**Φ is ready to train.** `phi_net/` — an 18×8×8 residual CNN with a Φ head and a 20-way motif
+head, a VRAM-resident loader with no `DataLoader` at all, the F0/F1/F2 gate table, held-out
+evaluation, and a Kaggle notebook. **18 tests pass**, and the guards are mutation-checked.
+
+**Eighteen defects were found and fixed before anything was uploaded.** Twelve by self-review, six
+by an independent Gemini audit, two more from its historical-bugs report. The four that mattered:
+
+1. **`roc_auc` had a Python loop on the per-epoch path** — 1.22 s per call, three calls an epoch,
+   and on CUDA **one host-device synchronisation per element**. It would have made the metric cost
+   more than the training. Vectorised: 0.0134 s, 91×, and exact against a brute-force pairwise
+   reference with and without ties.
+2. **The B1 gate trap** (found by Gemini). I applied the *final* falsification gate F1 to the B1
+   *diagnostic* rung, so a B1 of 0.66 — a good result — would have aborted the Kaggle session before
+   B2 ran. Extracted into `b1_verdict()` and mutation-checked.
+3. **The stale-artefact mask** (found by Gemini's historical-bugs report). A surviving `phi_b2.pt`
+   would have been scored by the evaluation cell after a failed run. This is commit `33ff814`
+   reborn — the crashed 100-game run that read a leftover 2-game profile and printed `games=2`.
+4. **A Φ frame error in my own README and in the plan.** Φ is defined on the side to move, so
+   `Φ(after) − Φ(before)` subtracts my error-proneness from the opponent's. Harmless for ranking,
+   which is exactly why it would have survived until someone extended it across plies.
+
+**Three claims I rejected after measuring**, all from the audits: float32 rank-sum precision loss
+(measured **4e-08 to 8e-08** — torch sums pairwise); `GradScaler` "parameter corruption" (measured
+**0.0** gradient difference); and "T4×2 bills at 2×", which was written into the how-to as fact and
+which nobody has verified. All three fixed anyway where free, and the claims corrected in the record.
+
+**Gemini improved the notebook and found a real bug in mine:** `subprocess.call` lets a child inherit
+fd 1 — the *kernel's* stdout — so training output can land in the kernel log rather than the cell,
+looking exactly like the hang I had added `-u` to prevent. Taken, wrapped in a `stream()` helper,
+verified against a real child. **Not** taken: its discovery rewrite globbed `**/train.npz` and took
+`[0]` from an unsorted list, which silently picks between two mounted dataset versions — the same
+defect I removed from `data.py` that morning. It also edited `dist/` (the build artefact) rather than
+the source, and gutted the framing that stops a number being misread.
+
+**Archives built and verified by round trip:** `dist/phi_net_code.zip` (33 KB),
+`dist/config_steering_dataset.zip` (6.2 MB from 42 MB), `dist/kaggle_phi_net.ipynb`. Both archives
+flat. Every dataset file sha256-identical after extraction; a split loads from the extracted copy;
+all seven extracted modules compile. `resolve_data_dir` now handles all three Kaggle mount shapes —
+flat, nested, and an unexpanded `.zip` — and **raises on ambiguity rather than guessing**.
+
+**Leadership corpus**, at Thejus's instruction: `docs/leadership/knowledge/` — 32 cases, 2,565
+lines, with a declared sourcing standard (no invented quotations; “failure is not an option” flagged
+as a 1995 screenplay line). Distilled in `DISTILLATION.md`; applied in `APPLICATION.md`.
+
+**Applied to the Bible:** five doctrine rules (§3.8–12), six do-not-relitigate rows (§4), four new
+failure families (§5 — the seam family, reuse-carries-its-environment, the stale-artefact mask,
+gate-at-the-wrong-altitude), and a new **§6a CURRENT STATE**, because §6 was five weeks stale and the
+header still announced the compute campaign as live. New `docs/leadership/PLAYBOOK.md` indexes the
+same doctrine by situation for mid-task use. `LEADER_GROUNDING.md` §7 carries the six mechanical
+seam checks.
+
+**Found, in the honest accounting:** of the eight defects the audit found in my work, **seven were
+mechanical** — `grep`, running the documented command, timing the function. That is written into
+`APPLICATION.md` §0 rather than softened, because a corpus that flatters the exercise that produced
+it is worthless.
+
+**Decided:** the steering target is `s_err`; Φ never consults an engine evaluation; a screen may
+choose what is searched but never produce a reported number; a round table is convened when Thejus
+asks and is aimed at our engineering. All now in Bible §4.
+
+**Open:**
+- **Nobody has executed the mixed-precision path.** Reviewed twice, run zero times.
+- `kaggle_files/diagnose_on_kaggle.py:434` still binds all 8 LC0 workers to GPU 0. The fix is
+  specified in the brief §4b; a report described it in the past tense; **it is not in the code.**
+- The dataset exists in exactly one place — `data/` is gitignored.
+- **Nobody has asked whether the profile regeneration should happen at all.**
+- `build_sac_session()` still returns 0 until a profile is regenerated.
+
+**Next:** Thejus uploads the two archives, imports the notebook, single GPU, Run All. `state/NOW.md`
+§9 has the five-step sequence.
+
+**Repo:** committed and pushed.
+
+---
+
 ## 2026-09-02 — the Φ dataset is built, audited and clean; a round table, and a real bug in it
 
 **⛑ The dataset is READY.** `data/training/config_steering/`, 261,748 rows. Every gate re-run by

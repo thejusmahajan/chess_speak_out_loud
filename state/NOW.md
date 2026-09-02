@@ -1,6 +1,6 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-09-02 by the leader (Opus 5) — see §9 (dataset READY) and §10
+**Last updated:** 2026-09-02 (late) by the leader (Opus 5) — §9 (Φ READY TO TRAIN, archives built), §10 (regeneration blocked on hardware), §11 (leadership corpus).
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
 
 ---
@@ -641,7 +641,37 @@ selects on `had_sharp_move`. Needs Thejus's decision on corpus scope for regener
 
 ---
 
-**✅ STATUS 2026-09-02: the Φ dataset is BUILT, AUDITED and READY TO TRAIN ON.**
+**✅ STATUS 2026-09-02 (late): Φ IS READY TO TRAIN. The archives are built and verified; the
+only remaining step is Thejus uploading them and pressing Run All.**
+
+**What to do next, in order:**
+1. Upload `dist/config_steering_dataset.zip` as a private Kaggle dataset (this is also the
+   only backup of the dataset — see the warning below).
+2. Upload `dist/phi_net_code.zip` as a second dataset.
+3. Kaggle → New Notebook → **File → Import Notebook** → `dist/kaggle_phi_net.ipynb`.
+4. Attach both datasets, choose a **single GPU** (P100 preferred — Φ trains on `cuda:0` with
+   no DDP, so a second card idles), Run All.
+5. **F0 should print ≈ 0.488.** If it does not, the mounted dataset is not the audited one —
+   stop and check the version.
+
+`phi_net/` — model, trainer, gates, evaluation, Kaggle notebook. Smoke-tested end to end on
+CPU; **18 tests pass** across `test_phi_net_gate.py` and `test_config_steering.py`, and the
+guards are **mutation-checked** (breaking `encode.py:39` reddens the frame test; restoring the
+old B1 gate reddens `test_b1_proceeds_when_signal_is_present_but_below_f1`).
+
+**Eighteen defects were found and fixed before upload** — twelve by self-review
+(`phi_net/PREFLIGHT_REVIEW.md`) and six by an independent Gemini audit
+(`agents/reports/2026-09-02_phi-net-kaggle-training_AUDIT_RESPONSE.md`), plus two more from the
+historical-bugs report. The worst were: `roc_auc` doing one host-device sync per element;
+the B1 gate trap that would have aborted the session on a good result; a stale `phi_b2.pt`
+being scored as this run's result; and a Φ frame error in the README and the plan.
+
+**⚠ Nobody has executed the mixed-precision path.** Reviewed twice, run zero times.
+`--no-amp` bypasses all of it and reproduces the tested path exactly.
+
+---
+
+**✅ The dataset itself: BUILT, AUDITED, CLEAN.**
 `data/training/config_steering/` — 261,748 rows (train 209,036 / val 26,222 / test 26,490),
 34.7 MB train split; arrays `bb` (18 uint64), `y`, `motif` (20), `source`.
 Leader's independent re-runs: **A3 = 0.4884**, **A4 = 0.5298** (thresholds 0.65 / 0.60). The
@@ -693,3 +723,34 @@ the full run.
 **State right now:** `data/training/profile.json` is **unchanged** — the original 100-game profile
 (646 findings, 562 steer, dead `had_tal_move` key). Backup of it at
 `data/training/profiles/profile_pre_regen_20260901.json`. The backend is stopped.
+
+---
+
+## ⛑ 11. Leadership corpus, playbook, and the Bible — 2026-09-02
+
+Built at Thejus's instruction: study historical leadership, distil it, apply it here.
+
+- **`docs/leadership/knowledge/`** — 32 case files across 8 themes, plus `DISTILLATION.md` and
+  `APPLICATION.md`. 2,565 lines. Cases chosen because they anatomise failure families this project
+  has *actually suffered*. **Sourcing standard in the README:** no invented quotations, popular
+  misattributions flagged (“failure is not an option” was written for a 1995 film), single-author
+  accounts marked as such.
+- **`docs/leadership/PLAYBOOK.md`** — the same doctrine indexed by **situation** rather than theme,
+  for use mid-task. Sixteen entries, each ending in the case it came from.
+- **`LEADER_BIBLE.md`** — five new doctrine rules (§3.8–12), six do-not-relitigate rows (§4), four
+  new failure families (§5), and a new **§6a CURRENT STATE** because the July §6 was five weeks
+  stale and the header still announced the compute campaign as live. **Read §6a, not §6.**
+- **`LEADER_GROUNDING.md` §7** — the six mechanical seam checks. These prevent more damage than
+  anything else written today.
+
+**The honest yield, stated in `APPLICATION.md` §0:** of the eight defects an independent audit found
+in the leader's work, **seven were mechanical** — fixed by `grep`, by executing the documented
+command, and by timing the function. Two were genuine leadership failures. The corpus is worth what
+its Part A (interlocks) and Part C (three unasked questions) are worth.
+
+**The three unasked questions in `APPLICATION.md` Part C, carried here so they are not lost:**
+1. There is no path by which a second Gemini challenge reaches Thejus over the leader's head.
+2. **Nobody has asked whether the profile regeneration should happen at all** — 9,000 games of which
+   8,617 are 2+1 bullet is a corpus of *reflex* errors. Cheap decompositions exist and none has been
+   run.
+3. The dataset exists in exactly one place.
