@@ -38,8 +38,14 @@ from phi_net.metrics import gate_report, logistic_auc, roc_auc
 from phi_net.model import build_model
 
 
-def _make_scaler(device: torch.device):
-    """GradScaler across torch versions; a no-op stub on CPU."""
+def _make_scaler(device: torch.device, enabled: bool = True):
+    """GradScaler across torch versions; a no-op stub on CPU.
+
+    ``enabled`` follows ``use_amp``. Leaving a live scaler on with autocast off is
+    not a correctness bug -- scale-then-unscale by a power of two is exact in
+    fp32, measured at 0.0 gradient difference -- but it does pointless work and
+    makes ``--no-amp`` a half-measure.
+    """
     if device.type != "cuda":
         class _NullScaler:
             def scale(self, loss): return loss
@@ -48,9 +54,9 @@ def _make_scaler(device: torch.device):
             def unscale_(self, opt): pass
         return _NullScaler()
     try:
-        return torch.amp.GradScaler("cuda")
+        return torch.amp.GradScaler("cuda", enabled=enabled)
     except (AttributeError, TypeError):
-        return torch.cuda.amp.GradScaler()
+        return torch.cuda.amp.GradScaler(enabled=enabled)
 
 
 @torch.no_grad()
@@ -67,11 +73,11 @@ def predict(model, split, batch_size: int = 16384, use_amp: bool = True) -> torc
     return out
 
 
-def evaluate_split(model, split, material_ref=None) -> dict:
+def evaluate_split(model, split, material_ref=None, use_amp: bool = True) -> dict:
     """Phi AUC overall and per negative source. The per-source split matters:
     N1 and N2 are different negatives and Phi may well separate one and not the
     other, which is information about the data, not about the model."""
-    scores = predict(model, split)
+    scores = predict(model, split, use_amp=use_amp)
     result = {"auc": roc_auc(split.y, scores), "n": len(split)}
     pos = split.source == data_mod.SOURCE_POSITIVE
     for src, name in ((data_mod.SOURCE_N1_SPENT, "auc_vs_n1"),
@@ -137,15 +143,16 @@ def train(args: argparse.Namespace) -> dict:
     sched = torch.optim.lr_scheduler.OneCycleLR(
         opt, max_lr=args.lr, total_steps=max(args.epochs * steps_per_epoch, 1),
         pct_start=0.25)
-    scaler = _make_scaler(device)
     use_amp = device.type == "cuda" and not args.no_amp
+    scaler = _make_scaler(device, enabled=use_amp)
     generator = torch.Generator().manual_seed(args.seed)   # CPU generator; see data.batches
 
     history, best = [], {"auc": -1.0}
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     print(f"\n{steps_per_epoch} steps/epoch at batch {args.batch_size}"
-          f"  |  amp={'fp16' if use_amp else 'off'}  |  compile={args.compile}\n")
+          f"  |  amp={'fp16' if use_amp else 'off'}  |  compile={args.compile}\n",
+          flush=True)
 
     wall0 = time.perf_counter()
     for epoch in range(1, args.epochs + 1):
@@ -176,7 +183,7 @@ def train(args: argparse.Namespace) -> dict:
             tot_phi += float(loss_phi.detach())
             tot_motif += float(loss_motif.detach())
 
-        stats = evaluate_split(model, val_split, material_auc)
+        stats = evaluate_split(model, val_split, material_auc, use_amp=use_amp)
         stats.update(epoch=epoch, loss_phi=tot_phi / steps_per_epoch,
                      loss_motif=tot_motif / steps_per_epoch,
                      seconds=time.perf_counter() - ep0)
@@ -185,7 +192,7 @@ def train(args: argparse.Namespace) -> dict:
               f"motif {stats['loss_motif']:.4f}  val AUC {stats['auc']:.4f}  "
               f"(n1 {stats.get('auc_vs_n1', float('nan')):.4f} / "
               f"n2 {stats.get('auc_vs_n2', float('nan')):.4f})  "
-              f"{stats['seconds']:.1f}s")
+              f"{stats['seconds']:.1f}s", flush=True)
 
         if not (stats["auc"] == stats["auc"]):   # NaN guard: a split with one class
             raise SystemExit("validation AUC is NaN -- the split has only one class. "
@@ -202,6 +209,9 @@ def train(args: argparse.Namespace) -> dict:
     print(f"\ntotal training wall-clock: {total:.1f}s "
           f"({total / max(args.epochs, 1):.2f}s/epoch)")
     print(f"best val AUC {best['auc']:.4f} at epoch {best['epoch']}")
+    print("  (this table is PROVISIONAL: the AUC is the best epoch selected on the "
+          "validation\n   split, so it is optimistic. The reportable F1 is evaluate.py "
+          "on the test split.)")
     print(table)
     print("  ALL GATES PASS" if passed else
           "  !! A GATE FAILED -- read PLAN section 8 before changing anything.")

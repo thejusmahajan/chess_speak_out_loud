@@ -49,6 +49,46 @@ def preflight(require_gpu: bool = True) -> None:
     print("=" * 66)
 
 
+def b1_verdict(b1_auc: float, material_auc: float) -> tuple[bool, str]:
+    """Decide whether the B1 rung justifies spending a session on B2.
+
+    **B1 is diagnostic, not the falsification gate.** It runs a fraction of the
+    data for a fraction of the epochs to answer one question: does Phi learn
+    anything at all? Gate F1 (AUC > 0.70) belongs to B2, judged on the held-out
+    test split by ``evaluate.py``.
+
+    This function exists because the first version applied the whole gate set
+    here, so a B1 of 0.66 -- a good result at that scale, and exactly the case
+    that should proceed -- would have aborted the Kaggle session before B2 ever
+    started. Caught by an independent audit, 2026-09-02.
+
+    Only two things stop the ladder:
+      * F0 fails: the data is separable on piece counts, so nothing trained on
+        it would mean anything.
+      * Phi does not beat the material baseline: it learned nothing beyond piece
+        counting, and more epochs cannot fix a representation carrying no signal.
+    """
+    if material_auc >= 0.65:
+        return False, (
+            f"\nSTOP: F0 failed at B1 -- the material-only baseline scores "
+            f"{material_auc:.4f} (must be < 0.65). The dataset is separable on piece "
+            f"counts alone, so nothing trained on it would mean anything. Check which "
+            f"dataset version is mounted before doing anything else.")
+    if b1_auc <= material_auc:
+        return False, (
+            f"\nSTOP: Phi scored {b1_auc:.4f} against a material-only baseline of "
+            f"{material_auc:.4f} -- it learned nothing beyond piece counting.\n"
+            f"This is a REPRESENTATION result, not a tuning problem. Read "
+            f"PLAN_CONFIGURATION_STEERING.md section 8 before changing hyper-parameters; "
+            f"the answer is a different input representation (relational features, or "
+            f"BT3 activations), not more epochs.")
+    return True, (
+        f"\nB1 diagnostic: AUC {b1_auc:.4f} vs material {material_auc:.4f} "
+        f"(+{b1_auc - material_auc:.4f}). Signal is present -- proceeding to B2.\n"
+        f"B1's gate table above is INFORMATIONAL: F1 is judged at B2, on the test "
+        f"split, by evaluate.py.")
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description="Run the Phi training ladder on Kaggle.")
     p.add_argument("--data-dir", default=None,
@@ -60,6 +100,10 @@ def main() -> None:
     p.add_argument("--batch-size", type=int, default=8192)
     p.add_argument("--allow-cpu", action="store_true")
     p.add_argument("--compile", action="store_true")
+    # Without this the mitigation HOW_TO_KAGGLE.md recommends for fp16 trouble
+    # is unreachable from the Kaggle entry point.
+    p.add_argument("--no-amp", action="store_true",
+                   help="disable fp16 autocast in training AND evaluation")
     args = p.parse_args()
 
     preflight(require_gpu=not args.allow_cpu)
@@ -77,15 +121,24 @@ def main() -> None:
         rung_args.epochs = epochs
         rung_args.batch_size = args.batch_size
         rung_args.compile = args.compile
-        return train(rung_args)
+        rung_args.no_amp = args.no_amp
+    # Clean stale checkpoints from earlier attempts so a failed or aborted run
+    # cannot leave a misleading artifact for evaluate.py to read.
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for stale in (out_dir / "phi_b1.pt", out_dir / "phi_b2.pt",
+                  out_dir / "phi_b1_metrics.json", out_dir / "phi_b2_metrics.json",
+                  out_dir / "phi_b2_test.json"):
+        try:
+            if stale.exists():
+                stale.unlink()
+        except OSError:
+            pass
 
     b1 = rung("b1", args.b1_limit, args.b1_epochs)
-    if not b1["gates_passed"]:
-        print("\nB1 did not pass its gates. Stopping here deliberately: scaling a "
-              "model that has not learned anything only makes it confident.\n"
-              "Read PLAN_CONFIGURATION_STEERING.md section 8 before changing "
-              "hyper-parameters -- a failed F2 in particular is a DATA result, "
-              "not a tuning problem.")
+    proceed, message = b1_verdict(b1["best"]["auc"], b1["material_auc"])
+    print(message, flush=True)
+    if not proceed:
         return
 
     b2 = rung("b2", None, args.b2_epochs)

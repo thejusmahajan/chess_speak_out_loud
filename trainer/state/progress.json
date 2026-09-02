@@ -1,5 +1,5 @@
 {
-  "user_rating": 823.36,
+  "user_rating": 914.06,
   "cards": {
     "pyt-l1-001": {
       "rating": 977.59,
@@ -2899,12 +2899,12 @@
       ]
     },
     "gen-l0-004": {
-      "rating": 918.88,
-      "ease": 2.35,
+      "rating": 917.83,
+      "ease": 2.2,
       "interval_days": 1,
       "reps": 0,
-      "last_seen": "2026-09-02T17:31:08.186521+00:00",
-      "due_date": "2026-09-03T17:31:08.186521+00:00",
+      "last_seen": "2026-09-02T17:51:09.062441+00:00",
+      "due_date": "2026-09-03T17:51:09.062441+00:00",
       "mastered": false,
       "history": [
         {
@@ -2912,6 +2912,183 @@
           "score": 0.5,
           "user_rating": 823.36,
           "card_rating": 918.88
+        },
+        {
+          "timestamp": "2026-09-02T17:51:09.062441+00:00",
+          "score": 0.5,
+          "user_rating": 828.79,
+          "card_rating": 917.83
+        }
+      ]
+    },
+    "gen-l0-002": {
+      "rating": 839.68,
+      "ease": 2.2,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-09-02T17:52:14.882864+00:00",
+      "due_date": "2026-09-03T17:52:14.882864+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-09-02T17:46:01.014121+00:00",
+          "score": 0.5,
+          "user_rating": 823.93,
+          "card_rating": 839.81
+        },
+        {
+          "timestamp": "2026-09-02T17:52:14.882864+00:00",
+          "score": 0.5,
+          "user_rating": 829.17,
+          "card_rating": 839.68
+        }
+      ]
+    },
+    "gen-l0-003": {
+      "rating": 874.79,
+      "ease": 2.45,
+      "interval_days": 1,
+      "reps": 1,
+      "last_seen": "2026-09-02T17:52:20.688994+00:00",
+      "due_date": "2026-09-03T17:52:20.688994+00:00",
+      "mastered": true,
+      "history": [
+        {
+          "timestamp": "2026-09-02T17:46:40.594715+00:00",
+          "score": 0.5,
+          "user_rating": 825.85,
+          "card_rating": 879.36
+        },
+        {
+          "timestamp": "2026-09-02T17:52:20.688994+00:00",
+          "score": 1.0,
+          "user_rating": 842.89,
+          "card_rating": 874.79
+        }
+      ]
+    },
+    "gen-l0-001": {
+      "rating": 816.33,
+      "ease": 2.45,
+      "interval_days": 1,
+      "reps": 1,
+      "last_seen": "2026-09-02T17:52:25.075006+00:00",
+      "due_date": "2026-09-03T17:52:25.075006+00:00",
+      "mastered": true,
+      "history": [
+        {
+          "timestamp": "2026-09-02T17:47:16.952300+00:00",
+          "score": 0.5,
+          "user_rating": 825.65,
+          "card_rating": 820.07
+        },
+        {
+          "timestamp": "2026-09-02T17:52:25.075006+00:00",
+          "score": 1.0,
+          "user_rating": 854.1,
+          "card_rating": 816.33
+        }
+      ]
+    },
+    "gen-l2-004": {
+      "rating": 1386.35,
+      "ease": 2.35,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-09-02T17:53:09.144961+00:00",
+      "due_date": "2026-09-03T17:53:09.144961+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-09-02T17:53:09.144961+00:00",
+          "score": 0.5,
+          "user_rating": 865.05,
+          "card_rating": 1386.35
+        }
+      ]
+    },
+    "gen-l3-001": {
+      "rating": 1456.25,
+      "ease": 2.35,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-09-02T17:53:37.053628+00:00",
+      "due_date": "2026-09-03T17:53:37.053628+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-09-02T17:53:37.053628+00:00",
+          "score": 0.5,
+          "user_rating": 876.29,
+          "card_rating": 1456.25
+        }
+      ]
+    },
+    "gen-l4-001": {
+      "rating": 1676.08,
+      "ease": 2.35,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-09-02T17:54:04.168886+00:00",
+      "due_date": "2026-09-03T17:54:04.168886+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-09-02T17:54:04.168886+00:00",
+          "score": 0.5,
+          "user_rating": 888.06,
+          "card_rating": 1676.08
+        }
+      ]
+    },
+    "gen-l1-004": {
+      "rating": 1177.26,
+      "ease": 2.35,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-09-02T17:54:26.007693+00:00",
+      "due_date": "2026-09-03T17:54:26.007693+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-09-02T17:54:26.007693+00:00",
+          "score": 0.5,
+          "user_rating": 896.29,
+          "card_rating": 1177.26
+        }
+      ]
+    },
+    "gen-l1-003": {
+      "rating": 1147.51,
+      "ease": 2.35,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-09-02T17:55:24.634288+00:00",
+      "due_date": "2026-09-03T17:55:24.634288+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-09-02T17:55:24.634288+00:00",
+          "score": 0.5,
+          "user_rating": 903.77,
+          "card_rating": 1147.51
+        }
+      ]
+    },
+    "gen-l2-003": {
+      "rating": 1346.57,
+      "ease": 2.35,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-09-02T17:55:56.615654+00:00",
+      "due_date": "2026-09-03T17:55:56.615654+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-09-02T17:55:56.615654+00:00",
+          "score": 0.5,
+          "user_rating": 914.06,
+          "card_rating": 1346.57
         }
       ]
     }
@@ -2928,28 +3105,28 @@
     "hereon-aeon-up": 1205.08,
     "bridge": 838.5,
     "statistics": 801.19,
-    "general-interview": 823.36
+    "general-interview": 914.06
   },
   "recent": [
-    "her-l0-003",
-    "her-l1-003",
-    "her-l1-001",
-    "her-l1-002",
-    "her-l2-005",
-    "her-l2-006",
-    "stat-l0-002",
-    "stat-l0-005",
-    "her-l2-001",
-    "her-l2-002",
-    "stat-l0-003",
-    "stat-l0-001",
-    "stat-l0-004",
-    "stat-l0-006",
     "stat-l0-003",
     "clin-l0-001",
     "gen-l0-004",
     "gen-l0-001",
     "gen-l0-003",
-    "gen-l0-002"
+    "gen-l0-002",
+    "gen-l0-003",
+    "gen-l0-001",
+    "gen-l0-004",
+    "gen-l0-002",
+    "gen-l0-003",
+    "gen-l0-001",
+    "gen-l0-004",
+    "gen-l2-004",
+    "gen-l3-001",
+    "gen-l4-001",
+    "gen-l1-004",
+    "gen-l1-003",
+    "gen-l2-003",
+    "gen-l4-002"
   ]
 }

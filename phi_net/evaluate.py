@@ -11,7 +11,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import sys
 from pathlib import Path
+
+# Same repair as run_kaggle.py: launching this by path rather than with -m puts
+# the script's own directory on sys.path, not the package's parent.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch
 
@@ -68,7 +74,7 @@ def main(args) -> dict:
 
     material_auc = logistic_auc(train_split.material_counts(), train_split.y,
                                 test_split.material_counts(), test_split.y)
-    scores = predict(model, test_split)
+    scores = predict(model, test_split, use_amp=not args.no_amp)
     prob = torch.sigmoid(scores)
     phi_auc = roc_auc(test_split.y, scores)
 
@@ -80,25 +86,25 @@ def main(args) -> dict:
         if int((test_split.source == src).sum()):
             per_source[name] = roc_auc(test_split.y[mask], scores[mask])
 
-    print(f"\nTEST  Phi AUC {phi_auc:.4f}   material baseline {material_auc:.4f}")
+    print(f"\nTEST  Phi AUC {phi_auc:.4f}   material baseline {material_auc:.4f}", flush=True)
     for name, value in per_source.items():
-        print(f"      {name:<22} {value:.4f}")
+        print(f"      {name:<22} {value:.4f}", flush=True)
     table, passed = gate_report(phi_auc, material_auc)
-    print(table)
-    print("  ALL GATES PASS" if passed else "  !! A GATE FAILED")
+    print(table, flush=True)
+    print("  ALL GATES PASS" if passed else "  !! A GATE FAILED", flush=True)
 
-    print("\n  calibration")
-    print(f"  {'bin':<10}{'n':>8}{'predicted':>12}{'actual':>10}")
+    print("\n  calibration", flush=True)
+    print(f"  {'bin':<10}{'n':>8}{'predicted':>12}{'actual':>10}", flush=True)
     cal = reliability(test_split.y, prob)
     for row in cal:
-        print(f"  {row['bin']:<10}{row['n']:>8}{row['mean_pred']:>12.3f}{row['actual']:>10.3f}")
+        print(f"  {row['bin']:<10}{row['n']:>8}{row['mean_pred']:>12.3f}{row['actual']:>10.3f}", flush=True)
 
     result = {"test_auc": phi_auc, "material_auc": material_auc,
               "per_source": per_source, "gates_passed": passed, "calibration": cal,
               "checkpoint": str(args.checkpoint)}
     out = Path(args.checkpoint).with_name(Path(args.checkpoint).stem + "_test.json")
     out.write_text(json.dumps(result, indent=2), encoding="utf-8")
-    print(f"\nwrote {out}")
+    print(f"\nwrote {out}", flush=True)
     return result
 
 
@@ -107,6 +113,8 @@ if __name__ == "__main__":
     p.add_argument("--checkpoint", default="phi_net/runs/phi_b2.pt")
     p.add_argument("--data-dir", default=None)
     p.add_argument("--device", default=None)
+    p.add_argument("--no-amp", action="store_true",
+                   help="disable fp16 autocast during inference")
     p.add_argument("--baseline-limit", type=int, default=60000,
                    help="rows of TRAIN used to fit the material baseline")
     main(p.parse_args())

@@ -54,10 +54,15 @@ Then one cell:
 import os
 os.chdir('/kaggle/working')
 
-!cd /kaggle/working && python -m phi_net.run_kaggle \
+!cd /kaggle/working && python -u -m phi_net.run_kaggle \
     --data-dir /kaggle/input/config-steering \
     --out-dir /kaggle/working/phi_runs
 ```
+
+**Use `-u`.** It is not cosmetic. A notebook `!command` pipes stdout, so Python block-buffers
+it at ~8 KB — and an ~85-byte epoch line therefore does not appear for roughly ninety epochs.
+The run looks hung when it is perfectly fine. (The epoch print flushes explicitly now too, so
+`-u` is belt and braces.)
 
 **Use the `-m` form.** Running `python /kaggle/working/phi_net/run_kaggle.py` instead puts the *script's*
 directory on `sys.path` rather than the package's parent, and the run dies immediately with
@@ -80,7 +85,7 @@ work, but `-m` from `/kaggle/working` is the one to type.)
 Then, in a second cell, once:
 
 ```python
-!cd /kaggle/working && python -m phi_net.evaluate \
+!cd /kaggle/working && python -u -m phi_net.evaluate \
     --checkpoint /kaggle/working/phi_runs/phi_b2.pt \
     --data-dir /kaggle/input/config-steering
 ```
@@ -141,6 +146,8 @@ to remove, arriving through the model instead of the data.
 | OOM on load | you are on a smaller card than expected. Pass `--b1-limit 50000`, or unpack in smaller chunks (`data._unpack(chunk=…)`). |
 | epochs take minutes, not seconds | something is copying per batch. There should be no `DataLoader` anywhere; confirm the data landed on the device (the load line prints "MB resident"). |
 | loss goes to `nan` | fp16 overflow. Run with `--no-amp` to confirm, then reduce `--lr`. Do **not** switch to `model.half()`. |
+| nothing prints for minutes | block-buffered stdout. Use `python -u`. The run is almost certainly fine. |
+| B2 never runs | fixed 2026-09-02. B1 used to abort on the full F1 gate; it now stops only if F0 fails or Φ fails to beat the material baseline. |
 
 ---
 

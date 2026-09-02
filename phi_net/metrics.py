@@ -43,7 +43,13 @@ def roc_auc(y_true: torch.Tensor, score: torch.Tensor) -> float:
     ranks_sorted = group_mean_rank.repeat_interleave(counts)
     ranks = torch.empty_like(s)
     ranks[order] = ranks_sorted
-    return float((ranks[y == 1].sum() - n_pos * (n_pos + 1) / 2) / (n_pos * n_neg))
+    # Accumulate in float64. Rank sums reach ~1e10 at full-dataset sizes, past
+    # float32's exact-integer range of 2**24. Measured error was only ~5e-8
+    # because torch sums pairwise rather than sequentially -- irrelevant against
+    # gates at 0.03 and 0.70 -- but float64 costs nothing and removes the
+    # question.
+    return float((ranks[y == 1].double().sum() - n_pos * (n_pos + 1) / 2)
+                 / (n_pos * n_neg))
 
 
 def logistic_auc(x_train: torch.Tensor, y_train: torch.Tensor,
