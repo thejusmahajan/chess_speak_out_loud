@@ -44,7 +44,12 @@ dataset route means you edit locally, re-upload, and the notebook stays one cell
 
 Create a new **Notebook**, and in the sidebar:
 
-- **Accelerator → GPU T4 ×2** (or P100 — both work; the code prints which it got)
+- **Accelerator → a SINGLE GPU.** `GPU P100` for preference. Φ trains on `cuda:0` and has no
+  `DataParallel` or DDP, so on a `T4 ×2` the second card sits at 0% for the entire run — there is
+  no throughput to gain from the pair. Kaggle *may* also bill the session against both cards;
+  **I have not verified how the quota is counted, so check your own usage page** rather than
+  trusting that. Either way there is no upside, so take one card. The preflight prints every
+  visible GPU with its name and SM level, so you will see what you were given.
 - **Internet → off** is fine. Nothing here downloads anything.
 - Add both datasets as inputs.
 
@@ -89,6 +94,19 @@ Then, in a second cell, once:
     --checkpoint /kaggle/working/phi_runs/phi_b2.pt \
     --data-dir /kaggle/input/config-steering
 ```
+
+---
+
+### Why the run deletes its own outputs first
+
+`run_kaggle.py` removes `phi_b1.*` and `phi_b2.*` from the output directory before training.
+That is not tidiness. On 2026-07-26 (commit `33ff814`) a crashed 100-game Kaggle run left an
+earlier **2-game** `profile.json` on disk; the completion check read it and printed
+`[DONE] REAL run: games=2`. Ninety-eight games had never been analysed, and the run looked
+successful. The same trap is set here — if B1 stops the ladder or B2 crashes, a `phi_b2.pt`
+from an earlier session would survive and the evaluation cell would score **the old model**.
+Deleting the targets up front means a crash leaves no artefact, so the next step fails loudly
+instead of lying quietly.
 
 ---
 
@@ -148,6 +166,8 @@ to remove, arriving through the model instead of the data.
 | loss goes to `nan` | fp16 overflow. Run with `--no-amp` to confirm, then reduce `--lr`. Do **not** switch to `model.half()`. |
 | nothing prints for minutes | block-buffered stdout. Use `python -u`. The run is almost certainly fine. |
 | B2 never runs | fixed 2026-09-02. B1 used to abort on the full F1 gate; it now stops only if F0 fails or Φ fails to beat the material baseline. |
+| `FileNotFoundError` although the dataset is mounted | you zipped the *folder*, so the files are one level deeper. `data.py` resolves one level down automatically; if it refuses, two dataset versions are mounted and it will not guess between them. |
+| a result appears after a failed run | it cannot any more: `run_kaggle.py` deletes this run's checkpoints before starting, so a crash leaves nothing to mistake for a result. |
 
 ---
 

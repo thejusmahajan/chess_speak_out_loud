@@ -83,6 +83,40 @@ class Split:
                 f"| sources {by_src} | {mb:.0f} MB resident")
 
 
+def resolve_data_dir(data_dir: Path | None, expect: str = "train") -> Path:
+    """Return the directory that actually contains ``<expect>.npz``.
+
+    Zipping a *folder* (right-click, "Compress to ZIP") puts the folder inside
+    the archive, so a Kaggle mount becomes
+    ``/kaggle/input/config-steering/config_steering/train.npz`` while
+    ``--data-dir /kaggle/input/config-steering`` points one level too high. That
+    is a FileNotFoundError in the first seconds of a session, for a reason the
+    message would not explain.
+
+    Deliberately **one level down, and deterministic**. A recursive ``**`` glob
+    that takes the first hit from an unordered list will silently pick one of
+    two mounted dataset versions -- which is the stale-artefact family (commit
+    33ff814) wearing a different hat. Ambiguity raises instead.
+    """
+    root = Path(data_dir) if data_dir is not None else DEFAULT_DATA_DIR
+    if (root / f"{expect}.npz").exists():
+        return root
+    if root.is_dir():
+        nested = sorted({p.parent for p in root.glob(f"*/{expect}.npz")})
+        if len(nested) == 1:
+            return nested[0]
+        if len(nested) > 1:
+            raise FileNotFoundError(
+                f"{expect}.npz appears in {len(nested)} subdirectories of {root}: "
+                f"{[str(d) for d in nested]}. Refusing to guess -- point --data-dir "
+                f"at exactly one of them.")
+    raise FileNotFoundError(
+        f"{root / (expect + '.npz')} not found, and no single subdirectory of {root} "
+        f"contains it. Build the dataset with the config_steering builder, or point "
+        f"--data-dir at the directory holding the .npz files. If you zipped a folder "
+        f"rather than its contents, the mount is one level deeper than you think.")
+
+
 def read_manifest(data_dir: Path | None = None) -> dict:
     """The dataset's manifest, or {} if absent.
 
@@ -92,10 +126,17 @@ def read_manifest(data_dir: Path | None = None) -> dict:
     later reader can tell.
     """
     import json
-    data_dir = Path(data_dir) if data_dir is not None else DEFAULT_DATA_DIR
+    try:
+        data_dir = resolve_data_dir(data_dir)
+    except FileNotFoundError:
+        return {}
     path = data_dir / "manifest.json"
     if not path.exists():
-        return {}
+        nested = list(data_dir.glob("**/manifest.json"))
+        if nested:
+            path = nested[0]
+        else:
+            return {}
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -107,13 +148,8 @@ def load_split(name: str, device: torch.device, data_dir: Path | None = None,
     the ladder is run without building a second dataset. Subsetting is stratified
     so a small run does not silently change the class balance.
     """
-    data_dir = Path(data_dir) if data_dir is not None else DEFAULT_DATA_DIR
+    data_dir = resolve_data_dir(data_dir, name)
     path = data_dir / f"{name}.npz"
-    if not path.exists():
-        raise FileNotFoundError(
-            f"{path} not found. Build it first with the config_steering dataset "
-            f"builder, or pass --data-dir pointing at the Kaggle input mount."
-        )
     with np.load(path) as d:
         bb, y, motif = d["bb"], d["y"], d["motif"]
         source = d["source"] if "source" in d.files else np.zeros(len(y), dtype=np.uint8)

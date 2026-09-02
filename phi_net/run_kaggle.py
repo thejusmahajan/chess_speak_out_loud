@@ -27,6 +27,30 @@ import torch
 from phi_net.train import build_parser, train
 
 
+def clear_stale_outputs(out_dir: str, tags: tuple[str, ...]) -> list[str]:
+    """Delete this run's target artefacts before training starts.
+
+    Directly mirrors commit 33ff814 (2026-07-26), where a crashed 100-game
+    Kaggle run left an earlier 2-game ``profile.json`` on disk and the
+    completion check happily reported ``[DONE] REAL run: games=2``. Ninety-eight
+    games had never been analysed.
+
+    The same trap is set here: if B1 stops the ladder or B2 crashes, a
+    ``phi_b2.pt`` from a previous session survives, and the evaluation cell will
+    score **the old model** and print a plausible table. Removing the targets up
+    front means a crash leaves no artefact, so the next step fails loudly
+    instead of lying quietly.
+    """
+    removed = []
+    for tag in tags:
+        for suffix in (".pt", "_metrics.json", "_test.json"):
+            path = os.path.join(out_dir, f"phi_{tag}{suffix}")
+            if os.path.exists(path):
+                os.remove(path)
+                removed.append(path)
+    return removed
+
+
 def preflight(require_gpu: bool = True) -> None:
     """Fail loudly rather than quietly training on a CPU for eleven hours.
 
@@ -107,6 +131,15 @@ def main() -> None:
     args = p.parse_args()
 
     preflight(require_gpu=not args.allow_cpu)
+
+    os.makedirs(args.out_dir, exist_ok=True)
+    stale = clear_stale_outputs(args.out_dir, ("b1", "b2"))
+    if stale:
+        print(f"removed {len(stale)} artefact(s) from a previous run so a crash "
+              f"cannot be mistaken for a result:", flush=True)
+        for path in stale:
+            print(f"  - {path}", flush=True)
+
     wall0 = time.perf_counter()
 
     def rung(tag: str, limit, epochs) -> dict:

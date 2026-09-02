@@ -71,3 +71,40 @@ def test_roc_auc_is_nan_when_a_class_is_missing():
     y = torch.ones(10)
     assert roc_auc(y, torch.rand(10)) != roc_auc(y, torch.rand(10)) or True
     assert str(roc_auc(y, torch.rand(10))) == "nan"
+
+
+def test_nested_dataset_dir_is_resolved_one_level_down(tmp_path):
+    """Zipping the folder rather than its contents puts the .npz one level
+    deeper than --data-dir points. That must resolve, not crash."""
+    from phi_net.data import resolve_data_dir
+
+    nested = tmp_path / "config_steering"
+    nested.mkdir()
+    (nested / "train.npz").write_bytes(b"stub")
+    assert resolve_data_dir(tmp_path) == nested
+
+
+def test_ambiguous_dataset_dirs_are_refused_not_guessed(tmp_path):
+    """Two mounted dataset versions must raise, never silently pick one -- that
+    is the stale-artefact family (commit 33ff814) wearing a different hat."""
+    import pytest
+    from phi_net.data import resolve_data_dir
+
+    for name in ("build_a", "build_b"):
+        d = tmp_path / name
+        d.mkdir()
+        (d / "train.npz").write_bytes(b"stub")
+    with pytest.raises(FileNotFoundError, match="Refusing to guess"):
+        resolve_data_dir(tmp_path)
+
+
+def test_run_deletes_its_own_stale_outputs(tmp_path):
+    """A crashed run must leave no artefact a later step can mistake for a
+    result. Mirrors the profile.json fix in commit 33ff814."""
+    from phi_net.run_kaggle import clear_stale_outputs
+
+    for name in ("phi_b1.pt", "phi_b2.pt", "phi_b2_metrics.json", "unrelated.txt"):
+        (tmp_path / name).write_text("x")
+    removed = clear_stale_outputs(str(tmp_path), ("b1", "b2"))
+    assert len(removed) == 3
+    assert [p.name for p in tmp_path.iterdir()] == ["unrelated.txt"]
