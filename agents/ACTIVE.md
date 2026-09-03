@@ -41,6 +41,14 @@ Every brief and report path below is relative to
 
 ### If your workspace is `chess_speak_out_loud`
 
+**0. `briefs/2026-09-03_mean-pooled-cnp-comparison.md` — ⛑ ACTIVE (small, CPU, ~2 min).**
+Build the REAL mean-pooled CNP beside the existing kernel script, plus a linear-interp floor and an
+exact-GP ceiling, on one figure. **The existing `scripts/chess_trajectory_cnp.py` is NOT a CNP** —
+it aggregates per target query with an RBF kernel (its own docstring, line 7), which is why it prints
+GP hyper-parameters. Its label must be corrected; its numbers must not change.
+**The expected finding is that the CNP pinches LESS. That is the lesson, not a defect — do not tune
+toward the kernel model.** Serves the AEON-UP interview directly.
+
 **0. `briefs/2026-09-03_phi-opening-dataset-and-kaggle-training.md` — ⛑ ACTIVE. Execute this one.**
 Thejus decided to train Φ on opening puzzles for Tal steering in the openings. Build the dataset
 (CPU, no engine), then he runs the existing notebook on Kaggle.
