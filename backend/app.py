@@ -249,7 +249,8 @@ def compute_steering_analysis(board: chess.Board, best_moves: list[dict], pv_lin
             move_obj = chess.Move.from_uci(move_uci)
             if move_obj not in board.legal_moves:
                 continue
-            phi, motifs = scorer.score_move(board, move_obj)
+            phi_raw, motifs = scorer.score_move(board, move_obj)
+            phi_display = scorer.calibrate_phi(phi_raw)
             raw_score = m.get("score", 0)
             if isinstance(raw_score, int):
                 eval_cp = raw_score
@@ -273,7 +274,9 @@ def compute_steering_analysis(board: chess.Board, best_moves: list[dict], pv_lin
                 "eval_cp": eval_cp,
                 "pov_cp": pov_cp,
                 "eval": eval_str,
-                "phi": round(phi, 3),
+                "phi_raw": round(phi_raw, 4),
+                "phi_display": round(phi_display, 4),
+                "phi": round(phi_raw, 4),
                 "motifs": top_motifs,
                 "pv": pv_list,
                 "pv_str": pv_str,
@@ -291,26 +294,29 @@ def compute_steering_analysis(board: chess.Board, best_moves: list[dict], pv_lin
     # Other candidates
     others = [c for c in candidates if c["uci"] != objective["uci"]]
 
-    # Tier 1: Sound alternatives within 80 cp of best
+    # Tier 1: Sound alternatives within 80 cp of best (rank by phi_raw, NEVER calibrated)
     tier1 = [c for c in others if best_pov - c["pov_cp"] <= 80]
-    tier1.sort(key=lambda c: c["phi"], reverse=True)
+    tier1.sort(key=lambda c: c["phi_raw"], reverse=True)
 
     if len(tier1) >= 2:
         tactical = tier1[:3]
     else:
-        # Tier 2: Dynamic alternatives within 150 cp of best
+        # Tier 2: Dynamic alternatives within 150 cp of best (rank by phi_raw)
         tier2 = [c for c in others if best_pov - c["pov_cp"] <= 150]
-        tier2.sort(key=lambda c: c["phi"], reverse=True)
+        tier2.sort(key=lambda c: c["phi_raw"], reverse=True)
         if len(tier2) >= 2:
             tactical = tier2[:3]
         else:
-            # Fallback: Top alternatives sorted by phi
-            others.sort(key=lambda c: c["phi"], reverse=True)
+            # Fallback: Top alternatives sorted by phi_raw
+            others.sort(key=lambda c: c["phi_raw"], reverse=True)
             tactical = others[:3] if others else [objective]
 
-    curr_phi, _ = scorer.score_board(board)
+    curr_phi_raw, _ = scorer.score_board(board)
+    curr_phi_display = scorer.calibrate_phi(curr_phi_raw)
     return {
-        "current_phi": round(curr_phi, 3),
+        "current_phi": round(curr_phi_raw, 4),
+        "current_phi_raw": round(curr_phi_raw, 4),
+        "current_phi_display": round(curr_phi_display, 4),
         "objective_line": objective,
         "tactical_lines": tactical,
     }
@@ -347,28 +353,10 @@ async def analyze(request: AnalyzeRequest):
     )
 
     # Generate heatmaps
+    # Generate heatmaps (fast single board)
     heatmaps = generate_all_heatmaps(fen)
-    
-    # Generate projected heatmaps for the PV
     projected_heatmaps = []
-    pv_lines = engine_result.get("pv_lines", [])
-    if pv_lines:
-        temp_board = chess.Board(fen)
-        moves = pv_lines[0].split()
-        for move_san in moves[:6]:
-            try:
-                temp_board.push_san(move_san)
-                proj_hm = generate_all_heatmaps(temp_board.fen())
-                projected_heatmaps.append({
-                    "move": move_san,
-                    "fen": temp_board.fen(),
-                    "heatmaps": proj_hm
-                })
-            except Exception:
-                break
-
-    # Generate concept analysis
-    concepts = analyze_position(fen, engine_analysis=engine_result)
+    concepts = {}
 
     # LLM text-generation bypassed (Phase 0)
     # coach_summary = get_coach_summary(fen)

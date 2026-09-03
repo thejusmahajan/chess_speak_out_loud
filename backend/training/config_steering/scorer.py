@@ -71,6 +71,54 @@ class PhiScorer:
             ],
         )
 
+        # Calibration curve for UI display (isotonic regression fitted on validation split)
+        calib_path = ckpt_path.parent / f"{ckpt_path.stem}_calibration.json"
+        if not calib_path.exists():
+            calib_path = ckpt_path.parent / "phi_b2_calibration.json"
+
+        self.calibrated = False
+        self.grid_x: np.ndarray | None = None
+        self.grid_y: np.ndarray | None = None
+
+        if calib_path.exists():
+            try:
+                import json
+                with open(calib_path, "r", encoding="utf-8") as f:
+                    calib_data = json.load(f)
+                self.grid_x = np.array(calib_data["grid_x"], dtype=np.float64)
+                self.grid_y = np.array(calib_data["grid_y"], dtype=np.float64)
+                self.calibrated = True
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning("Failed to load calibration from %s: %s", calib_path, e)
+        else:
+            import logging
+            logging.getLogger(__name__).warning(
+                "Calibration file not found at %s. Falling back to raw values.", calib_path
+            )
+
+    def calibrate_phi(self, raw_phi: float) -> float:
+        """Calibrate a raw Phi score using the isotonic regression curve for UI display.
+        
+        If calibration file is absent, falls back to raw_phi and logs a warning.
+        """
+        if not self.calibrated or self.grid_x is None or self.grid_y is None:
+            import logging
+            logging.getLogger(__name__).warning(
+                "Calibrate called without calibration data. Falling back to raw value."
+            )
+            return float(raw_phi)
+        val = float(
+            np.interp(
+                raw_phi,
+                self.grid_x,
+                self.grid_y,
+                left=float(self.grid_y[0]),
+                right=float(self.grid_y[-1]),
+            )
+        )
+        return float(np.clip(val, 0.0, 1.0))
+
     @classmethod
     def get_instance(cls, checkpoint_path: str | Path | None = None) -> PhiScorer:
         """Cached singleton instance helper."""
@@ -142,16 +190,19 @@ class PhiScorer:
 
         for c in playable:
             move = chess.Move.from_uci(c["uci"])
-            phi, motifs = self.score_move(board, move)
-            c["phi"] = phi
+            phi_raw, motifs = self.score_move(board, move)
+            c["phi_raw"] = phi_raw
+            c["phi_display"] = self.calibrate_phi(phi_raw)
+            c["phi"] = phi_raw  # Keep for backward compatibility
             c["motifs"] = motifs
 
-        playable.sort(key=lambda c: c["phi"], reverse=True)
+        # Ranking is strictly on phi_raw, NEVER calibrated
+        playable.sort(key=lambda c: c["phi_raw"], reverse=True)
         objective_best = max(playable, key=lambda c: c["eval_cp"])
         sharp_move = playable[0]
         had_sharp_move = (
             sharp_move["uci"] != objective_best["uci"]
-            and sharp_move["phi"] - objective_best["phi"] >= steer_edge
+            and sharp_move["phi_raw"] - objective_best["phi_raw"] >= steer_edge
         )
 
         return {

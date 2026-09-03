@@ -89,27 +89,33 @@ def aggregate_phase_clock(games_to_process, findings,
     for game_idx, (game, user_color) in enumerate(games_to_process):
         board = game.board()
         ply = 0
+        increment = metrics.parse_increment(game.headers.get("TimeControl"))
+        prev_user_clock = None
         for node in game.mainline():
             ply += 1
-            if board.turn == user_color and not is_time_scramble(node.comment, cfg):
-                phase = metrics.classify_phase(board)
-                bucket = _clock_bucket(clock_seconds(node.comment))
+            if board.turn == user_color:
+                clock = clock_seconds(node.comment)
+                reflex = metrics.is_reflex_move(prev_user_clock, clock, increment, cfg)
+                prev_user_clock = clock
+                if not reflex and not is_time_scramble(node.comment, cfg):
+                    phase = metrics.classify_phase(board)
+                    bucket = _clock_bucket(clock)
 
-                if phase not in by_phase:
-                    by_phase[phase] = {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0}
-                if bucket not in by_clock:
-                    by_clock[bucket] = {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0}
+                    if phase not in by_phase:
+                        by_phase[phase] = {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0}
+                    if bucket not in by_clock:
+                        by_clock[bucket] = {"moves": 0, "blind": 0, "missed": 0, "blind_rate": 0.0}
 
-                by_phase[phase]["moves"] += 1
-                by_clock[bucket]["moves"] += 1
+                    by_phase[phase]["moves"] += 1
+                    by_clock[bucket]["moves"] += 1
 
-                key = (game_idx, ply)
-                if key in blind_keys:
-                    by_phase[phase]["blind"] += 1
-                    by_clock[bucket]["blind"] += 1
-                if key in missed_keys:
-                    by_phase[phase]["missed"] += 1
-                    by_clock[bucket]["missed"] += 1
+                    key = (game_idx, ply)
+                    if key in blind_keys:
+                        by_phase[phase]["blind"] += 1
+                        by_clock[bucket]["blind"] += 1
+                    if key in missed_keys:
+                        by_phase[phase]["missed"] += 1
+                        by_clock[bucket]["missed"] += 1
 
             board.push(node.move)
 
@@ -169,20 +175,31 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             store.update_job(job_id, status="error", error=f"No games matched player '{player_name}'. Players in this PGN: {players_str}")
             return
                 
+        cfg = metrics.DEFAULT_CONFIG
         user_moves_count = 0
-        scramble_skipped = 0
+        decisions_count = 0
+        reflex_skipped_count = 0
         for game, color in games_to_process:
             board = game.board()
+            increment = metrics.parse_increment(game.headers.get("TimeControl"))
+            prev_user_clock = None
             for node in game.mainline():
                 if board.turn == color:
-                    if is_time_scramble(node.comment):
-                        scramble_skipped += 1
+                    clock = clock_seconds(node.comment)
+                    reflex = metrics.is_reflex_move(prev_user_clock, clock, increment, cfg)
+                    prev_user_clock = clock
+                    user_moves_count += 1
+                    if reflex:
+                        reflex_skipped_count += 1
                     else:
-                        user_moves_count += 1
+                        decisions_count += 1
                 board.push(node.move)
 
         _progress(job_id, total=user_moves_count,
-                  time_scramble_skipped=scramble_skipped)
+                  moves_analyzed=user_moves_count,
+                  decisions=decisions_count,
+                  reflex_skipped=reflex_skipped_count,
+                  time_scramble_skipped=0)
         
         findings = []
         moves_processed = 0
@@ -198,13 +215,19 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             board = game.board()
             ply = 0
             uci_moves = []
+            increment = metrics.parse_increment(game.headers.get("TimeControl"))
+            prev_user_clock = None
 
             for node in game.mainline():
                 move = node.move
                 ply += 1
                 uci_moves.append(move.uci())
 
-                if board.turn == user_color and not is_time_scramble(node.comment):
+                if board.turn == user_color:
+                    clock = clock_seconds(node.comment)
+                    reflex = metrics.is_reflex_move(prev_user_clock, clock, increment, cfg)
+                    prev_user_clock = clock
+
                     epd = board.epd()
 
                     if board.move_stack:
@@ -227,39 +250,41 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
                     policy = policy_data["policy"]
                     div = metrics.policy_divergence(policy, metrics.policy_uci(board, move))
 
-                    if div and div["severity"] is not None:
-                        flagged_moves.append({
+                    # Stage B confirmations and TS2 steering run ONLY on non-reflex decisions
+                    if not reflex:
+                        if div and div["severity"] is not None:
+                            flagged_moves.append({
+                                "game_idx": game_idx,
+                                "game": game,
+                                "user_color": "white" if user_color == chess.WHITE else "black",
+                                "ply": ply,
+                                "move_number": (ply + 1) // 2,
+                                "fen_before": board.fen(),
+                                "setup_uci": setup_uci,
+                                "pre_fen": pre_fen,
+                                "epd": epd,
+                                "played_move": move,
+                                "played_uci": move.uci(),
+                                "played_san": board.san(move),
+                                "best_uci": div["best_uci"],
+                                "best_san": div["best_san"],
+                                "p_played": div["p_played"],
+                                "p_best": div["p_best"],
+                                "divergence": div["divergence"],
+                                "severity": div["severity"],
+                                "uci_moves_so_far": list(uci_moves)
+                            })
+                            flagged_count += 1
+
+                        user_decision_nodes.append({
                             "game_idx": game_idx,
                             "game": game,
-                            "user_color": "white" if user_color == chess.WHITE else "black",
                             "ply": ply,
-                            "move_number": (ply + 1) // 2,
+                            "user_color": user_color,
                             "fen_before": board.fen(),
-                            "setup_uci": setup_uci,
-                            "pre_fen": pre_fen,
                             "epd": epd,
-                            "played_move": move,
-                            "played_uci": move.uci(),
-                            "played_san": board.san(move),
-                            "best_uci": div["best_uci"],
-                            "best_san": div["best_san"],
-                            "p_played": div["p_played"],
-                            "p_best": div["p_best"],
-                            "divergence": div["divergence"],
-                            "severity": div["severity"],
                             "uci_moves_so_far": list(uci_moves)
                         })
-                        flagged_count += 1
-
-                    user_decision_nodes.append({
-                        "game_idx": game_idx,
-                        "game": game,
-                        "ply": ply,
-                        "user_color": user_color,
-                        "fen_before": board.fen(),
-                        "epd": epd,
-                        "uci_moves_so_far": list(uci_moves)
-                    })
 
                     moves_processed += 1
                     pbar_a.update(1)
@@ -658,14 +683,20 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
         for game_idx, (game, user_color) in enumerate(games_to_process):
             board = game.board()
             uci_moves = []
+            increment = metrics.parse_increment(game.headers.get("TimeControl"))
+            prev_user_clock = None
             for node in game.mainline():
                 uci_moves.append(node.move.uci())
-                if board.turn == user_color and not is_time_scramble(node.comment):
-                    opening_match = openings.classify(uci_moves)
-                    if opening_match:
-                        by_opening[opening_match["eco"]]["moves"] += 1
-                        color_key = "moves_white" if user_color == chess.WHITE else "moves_black"
-                        by_opening[opening_match["eco"]][color_key] += 1
+                if board.turn == user_color:
+                    clock = clock_seconds(node.comment)
+                    reflex = metrics.is_reflex_move(prev_user_clock, clock, increment, cfg)
+                    prev_user_clock = clock
+                    if not reflex:
+                        opening_match = openings.classify(uci_moves)
+                        if opening_match:
+                            by_opening[opening_match["eco"]]["moves"] += 1
+                            color_key = "moves_white" if user_color == chess.WHITE else "moves_black"
+                            by_opening[opening_match["eco"]][color_key] += 1
                 board.push(node.move)
                 
         for f in findings:
@@ -713,7 +744,9 @@ async def run_diagnosis(job_id: str, pgn_text: str, player_name: str, engine, vi
             "created": datetime.datetime.utcnow().isoformat(),
             "games_analyzed": games_analyzed,
             "moves_analyzed": moves_processed,
-            "time_scramble_skipped": scramble_skipped,
+            "decisions": decisions_count,
+            "reflex_skipped": reflex_skipped_count,
+            "time_scramble_skipped": 0,
             "opening_sidelines_excluded": opening_sidelines_excluded,
             "findings": findings,
             "aggregates": aggregates,

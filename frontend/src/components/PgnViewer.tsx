@@ -47,7 +47,7 @@ export default function PgnViewer() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [autoAnalyze, setAutoAnalyze] = useState(true);
   const [showTop20, setShowTop20] = useState(false);
-  const [thinkSeconds, setThinkSeconds] = useState(2); // LC0 time budget per analysis (seconds)
+  const [thinkSeconds, setThinkSeconds] = useState(1); // LC0 time budget per analysis (seconds)
   const [glowMode, setGlowMode] = useState<'intuition' | 'calculation'>('intuition');
   const [calcLoading, setCalcLoading] = useState(false);
   const [previewLineUci, setPreviewLineUci] = useState<string | null>(null);
@@ -66,6 +66,8 @@ export default function PgnViewer() {
   const autoAnalyzeRef = useRef(autoAnalyze);
   autoAnalyzeRef.current = autoAnalyze;
   const analysisSeqRef = useRef(0);
+  const debounceTimerRef = useRef<any>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Ref for the active move in the panel to enable auto-scrolling
   const activeMoveRef = useRef<HTMLSpanElement>(null);
@@ -106,9 +108,14 @@ export default function PgnViewer() {
     setCurrentIndex(i);
     const st = gameStates.current[i];
     syncBoard(st);
-    if (autoAnalyzeRef.current && !st.steering && !st.saliency && st.policy.length === 0) {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    if (autoAnalyzeRef.current && (!st.steering || (!st.saliency && st.policy.length === 0))) {
       drawOverlays(null, [], false); // clear stale overlays while analyzing
-      analyzeFen(st.fen, st.lastMoveUci, i);
+      debounceTimerRef.current = setTimeout(() => {
+        analyzeFen(st.fen, st.lastMoveUci, i);
+      }, 150);
     } else {
       paintOverlays(st);
       forceRender();
@@ -164,8 +171,13 @@ export default function PgnViewer() {
     syncBoard(newState);
     drawOverlays(null, [], false); // clear the previous position's arrows immediately
     setPreviewLineUci(null);
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
     if (autoAnalyzeRef.current) {
-      analyzeFen(newFen, uci, newIndex);
+      debounceTimerRef.current = setTimeout(() => {
+        analyzeFen(newFen, uci, newIndex);
+      }, 350);
     }
   };
 
@@ -204,12 +216,19 @@ export default function PgnViewer() {
     stateIndex: number,
     timeOverride?: number,
   ) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     const seq = ++analysisSeqRef.current;
     setIsAnalyzing(true);
     try {
       const res = await fetch('http://127.0.0.1:8000/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           fen,
           multipv: 5,
@@ -247,7 +266,10 @@ export default function PgnViewer() {
           forceRender(); // update eval readout
         }
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        return; // Prior request was intentionally cancelled because a new move arrived
+      }
       console.error('Analysis failed:', err);
     } finally {
       if (seq === analysisSeqRef.current) {

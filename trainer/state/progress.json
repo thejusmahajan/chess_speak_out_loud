@@ -1,5 +1,5 @@
 {
-  "user_rating": 914.06,
+  "user_rating": 1226.65,
   "cards": {
     "pyt-l1-001": {
       "rating": 977.59,
@@ -3091,6 +3091,40 @@
           "card_rating": 1346.57
         }
       ]
+    },
+    "her-l4-018": {
+      "rating": 1696.44,
+      "ease": 2.35,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-09-03T19:44:03.104545+00:00",
+      "due_date": "2026-09-04T19:44:03.104545+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-09-03T19:44:03.104545+00:00",
+          "score": 0.5,
+          "user_rating": 1215.77,
+          "card_rating": 1696.44
+        }
+      ]
+    },
+    "her-l4-019": {
+      "rating": 1736.37,
+      "ease": 2.35,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-09-03T19:55:20.925458+00:00",
+      "due_date": "2026-09-04T19:55:20.925458+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-09-03T19:55:20.925458+00:00",
+          "score": 0.5,
+          "user_rating": 1226.65,
+          "card_rating": 1736.37
+        }
+      ]
     }
   },
   "ladder_ratings": {
@@ -3102,16 +3136,12 @@
     "air-quality": 929.78,
     "pytorch": 974.0,
     "de-konnektoren": 1237.69,
-    "hereon-aeon-up": 1205.08,
+    "hereon-aeon-up": 1226.65,
     "bridge": 838.5,
     "statistics": 801.19,
     "general-interview": 914.06
   },
   "recent": [
-    "clin-l0-001",
-    "gen-l0-004",
-    "gen-l0-001",
-    "gen-l0-003",
     "gen-l0-002",
     "gen-l0-003",
     "gen-l0-001",
@@ -3127,6 +3157,10 @@
     "gen-l1-003",
     "gen-l2-003",
     "gen-l4-002",
-    "np-l0-004"
+    "np-l0-004",
+    "bri-l3-003",
+    "her-l4-018",
+    "her-l4-019",
+    "her-l4-020"
   ]
 }

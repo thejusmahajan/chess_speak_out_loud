@@ -7,6 +7,8 @@ export interface SteeringLine {
   eval: string;
   eval_cp: number;
   phi: number;
+  phi_raw?: number;
+  phi_display?: number;
   motifs: string[];
   pv: string[];
   pv_str: string;
@@ -14,6 +16,8 @@ export interface SteeringLine {
 
 export interface SteeringData {
   current_phi?: number;
+  current_phi_raw?: number;
+  current_phi_display?: number;
   objective_line?: SteeringLine;
   tactical_lines?: SteeringLine[];
 }
@@ -24,14 +28,6 @@ interface SteeringLinesPanelProps {
   isAnalyzing?: boolean;
   onPreviewLine?: (pv: string[], moveUci: string) => void;
   onPlayMove?: (moveUci: string) => void;
-}
-
-// Empirical calibration curve from test split deciles
-function calibratePhi(rawPhi: number): number {
-  if (rawPhi <= 0.15) return rawPhi;
-  if (rawPhi <= 0.50) return rawPhi * 0.95;
-  if (rawPhi <= 0.80) return 0.50 + (rawPhi - 0.50) * 0.51; // maps 0.75 -> ~0.65
-  return 0.65 + (rawPhi - 0.80) * 0.70;
 }
 
 export const SteeringLinesPanel: React.FC<SteeringLinesPanelProps> = ({
@@ -64,7 +60,7 @@ export const SteeringLinesPanel: React.FC<SteeringLinesPanelProps> = ({
     return null;
   }
 
-  const currentPhi = calibratePhi(steering.current_phi ?? 0);
+  const currentPhi = steering.current_phi_display ?? steering.current_phi ?? 0;
   const phiPct = Math.round(currentPhi * 100);
 
   // Tension classification
@@ -115,6 +111,9 @@ export const SteeringLinesPanel: React.FC<SteeringLinesPanelProps> = ({
             }}
           />
         </div>
+        <div className="model-disclaimer-label" style={{ marginTop: '8px', fontSize: '0.74rem', color: '#8899aa', lineHeight: '1.4' }}>
+          <strong>Experimental.</strong> Φ ranks positions by how often a human of similar rating went wrong from them (held-out AUC 0.69). It is not an evaluation. Candidates are drawn from the engine's top lines within a bounded eval loss, but there is currently no absolute floor — treat a suggestion as a question, not a recommendation.
+        </div>
       </div>
 
       {/* Objective Engine Line */}
@@ -136,8 +135,8 @@ export const SteeringLinesPanel: React.FC<SteeringLinesPanelProps> = ({
                 <span className={`eval-badge ${formatEvalClass(steering.objective_line.eval)}`}>
                   {steering.objective_line.eval}
                 </span>
-                <span className={`phi-badge ${getPhiBadgeClass(steering.objective_line.phi)}`}>
-                  Risk: {Math.round(calibratePhi(steering.objective_line.phi) * 100)}%
+                <span className={`phi-badge ${getPhiBadgeClass(steering.objective_line.phi_display ?? steering.objective_line.phi)}`}>
+                  Risk: {Math.round((steering.objective_line.phi_display ?? steering.objective_line.phi) * 100)}%
                 </span>
               </div>
             </div>
@@ -191,8 +190,8 @@ export const SteeringLinesPanel: React.FC<SteeringLinesPanelProps> = ({
                 </div>
                 <div className="metrics-group">
                   <span className={`eval-badge ${formatEvalClass(line.eval)}`}>{line.eval}</span>
-                  <span className={`phi-badge ${getPhiBadgeClass(line.phi)}`}>
-                    Risk: {Math.round(calibratePhi(line.phi) * 100)}%
+                  <span className={`phi-badge ${getPhiBadgeClass(line.phi_display ?? line.phi)}`}>
+                    Risk: {Math.round((line.phi_display ?? line.phi) * 100)}%
                   </span>
                 </div>
               </div>

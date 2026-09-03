@@ -689,11 +689,20 @@ The AUC moves by 0.0003 because isotonic creates flat blocks and therefore ties,
 tie-averaging — **not** a loss of ranking information. Curve saved to
 `phi_net/runs/phi_b2_calibration.json`. **Rank on raw Φ, display the calibrated number.**
 
-**The UI.** `app.py:288` sorts only the *playable* set, so `steer_candidates()`'s floors mean **LC0
-keeps an absolute veto on blunders** and Φ can only re-order already-sound moves. That safety
-property is intact and the harm is bounded. But `SteeringLinesPanel.tsx:111` renders
-`Risk: {phi*100}%` from the **uncalibrated** number, with no experimental label — both must change
-before this is shown as a finished feature. Brief filed.
+**The UI — ⛑ CORRECTED 2026-09-03 after audit.** I previously wrote here that `app.py` sorts only
+the *playable* set and that **LC0 keeps an absolute veto on blunders**. **That was wrong.**
+`compute_steering_analysis()` never calls `steer_candidates()`, and `grep -c "steer_max_loss_cp|"`
+`steer_min_eval_cp" backend/app.py` returns **0**. It uses its own tiers — 80 cp, then 150 cp, then a
+**fallback with no eval constraint at all**. `steer_min_eval_cp = -60` is applied nowhere in the live
+path.
+
+**This is the cause of Thejus's field report** that opening steering produces *"spurious piece sacs
+that can be easily refuted"*: in the opening the engine's top moves cluster, the tiers hold fewer
+than two members, the fallback fires, and the highest-Φ move is surfaced regardless of eval.
+
+Calibration and the experimental label are now wired (2026-09-03). **The missing floor is not fixed
+— which floor to apply is a design decision and is Thejus's.** See
+`agents/reports/2026-09-03_think-time-filter-and-phi-calibration-wiring_AUDIT.md` §2.
 
 ---
 

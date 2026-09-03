@@ -250,10 +250,15 @@ which is the file that is actually maintained.**
   and 2.7× the epochs bought +0.002 (B1 0.6888 → B2 0.6908). Per-source AUC is balanced
   (N1 0.6955 / N2 0.6841), so **the dataset is honest and the signal is real** (+0.19 over material).
   Pre-registered response to an F1 failure, from the plan: **change the representation — relational
-  features or BT3 activations — NOT the hyper-parameters.** Φ is live in the UI behind LC0's blunder
-  veto (`app.py:288` sorts only the *playable* set), and calibrated: test ECE **0.0522 → 0.0050**,
+  features or BT3 activations — NOT the hyper-parameters.** Φ is live in the UI and calibrated (test ECE **0.0522 → 0.0050**),
   isotonic fitted on val (`phi_net/runs/phi_b2_calibration.json`). **Rank on raw Φ, display the
   calibrated number.**
+  **⚠ CORRECTED 2026-09-03: there is NO blunder veto in the live steering path.** An earlier version
+  of this line claimed one. `compute_steering_analysis()` in `app.py` never calls
+  `steer_candidates()`; it uses its own 80/150 cp tiers with a fallback that applies **no eval
+  constraint at all**, and `steer_min_eval_cp` appears nowhere in `app.py`. This is the cause of the
+  spurious opening sacrifices Thejus reported. A variable named `playable` was read as a guarantee —
+  `LEADER_GROUNDING.md` §3c, substituting my representation of a thing for the thing.
   Spec: `docs/plans/PLAN_CONFIGURATION_STEERING.md`.
 - **⚠ The dataset exists in exactly one place.** `data/` is gitignored in full, so
   `config_steering` lives on one laptop with no backup. Uploading it to Kaggle is the backup.

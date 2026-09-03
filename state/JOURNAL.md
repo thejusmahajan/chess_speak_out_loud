@@ -92,9 +92,12 @@ blindness, expensive confirmation only where it means something.
 wiring, the raw/display split in the scorer, and a permanent experimental label on the UI panel
 stating the 0.69 AUC out loud.
 
-**The UI, as it stands:** Φ is live and `app.py:288` sorts only the *playable* set, so LC0 keeps an
-absolute veto on blunders and Φ can only re-order already-sound moves. That safety property is
-intact and the harm is bounded. But it renders an **uncalibrated** number as a percentage with no
+**The UI, as it stands — ⛑ THIS PARAGRAPH WAS WRONG, corrected 2026-09-03 by audit.** I wrote that
+`app.py:288` sorts only the *playable* set so LC0 keeps an absolute veto on blunders. It does not.
+`compute_steering_analysis()` never calls `steer_candidates()`, `steer_min_eval_cp` appears nowhere
+in `app.py`, and the selection falls back to the top three by Φ with **no eval constraint at all**.
+That is the cause of the spurious opening sacrifices Thejus reported. I inferred a guarantee from a
+variable named `playable` instead of following it to its source. But it renders an **uncalibrated** number as a percentage with no
 experimental label. Both change under the brief.
 
 **Open:** the mixed-precision path is now exercised (Φ trained on Kaggle with `amp=True`);
