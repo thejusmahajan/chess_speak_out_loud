@@ -41,6 +41,15 @@ Every brief and report path below is relative to
 
 ### If your workspace is `chess_speak_out_loud`
 
+**0. `briefs/2026-09-03_phi-opening-dataset-and-kaggle-training.md` — ⛑ ACTIVE. Execute this one.**
+Thejus decided to train Φ on opening puzzles for Tal steering in the openings. Build the dataset
+(CPU, no engine), then he runs the existing notebook on Kaggle.
+**The trap, named in §4 Step 3: the negatives must ALSO be opening positions.** If positives are
+openings and negatives are middlegames, the model learns “is this an opening”, scores beautifully
+and means nothing — the same shape as the first config_steering build.
+**The gate is G1: beat 0.7211** (Φ’s measured opening-vs-opening AUC) with a bootstrap CI that
+excludes it. Not an abstract 0.70.
+
 **0a. `briefs/2026-09-01_kaggle-gpu-profile-regeneration.md` — ⛑ ACTIVE. The dataset brief is
 delivered and accepted, so the WIP slot is free.**
 ⚠ **An earlier delivery of this brief exists from 2026-09-02 17:33–17:39, written BEFORE the §4b
