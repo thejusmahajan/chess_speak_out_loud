@@ -16,6 +16,67 @@ Template:
 
 ---
 
+## 2026-09-03 (evening) — opening work specced, wiring audited, and a false claim of mine found live
+
+**Did:** recorded his attacking-openings idea, measured it four times against the corpus, wrote and
+thrice amended the Φ-opening brief, audited Gemini's think-time/calibration wiring, and corrected a
+safety claim I had put in the live UI.
+
+**⛑ The audit's headline is mine, not the worker's.** The UI label I dictated said *"LC0 still
+vetoes any unsound move."* It is false. `grep -c "steer_max_loss_cp|steer_min_eval_cp"
+backend/app.py` returns **0**; `compute_steering_analysis()` never calls `steer_candidates()`. It
+uses 80/150 cp tiers with a **fallback that applies no eval constraint at all**, and
+`steer_min_eval_cp` is nowhere in the live path. **That is the cause of the spurious opening
+sacrifices Thejus reported.** Not a Gemini regression — the structure is in the minus lines and came
+from the 2026-09-02 integration I never audited. Mine because I asserted the veto three times after
+inferring a guarantee from a variable named `playable`. Corrected in the label, `NOW.md`, Bible §6a
+and here. The code fix is his decision.
+
+**Gemini's wiring: ACCEPT.** Think time from the previous clock of the same player, reset per game at
+four sites (it found one I missed), increment per game, unknown-analysed, counters added,
+raw/display split correct, ranking on raw everywhere, label rendered. **339 passed, 5 skipped.**
+Two defects filed: `aggregate_phase_clock` still ANDs the old clock filter; Stage A's policy call
+runs on reflex moves and its result is discarded.
+
+**Φ-opening: built, and its alarm fired.** A5 (phase-only) = **0.6213** against < 0.60. The alarm I
+added for this dataset caught the failure it was written for, and the single-feature table names the
+culprit: **`castling_count` at 0.3799** — puzzle openings are often uncastled while the negatives
+come from his games at plies 9–20 where he has castled. The build is also stale against two of his
+amendments. Not to be trained on.
+
+**Four measurements that shaped the brief**, each of which changed a decision:
+- **1,578 opening tags**, accepted/declined explicit. **He was right and I was wrong** — I had
+  argued the opening name was a proxy for sharpness without opening the table.
+- **Φ is already strongest in the opening**: 0.7211 opening-vs-opening, 0.7543 vs all negatives,
+  against 0.6867 non-opening. That inverted the premise and set the gate at 0.7211, not 0.70. Its
+  bootstrap CI is [0.6876, 0.7536] on 1,086 rows, so the rebuild needs a much larger test set.
+- **Only 34.9%** of opening positives can find a spent-tactic partner in the same material bucket —
+  post-solution positions are down material by construction. That killed my own negatives plan.
+- Opening puzzles are **less** Tal-like than middlegame ones (sacrifice 0.66×, kingsideAttack
+  0.70×), so naive oversampling would dilute the signal the aim depends on.
+
+**He corrected me twice on process and both were fair.** *"You are a leader of agents and not mine"*
+— I had been reordering his priorities and re-opening settled decisions. And *"you take my judgement
+and words lightly without thinking over it"* — I had "corrected" his statement about puzzle ratings
+when his version was the precise one. Both are now written into
+`state/NEXT_SESSION_PROMPT.md` so the next session does not repeat them.
+
+**Also diagnosed, not fixed:** `sharpness_from_wdl` uses only the draw share, so being dead lost
+scores ~0.95 decisiveness — maximum. 40% of `tactical_complexity`, and it dominates in the opening
+where narrowness (0.264) and policy_trap (0.148) are half their middlegame values. Largest single
+cause of the behaviour he reported. His call to change a leader-owned metric that feeds the profile.
+
+**Written for tomorrow:** `state/NEXT_SESSION_PROMPT.md` — routing, the three decisions blocked on
+him, what to do first, the measured numbers not to re-derive, the live traps, and how to work with
+him.
+
+**Open:** the eval floor; the decisiveness sign; the Φ-opening rebuild; two wiring defects; the LC0
+GPU-affinity fix still only specified; `build_sac_session()` still 0.
+
+**Repo:** committed and pushed.
+
+---
+
 ## 2026-09-03 — Φ trained: F1 FAILED at 0.6908, not rounded; calibrated; think-time filter decided
 
 **Thejus reported Φ done, trained, verified and live in the UI. Three of those four are true.**

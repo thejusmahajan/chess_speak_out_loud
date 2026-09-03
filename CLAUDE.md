@@ -9,6 +9,9 @@ cold start, so it holds the routing, not the content. **Nothing else is auto-loa
 
 Read, in this order, and do not skip:
 
+0. **`state/NEXT_SESSION_PROMPT.md`** — if it exists and is recent, read it FIRST. It is the
+   previous session's handover: where the work stands, what is blocked on Thejus, what not to
+   re-derive, and the live traps.
 1. **`state/NOW.md`** — where the project actually is *today*: deadlines, what is unpushed,
    the next three actions, and the questions waiting on Thejus. This is the file that stops
    a restart from re-deriving everything.

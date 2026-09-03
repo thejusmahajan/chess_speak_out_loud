@@ -1,6 +1,6 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-09-03 by the leader (Opus 5) — **§9: Φ IS TRAINED, F1 FAILED at 0.6908**; §10 profile regeneration (think-time filter decided); §11 leadership corpus.
+**Last updated:** 2026-09-03 (evening) by the leader (Opus 5). **Start here: `state/NEXT_SESSION_PROMPT.md`** — written for a fresh agent. Then §9 (Φ trained, F1 FAILED at 0.6908), §10 (regeneration), §12 (Φ-opening — A5 FIRED), §11 (leadership corpus).
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
 
 ---
@@ -860,3 +860,56 @@ its Part A (interlocks) and Part C (three unasked questions) are worth.
    8,617 are 2+1 bullet is a corpus of *reflex* errors. Cheap decompositions exist and none has been
    run.
 3. The dataset exists in exactly one place.
+
+---
+
+## ⛑ 12. Φ-opening — built, ALARM FIRED, needs a rebuild (2026-09-03)
+
+**Thejus decided to train Φ on opening puzzles for Tal steering in the openings.** Brief:
+`agents/briefs/2026-09-03_phi-opening-dataset-and-kaggle-training.md` (current — Steps 2b and 3
+carry his amendments).
+
+**⚠ `data/training/config_steering_opening/` exists (35,826 pairs, built 13:25) and MUST NOT be
+trained on. Two reasons:**
+
+1. **A5 (phase-only AUC) = 0.6213 against a < 0.60 threshold — FAILED.** The alarm added
+   specifically for this dataset caught exactly the failure it was written for. **A fired alarm is a
+   stop, not a parameter.**
+   **The culprit is named in the single-feature table: `castling_count`, AUC 0.3799** (0.62
+   inverted). Puzzle "opening" positions are frequently uncastled; the negatives come from his games
+   at plies 9–20, where he has usually castled. Castling rights discriminate the classes. Likely
+   fix: add castling rights to the matching key and/or draw negatives from earlier plies.
+2. **It predates two of his amendments.** `manifest.json` still shows `rating_window [1500, 2200]`
+   and `target_positives 60000`. He instructed **all 265,339 opening puzzles, no rating filter**, and
+   the negative design changed after the 34.9% match measurement.
+
+**Also watch:** `capture_available` is 93.77% in positives against 83.75% in negatives — a 10-point
+delta. A4 passes at 0.5672, but that is the next leak channel once castling is closed.
+
+**The gate when it is rebuilt: G1 — beat 0.7211** (Φ's measured opening-vs-opening AUC) with a
+bootstrap CI that excludes it. Not an abstract 0.70. The current baseline's CI is
+**[0.6876, 0.7536]** on 1,086 rows, so the rebuild must produce a far larger opening test set.
+
+---
+
+## ⛑ 13. The live steering has no absolute eval floor — ➔ THEJUS'S DECISION
+
+Found by audit 2026-09-03 and it explains his field report of *"spurious piece sacs that can be
+easily refuted"* in the opening.
+
+`compute_steering_analysis()` in `backend/app.py` **never calls `metrics.steer_candidates()`**.
+`grep -c "steer_max_loss_cp\|steer_min_eval_cp" backend/app.py` returns **0**. It uses its own tiers
+— 80 cp, then 150 cp, then a **fallback that applies no eval constraint at all**. In the opening the
+engine's top moves cluster, the tiers hold fewer than two members, the fallback fires, and the
+highest-Φ move is surfaced however badly it evaluates.
+
+**The UI label has been corrected** (it falsely claimed LC0 vetoes any unsound move — that sentence
+was mine). **The code is unchanged, deliberately.** Which floor to apply is his call:
+a hard `steer_min_eval_cp`, or the **narrowness-scaled gamble floor** he described — the permitted
+objective deficit growing with `policy_trap`, so an unsound sacrifice is allowed exactly in
+proportion to how non-obvious its refutation is.
+
+**Related, and also his call:** `sharpness_from_wdl` uses only the draw share, so **being dead lost
+scores ~0.95 decisiveness — the maximum**. That term is 40% of `tactical_complexity` and dominates
+in the opening, where narrowness (0.264) and policy_trap (0.148) are about half their middlegame
+values. It is the largest single cause of the behaviour he saw.
