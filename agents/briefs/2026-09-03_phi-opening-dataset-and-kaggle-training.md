@@ -204,7 +204,75 @@ distinct families represented.
 
 ---
 
+### Step 2b — ⛑ AMENDMENT 2026-09-03 (second): take ALL opening puzzles, no rating filter
+
+**Thejus, overriding the stratification in Step 2:**
+
+> *"I would say take all opening puzzles. Being a 2200 player doesn't mean that there aren't any
+> useful data in the sub rated players' games. And furthermore, the puzzles itself aren't
+> necessarily played by the same rated players. So it makes sense to take all the data."*
+
+**He is right and the third clause is the decisive one.** A puzzle's Glicko rating measures how hard
+the tactic is to **solve**; it says nothing about who played the game it came from. A 900-rated
+puzzle can come from a 2400-rated game. So filtering or weighting by rating filters on **solve
+difficulty**, which is orthogonal to whether the position is a real attacking configuration — and
+Φ learns from the position, not from how many people found the answer.
+
+**INSTRUCTION, superseding the rating stratification above:**
+
+- **All 265,339 opening puzzles are eligible as positives.** Exact full-DB count. No rating filter,
+  no rating quota, no cap on any band.
+- **Keep `rating` as a recorded column** and **report AUC by band** (<1500 / 1500–2200 / ≥2200).
+  Nothing is discarded, and the question "is Φ-opening better on hard puzzles" stays answerable.
+- The `sharp` oversampling in Step 2a **still stands** — that selects on `sacrifice` /
+  `kingsideAttack`, which is about the position, not about solve difficulty.
+
+---
+
+### Step 3 — ⛑ the negatives: MEASURED, and the obvious plan does not work
+
+**Do not use spent-tactic (N1) positions as the primary negative for this build.** Measured on 4,000
+opening puzzles, replaying each solution line to its end and bucketing both positions by
+`material_key` × `phase_bucket`:
+
+```
+positive buckets      324 distinct   (concentrated: the top bucket alone holds 13%)
+N1 buckets          1,239 distinct   (scattered -- the tactic changed the material)
+positives that could find an N1 partner in the same bucket:  1,397 of 4,000 = 34.9%
+```
+
+Opening positives are nearly all **full material**; a post-solution position is **down material by
+construction**. So N1 is the wrong *shape* here, and matching would silently drop the very
+full-material positives that are the point of the dataset. This worked in the general build because
+middlegame and endgame material varies anyway. It does not transfer.
+
+**The negatives for this build:**
+
+- **N2 (PRIMARY) — real opening play from his own games.** `lichess_derdiedasdie_2026-07-21.pgn`,
+  **plies 9–20** (skipping book, stopping before the middlegame), **both sides' moves, not only his**
+  — a negative just needs a position where the side to move is not about to blunder, and the
+  opponent's positions serve equally. Measured pool for his moves alone: **53,279**; taking both
+  sides roughly doubles it to ~106,000. These are full-material opening positions, the right shape.
+- **N1 (SECONDARY) — spent-tactic, only where it matches.** Keep it for the ~35% that do match. It is
+  worth having precisely because it comes from a different source, which makes the source check
+  below possible.
+
+**Positives are therefore bounded by the negatives, not by the puzzle pool.** Expect on the order of
+**70,000–100,000 matched pairs**. Report the achieved number; do not pad it. Even at the low end that
+is **~9× more opening positions than Φ has now** (7,829), which is the comparison that matters.
+
+**⚠ The risk this creates, and the check for it.** Most negatives now come from **one player's
+games**. If Φ learns "this is derdiedasdie's repertoire" instead of "this position is calm", it will
+score well and mean nothing — the same failure as the first build, through a new door.
+
+**A6 — the source hold-out.** Train once with **N2 negatives only**, then evaluate that model
+against **N1-only negatives** on the test split. If AUC collapses (drops more than 0.05 versus its
+N2 performance), the model learned the source rather than the danger. **Report both numbers.** This
+is stronger than another logistic-regression alarm because it tests the thing directly.
+
 ### Step 3 — ⚑ the trap: the negatives must also be openings
+
+**(The trap statement below still stands in full.)**
 
 **This is the one thing that will silently ruin the dataset.** If positives are opening positions
 and negatives are middlegames, the model learns *"is this an opening"* — it will score beautifully
