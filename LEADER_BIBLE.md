@@ -243,7 +243,17 @@ which is the file that is actually maintained.**
 - **Φ / configuration steering is BUILT to the training step.** Dataset audited and clean:
   `data/training/config_steering/`, **261,748 rows**, leader-reverified **A3 = 0.4884, A4 = 0.5298**.
   The first build was rebuilt after leaking at AUC 0.6637 on check status and mobility. Trainer,
-  gates and Kaggle notebook are in `phi_net/`; archives in `dist/`. **Nobody has trained it yet.**
+  gates and Kaggle notebook are in `phi_net/`; archives in `dist/`.
+  **⛑ TRAINED 2026-09-03 — F1 FAILED. Test AUC 0.6908 against a >0.70 threshold**
+  (material 0.5017; `gates_passed: false`; `phi_net/runs/phi_b2_test.json`). **Not rounded up, and
+  the threshold was not moved.** It is a **representation ceiling, not undertraining**: 4× the data
+  and 2.7× the epochs bought +0.002 (B1 0.6888 → B2 0.6908). Per-source AUC is balanced
+  (N1 0.6955 / N2 0.6841), so **the dataset is honest and the signal is real** (+0.19 over material).
+  Pre-registered response to an F1 failure, from the plan: **change the representation — relational
+  features or BT3 activations — NOT the hyper-parameters.** Φ is live in the UI behind LC0's blunder
+  veto (`app.py:288` sorts only the *playable* set), and calibrated: test ECE **0.0522 → 0.0050**,
+  isotonic fitted on val (`phi_net/runs/phi_b2_calibration.json`). **Rank on raw Φ, display the
+  calibrated number.**
   Spec: `docs/plans/PLAN_CONFIGURATION_STEERING.md`.
 - **⚠ The dataset exists in exactly one place.** `data/` is gitignored in full, so
   `config_steering` lives on one laptop with no backup. Uploading it to Kaggle is the backup.

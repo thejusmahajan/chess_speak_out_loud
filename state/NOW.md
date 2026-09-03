@@ -1,6 +1,6 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-09-02 (late) by the leader (Opus 5) — §9 (Φ READY TO TRAIN, archives built), §10 (regeneration blocked on hardware), §11 (leadership corpus).
+**Last updated:** 2026-09-03 by the leader (Opus 5) — **§9: Φ IS TRAINED, F1 FAILED at 0.6908**; §10 profile regeneration (think-time filter decided); §11 leadership corpus.
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
 
 ---
@@ -641,8 +641,63 @@ selects on `had_sharp_move`. Needs Thejus's decision on corpus scope for regener
 
 ---
 
-**✅ STATUS 2026-09-02 (late): Φ IS READY TO TRAIN. The archives are built and verified; the
-only remaining step is Thejus uploading them and pressing Run All.**
+**⛑ Φ IS TRAINED. F1 DID NOT PASS. The number is 0.6908 and it is not rounded up.**
+
+```
+TEST AUC      0.6908        material-only baseline  0.5017
+F1 threshold  > 0.70        shortfall               0.0092
+gates_passed  false         (phi_net/runs/phi_b2_test.json)
+```
+
+**F1 is recorded as FAILED.** The threshold was pre-registered in
+`PLAN_CONFIGURATION_STEERING.md` §8 before the dataset existed, and 0.6908 is the single most
+tempting number in this project's history to round. It is not being rounded, and the threshold is
+not being moved. *A fired alarm is a stop, not a parameter* (`LEADER_BIBLE.md` §3.9).
+
+**Two things in the result are genuinely good, and they are the more informative half:**
+
+- **+0.19 over material.** Φ learned something real — not chance, not piece-counting.
+- **Per-source AUC is balanced:** N1 spent-tactic **0.6955**, N2 quiet-play **0.6841**. Had Φ
+  latched onto an artefact these would diverge. **The rebuilt dataset is honest** — the A4 rebuild
+  paid off.
+
+**The shortfall is NOT undertraining — it is a representation ceiling.**
+
+| rung | rows | epochs | wall | best val AUC |
+|---|---|---|---|---|
+| B1 | 100,000 | 15 | 48.6 s | 0.6888 |
+| B2 | 209,036 | 40 | 245.1 s | **0.6908** |
+
+**Four times the data and 2.7× the epochs bought +0.002.** That is a plateau. The plan
+pre-registered what an F1 failure means and the answer is not more compute:
+
+> *F1 fails → configurations are not recoverable at 18 planes with this network. That is a real
+> finding, not a failure of nerve. The response is to change the representation (relational
+> features, or BT3 activations) — **not** to tune hyper-parameters until the number moves.*
+
+**Calibration — fixed 2026-09-03.** Φ's raw sigmoid was over-spread, and worst exactly where
+steering uses it (test bin 0.7–0.8 predicted 0.749 against an actual 0.654). Isotonic regression
+fitted on **val**, reported on **test**:
+
+```
+expected calibration error   0.0522 -> 0.0050      (10x better)
+worst decile error          +0.095  -> +0.007
+test AUC                     0.6908 -> 0.6905
+```
+
+The AUC moves by 0.0003 because isotonic creates flat blocks and therefore ties, which changes
+tie-averaging — **not** a loss of ranking information. Curve saved to
+`phi_net/runs/phi_b2_calibration.json`. **Rank on raw Φ, display the calibrated number.**
+
+**The UI.** `app.py:288` sorts only the *playable* set, so `steer_candidates()`'s floors mean **LC0
+keeps an absolute veto on blunders** and Φ can only re-order already-sound moves. That safety
+property is intact and the harm is bounded. But `SteeringLinesPanel.tsx:111` renders
+`Risk: {phi*100}%` from the **uncalibrated** number, with no experimental label — both must change
+before this is shown as a finished feature. Brief filed.
+
+---
+
+~~**STATUS 2026-09-02 (late): Φ IS READY TO TRAIN…**~~ — **DONE 2026-09-03.** Trained on Kaggle, evaluated, and wired into the UI. The result is the block above.
 
 **What to do next, in order:**
 1. Upload `dist/config_steering_dataset.zip` as a private Kaggle dataset (this is also the
@@ -689,6 +744,48 @@ construction.
 ---
 
 ## ⛑ 10. Profile regeneration — decided by Thejus, blocked on hardware, moving to Kaggle
+
+**⛑ DECIDED 2026-09-03: filter by THINK TIME, not by time control.** Approved by Thejus.
+
+Measured over his own moves in the 9,000-game corpus, from consecutive `[%clk]` values:
+
+| time control | games | his moves | median think | ≥ 5s |
+|---|---|---|---|---|
+| **120+1 bullet** | 8,617 | 252,365 | **2.0 s** | **25.5%** |
+| 300+3 blitz | 210 | 6,623 | 4.0 s | 48.2% |
+| 60+0 | 148 | 3,995 | 1.0 s | 4.5% |
+| 300+0 | 22 | 698 | 4.0 s | 41.1% |
+
+**Do not drop bullet.** 25.5% of 252,365 is roughly **64,000 moves he thought about for five seconds
+or more** — by far the largest pool of genuine decisions he owns. The 210 blitz games yield ~3,200.
+
+**`min_clock_seconds = 20` gated on the wrong variable** — clock *remaining*, not time *spent*. A
+move played in one second with 60s left was kept; a move deliberated for eight seconds with 15s left
+was discarded. The code's own comment says the intent was to exclude flag-fall panic; think time is
+the correct expression of that intent.
+
+**Implemented 2026-09-03 in `backend/training/metrics.py`** (leader-owned): `min_think_seconds = 5.0`,
+`parse_increment()`, `think_seconds()`, `is_reflex_move()`. Eleven tests in
+`backend/tests/test_think_time_filter.py`, **mutation-checked** against three mutations — treating
+unknown think time as a reflex, dropping the increment, and an off-by-one threshold — each of which
+reddens a test.
+
+**Effect:** ~68,000 nodes instead of 228,020. **70% less engine work, on better data** — a strict
+improvement on both axes, and it attacks the ~51-day projection directly.
+
+**Refinement to carry into the run:** Stage A (policy blindness) measured at **0.13 s/node**, so all
+228,020 cost about 8 hours. **Run Stage A on everything; spend Stage B confirmations and TS2 only on
+the ≥5 s population.** Full coverage of blindness, expensive confirmation only where it means
+something.
+
+**Honest caveat:** a blunder played in one second may still be real blindness — arguably that *is*
+policy-blindness. The fast moves are not deleted, only left unconfirmed, and it is a filter
+parameter, so it is recoverable.
+
+**Still pending:** wiring the filter into `pipeline.py` (brief filed — `metrics.py` is done).
+
+---
+
 
 **He decided 2026-09-01: regenerate the profile.** Regeneration is confirmed to be the correct fix
 — a real 25-game run produced `had_sharp_move` (not the dead `had_tal_move`) **and** real ECO keys

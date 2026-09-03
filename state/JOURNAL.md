@@ -16,6 +16,95 @@ Template:
 
 ---
 
+## 2026-09-03 — Φ trained: F1 FAILED at 0.6908, not rounded; calibrated; think-time filter decided
+
+**Thejus reported Φ done, trained, verified and live in the UI. Three of those four are true.**
+I went and read `phi_net/runs/phi_b2_test.json` before saying anything.
+
+**F1 FAILED.**
+
+```
+TEST AUC      0.6908     material-only baseline  0.5017
+F1 threshold  > 0.70     shortfall               0.0092
+gates_passed  false
+```
+
+**Recorded as failed. The number is not rounded and the threshold has not been moved.** The gate was
+pre-registered in `PLAN_CONFIGURATION_STEERING.md` §8 before the dataset existed, and 0.6908 is the
+most tempting number this project has produced. Bible §3.9, written the day before: *a fired alarm
+is a stop, not a parameter.* Thejus's instruction was explicit — record it honestly without rounding
+up — and it is now in `NOW.md` §9 and Bible §6a.
+
+**But two things in the result are genuinely good and they are the informative half:**
+- **+0.19 over material.** Φ learned something real, not piece-counting.
+- **Per-source AUC balanced: N1 0.6955 / N2 0.6841.** Had Φ found an artefact these would diverge.
+  **The rebuilt dataset is honest** — the A4 rebuild that cost 40,000 rows paid off.
+
+**The shortfall is a representation ceiling, not undertraining.** B1: 100k rows, 15 epochs, 48.6 s
+→ 0.6888. B2: 209k rows, 40 epochs, 245.1 s → 0.6908. **Four times the data and 2.7× the epochs
+bought +0.002.** The plan pre-registered the response to an F1 failure and it is not more compute:
+change the representation — relational features, or BT3 activations — not the hyper-parameters.
+
+**Calibration — built and verified.** Φ's raw sigmoid was over-spread, worst exactly where steering
+uses it (test 0.7–0.8 bin: predicted 0.749, actual 0.654; the UI rendered that as `Risk: 75%`).
+Isotonic regression via pool-adjacent-violators in `phi_net/calibrate.py`, **fitted on val and
+reported on test**:
+
+```
+expected calibration error   0.0522 -> 0.0050      (10x)
+worst decile error          +0.095  -> +0.007
+test AUC                     0.6908 -> 0.6905
+```
+
+The 0.0003 AUC move is tie-creation — isotonic makes flat blocks — not lost ranking information.
+**Consequence for the wiring: rank on raw Φ, display the calibrated number.** Ranking on the
+calibrated value would create artificial ties between moves Φ actually distinguishes.
+Five tests, mutation-checked: disabling the PAVA merge reddens the monotonicity and
+order-preservation guards.
+
+**Think-time filter — decided and implemented in `metrics.py`.** Thejus asked whether to filter the
+9,000 games by time control before the Kaggle run. Measured his own moves from consecutive `[%clk]`
+values first:
+
+| TC | games | his moves | median think | ≥5 s |
+|---|---|---|---|---|
+| 120+1 | 8,617 | 252,365 | 2.0 s | 25.5% |
+| 300+3 | 210 | 6,623 | 4.0 s | 48.2% |
+| 60+0 | 148 | 3,995 | 1.0 s | 4.5% |
+
+**Verdict: never filter by time control.** Dropping bullet would discard ~64,000 moves he thought
+about for ≥5 s — twenty times what the entire blitz corpus contains. And `min_clock_seconds = 20`
+gates on the **wrong variable**: clock *remaining*, not time *spent*. A move played in one second
+with 60 s left was kept; a move deliberated eight seconds with 15 s left was discarded. The code's
+own comment says the intent was to exclude flag-fall panic — think time is that intent, correctly
+expressed.
+
+Added to `metrics.py` (leader-owned): `min_think_seconds = 5.0`, `parse_increment()`,
+`think_seconds()`, `is_reflex_move()`. **Eleven tests, mutation-checked against three mutations** —
+unknown-think-time-as-reflex, dropping the increment, and an off-by-one threshold — each reddens a
+test. Effect: **~68,000 nodes instead of 228,020, a 70% cut in engine work on better data.**
+
+**Refinement carried into the brief:** Stage A costs 0.13 s/node, so all 228,020 cost ~8 hours. Run
+Stage A on everything; spend Stage B and TS2 only on the ≥5 s population. Full coverage of
+blindness, expensive confirmation only where it means something.
+
+**Filed:** `agents/briefs/2026-09-03_think-time-filter-and-phi-calibration-wiring.md` — pipeline
+wiring, the raw/display split in the scorer, and a permanent experimental label on the UI panel
+stating the 0.69 AUC out loud.
+
+**The UI, as it stands:** Φ is live and `app.py:288` sorts only the *playable* set, so LC0 keeps an
+absolute veto on blunders and Φ can only re-order already-sound moves. That safety property is
+intact and the harm is bounded. But it renders an **uncalibrated** number as a percentage with no
+experimental label. Both change under the brief.
+
+**Open:** the mixed-precision path is now exercised (Φ trained on Kaggle with `amp=True`);
+`kaggle_files/diagnose_on_kaggle.py:434` still binds all 8 LC0 workers to GPU 0; `build_sac_session()`
+still returns 0 until a profile is regenerated.
+
+**Repo:** committed and pushed.
+
+---
+
 ## 2026-09-02 (late) — Φ built and shipped to the launch pad; 18 defects caught; leadership corpus
 
 **Did:** wrote `phi_net`, self-reviewed it, had it independently audited twice, built the upload

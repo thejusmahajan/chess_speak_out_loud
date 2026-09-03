@@ -90,11 +90,27 @@ class TrainingConfig:
     gem_confirm_nodes: Optional[int] = None       # overrides gem_confirm_seconds when set
 
     # --- Time-scramble filter (diagnosis) ---
-    # Moves played with less than this many seconds on the mover's clock
-    # are excluded from diagnosis: they measure flag-fall panic, not chess
-    # understanding. Applies only when the PGN carries [%clk] annotations;
-    # games without clocks are analyzed in full.
+    # ~~Moves played with less than this many seconds on the mover's clock~~
+    # SUPERSEDED 2026-09-03 by min_think_seconds -- see below. Retained because
+    # is_time_scramble() still reads it and older profiles were built with it.
     min_clock_seconds: float = 20.0
+
+    # --- Think-time filter (diagnosis) -- 2026-09-03 ---
+    # A move is a *decision* worth diagnosing when the player actually spent time
+    # on it. min_clock_seconds gated on the clock REMAINING, which is the wrong
+    # variable: in a 2+1 game a move played in one second with 60s left was kept,
+    # while a move genuinely deliberated for eight seconds with 15s left was
+    # thrown away. The stated intent was always to exclude flag-fall panic; time
+    # SPENT is the correct expression of that intent.
+    #
+    # Measured over the user's 9,000-game corpus, his own moves:
+    #   120+1 bullet  252,365 moves  median 2.0s  25.5% >= 5s
+    #   300+3 blitz     6,623 moves  median 4.0s  48.2% >= 5s
+    #   60+0            3,995 moves  median 1.0s   4.5% >= 5s
+    # So bullet is NOT to be discarded: ~64,000 of those bullet moves are real
+    # decisions, far more than the blitz corpus contains in total. Filter on
+    # think time, never on time control.
+    min_think_seconds: float = 5.0
 
     # --- Tactical steering / "Tal engine" (Epoch II, TS1) ---
     # User dials (2026-07-20): a steer move may cost ~0.5+ pawn vs best, and a
@@ -129,6 +145,61 @@ DEFAULT_CONFIG = TrainingConfig()
 # ----------------------------------------------------------------------
 # Shared helpers
 # ----------------------------------------------------------------------
+
+def parse_increment(time_control: Optional[str]) -> float:
+    """Increment in seconds from a PGN TimeControl header ("120+1" -> 1.0).
+
+    Returns 0.0 for anything unparseable, including "-" (correspondence) and
+    "?" (unknown), because treating an unknown increment as zero *under*-states
+    think time, which errs toward discarding a move rather than admitting a
+    reflex one.
+    """
+    if not time_control or "+" not in time_control:
+        return 0.0
+    try:
+        return float(time_control.split("+", 1)[1])
+    except (ValueError, IndexError):
+        return 0.0
+
+
+def think_seconds(prev_clock: Optional[float], clock: Optional[float],
+                  increment: float = 0.0) -> Optional[float]:
+    """Seconds the mover actually spent, from consecutive clocks of the SAME player.
+
+    think = prev_clock - clock + increment
+
+    Both clocks must belong to the same player and be consecutive; passing the
+    opponent's clock produces a meaningless number. None when either clock is
+    missing (the first move of a game has no predecessor), which callers must
+    treat as "unknown", never as zero.
+
+    A negative result is impossible in a well-formed PGN and indicates a clock
+    adjustment, a berserk, or a parsing error; it is clamped to None rather than
+    silently becoming a small positive think time.
+    """
+    if prev_clock is None or clock is None:
+        return None
+    spent = prev_clock - clock + increment
+    if spent < 0.0:
+        return None
+    return spent
+
+
+def is_reflex_move(prev_clock: Optional[float], clock: Optional[float],
+                   increment: float = 0.0,
+                   cfg: "TrainingConfig" = None) -> bool:
+    """True when the move was played too fast to be a considered decision.
+
+    Replaces is_time_scramble(). **Unknown think time is NOT a reflex move** --
+    a PGN without [%clk] is analysed in full, exactly as before, rather than
+    being silently discarded.
+    """
+    cfg = cfg or DEFAULT_CONFIG
+    spent = think_seconds(prev_clock, clock, increment)
+    if spent is None:
+        return False
+    return spent < cfg.min_think_seconds
+
 
 def policy_prior(policy: list[dict], uci: str) -> float:
     """Prior P(s, a) for a move, 0.0 if it does not appear in the list."""

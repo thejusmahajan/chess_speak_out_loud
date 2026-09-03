@@ -230,6 +230,92 @@ async def health_check():
     }
 
 
+def compute_steering_analysis(board: chess.Board, best_moves: list[dict], pv_lines: list[str]) -> dict:
+    """Score candidate moves from the engine using PhiScorer to surface tactical steering lines."""
+    try:
+        from backend.training.config_steering.scorer import PhiScorer
+        scorer = PhiScorer.get_instance()
+    except Exception as exc:
+        logger.warning("PhiScorer not available: %s", exc)
+        return {}
+
+    is_white = (board.turn == chess.WHITE)
+    candidates = []
+    for i, m in enumerate(best_moves):
+        try:
+            move_uci = m.get("move")
+            if not move_uci:
+                continue
+            move_obj = chess.Move.from_uci(move_uci)
+            if move_obj not in board.legal_moves:
+                continue
+            phi, motifs = scorer.score_move(board, move_obj)
+            raw_score = m.get("score", 0)
+            if isinstance(raw_score, int):
+                eval_cp = raw_score
+                eval_str = f"{eval_cp/100:+.2f}"
+            elif isinstance(raw_score, str) and raw_score.startswith("M"):
+                mate_val = int(raw_score[1:])
+                eval_cp = 10000 if mate_val > 0 else -10000
+                eval_str = raw_score
+            else:
+                eval_cp = 0
+                eval_str = "0.00"
+
+            pov_cp = eval_cp if is_white else -eval_cp
+            pv_str = pv_lines[i] if i < len(pv_lines) else m.get("san", "")
+            pv_list = pv_str.split() if pv_str else [m.get("san", "")]
+            top_motifs = [k for k, v in sorted(motifs.items(), key=lambda x: x[1], reverse=True)[:3] if v > 0.15]
+
+            candidates.append({
+                "uci": move_uci,
+                "san": m.get("san", ""),
+                "eval_cp": eval_cp,
+                "pov_cp": pov_cp,
+                "eval": eval_str,
+                "phi": round(phi, 3),
+                "motifs": top_motifs,
+                "pv": pv_list,
+                "pv_str": pv_str,
+            })
+        except Exception:
+            continue
+
+    if not candidates:
+        return {}
+
+    # Objective best for side to move
+    objective = max(candidates, key=lambda c: c["pov_cp"])
+    best_pov = objective["pov_cp"]
+
+    # Other candidates
+    others = [c for c in candidates if c["uci"] != objective["uci"]]
+
+    # Tier 1: Sound alternatives within 80 cp of best
+    tier1 = [c for c in others if best_pov - c["pov_cp"] <= 80]
+    tier1.sort(key=lambda c: c["phi"], reverse=True)
+
+    if len(tier1) >= 2:
+        tactical = tier1[:3]
+    else:
+        # Tier 2: Dynamic alternatives within 150 cp of best
+        tier2 = [c for c in others if best_pov - c["pov_cp"] <= 150]
+        tier2.sort(key=lambda c: c["phi"], reverse=True)
+        if len(tier2) >= 2:
+            tactical = tier2[:3]
+        else:
+            # Fallback: Top alternatives sorted by phi
+            others.sort(key=lambda c: c["phi"], reverse=True)
+            tactical = others[:3] if others else [objective]
+
+    curr_phi, _ = scorer.score_board(board)
+    return {
+        "current_phi": round(curr_phi, 3),
+        "objective_line": objective,
+        "tactical_lines": tactical,
+    }
+
+
 @app.post("/api/analyze")
 async def analyze(request: AnalyzeRequest):
     """
@@ -318,6 +404,13 @@ async def analyze(request: AnalyzeRequest):
     # Get Neural Vision / Saliency (Phase 2)
     saliency = neural_vision.saliency(fen, policy_dist=policy_dist)
 
+    # Compute configuration steering lines (Objective vs Tal lines)
+    steering = compute_steering_analysis(
+        board=chess.Board(fen),
+        best_moves=engine_result.get("best_moves", []),
+        pv_lines=engine_result.get("pv_lines", []),
+    )
+
     return {
         "fen": fen,
         "evaluation": eval_obj,
@@ -331,7 +424,8 @@ async def analyze(request: AnalyzeRequest):
         "projected_heatmaps": projected_heatmaps,
         "policy": policy_dist[:20],
         "saliency": saliency,
-        "saliency_source": neural_vision.mode
+        "saliency_source": neural_vision.mode,
+        "steering": steering,
     }
 
 

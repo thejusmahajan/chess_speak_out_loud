@@ -12,6 +12,7 @@ import { chessgroundDests } from 'chessops/compat';
 import { parseUci, makeUci } from 'chessops/util';
 import { parsePgn } from 'chessops/pgn';
 import { parseSan, makeSan } from 'chessops/san';
+import { SteeringLinesPanel, type SteeringData } from './SteeringLinesPanel';
 
 type ChessgroundApi = ReturnType<typeof Chessground>;
 
@@ -35,6 +36,7 @@ type GameState = {
   calcSaliency: any;
   evalObj: any;
   blunderFlash: boolean;
+  steering?: SteeringData | null;
 };
 
 export default function PgnViewer() {
@@ -43,11 +45,12 @@ export default function PgnViewer() {
 
   const [pgnInput, setPgnInput] = useState(DEFAULT_PGN);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [autoAnalyze, setAutoAnalyze] = useState(false);
+  const [autoAnalyze, setAutoAnalyze] = useState(true);
   const [showTop20, setShowTop20] = useState(false);
   const [thinkSeconds, setThinkSeconds] = useState(2); // LC0 time budget per analysis (seconds)
   const [glowMode, setGlowMode] = useState<'intuition' | 'calculation'>('intuition');
   const [calcLoading, setCalcLoading] = useState(false);
+  const [previewLineUci, setPreviewLineUci] = useState<string | null>(null);
 
   // Linear game history. gameStates is a ref (mutated in place by async analysis);
   // currentIndexRef is the source of truth read by the (stable) chessground move
@@ -60,6 +63,9 @@ export default function PgnViewer() {
   showTop20Ref.current = showTop20;
   const thinkSecondsRef = useRef(thinkSeconds);
   thinkSecondsRef.current = thinkSeconds;
+  const autoAnalyzeRef = useRef(autoAnalyze);
+  autoAnalyzeRef.current = autoAnalyze;
+  const analysisSeqRef = useRef(0);
 
   // Ref for the active move in the panel to enable auto-scrolling
   const activeMoveRef = useRef<HTMLSpanElement>(null);
@@ -100,7 +106,7 @@ export default function PgnViewer() {
     setCurrentIndex(i);
     const st = gameStates.current[i];
     syncBoard(st);
-    if (autoAnalyze && !st.saliency && st.policy.length === 0) {
+    if (autoAnalyzeRef.current && !st.steering && !st.saliency && st.policy.length === 0) {
       drawOverlays(null, [], false); // clear stale overlays while analyzing
       analyzeFen(st.fen, st.lastMoveUci, i);
     } else {
@@ -157,13 +163,38 @@ export default function PgnViewer() {
 
     syncBoard(newState);
     drawOverlays(null, [], false); // clear the previous position's arrows immediately
-    if (autoAnalyze) {
+    setPreviewLineUci(null);
+    if (autoAnalyzeRef.current) {
       analyzeFen(newFen, uci, newIndex);
     }
   };
 
   const handlePrev = () => goToIndex(currentIndexRef.current - 1);
   const handleNext = () => goToIndex(currentIndexRef.current + 1);
+
+  const handleReset = () => {
+    const pos = Chess.default();
+    const startState: GameState = {
+      fen: INITIAL_FEN,
+      pos,
+      lastMoveUci: null,
+      san: null,
+      policy: [],
+      saliency: null,
+      calcSaliency: null,
+      evalObj: null,
+      blunderFlash: false,
+    };
+    gameStates.current = [startState];
+    currentIndexRef.current = 0;
+    setCurrentIndex(0);
+    syncBoard(startState);
+    drawOverlays(null, [], false);
+    setPreviewLineUci(null);
+    if (autoAnalyzeRef.current) {
+      analyzeFen(INITIAL_FEN, null, 0);
+    }
+  };
 
   // ---- analysis ------------------------------------------------------------
 
@@ -173,6 +204,7 @@ export default function PgnViewer() {
     stateIndex: number,
     timeOverride?: number,
   ) => {
+    const seq = ++analysisSeqRef.current;
     setIsAnalyzing(true);
     try {
       const res = await fetch('http://127.0.0.1:8000/api/analyze', {
@@ -207,6 +239,7 @@ export default function PgnViewer() {
         targetState.saliency = saliency;
         targetState.evalObj = evalObj;
         targetState.blunderFlash = shouldFlash;
+        targetState.steering = data.steering || null;
 
         // Only touch the board if this result is still for the visible position.
         if (stateIndex === currentIndexRef.current) {
@@ -217,7 +250,9 @@ export default function PgnViewer() {
     } catch (err) {
       console.error('Analysis failed:', err);
     } finally {
-      setIsAnalyzing(false);
+      if (seq === analysisSeqRef.current) {
+        setIsAnalyzing(false);
+      }
     }
   };
 
@@ -246,10 +281,45 @@ export default function PgnViewer() {
     }
   };
 
-  // ---- PGN load ------------------------------------------------------------
+  // ---- PGN / FEN load -----------------------------------------------------
 
   const handleLoadPgn = () => {
     try {
+      const trimmed = pgnInput.trim();
+
+      // 1. Direct FEN check
+      const fenRes = parseFen(trimmed);
+      if (fenRes.isOk) {
+        try {
+          const setup = fenRes.unwrap();
+          const startPos = Chess.fromSetup(setup).unwrap();
+          const startFen = makeFen(startPos.toSetup());
+          const states: GameState[] = [
+            {
+              fen: startFen,
+              pos: startPos.clone(),
+              lastMoveUci: null,
+              san: null,
+              policy: [],
+              saliency: null,
+              calcSaliency: null,
+              evalObj: null,
+              blunderFlash: false,
+            },
+          ];
+          gameStates.current = states;
+          currentIndexRef.current = 0;
+          setCurrentIndex(0);
+          syncBoard(states[0]);
+          drawOverlays(null, [], false);
+          analyzeFen(startFen, null, 0);
+          return;
+        } catch (e) {
+          console.warn('Could not construct board from FEN:', e);
+        }
+      }
+
+      // 2. Standard PGN parsing
       const games = parsePgn(pgnInput);
       if (games.length === 0) return;
       const game = games[0];
@@ -510,6 +580,9 @@ export default function PgnViewer() {
         <div ref={boardRef} style={{ width: '500px', height: '500px' }} className="cg-board-wrap" />
 
         <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+          <button className="load-btn" onClick={handleReset}>
+            New Game
+          </button>
           <button className="load-btn" onClick={handlePrev} disabled={currentIndex === 0}>
             Take-back / Prev
           </button>
@@ -589,15 +662,40 @@ export default function PgnViewer() {
           </div>
         )}
 
+        <SteeringLinesPanel
+          steering={currentState?.steering}
+          activeUci={previewLineUci}
+          isAnalyzing={isAnalyzing}
+          onPreviewLine={(_pv, uci) => {
+            setPreviewLineUci(uci);
+            if (cgRef.current && uci.length >= 4) {
+              const orig = uci.substring(0, 2) as any;
+              const dest = uci.substring(2, 4) as any;
+              cgRef.current.set({
+                drawable: {
+                  shapes: [
+                    { orig, dest, brush: 'yellow' }
+                  ]
+                }
+              });
+            }
+          }}
+          onPlayMove={(uci) => {
+            if (uci.length >= 4) {
+              handleMove(uci.substring(0, 2), uci.substring(2, 4));
+            }
+          }}
+        />
+
         <textarea
           value={pgnInput}
           onChange={(e) => setPgnInput(e.target.value)}
-          placeholder="Paste PGN here..."
-          style={{ height: '200px' }}
+          placeholder="Paste PGN or FEN here..."
+          style={{ height: '140px' }}
         />
 
         <button className="load-btn" onClick={handleLoadPgn}>
-          Load Game
+          Load PGN / FEN
         </button>
 
         <div className="move-list-panel">
