@@ -131,18 +131,55 @@ sample (3.2% of the DB), extrapolated:
 **Full range is ~3.1× more opening puzzles (~268,000).** But note where the volume is: the gain is
 overwhelmingly *below* 1500, and the hard band he cares about is only ~15,000 puzzles in total.
 
-**So widening the range is not enough on its own — stratify it.** Sample so that puzzles rated
-**≥2200 reach at least 20% of positives**, despite being ~5% of the pool. Left unstratified they
-are drowned by the sub-1500 material, and the sub-1500 band is the *opposite* of what this dataset
-is for.
+**So widening the range is not enough on its own — stratify it.** Left unstratified the hard
+puzzles are drowned by the sub-1500 material, and the sub-1500 band is the *opposite* of what this
+dataset is for.
+
+**⛑ CORRECTED 2026-09-03. Exact pool sizes, from a full scan rather than a sample:**
+
+| | exact count |
+|---|---|
+| **opening puzzles rated ≥ 2200** | **14,914** |
+| of those, carrying `sacrifice` or `kingsideAttack` | 3,356 (**22.5%**) |
+| opening ≥ 2500 | 3,853 |
+| opening ≥ 2700 | 1,098 |
+| opening ≥ 3000 | 15 |
+| highest-rated opening puzzle | 3118 |
+| median `nb_plays`, opening ≥2400 | 626 |
+
+That last row matters: these ratings rest on hundreds of solve attempts each, so they are
+established rather than noisy. And because Lichess puzzle ratings are Glicko updated
+puzzle-versus-solver on first attempt, **the rating sits on the players' scale** — a 2700 puzzle is
+one that ~2700-rated solvers fail about half the time. Thejus's point exactly: these are a curated
+record of *strong players going astray in the opening*.
+
+**THE INSTRUCTION: take all 14,914 of them, and size everything else around that.**
+
+- Use **every** opening puzzle rated ≥ 2200. Do not sample within this band — it is small and it is
+  the reason the dataset exists.
+- Set the total positive target so the hard band lands at **20%**: **75,000 positives before
+  matching** (14,914 / 75,000 = 19.9%).
+- Fill the remaining ~60,000 from the sub-2200 opening pool, weighted toward 1500–2200 over
+  sub-1500.
+
+*(An earlier draft of this brief said "≥2200 must reach at least 20%" against a target of 80,000.
+20% of 80,000 is 16,000 and the entire pool is 14,914 — the instruction was arithmetically
+impossible. Corrected.)*
+
+**⚠ The matching step can silently destroy this.** Positives with no matched negative are dropped,
+and there is no guarantee the ≥2200 band matches at the same rate as the rest. **Report the match
+rate separately for each rating band**, and report the hard band's final share of the surviving
+positives. If it falls below 15%, stop and report — do not top it up from elsewhere, because the
+shortfall is itself the finding.
 
 **Record `rating` per row** and **report AUC by rating band** (below 1500 / 1500–2200 / above 2200)
 in the gate table. If Φ-opening does well on easy puzzles and no better than the general model on
 hard ones, that is the single most useful thing this experiment can tell us, and a pooled number
 would hide it.
 
-Target **80,000 positives before matching** (raised from 60,000 now that the pool is ~268,000) (~40,000 expected to survive at the 65% match rate seen
-on the general build, giving ~4,000 in the test split — enough to halve the current SE).
+**Target: 75,000 positives before matching** — set by the arithmetic above, not chosen freely.
+At the 65% match rate seen on the general build that is ~48,750 survivors and ~4,900 in the test
+split, comfortably enough to halve the current SE of 0.0164 on the baseline comparison.
 
 Two constraints, both of which prevent a silently useless dataset:
 
