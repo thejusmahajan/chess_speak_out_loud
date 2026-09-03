@@ -106,9 +106,42 @@ write fresh, with one line on why for each fresh one.
 
 ### Step 2 — positives: opening, stratified, and weighted toward sharp
 
-From `puzzles`, `WHERE rating BETWEEN 1500 AND 2200 AND themes LIKE '%opening%'`.
+**⛑ AMENDED 2026-09-03 by Thejus: use the WHOLE rating range, not 1500–2200.**
 
-Target **60,000 positives before matching** (~40,000 expected to survive at the 65% match rate seen
+> *"is our puzzles limited to 2200 rating max? If yes, pull all the db. Anyone even the plus
+> 3000s can go astray in the opening."*
+
+He is right, and the reason is stronger than volume: **a Lichess puzzle's rating is a *difficulty*
+rating** — it rises when solvers fail it — not the rating of the players in the game. So a
+high-rated puzzle is by definition one whose saving move is hard to find, which is exactly his
+criterion: *"the correct non losing continuation mostly hangs on one or two moves sequence which is
+not at all obvious."* Capping at 2200 was systematically discarding the hardest examples.
+
+So: `WHERE themes LIKE '%opening%'`, **no rating filter**. Measured availability, from a 178,442-row
+sample (3.2% of the DB), extrapolated:
+
+| rating band | share of opening puzzles | extrapolated count |
+|---|---|---|
+| below 1500 | **62.6%** | ~168,000 |
+| 1500–2200 (what we used) | 31.8% | ~85,000 |
+| 2200–2600 | 4.8% | ~12,800 |
+| 2600–3000 | 0.8% | ~2,200 |
+| above 3000 | 0.0% | — |
+
+**Full range is ~3.1× more opening puzzles (~268,000).** But note where the volume is: the gain is
+overwhelmingly *below* 1500, and the hard band he cares about is only ~15,000 puzzles in total.
+
+**So widening the range is not enough on its own — stratify it.** Sample so that puzzles rated
+**≥2200 reach at least 20% of positives**, despite being ~5% of the pool. Left unstratified they
+are drowned by the sub-1500 material, and the sub-1500 band is the *opposite* of what this dataset
+is for.
+
+**Record `rating` per row** and **report AUC by rating band** (below 1500 / 1500–2200 / above 2200)
+in the gate table. If Φ-opening does well on easy puzzles and no better than the general model on
+hard ones, that is the single most useful thing this experiment can tell us, and a pooled number
+would hide it.
+
+Target **80,000 positives before matching** (raised from 60,000 now that the pool is ~268,000) (~40,000 expected to survive at the 65% match rate seen
 on the general build, giving ~4,000 in the test split — enough to halve the current SE).
 
 Two constraints, both of which prevent a silently useless dataset:
