@@ -1,7 +1,7 @@
 {
   "version": 1,
   "name": "Thejus — daily study timetable",
-  "authored": "2026-08-30",
+  "authored": "2026-09-08",
   "lead_minutes": 5,
   "_doc": [
     "Times are LOCAL 24h 'HH:MM'. Blocks must tile the full 24 hours with no gap and",
@@ -30,31 +30,31 @@
     },
     {
       "start": "04:15",
-      "end": "04:30",
-      "task": "Rest",
-      "kind": "rest",
-      "note": "Implicit gap in the original timetable, filled as rest."
-    },
-    {
-      "start": "04:30",
-      "end": "06:00",
-      "task": "Interview prep",
-      "kind": "work"
-    },
-    {
-      "start": "06:00",
-      "end": "06:15",
+      "end": "04:27",
       "task": "Rest",
       "kind": "rest"
     },
     {
-      "start": "06:15",
-      "end": "07:45",
+      "start": "04:27",
+      "end": "05:57",
+      "task": "Interview Question Training",
+      "kind": "work",
+      "note": "Active recall drilling, cards, and vocal answer practice."
+    },
+    {
+      "start": "05:57",
+      "end": "06:09",
+      "task": "Rest",
+      "kind": "rest"
+    },
+    {
+      "start": "06:09",
+      "end": "07:48",
       "task": "Coursera — ML",
       "kind": "work"
     },
     {
-      "start": "07:45",
+      "start": "07:48",
       "end": "08:00",
       "task": "Rest",
       "kind": "rest"
@@ -68,18 +68,19 @@
     },
     {
       "start": "08:45",
-      "end": "09:00",
+      "end": "08:57",
       "task": "Rest",
       "kind": "rest"
     },
     {
-      "start": "09:00",
-      "end": "10:30",
-      "task": "Interview prep",
-      "kind": "work"
+      "start": "08:57",
+      "end": "10:33",
+      "task": "Interview Prep — Technical & Research",
+      "kind": "work",
+      "note": "Hereon 1059 Agentic AI, paper reading & domain depth."
     },
     {
-      "start": "10:30",
+      "start": "10:33",
       "end": "10:45",
       "task": "Rest",
       "kind": "rest"
@@ -87,7 +88,7 @@
     {
       "start": "10:45",
       "end": "12:00",
-      "task": "Statistics + Weiterbildung project revision",
+      "task": "Statistics + Project Revision",
       "kind": "work"
     },
     {
@@ -99,67 +100,71 @@
     },
     {
       "start": "12:45",
-      "end": "13:00",
+      "end": "12:57",
       "task": "Rest",
       "kind": "rest"
     },
     {
-      "start": "13:00",
-      "end": "14:30",
-      "task": "Coursera — ML with Python",
+      "start": "12:57",
+      "end": "14:33",
+      "task": "Coursera — ML with Python / Coding",
       "kind": "work"
     },
     {
-      "start": "14:30",
+      "start": "14:33",
       "end": "14:45",
       "task": "Rest",
       "kind": "rest"
     },
     {
       "start": "14:45",
-      "end": "16:00",
-      "task": "German",
-      "kind": "work"
-    },
-    {
-      "start": "16:00",
       "end": "16:15",
-      "task": "Rest",
-      "kind": "rest"
+      "task": "German — B2 Preparation",
+      "kind": "work",
+      "note": "B2 grammar, connectors, vocabulary, exam drills."
     },
     {
       "start": "16:15",
-      "end": "18:00",
-      "task": "German",
-      "kind": "work"
-    },
-    {
-      "start": "18:00",
-      "end": "18:15",
+      "end": "16:27",
       "task": "Rest",
       "kind": "rest"
     },
     {
-      "start": "18:15",
-      "end": "20:00",
-      "task": "Revision",
-      "kind": "work"
+      "start": "16:27",
+      "end": "18:00",
+      "task": "German — Interview Training",
+      "kind": "work",
+      "note": "Spoken German, self-presentation & interview dialogue."
     },
     {
-      "start": "20:00",
-      "end": "20:45",
+      "start": "18:00",
+      "end": "18:45",
       "task": "Dinner",
       "kind": "meal",
       "note": "Eat light — hot and cooked."
     },
     {
-      "start": "20:45",
-      "end": "22:00",
-      "task": "Mech-interp project",
-      "kind": "work"
+      "start": "18:45",
+      "end": "18:57",
+      "task": "Rest",
+      "kind": "rest"
     },
     {
-      "start": "22:00",
+      "start": "18:57",
+      "end": "20:30",
+      "task": "Revision & Research Project",
+      "kind": "work",
+      "note": "Daily log, synthesis & state consolidation."
+    },
+    {
+      "start": "20:30",
+      "end": "21:00",
+      "task": "Wind-down & Night Routine",
+      "kind": "rest",
+      "note": "Quiet prep, screen-free, transition to sound sleep."
+    },
+    {
+      "start": "21:00",
       "end": "03:00",
       "task": "Sleep",
       "kind": "sleep"

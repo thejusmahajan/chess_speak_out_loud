@@ -139,16 +139,19 @@ def test_real_timetable_matches_the_authored_plan(real):
     by_start = {format_hhmm(s.start_min): s for s in real.specs}
     assert by_start["03:00"].task.startswith("Wake up")
     assert by_start["03:00"].start_alarm is True
-    assert by_start["04:30"].task == "Interview prep"
-    assert by_start["06:15"].task == "Coursera — ML"
-    assert by_start["10:45"].task == "Statistics + Weiterbildung project revision"
-    assert by_start["13:00"].task == "Coursera — ML with Python"
-    assert by_start["14:45"].kind == "work" and by_start["14:45"].task == "German"
-    assert by_start["16:15"].task == "German"
-    assert by_start["18:15"].task == "Revision"
-    assert by_start["20:45"].task == "Mech-interp project"
-    assert by_start["22:00"].kind == "sleep"
-    assert by_start["12:00"].kind == "meal"
+    assert by_start["04:27"].task == "Interview Question Training"
+    assert by_start["06:09"].task == "Coursera — ML"
+    assert by_start["08:00"].kind == "meal" and by_start["08:00"].task == "Breakfast"
+    assert by_start["08:57"].task == "Interview Prep — Technical & Research"
+    assert by_start["10:45"].task == "Statistics + Project Revision"
+    assert by_start["12:00"].kind == "meal" and by_start["12:00"].task == "Lunch"
+    assert by_start["12:57"].task == "Coursera — ML with Python / Coding"
+    assert by_start["14:45"].kind == "work" and by_start["14:45"].task == "German — B2 Preparation"
+    assert by_start["16:27"].task == "German — Interview Training"
+    assert by_start["18:00"].kind == "meal" and by_start["18:00"].task == "Dinner"
+    assert by_start["18:57"].task == "Revision & Research Project"
+    assert by_start["20:30"].kind == "rest"
+    assert by_start["21:00"].kind == "sleep"
 
 
 # =====================================================================
@@ -245,12 +248,12 @@ def test_exactly_one_reminder_per_boundary(tiny):
 def test_real_timetable_reminder_sound_map(real):
     fired = {r.boundary.strftime("%H:%M"): r.sound for r in _day_reminders(real)}
     # Into work / meals / meditation: ALARM.
-    for at in ["03:00", "03:30", "04:30", "06:15", "08:00", "09:00", "10:45",
-               "12:00", "13:00", "14:45", "16:15", "18:15", "20:00", "20:45"]:
+    for at in ["03:00", "03:30", "04:27", "06:09", "08:00", "08:57", "10:45",
+               "12:00", "12:57", "14:45", "16:27", "18:00", "18:57"]:
         assert fired[at] is True, f"{at} should sound"
     # Into rest / sleep: silent.
-    for at in ["04:15", "06:00", "07:45", "08:45", "10:30", "12:45",
-               "14:30", "16:00", "18:00", "22:00"]:
+    for at in ["04:15", "05:57", "07:48", "08:45", "10:33", "12:45",
+               "14:33", "16:15", "18:45", "20:30", "21:00"]:
         assert fired[at] is False, f"{at} should be silent"
 
 
@@ -299,8 +302,8 @@ def test_reminders_are_chronological(real):
 # =====================================================================
 
 def test_day_state_shape_and_countdown(real):
-    state = day_state(real, datetime(2026, 8, 30, 5, 57, 0))
-    assert state["current"]["task"] == "Interview prep"
+    state = day_state(real, datetime(2026, 8, 30, 5, 54, 0))
+    assert state["current"]["task"] == "Interview Question Training"
     assert state["next"]["task"] == "Rest"
     assert state["remaining_seconds"] == 180
     assert state["remaining_human"] == "3m 00s"
@@ -312,9 +315,9 @@ def test_day_state_shape_and_countdown(real):
 def test_day_state_next_reminder_carries_the_sound_decision(real):
     state = day_state(real, datetime(2026, 8, 30, 6, 1, 0))
     assert state["current"]["task"] == "Rest"
-    assert state["next_reminder"]["boundary"].endswith("06:15:00")
+    assert state["next_reminder"]["boundary"].endswith("06:09:00")
     assert state["next_reminder"]["sound"] is True
-    assert state["seconds_to_next_reminder"] == 9 * 60
+    assert state["seconds_to_next_reminder"] == 3 * 60
 
 
 def test_day_state_not_in_lead_window_mid_session(real):
@@ -323,8 +326,8 @@ def test_day_state_not_in_lead_window_mid_session(real):
 
 
 def test_reminder_body_names_both_sides_of_the_boundary(real):
-    reminder = next(r for r in _day_reminders(real) if r.boundary.strftime("%H:%M") == "06:15")
-    assert "Rest ends at 06:15" in reminder.body
+    reminder = next(r for r in _day_reminders(real) if r.boundary.strftime("%H:%M") == "06:09")
+    assert "Rest ends at 06:09" in reminder.body
     assert "Coursera — ML" in reminder.body
 
 

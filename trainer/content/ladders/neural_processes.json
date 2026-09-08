@@ -246,6 +246,62 @@
     ]
   },
   {
+    "id": "np-l3-004",
+    "ladder": "neural-processes",
+    "level": 3,
+    "topic": "Softplus vs Sigmoid activation for predictive variance",
+    "question": "Why do Gaussian Neural Process decoders use a Softplus activation rather than a Sigmoid or raw linear layer for the uncertainty head?",
+    "answer": "Variance $\\sigma^2$ must be strictly positive ($\\sigma^2 > 0$), which rules out an unconstrained linear layer. A Sigmoid function caps values between $(0, 1)$, making it impossible for the model to predict physical variances larger than $1.0\\,(\\text{units})^2$. The Softplus function $\\ln(1 + e^z)$ enforces strict positivity while growing asymptotically linear ($z \\to \\infty \\implies \\text{softplus}(z) \\approx z$), allowing predictive uncertainty to scale arbitrarily large (e.g., when extrapolating far from context stations).",
+    "explanation": "For a logit of $z=0.5$, $\\text{softplus}(0.5) = \\ln(1 + e^{0.5}) \\approx 0.974$. For $z=16.0$, $\\text{softplus}(16.0) \\approx 16.0$, yielding $\\sigma = 4.0$, which a sigmoid could never represent.",
+    "trap": "Using Sigmoid to predict uncertainty, or forgetting the positivity constraint on variance.",
+    "sources": [
+      "docs/study/CNP_HAMBURG_TEMPERATURE_WALKTHROUGH.md",
+      "https://arxiv.org/abs/1807.01613"
+    ],
+    "difficulty": 1540,
+    "requires": [
+      "np-l2-001",
+      "np-l2-002"
+    ]
+  },
+  {
+    "id": "np-l3-005",
+    "ladder": "neural-processes",
+    "level": 3,
+    "topic": "numerical stability floor epsilon in Gaussian NLL",
+    "question": "Why must PyTorch implementations of Neural Process decoders add a small epsilon floor to the Softplus variance?",
+    "answer": "In the Gaussian Negative Log-Likelihood loss $\\mathcal{L} = \\frac{1}{2} \\sum [\\ln(2\\pi\\sigma^2) + \\frac{(y-\\mu)^2}{\\sigma^2}]$, if a strongly negative logit causes $\\text{softplus}(z) \\to 0$, taking $\\ln(0)$ or dividing by zero causes an instant gradient explosion (`NaN`). Adding an explicit epsilon floor $\\sigma^2 = \\text{softplus}(z) + 10^{-4}$ guarantees numerical stability during backpropagation.",
+    "explanation": "Without the floor, early exploration during training frequently drives some variance logits negative, crashing the training run.",
+    "trap": "Omitting the epsilon floor and assuming PyTorch's automatic differentiation will handle log(0) gracefully.",
+    "sources": [
+      "docs/study/CNP_HAMBURG_TEMPERATURE_WALKTHROUGH.md"
+    ],
+    "difficulty": 1550,
+    "requires": [
+      "np-l2-001",
+      "np-l2-003"
+    ]
+  },
+  {
+    "id": "np-l3-006",
+    "ladder": "neural-processes",
+    "level": 3,
+    "topic": "distance-dependent uncertainty: CNP vs exact GP",
+    "question": "How does uncertainty expansion as distance from context stations increases differ fundamentally between an exact Gaussian Process and a Conditional Neural Process?",
+    "answer": "In a Gaussian Process, distance enters analytically through the covariance kernel: when query $x_*$ is far from all context points, $k(x_*, x_c) \\to 0$, mathematically forcing the posterior variance back to prior variance $\\sigma^2_{\\text{prior}}$. In a plain CNP, there is no analytical kernel: the network only predicts higher uncertainty far away if it has learned this behavior empirically across meta-training tasks with varying spatial densities. Testing a CNP far outside its training domain can result in overconfident bad extrapolations.",
+    "explanation": "A GP's uncertainty expansion is guaranteed by linear algebra and kernel geometry. A CNP's uncertainty expansion is a learned parametric approximation.",
+    "trap": "Assuming a Neural Process has a mathematical guarantee that variance will revert to a prior far from context stations.",
+    "sources": [
+      "docs/study/CNP_HAMBURG_TEMPERATURE_WALKTHROUGH.md",
+      "https://arxiv.org/abs/1807.01613"
+    ],
+    "difficulty": 1580,
+    "requires": [
+      "np-l0-004",
+      "np-l2-001"
+    ]
+  },
+  {
     "id": "np-l4-001",
     "ladder": "neural-processes",
     "level": 4,
@@ -301,6 +357,24 @@
     "requires": [
       "np-l4-001",
       "np-l4-002"
+    ]
+  },
+  {
+    "id": "np-l5-002",
+    "ladder": "neural-processes",
+    "level": 5,
+    "topic": "Hamburg temperature and spatial uncertainty walkthrough",
+    "question": "Walk through step-by-step how a Conditional Neural Process predicts temperature and uncertainty for Altona using data from St. Pauli, Eimsbüttel, and Bahrenfeld.",
+    "answer": "1. Context Encoding: Each station's coordinates and temperature $(x_i, y_i)$ are mapped via MLP $h_\\theta$ into a latent vector $r_i$.\n2. Aggregation: DeepSets mean-pooling $r_C = \\frac{1}{3}(r_1+r_2+r_3)$ compresses the West Hamburg regional atmospheric state into a single permutation-invariant vector.\n3. Decoding: Target coordinates $x_{\\text{Altona}} = [53.55, 9.93]$ concatenate with $r_C$ into decoder $g_\\phi$.\n4. Dual Heads: An unconstrained linear head outputs mean $\\mu = 16.4^\\circ\\text{C}$. A Softplus head outputs variance $\\sigma^2 = \\ln(1+e^{0.5}) \\approx 0.974^\\circ\\text{C}^2$.\n5. Statistical Translation: $\\sigma \\approx 1.0^\\circ\\text{C}$, yielding a 68% confidence interval of $[15.4, 17.4]^\\circ\\text{C}$ and 95% interval of $[14.4, 18.4]^\\circ\\text{C}$.",
+    "explanation": "This showcases the complete inference pipeline: permutation-invariant context compression, unconstrained mean prediction, strictly positive non-saturating variance via Softplus, and continuous Gaussian confidence intervals.",
+    "trap": "Using Sigmoid instead of Softplus for variance, or thinking the order of stations fed into the encoder affects the prediction.",
+    "sources": [
+      "docs/study/CNP_HAMBURG_TEMPERATURE_WALKTHROUGH.md"
+    ],
+    "difficulty": 1950,
+    "requires": [
+      "np-l3-001",
+      "np-l3-004"
     ]
   }
 ]

@@ -250,6 +250,8 @@ def verify_and_plot(model: nn.Module, generator: ChessTrajectoryGenerator, outpu
     mean_sigma_gap = float(np.mean(sigma[gap_plies]))
     ratio = mean_sigma_gap / (mean_sigma_context + 1e-6)
     
+    print("|mu - y| at context plies:", np.abs(mu[context_plies] - y_true[context_plies]))
+    
     print("=" * 65)
     print("BEHAVIORAL INVARIANT CHECK (Uncertainty Pinching):")
     print(f"  Mean Sigma at Evaluated Moves (Context):  {mean_sigma_context:.4f}")
