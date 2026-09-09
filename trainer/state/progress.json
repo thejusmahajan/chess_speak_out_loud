@@ -1,5 +1,5 @@
 {
-  "user_rating": 1226.65,
+  "user_rating": 803.87,
   "cards": {
     "pyt-l1-001": {
       "rating": 977.59,
@@ -3125,6 +3125,23 @@
           "card_rating": 1736.37
         }
       ]
+    },
+    "stat-l0-005": {
+      "rating": 879.11,
+      "ease": 2.35,
+      "interval_days": 1,
+      "reps": 0,
+      "last_seen": "2026-09-08T17:16:00.518515+00:00",
+      "due_date": "2026-09-09T17:16:00.518515+00:00",
+      "mastered": false,
+      "history": [
+        {
+          "timestamp": "2026-09-08T17:16:00.518515+00:00",
+          "score": 0.5,
+          "user_rating": 803.87,
+          "card_rating": 879.11
+        }
+      ]
     }
   },
   "ladder_ratings": {
@@ -3138,11 +3155,10 @@
     "de-konnektoren": 1237.69,
     "hereon-aeon-up": 1226.65,
     "bridge": 838.5,
-    "statistics": 801.19,
+    "statistics": 803.87,
     "general-interview": 914.06
   },
   "recent": [
-    "gen-l0-003",
     "gen-l0-001",
     "gen-l0-004",
     "gen-l0-002",
@@ -3161,6 +3177,7 @@
     "her-l4-018",
     "her-l4-019",
     "her-l4-020",
-    "stat-l0-005"
+    "stat-l0-005",
+    "clin-l0-001"
   ]
 }
