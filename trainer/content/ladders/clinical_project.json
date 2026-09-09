@@ -373,7 +373,7 @@
     "topic": "SCRIPT beat 1 - the frame",
     "question": "Deliver beat 1 of the full script: the frame (about 15 seconds).",
     "answer": "From February to April this year I did a ten-week practical placement at HealthTwiSt in Berlin, as part of my Weiterbildung in applied bioinformatics and biostatistics. I worked under Dr. Andreas Busjahn on the data pipeline behind DeGIR - the German quality registry for interventional radiology.",
-    "explanation": "Sets time, place, supervision and subject in four facts. Naming Dr. Busjahn matters: he is a real referee who has agreed to write for you, so the name is an asset, not decoration.",
+    "explanation": "Sets time, place, supervision and subject in four facts. Naming Dr. Busjahn matters: they are a real referee who has agreed to write for you, so the name is an asset, not decoration.",
     "trap": "Do not open with an apology for it being 'only an internship'. It was a production system with real patient data governance.",
     "sources": [
       "applications/hereon_aeon_up/certificates/Praktikumsbestaetigung_HealthTwiSt.pdf",

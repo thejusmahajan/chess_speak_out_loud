@@ -1631,3 +1631,53 @@ it always was — spoken material, slide 9 of the deck. Do not re-litigate; do n
 - The separation brief, still unwritten.
 
 **Repo:** `chess_speak_out_loud` and `job_search`, both committed and pushed and verified level.
+
+---
+
+## 2026-09-09 — the IDM application, and a third silent bug
+
+**Session was entirely job-search.** No chess code touched. Work landed in `job_search` and in a new
+working copy of `degir-dashboard`; both are pushed.
+
+**Built and ready to send: IDM gGmbH, AI/ML Engineer Clinical AI (Hamburg).** Thejus sends it
+himself on 10 September. Two attachments, English email, procedure in the folder README.
+
+**Three of my own calls were reversed by him, and he was right each time.**
+
+1. *German email.* I recommended a German email with an English cover letter, then drafted the
+   German myself. He pointed out the obvious: it would have been a sample of my German, not his, and
+   a reply in kind would have exposed the mismatch — the exact trap my own advice warned against.
+   Now English throughout, stating plainly that he converses comfortably in German but would rather
+   write precisely in English than approximately in German.
+2. *No certificates.* I wrote "do not attach the certificate bundle", reasoning from the Hereon
+   16-page dossier. Sound about that dossier, wrong as a rule: Zeugnisse are normal in a German
+   application regardless of company size, and five of these back specific claims in the letter.
+   A 9-page curated annex now goes with it.
+3. *Register.* He asked to sound determined and ambitious — *"this is my honest mental texture
+   now"* — and then supplied the material that was missing from every document: his advisor
+   **Inga Hense** retired before the project finished, leaving him the only modeller in the group;
+   he found **Kai Wirtz** at Hereon himself and shipped the JAX port and the 0-D milestones in that
+   phase, working full time and unpaid.
+
+**`job_search/VOICE/` created at his request** — his verbatim words plus a derived guide, so any
+agent writes in his register. It also holds the standing factual corrections and two hard
+exclusions: Kai Wirtz's letter (written for the authorities; it states he holds no research
+employment) and the unpaid/KITA detail (his to disclose in an interview, never an agent's to put in
+writing).
+
+**A correction that reaches employers.** The DeGIR dashboard data was described as *"GDPR-safe
+synthetic data"* in ~20 CVs. The public generator shows a bootstrap resample of real records with
+perturbation. Live documents now say *"de-identified, perturbed extract"*. Hereon 1059 went out with
+the old wording.
+
+**Third silent bug found**, this time in his own de-identification script: indexing a named vector
+with a factor made R use the integer level codes, so clinics were relabelled alphabetically rather
+than by volume — 95 % of rows landed in the "everything else" buckets and the supposedly-largest
+clinic held 21 records. Reproduced against a simulated registry, patched, documented in the README
+rather than quietly fixed. Privacy is not weakened by it.
+
+**R was already on the machine** (4.5.2, not on PATH). That is what made the bug findable — the
+earlier string-sweep of the `.rds` could not have caught it.
+
+**Open:** Thejus sends IDM; emails Dr. Busjahn about publishing the derived extract; sends the
+Hereon AEON-UP follow-up.

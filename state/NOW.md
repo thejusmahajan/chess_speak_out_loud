@@ -1,7 +1,74 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-09-03 (evening) by the leader (Opus 5). **Start here: `state/NEXT_SESSION_PROMPT.md`** — written for a fresh agent. Then §9 (Φ trained, F1 FAILED at 0.6908), §10 (regeneration), §12 (Φ-opening — A5 FIRED), §11 (leadership corpus).
+**Last updated:** 2026-09-09 (evening) by the leader (Opus 5) — see TODAY, directly below. **Start here: `state/NEXT_SESSION_PROMPT.md`** — written for a fresh agent. Then §9 (Φ trained, F1 FAILED at 0.6908), §10 (regeneration), §12 (Φ-opening — A5 FIRED), §11 (leadership corpus).
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
+
+---
+
+## ⚑ TODAY — 2026-09-09 (evening). Job-search work, not chess.
+
+**The whole session was applications. No chess code was touched.** Two repos outside this one were
+changed and pushed: `bioinformatics_project/job_search` and the new working copy
+`bioinformatics_project/degir-dashboard`.
+
+### Where it stands
+
+**IDM gGmbH (AI/ML Engineer, Clinical AI, Hamburg) is BUILT AND READY. Thejus sends it himself
+tomorrow, 10 September.** Everything is in `job_search/applications/idm_clinical_ai/` and its
+`README.md` holds the three-step send procedure. Do not rebuild anything unless he asks.
+
+- Attach **two** files: `Mahajan_IDM_ClinicalAI.pdf` (3 p, 16 live links) and
+  `Mahajan_IDM_Certificates.pdf` (9 p). Paste `EMAIL_BODY.txt`. English, not German.
+- `build.sh` rebuilds correctly. **It merges with `pdfunite`, never `pdfpages`** — `pdfpages`
+  silently strips every link annotation and an earlier build of this bundle went out at zero links.
+
+**⚠ Note this correction, it reaches employers.** The DeGIR dashboard's data was described
+everywhere as *"GDPR-safe synthetic data"*. It is not: the public generator bootstrap-resamples real
+records and perturbs them. Every live document now says **"a de-identified, perturbed extract"**.
+The already-sent Hereon 1059 bundle still carries the old wording — nothing to do, but describe it
+accurately out loud if interviewed.
+
+**Section 0 below is stale on one point.** It records *"Only this hereon is active as others were
+rejected"* (2026-08-29). Hereon 1059 was sent 8 September, and IDM is live. `APPLICATION_LOG.md` is
+a work queue again, and it now carries both September entries.
+
+### Next three actions
+
+1. **Thejus sends IDM** — two attachments, `EMAIL_BODY.txt`, then log the sent date in
+   `APPLICATION_LOG.md`.
+2. **Email Dr. Busjahn** — three lines confirming HealthTwiSt is content for a derived registry
+   extract to be public. `degir-dashboard` is now linked four times across the bundle and email.
+   This is the only real exposure left open.
+3. **Send the Hereon AEON-UP follow-up** — drafted at `applications/hereon_aeon_up/FOLLOW_UP_EMAIL.md`.
+
+### Read before writing anything in his name
+
+**`job_search/VOICE/`** — new this session, at his request. His own words, verbatim and dated, on
+how he wants to come across: *"an active, independent worker, not a passive woodpusher."* The
+`README.md` there also carries the standing factual corrections that keep reappearing in drafts (no
+university HPC, no TPU execution, no C++, de-identified not synthetic, *gültige* not *unbefristete*).
+
+**⛔ Never attach `Hereon_Guest_Scientist_Letter.pdf` to any application.** It is Prof. Kai Wirtz's
+letter to the German authorities and states plainly that Thejus holds no research employment — it
+existed to keep his daughter's KITA voucher at full-day. In front of a hiring manager it does harm.
+A Hereon reference means asking Prof. Wirtz afresh.
+
+### Also done, and pushed
+
+- `degir-dashboard` now has a **README** documenting the data derivation and its limits, and the
+  generator no longer hard-codes the real extract's server path.
+- Found a **third silent bug**, in that generator: `full_map[df$customer_number]` indexes a named
+  vector with a **factor**, so R used the integer level codes and relabelled clinics alphabetically
+  instead of by volume. Reproduced, patched, documented. It does not weaken privacy.
+- **R 4.5.2 was already installed** at `C:\Program Files\R\R-4.5.2` (not on PATH). All 14 dashboard
+  dependencies are now present and the app was verified to serve HTTP 200 locally.
+- `job_search/work_done_during_internship/DASHBOARD_STUDY_GUIDE.md` — interview drill for the
+  dashboard, corrected against the code (1,409 R lines, not the 1,468 his notes claim).
+- Verdict given on `docs/cya_remo_jax_ibm_ml_contemplation.md` (Gemini's): keep it, but **"Dr. Aris
+  Thorne" is a fabricated person** and must go; the DFG Antrag quote is verbatim-verified; the
+  Beckmann and Medwed quotes are unverifiable from this repo; "GPU/TPU" repeats the TPU overclaim.
+
+---
 
 ---
 
