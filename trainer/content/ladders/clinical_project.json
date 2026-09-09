@@ -347,5 +347,149 @@
     "requires": [
       "clin-l3-003"
     ]
+  },
+  {
+    "id": "clin-l5-002",
+    "ladder": "clinical-project",
+    "level": 5,
+    "topic": "SCRIPT - the 30-second version",
+    "question": "Interviewer: \"Tell me briefly about your internship.\" Deliver the 30-second version.",
+    "answer": "I spent ten weeks at HealthTwiSt in Berlin refactoring the R pipeline behind DeGIR - the German quality registry for interventional radiology. It handles about 143,000 patient records a year from around 300 clinics. I moved 257 hard-coded rules out into configuration files, extracted the reusable parts into a documented R package, and built a dashboard on synthetic data. The part I care most about is verification: after every change I compared the old and new output byte for byte. That is how I found two bugs that were already in the code - which I documented rather than silently fixed.",
+    "explanation": "Use this when they say 'briefly', when time is short, or as the opener if they look busy. Roughly 30 seconds at a calm pace. Every number here is one you can defend.",
+    "trap": "Do not race. The temptation is to compress it further and lose the verification sentence - that sentence is the whole point of telling this story.",
+    "sources": [
+      "applications/hereon_aeon_up/certificates/Praktikumsbestaetigung_HealthTwiSt.pdf",
+      "job_search/applications/clinical_data_science_general/cv_clinical_data_science.tex"
+    ],
+    "difficulty": 1500,
+    "requires": [
+      "clin-l5-001"
+    ]
+  },
+  {
+    "id": "clin-l5-003",
+    "ladder": "clinical-project",
+    "level": 5,
+    "topic": "SCRIPT beat 1 - the frame",
+    "question": "Deliver beat 1 of the full script: the frame (about 15 seconds).",
+    "answer": "From February to April this year I did a ten-week practical placement at HealthTwiSt in Berlin, as part of my Weiterbildung in applied bioinformatics and biostatistics. I worked under Dr. Andreas Busjahn on the data pipeline behind DeGIR - the German quality registry for interventional radiology.",
+    "explanation": "Sets time, place, supervision and subject in four facts. Naming Dr. Busjahn matters: he is a real referee who has agreed to write for you, so the name is an asset, not decoration.",
+    "trap": "Do not open with an apology for it being 'only an internship'. It was a production system with real patient data governance.",
+    "sources": [
+      "applications/hereon_aeon_up/certificates/Praktikumsbestaetigung_HealthTwiSt.pdf",
+      "job_search/applications/clinical_data_science_general/cv_clinical_data_science.tex"
+    ],
+    "difficulty": 1520,
+    "requires": [
+      "clin-l5-002"
+    ]
+  },
+  {
+    "id": "clin-l5-004",
+    "ladder": "clinical-project",
+    "level": 5,
+    "topic": "SCRIPT beat 2 - the problem",
+    "question": "Deliver beat 2: what you walked into (about 20 seconds).",
+    "answer": "The registry takes in about 143,000 patient records a year from around 300 clinics. The pipeline processing it was a single R script that had grown to roughly 1,800 lines. It worked - but the business rules were hard-coded inside it. So every time a clinic changed a definition, somebody had to go and edit the code.",
+    "explanation": "This beat makes the later work meaningful. Without the problem, the refactor is just tidying. 'It worked, but' is the key turn - it shows you respect the existing system.",
+    "trap": "Do not disparage the original code or its author. You inherited a working production system; contempt for legacy code reads badly to anyone who maintains any.",
+    "sources": [
+      "applications/hereon_aeon_up/certificates/Praktikumsbestaetigung_HealthTwiSt.pdf",
+      "job_search/applications/clinical_data_science_general/cv_clinical_data_science.tex"
+    ],
+    "difficulty": 1540,
+    "requires": [
+      "clin-l5-003"
+    ]
+  },
+  {
+    "id": "clin-l5-005",
+    "ladder": "clinical-project",
+    "level": 5,
+    "topic": "SCRIPT beat 3 - what I did",
+    "question": "Deliver beat 3: the three concrete things you did (about 40 seconds).",
+    "answer": "I did three things. First, I pulled 257 hard-coded correction rules out of the code and into eight configuration files, so that a clinician can change a rule without touching R. Second, I extracted the reusable logic into a proper R package - degirtools, nine documented functions that pass R's own package checks. Third, I built a Shiny dashboard on top of it, six modules, running on synthetic data so there is no patient data in it at all. The script came down from about 1,800 lines to about 1,350.",
+    "explanation": "Three items, in order of value. The synthetic-data clause is deliberate - it tells a clinical employer you thought about GDPR before they asked.",
+    "trap": "Do not list all seven things you did. Three is memorable; seven is a blur. The deprecated-call modernisation and the teaching materials are held back for follow-up questions.",
+    "sources": [
+      "applications/hereon_aeon_up/certificates/Praktikumsbestaetigung_HealthTwiSt.pdf",
+      "job_search/applications/clinical_data_science_general/cv_clinical_data_science.tex"
+    ],
+    "difficulty": 1560,
+    "requires": [
+      "clin-l5-004"
+    ]
+  },
+  {
+    "id": "clin-l5-006",
+    "ladder": "clinical-project",
+    "level": 5,
+    "topic": "SCRIPT beat 4 - how I knew it was right",
+    "question": "Deliver beat 4: verification. This is the beat that distinguishes you (about 25 seconds).",
+    "answer": "The part I care most about is how I knew I had not broken anything. This is a clinical registry - if a refactor silently changes a number, that number ends up in a quality report about a hospital. So after every change I ran the old pipeline and the new one and compared the outputs with R's identical function. Not 'close enough' - byte-identical. If it was not identical, the change did not go in.",
+    "explanation": "This is the beat to slow down on. It is the one thing in the whole story that most candidates cannot say, and it generalises to any regulated or scientific setting.",
+    "trap": "Do not say 'I tested it'. Everyone says that. The specific mechanism - identical(), byte-level, after every change, gate on failure - is what makes it credible.",
+    "sources": [
+      "applications/hereon_aeon_up/certificates/Praktikumsbestaetigung_HealthTwiSt.pdf",
+      "job_search/applications/clinical_data_science_general/cv_clinical_data_science.tex"
+    ],
+    "difficulty": 1600,
+    "requires": [
+      "clin-l5-005"
+    ]
+  },
+  {
+    "id": "clin-l5-007",
+    "ladder": "clinical-project",
+    "level": 5,
+    "topic": "SCRIPT beat 5 - the two bugs and the judgement call",
+    "question": "Deliver beat 5: what the verification found, and what you did about it (about 20 seconds).",
+    "answer": "That is also how I found two bugs that were already in the code before I arrived - one in how a complications column was handled, one an operator-precedence mistake. I did not fix them. I documented both and left the behaviour exactly as it was, because changing them would have changed historical numbers - and that is a decision for the registry, not for the intern.",
+    "explanation": "The restraint is the point. Finding bugs shows competence; not unilaterally fixing them in a clinical system shows judgement. Interviewers remember the second.",
+    "trap": "Do not present this as heroism. The tone is matter-of-fact: this is simply how you work in a system where numbers have consequences.",
+    "sources": [
+      "applications/hereon_aeon_up/certificates/Praktikumsbestaetigung_HealthTwiSt.pdf",
+      "job_search/applications/clinical_data_science_general/cv_clinical_data_science.tex"
+    ],
+    "difficulty": 1620,
+    "requires": [
+      "clin-l5-006"
+    ]
+  },
+  {
+    "id": "clin-l5-008",
+    "ladder": "clinical-project",
+    "level": 5,
+    "topic": "SCRIPT beat 6 - the swappable close, four variants",
+    "question": "Deliver beat 6: the close, adapted to the company you are sitting in front of (about 15 seconds).",
+    "answer": "CLINICAL AI / ML (e.g. IDM): \"What I took from it is that in clinical work the hard part is not building the thing - it is being able to show it still gives the right answer. That is the same reason I care about evaluation and monitoring in machine learning, not only training.\"  ||  CRO / STATISTICAL PROGRAMMING: \"That is the discipline I would bring to a regulated pipeline: change nothing silently, verify every step, and escalate rather than quietly fix.\"  ||  RESEARCH / ACADEMIC: \"It is the same instinct I apply to my own work - I later found two silent errors in my own analysis pipeline and published a correction.\"  ||  GENERAL DATA ENGINEERING: \"It taught me that the value of a refactor is entirely in the proof that behaviour did not change.\"",
+    "explanation": "Only this beat changes between companies. Beats 1-5 stay word-for-word, which is what makes the script memorisable once and reusable everywhere.",
+    "trap": "Do not use the research close at a company, or the CRO close at a research institute. Pick the close before you walk in, not while you are speaking.",
+    "sources": [
+      "applications/hereon_aeon_up/certificates/Praktikumsbestaetigung_HealthTwiSt.pdf",
+      "job_search/applications/clinical_data_science_general/cv_clinical_data_science.tex"
+    ],
+    "difficulty": 1650,
+    "requires": [
+      "clin-l5-007"
+    ]
+  },
+  {
+    "id": "clin-l5-009",
+    "ladder": "clinical-project",
+    "level": 5,
+    "topic": "SCRIPT - full two-minute delivery",
+    "question": "Interviewer: \"Tell me about your internship / walk me through a project you are proud of.\" Deliver the whole script, beats 1 to 6.",
+    "answer": "Beats 1-6 in order, roughly two minutes: FRAME (Feb-Apr, ten weeks, HealthTwiSt Berlin, under Dr. Busjahn, DeGIR registry) - PROBLEM (143,000 records a year, ~300 clinics, one ~1,800-line R script, rules hard-coded so code edits were needed for definition changes) - WHAT I DID (257 rules into 8 config files; degirtools package, 9 documented functions passing R CMD check; 6-module Shiny dashboard on synthetic data; ~1,800 to ~1,350 lines) - VERIFICATION (old vs new compared with identical() after every change, byte-identical or it does not go in, because a silently changed number reaches a hospital quality report) - THE TWO BUGS (pre-existing; documented, not fixed, because it would alter historical numbers and that is the registry's call) - CLOSE (chosen per company from clin-l5-008).",
+    "explanation": "Practise it out loud, beat by beat, not by reading. Time yourself: under 90 seconds means you are rushing; over 150 means you are padding. The beats are separately memorised so that if you are interrupted mid-answer you can resume at a boundary instead of restarting.",
+    "trap": "The commonest failure is delivering beats 1-3 and stopping, because that feels like a complete answer. It is not - beats 4 and 5 are the reason the story is worth telling.",
+    "sources": [
+      "applications/hereon_aeon_up/certificates/Praktikumsbestaetigung_HealthTwiSt.pdf",
+      "job_search/applications/clinical_data_science_general/cv_clinical_data_science.tex"
+    ],
+    "difficulty": 1700,
+    "requires": [
+      "clin-l5-008"
+    ]
   }
 ]

@@ -479,3 +479,13 @@ We checked this directly:
 | 3 | No number in README that did not come from a command run | **PASS** | Zero unverified benchmark or speedup numbers in README. |
 | 4 | Step 2 actually attempted, and real result reported | **PASS** | Step 2 run in fresh venv with modern JAX 0.10.2, terminal output pasted verbatim, wall-clock time 21.35s recorded. |
 | 5 | README states T4 GPU and makes no TPU-execution claim | **PASS** | Explicitly phrased in README Section "Hardware Execution & Testing". |
+
+
+---
+
+## 8. Publication Confirmation
+
+On 2026-09-09 at 17:25 CEST, Thejus created the remote repository on GitHub and published the local branch:
+- **Public URL:** https://github.com/thejusmahajan/jax-water-column-model
+- **Remote:** origin https://github.com/thejusmahajan/jax-water-column-model.git
+- **Branch status:** main is up to date with origin/main.
