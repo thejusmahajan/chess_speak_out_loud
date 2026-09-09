@@ -74,11 +74,29 @@ agents/reports/2026-09-09_ecc-harness-study-and-antigravity-mapping_REPORT.md   
 
 ## 4. STEPS
 
-### Step 1 — get it, and measure it before reading it
+### Step 1 — download it first, and measure it before reading it
 
-Clone `everything-claude-code` into your working directory. Then, **before** reading deeply, report
-its shape: directory tree to two levels, file count, total size, and the number of agents, skills,
-rules, hooks and workflows it defines.
+**Clone the canonical repository**, into a working directory **outside both repos**:
+
+```
+git clone https://github.com/affaan-m/everything-claude-code.git ecc
+cd ecc
+git remote -v
+git log -1 --format="%H %ad %s"
+```
+
+**⚠ There are many forks** — `chchwa/affaan-m-everything-claude-code`, `giovanisp/…`,
+`ysyecust/…`, `WorldFlowAI/…` and others, several of them modified for particular stacks (one is
+retargeted at C++20 HPC). **You want `affaan-m`.** The repository appears to have been renamed to
+`affaan-m/ECC`, so the URL above may redirect — that is expected. **Paste the `git remote -v`
+output and confirm the owner is `affaan-m`.** If it is not, stop: you have a fork, and its
+contents are somebody else's edits.
+
+**Record the HEAD commit hash and date** and put them at the top of the report. This repository is
+actively developed; a finding is only meaningful against a stated version.
+
+Then, **before** reading deeply, report its shape: directory tree to two levels, file count, total
+size, and the number of agents, skills, rules, hooks and workflows it defines.
 
 **⚠ Token discipline: do not paste file contents into the report.** Cite `path:line`. A report that
 quotes the repo at length is a failed report — it costs a fortune and tells the leader nothing he

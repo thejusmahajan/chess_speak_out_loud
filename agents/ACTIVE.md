@@ -256,7 +256,9 @@ base rate of error here is not zero. *This is an application/deadline item and d
 one non-interview ACTIVE slot.*
 
 **0. `briefs/2026-09-09_ecc-harness-study-and-antigravity-mapping.md` — ⛑ ACTIVE. Study only,
-90-minute box, NOTHING is implemented.** Clone Affaan Mustafa's *Everything Claude Code*, extract its
+90-minute box, NOTHING is implemented.** **Step 1 is the download**: `git clone https://github.com/affaan-m/everything-claude-code.git`
+(canonical owner is **affaan-m**; many forks exist and one is retargeted at C++20 HPC — confirm
+`git remote -v` and record the HEAD hash). Then extract its
 **mechanisms** (not its agents), map each to an Antigravity equivalent **with a documentation
 citation**, then filter for what actually applies to *this* repo. **The question that prompted it:**
 can Antigravity enforce per-agent file/tool scope in the runtime, instead of asking for it in prose?
