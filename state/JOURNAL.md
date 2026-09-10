@@ -1681,3 +1681,26 @@ earlier string-sweep of the `.rds` could not have caught it.
 
 **Open:** Thejus sends IDM; emails Dr. Busjahn about publishing the derived extract; sends the
 Hereon AEON-UP follow-up.
+
+---
+
+## 2026-09-10 — context restored; the trainer comment queue is 10 days stale
+
+**Read-only session.** Thejus spent the day studying and preparing for the interview and asked me to
+restore context from the state files rather than from session history. No code, no documents, no
+briefs. Read: `NEXT_SESSION_PROMPT.md`, `NOW.md` (TODAY + §0), this journal's last entry,
+`LEADER_BIBLE.md` §1/§6a, `agents/ACTIVE.md`, `trainer/state/comments.jsonl`. Verified the push state
+directly — `ab958e3` is on `origin/windows-dev`, tree clean.
+
+**One finding worth the commit: six trainer comments from 30–31 August were never answered.** They
+do not grep anywhere in `NOW.md` or this file, and the 09-09 session was entirely job-search, so
+they have been sitting ~10 days. This is precisely the failure the `CLAUDE.md` Step 0 comment-queue
+rule was added on 2026-08-30 to prevent — it fired again, one session after being written down.
+Recorded as action 4 in `NOW.md`. Two are interview-critical: he says he has no mental picture of a
+neural process and does not know what a Gaussian process is, and the CNP is his strongest interview
+asset.
+
+**IDM is unsent as of tonight** — he sends it himself; nothing on my side is blocking it.
+
+**Open:** unchanged from 09-09, plus the comment queue.
+

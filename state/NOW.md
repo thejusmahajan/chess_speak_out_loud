@@ -40,6 +40,13 @@ a work queue again, and it now carries both September entries.
    extract to be public. `degir-dashboard` is now linked four times across the bundle and email.
    This is the only real exposure left open.
 3. **Send the Hereon AEON-UP follow-up** — drafted at `applications/hereon_aeon_up/FOLLOW_UP_EMAIL.md`.
+4. **Clear the trainer comment queue — 6 unread, sitting since 30–31 August.** Verified
+   2026-09-10: none of them greps in `JOURNAL.md` or `NOW.md`, so they were never answered. Two are
+   interview-critical — `her-l0-004` *"I don't have a mental picture of Neural process"* and
+   *"I don't know what a Gaussian process is either"*, and the CNP is his strongest interview
+   asset. Also `her-l0-003` (the ML abstract as a read on what they want), `stat-l0-005` (wants the
+   equations with a worked example), `own-l0-008` and `own-l0-003` (layers vs. deep-learning layers;
+   what a token is for). Start with the GP/CNP pair.
 
 ### Read before writing anything in his name
 
