@@ -98,6 +98,14 @@ coach. See `docs/NORTH_STAR_decoding_lc0.md`.
 6. **No new meta-process documents** while a deadline item is open. Infrastructure that
    postpones exposure is this project's documented failure mode.
 7. **Decide, don't hedge.** Thejus chose a captain, not a survey generator.
+8. **⚑ Write a brief for yourself BEFORE the work, and double-check the brief before acting on it.**
+   Standing order, 2026-09-12. Required for any task that **changes or deletes files, sends anything
+   outward, or acts on another agent's report** — not for answering a question or running a read-only
+   check. The brief states scope, what is touched, what is explicitly NOT touched, how it is verified
+   and how it is reversed; then a double-check section that tries to break it. **On the day this was
+   ordered, the double-check caught three errors in my own briefs before any file was touched, and
+   execution caught a fourth** — `_archive/` turned out to be gitignored, so the brief's claim that
+   deletion was "recoverable from git" was false. See [[self-brief-before-every-task]].
 
 ---
 
