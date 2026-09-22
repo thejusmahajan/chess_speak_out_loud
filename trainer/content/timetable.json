@@ -1,7 +1,7 @@
 {
-  "version": 1,
-  "name": "Thejus — daily study timetable",
-  "authored": "2026-09-08",
+  "version": 2,
+  "name": "Thejus — daily study & application timetable (v2)",
+  "authored": "2026-09-22",
   "lead_minutes": 5,
   "_doc": [
     "Times are LOCAL 24h 'HH:MM'. Blocks must tile the full 24 hours with no gap and",
@@ -11,163 +11,200 @@
     "  A boundary into any other kind fires an ALARM.",
     "start_alarm: true  -> also sound an alarm exactly AT the block start (wake-up only),",
     "                      and suppress that block's 5-minute lead reminder.",
-    "lead_sound: true/false explicitly overrides the kind-derived sound decision."
+    "lead_sound: true/false explicitly overrides the kind-derived sound decision.",
+    "auto_start: target string (e.g. 'goethe_b2') -> daemon self-starts the app when the block arrives."
   ],
   "blocks": [
     {
       "start": "03:00",
-      "end": "03:30",
-      "task": "Wake up — clean porch & hall",
+      "end": "03:15",
+      "task": "Wake-up",
       "kind": "chore",
-      "note": "Alarm sounds at 03:00 sharp. No 02:55 pre-alarm.",
+      "note": "Hydration, light on, cold water, zero phone.",
       "start_alarm": true
     },
     {
-      "start": "03:30",
+      "start": "03:15",
       "end": "04:15",
-      "task": "Meditation",
-      "kind": "focus"
+      "task": "German B2: Mock Exam App",
+      "kind": "work",
+      "note": "Timed Goethe B2 module (Lesen or Hören). Full module simulation.",
+      "auto_start": "goethe_b2"
     },
     {
       "start": "04:15",
-      "end": "04:27",
-      "task": "Rest",
-      "kind": "rest"
-    },
-    {
-      "start": "04:27",
-      "end": "05:57",
-      "task": "Interview Question Training",
+      "end": "05:15",
+      "task": "German B2: Grammar + Words",
       "kind": "work",
-      "note": "Active recall drilling, cards, and vocal answer practice."
+      "note": "Fix what the mock exposed. Anki. Passiv, Konjunktiv II. B2 connectors."
     },
     {
-      "start": "05:57",
-      "end": "06:09",
+      "start": "05:15",
+      "end": "05:25",
       "task": "Rest",
-      "kind": "rest"
+      "kind": "rest",
+      "note": "First caffeine."
     },
     {
-      "start": "06:09",
-      "end": "07:48",
-      "task": "Coursera — ML",
-      "kind": "work"
+      "start": "05:25",
+      "end": "06:10",
+      "task": "Interview Prep: CV Definitions",
+      "kind": "work",
+      "note": "Oral rehearsal of 3–4 terms from TECHNICAL_DEFINITIONS_AND_CV_GLOSSARY.md."
     },
     {
-      "start": "07:48",
-      "end": "08:00",
+      "start": "06:10",
+      "end": "06:55",
+      "task": "Interview Prep: Active Applications",
+      "kind": "work",
+      "note": "Rotate across pending: Staburo, FZJ, Hereon 1059, Potsdam, + new sends."
+    },
+    {
+      "start": "06:55",
+      "end": "07:00",
       "task": "Rest",
-      "kind": "rest"
+      "kind": "rest",
+      "note": "Morning buffer."
     },
     {
-      "start": "08:00",
-      "end": "08:45",
+      "start": "07:00",
+      "end": "07:30",
       "task": "Breakfast",
       "kind": "meal",
-      "note": "Prepare and eat light — cooked and hot."
+      "note": "Away from the desk."
     },
     {
-      "start": "08:45",
-      "end": "08:57",
-      "task": "Rest",
-      "kind": "rest"
-    },
-    {
-      "start": "08:57",
-      "end": "10:33",
-      "task": "Interview Prep — Technical & Research",
+      "start": "07:30",
+      "end": "10:30",
+      "task": "Job Applications: The Main Engine",
       "kind": "work",
-      "note": "Hereon 1059 Agentic AI, paper reading & domain depth."
+      "note": "Scout → Build Letter → Tailor CV → Proofread → Send."
     },
     {
-      "start": "10:33",
-      "end": "10:45",
+      "start": "10:30",
+      "end": "10:40",
       "task": "Rest",
-      "kind": "rest"
+      "kind": "rest",
+      "note": "Stand up, eyes off screen."
     },
     {
-      "start": "10:45",
-      "end": "12:00",
-      "task": "Statistics + Project Revision",
-      "kind": "work"
+      "start": "10:40",
+      "end": "11:30",
+      "task": "JAX Paper",
+      "kind": "work",
+      "note": "AI-assisted drafting. Hard cap: 50 min/day."
     },
     {
-      "start": "12:00",
+      "start": "11:30",
+      "end": "11:40",
+      "task": "Rest",
+      "kind": "rest",
+      "note": "Light stretch."
+    },
+    {
+      "start": "11:40",
       "end": "12:45",
-      "task": "Lunch",
-      "kind": "meal",
-      "note": "Eat moderate — hot and cooked."
+      "task": "HLRS Supercomputing Exam Prep",
+      "kind": "work",
+      "note": "PBS Pro, GPU profiling, ILIAS exercises. ⛔ Terminates 17 October."
     },
     {
       "start": "12:45",
-      "end": "12:57",
-      "task": "Rest",
-      "kind": "rest"
+      "end": "13:30",
+      "task": "Lunch",
+      "kind": "meal",
+      "note": "Away from desk. Walk in daylight."
     },
     {
-      "start": "12:57",
-      "end": "14:33",
-      "task": "Coursera — ML with Python / Coding",
-      "kind": "work"
-    },
-    {
-      "start": "14:33",
+      "start": "13:30",
       "end": "14:45",
-      "task": "Rest",
-      "kind": "rest"
+      "task": "Statistics Coursera",
+      "kind": "work",
+      "note": "Sprint-to-quiz. 1.5x video. Direct to assessments."
     },
     {
       "start": "14:45",
-      "end": "16:15",
-      "task": "German — B2 Preparation",
-      "kind": "work",
-      "note": "B2 grammar, connectors, vocabulary, exam drills."
-    },
-    {
-      "start": "16:15",
-      "end": "16:27",
+      "end": "14:55",
       "task": "Rest",
-      "kind": "rest"
+      "kind": "rest",
+      "note": "Short break."
     },
     {
-      "start": "16:27",
-      "end": "18:00",
-      "task": "German — Interview Training",
+      "start": "14:55",
+      "end": "15:50",
+      "task": "R Statistics: Hands-On CV Defense",
       "kind": "work",
-      "note": "Spoken German, self-presentation & interview dialogue."
+      "note": "Live coding: tidymodels, data.table, registry de-identification, DeGIR Shiny."
     },
     {
-      "start": "18:00",
+      "start": "15:50",
+      "end": "16:00",
+      "task": "Rest",
+      "kind": "rest",
+      "note": "Short break."
+    },
+    {
+      "start": "16:00",
+      "end": "17:10",
+      "task": "IBM Coursera AI Engineering",
+      "kind": "work",
+      "note": "Sprint mode. Direct to module quizzes."
+    },
+    {
+      "start": "17:10",
+      "end": "17:20",
+      "task": "Rest",
+      "kind": "rest",
+      "note": "Short break."
+    },
+    {
+      "start": "17:20",
+      "end": "18:20",
+      "task": "Application Pipeline Ops",
+      "kind": "work",
+      "note": "Check employer responses, scout new postings, queue tomorrow's target, update ACTIVE_QUEUE.md."
+    },
+    {
+      "start": "18:20",
+      "end": "18:25",
+      "task": "Tomorrow Planning",
+      "kind": "focus",
+      "note": "Write down single most important application task for the morning."
+    },
+    {
+      "start": "18:25",
       "end": "18:45",
-      "task": "Dinner",
-      "kind": "meal",
-      "note": "Eat light — hot and cooked."
+      "task": "Wind-down buffer",
+      "kind": "rest",
+      "note": "Close tabs, clean desk."
     },
     {
       "start": "18:45",
-      "end": "18:57",
-      "task": "Rest",
-      "kind": "rest"
+      "end": "19:25",
+      "task": "Dinner",
+      "kind": "meal",
+      "note": "Away from desk."
     },
     {
-      "start": "18:57",
-      "end": "20:30",
-      "task": "Revision & Research Project",
-      "kind": "work",
-      "note": "Daily log, synthesis & state consolidation."
-    },
-    {
-      "start": "20:30",
-      "end": "21:00",
-      "task": "Wind-down & Night Routine",
+      "start": "19:25",
+      "end": "19:45",
+      "task": "Wind-down & desk reset",
       "kind": "rest",
-      "note": "Quiet prep, screen-free, transition to sound sleep."
+      "note": "Set out clothes, zero cognitive load."
     },
     {
-      "start": "21:00",
+      "start": "19:45",
+      "end": "20:00",
+      "task": "Screen off",
+      "kind": "rest",
+      "note": "Dim lights, transition to sound sleep."
+    },
+    {
+      "start": "20:00",
       "end": "03:00",
       "task": "Sleep",
-      "kind": "sleep"
+      "kind": "sleep",
+      "note": "7 hours unbroken sleep."
     }
   ]
 }

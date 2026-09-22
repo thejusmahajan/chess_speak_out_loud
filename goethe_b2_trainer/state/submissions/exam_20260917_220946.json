@@ -1,0 +1,77 @@
+{
+  "submission_id": "20260917_220946",
+  "timestamp": "2026-09-17T22:09:46.024034+00:00",
+  "timer_mode": "sprint",
+  "overall_result": "NICHT BESTANDEN",
+  "all_modules_passed": false,
+  "average_percentage": 0.0,
+  "pass_mark": 60.0,
+  "modules": {
+    "lesen": {
+      "title": "Lesen (Reading)",
+      "score": 0,
+      "max_score": 30,
+      "percentage": 0.0,
+      "passed": false,
+      "user_answer": "D",
+      "correct_answer": "B",
+      "explanation": "Im zweiten Absatz wird ausdrücklich betont, dass in Branchen mit kontinuierlicher Präsenzpflicht (Pflege, Gastronomie) das Konzept an harte personelle Grenzen stößt und ohne zusätzliche Kräfte zu gravierenden Engpässen führt."
+    },
+    "hoeren": {
+      "title": "Hören (Listening)",
+      "score": 0,
+      "max_score": 30,
+      "percentage": 0.0,
+      "passed": false,
+      "user_answer": "A",
+      "correct_answer": "B",
+      "explanation": "Dr. Becker erklärt, dass nicht die Zeit für die Antwort das Problem ist, sondern die 'antizipatorische Erschöpfung' – das ständige innere Bereithalten im Alarmzustand, wodurch keine echte Erholung eintritt."
+    },
+    "schreiben": {
+      "title": "Schreiben (Writing)",
+      "score": 0,
+      "max_score": 100,
+      "percentage": 0.0,
+      "passed": false,
+      "evaluation": {
+        "total_score": 0,
+        "max_score": 100,
+        "percentage": 0,
+        "passed": false,
+        "word_count": 1,
+        "scores": {
+          "aufgabenerfuellung": 0,
+          "koharenz": 0,
+          "wortschatz": 0,
+          "korrektheit": 0
+        },
+        "examiner_feedback": "Kein Text eingereicht oder Text zu kurz.",
+        "corrections": []
+      }
+    },
+    "sprechen": {
+      "title": "Sprechen (Speaking)",
+      "score": 0,
+      "max_score": 30,
+      "percentage": 0.0,
+      "passed": false,
+      "evaluation": {
+        "error": "401 Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project. [reason: \"ACCESS_TOKEN_TYPE_UNSUPPORTED\"\nmetadata {\n  key: \"service\"\n  value: \"generativelanguage.googleapis.com\"\n}\nmetadata {\n  key: \"method\"\n  value: \"google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent\"\n}\n]",
+        "passed": false,
+        "total_score": 0,
+        "max_score": 30,
+        "percentage": 0,
+        "transcript": "[Audio evaluation failed: 401 Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project. [reason: \"ACCESS_TOKEN_TYPE_UNSUPPORTED\"\nmetadata {\n  key: \"service\"\n  value: \"generativelanguage.googleapis.com\"\n}\nmetadata {\n  key: \"method\"\n  value: \"google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent\"\n}\n]]",
+        "scores": {
+          "aufgabenerfuellung": 0,
+          "koherenz_fluessigkeit": 0,
+          "wortschatz_ausdruck": 0,
+          "korrektheit_grammatik": 0,
+          "aussprache_intonation": 0
+        },
+        "corrections": [],
+        "examiner_summary": "Evaluation could not complete: 401 Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project. [reason: \"ACCESS_TOKEN_TYPE_UNSUPPORTED\"\nmetadata {\n  key: \"service\"\n  value: \"generativelanguage.googleapis.com\"\n}\nmetadata {\n  key: \"method\"\n  value: \"google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent\"\n}\n]"
+      }
+    }
+  }
+}

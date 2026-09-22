@@ -1,0 +1,97 @@
+{
+  "submission_id": "20260917_230722",
+  "timestamp": "2026-09-17T23:07:22.761524+00:00",
+  "timer_mode": "sprint",
+  "overall_result": "NICHT BESTANDEN",
+  "all_modules_passed": false,
+  "average_percentage": 33.3,
+  "pass_mark": 60.0,
+  "modules": {
+    "lesen": {
+      "title": "Lesen (Reading)",
+      "score": 30,
+      "max_score": 30,
+      "percentage": 100.0,
+      "passed": true,
+      "user_answer": "B",
+      "correct_answer": "B",
+      "explanation": "Im zweiten Absatz wird ausdrücklich betont, dass in Branchen mit kontinuierlicher Präsenzpflicht (Pflege, Gastronomie) das Konzept an harte personelle Grenzen stößt und ohne zusätzliche Kräfte zu gravierenden Engpässen führt."
+    },
+    "hoeren": {
+      "title": "Hören (Listening)",
+      "score": 0,
+      "max_score": 30,
+      "percentage": 0.0,
+      "passed": false,
+      "user_answer": "A",
+      "correct_answer": "B",
+      "explanation": "Dr. Becker erklärt, dass nicht die Zeit für die Antwort das Problem ist, sondern die 'antizipatorische Erschöpfung' – das ständige innere Bereithalten im Alarmzustand, wodurch keine echte Erholung eintritt."
+    },
+    "schreiben": {
+      "title": "Schreiben (Writing)",
+      "score": 0,
+      "max_score": 100,
+      "percentage": 0.0,
+      "passed": false,
+      "evaluation": {
+        "total_score": 0,
+        "max_score": 100,
+        "percentage": 0,
+        "passed": false,
+        "word_count": 1,
+        "scores": {
+          "aufgabenerfuellung": 0,
+          "koharenz": 0,
+          "wortschatz": 0,
+          "korrektheit": 0
+        },
+        "examiner_feedback": "Kein Text eingereicht oder Text zu kurz.",
+        "corrections": []
+      }
+    },
+    "sprechen": {
+      "title": "Sprechen (Speaking)",
+      "score": 10,
+      "max_score": 30,
+      "percentage": 33.3,
+      "passed": false,
+      "evaluation": {
+        "total_score": 10,
+        "max_score": 30,
+        "percentage": 33.3,
+        "passed": false,
+        "cefr_level_estimate": "A2-B1 (Kurzer Audiotest)",
+        "transcript": "Hallo, und spreche hier in Deutsch. Um... die... diese ist ein Test. So.",
+        "scores": {
+          "aufgabenerfuellung": 1,
+          "koherenz_fluessigkeit": 2,
+          "wortschatz_ausdruck": 2,
+          "korrektheit_grammatik": 2,
+          "aussprache_intonation": 3
+        },
+        "strengths": [
+          "Gute und saubere Tonqualität des Mikrofons.",
+          "Verständliche Aussprache des 'ch'-Lauts ('spreche') und von 'Deutsch'."
+        ],
+        "corrections": [
+          {
+            "spoken": "spreche hier in Deutsch",
+            "corrected": "ich spreche hier auf Deutsch",
+            "explanation": "Im Deutschen muss das Subjekt ('ich') gesetzt werden. Bei Sprachangaben verwendet man die Präposition 'auf' ('auf Deutsch', nicht 'in Deutsch')."
+          },
+          {
+            "spoken": "diese ist ein Test",
+            "corrected": "das ist ein Test / dies ist ein Test",
+            "explanation": "Für allgemeine Sachverhalte/Objekte verwendet man als einleitendes Pronomen 'das' oder 'dies' (Neutrum), nicht die feminine Form 'diese'."
+          }
+        ],
+        "recommended_redemittel": [
+          "Im Rahmen meines heutigen Kurzvortrags möchte ich mich mit dem Thema ... befassen.",
+          "Aus meiner eigenen Erfahrung an der Universität lässt sich sagen, dass...",
+          "Einerseits ermöglicht das digitale Format große Flexibilität, andererseits..."
+        ],
+        "examiner_summary": "Hervorragender technischer Test! Das Mikrofon und die Aufnahme funktionieren einwandfrei. Die Stimme ist klar, natürlich und gut artikuliert. Für die volle Goethe B2 Punktzahl in Teil 1 können Sie nun den 2-minütigen Kurzvortrag anhand der 5 Leitpunkte halten."
+      }
+    }
+  }
+}

@@ -193,6 +193,25 @@
     ]
   },
   {
+    "id": "clin-l2-004",
+    "ladder": "clinical-project",
+    "level": 2,
+    "topic": "why orgdata verification was mandatory alongside rawdata",
+    "question": "Why was it insufficient to verify only rawdata with identical(), and why did orgdata also have to be byte-identical?",
+    "answer": "rawdata (143,120 rows × 216 columns) is only the report-ready subset after dropping 23 NA rows and pruning ~1,702 columns. orgdata (143,143 rows × 1,918 columns) is the master backup that feeds 21 downstream Excel exports (including the Greece international sub-registry and 18 per-intervention spreadsheets). Verifying orgdata ensured that all 1,702 non-report variables remained uncorrupted across the 257 rules, and guaranteed that refactoring never silently introduced NA values that would cause valid records to be dropped during report filtering.",
+    "explanation": "Verifying only rawdata creates a major regression blind spot: any calculation error or column shift among the other 1,702 variables would silently corrupt the 21 Excel deliverables distributed to clinics and international registries. Furthermore, testing orgdata upstream of filter(!is.na(Intervention)) ensures that data processing invariants hold across all 143,143 clinical records before intervention filtering occurs.",
+    "trap": "Assuming rawdata was the complete dataset and orgdata was merely an optional duplicate. In reality, orgdata is the master clinical database supporting 21 external and internal registry deliverables.",
+    "sources": [
+      "../bioinformatics_project/job_search/work_done_during_internship/02_pipeline_context.md",
+      "../bioinformatics_project/job_search/work_done_during_internship/07_bugs_verification.md"
+    ],
+    "difficulty": 1310,
+    "requires": [
+      "clin-l0-002",
+      "clin-l0-003"
+    ]
+  },
+  {
     "id": "clin-l3-001",
     "ladder": "clinical-project",
     "level": 3,

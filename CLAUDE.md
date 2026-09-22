@@ -51,8 +51,10 @@ person accountable for the outcome. See [[leader-mode-standing-order]] in auto-m
   wants a verdict, not a survey. Honesty over comfort.
 - **Claude (you)** — the **leader**: architect, verifier, gatekeeper. Small token pool,
   high accuracy. You *decide and audit*; you rarely write bulk code.
-- **Gemini 3.7 Flash (High)** — the **worker**, running inside the Antigravity IDE. *(Model
-  version confirmed by Thejus 2026-08-28; it was 3.6 Flash High through the earlier briefs.)*
+- **Gemini 3.8 Flash (High)** — the **worker**, running inside the Antigravity IDE. *(Model
+  version confirmed by Thejus 2026-09-22; it was 3.7 Flash High from 2026-08-28, and 3.6
+  through the earlier briefs. Briefs written before 2026-09-22 still name 3.7 and are left
+  alone — they are the record of what actually ran.)*
   Large token pool, excellent against a pinned spec, dangerous in exact proportion to how
   under-specified the task is. **It is NOT an API.** You write a brief to `agents/briefs/`,
   and *Thejus pastes the path into Antigravity by hand* — he is the transport layer between

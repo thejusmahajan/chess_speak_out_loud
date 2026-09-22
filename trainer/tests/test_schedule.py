@@ -130,28 +130,35 @@ def test_empty_timetable_rejected():
 # =====================================================================
 
 def test_real_timetable_loads_and_tiles_the_whole_day(real):
-    assert len(real.specs) == 24
+    assert len(real.specs) == 27
     assert real.lead_minutes == 5
     assert sum(s.duration_minutes for s in real.specs) == MINUTES_PER_DAY
 
 
 def test_real_timetable_matches_the_authored_plan(real):
     by_start = {format_hhmm(s.start_min): s for s in real.specs}
-    assert by_start["03:00"].task.startswith("Wake up")
+    assert by_start["03:00"].task.startswith("Wake")
     assert by_start["03:00"].start_alarm is True
-    assert by_start["04:27"].task == "Interview Question Training"
-    assert by_start["06:09"].task == "Coursera — ML"
-    assert by_start["08:00"].kind == "meal" and by_start["08:00"].task == "Breakfast"
-    assert by_start["08:57"].task == "Interview Prep — Technical & Research"
-    assert by_start["10:45"].task == "Statistics + Project Revision"
-    assert by_start["12:00"].kind == "meal" and by_start["12:00"].task == "Lunch"
-    assert by_start["12:57"].task == "Coursera — ML with Python / Coding"
-    assert by_start["14:45"].kind == "work" and by_start["14:45"].task == "German — B2 Preparation"
-    assert by_start["16:27"].task == "German — Interview Training"
-    assert by_start["18:00"].kind == "meal" and by_start["18:00"].task == "Dinner"
-    assert by_start["18:57"].task == "Revision & Research Project"
-    assert by_start["20:30"].kind == "rest"
-    assert by_start["21:00"].kind == "sleep"
+    assert by_start["03:15"].task == "German B2: Mock Exam App"
+    assert by_start["03:15"].auto_start == "goethe_b2"
+    assert by_start["04:15"].task == "German B2: Grammar + Words"
+    assert by_start["05:15"].kind == "rest"
+    assert by_start["05:25"].task == "Interview Prep: CV Definitions"
+    assert by_start["06:10"].task == "Interview Prep: Active Applications"
+    assert by_start["07:00"].kind == "meal" and by_start["07:00"].task == "Breakfast"
+    assert by_start["07:30"].task == "Job Applications: The Main Engine"
+    assert by_start["10:40"].task == "JAX Paper"
+    assert by_start["11:40"].task == "HLRS Supercomputing Exam Prep"
+    assert by_start["12:45"].kind == "meal" and by_start["12:45"].task == "Lunch"
+    assert by_start["13:30"].task == "Statistics Coursera"
+    assert by_start["14:55"].task == "R Statistics: Hands-On CV Defense"
+    assert by_start["16:00"].task == "IBM Coursera AI Engineering"
+    assert by_start["17:20"].task == "Application Pipeline Ops"
+    assert by_start["18:20"].task == "Tomorrow Planning"
+    assert by_start["18:45"].kind == "meal" and by_start["18:45"].task == "Dinner"
+    assert by_start["19:25"].kind == "rest"
+    assert by_start["19:45"].kind == "rest"
+    assert by_start["20:00"].kind == "sleep"
 
 
 # =====================================================================
@@ -247,14 +254,23 @@ def test_exactly_one_reminder_per_boundary(tiny):
 
 def test_real_timetable_reminder_sound_map(real):
     fired = {r.boundary.strftime("%H:%M"): r.sound for r in _day_reminders(real)}
-    # Into work / meals / meditation: ALARM.
-    for at in ["03:00", "03:30", "04:27", "06:09", "08:00", "08:57", "10:45",
-               "12:00", "12:57", "14:45", "16:27", "18:00", "18:57"]:
+    # Into work / meals / focus / chore: ALARM.
+    for at in ["03:00", "03:15", "04:15", "05:25", "06:10", "07:00", "07:30",
+               "10:40", "11:40", "12:45", "13:30", "14:55", "16:00", "17:20", "18:20", "18:45"]:
         assert fired[at] is True, f"{at} should sound"
     # Into rest / sleep: silent.
-    for at in ["04:15", "05:57", "07:48", "08:45", "10:33", "12:45",
-               "14:33", "16:15", "18:45", "20:30", "21:00"]:
+    for at in ["05:15", "06:55", "10:30", "11:30", "14:45", "15:50",
+               "17:10", "18:25", "19:25", "19:45", "20:00"]:
         assert fired[at] is False, f"{at} should be silent"
+
+
+def test_auto_start_spec_parsed_and_serialized():
+    timetable = build_timetable(_payload([
+        {"start": "03:15", "end": "04:15", "task": "Exam", "kind": "work", "auto_start": "goethe_b2"},
+        {"start": "04:15", "end": "03:15", "task": "Other", "kind": "work"},
+    ]))
+    assert timetable.specs[0].auto_start == "goethe_b2"
+    assert timetable.specs[0].to_dict()["auto_start"] == "goethe_b2"
 
 
 def test_lead_sound_override_beats_the_kind_default():
@@ -284,8 +300,8 @@ def test_window_is_half_open_so_nothing_fires_twice(tiny):
 def test_window_across_midnight_finds_the_wake_up(real):
     window = reminders_between(real, datetime(2026, 8, 30, 23, 0), datetime(2026, 8, 31, 4, 0))
     tasks = [r.incoming.task for r in window]
-    assert any(t.startswith("Wake up") for t in tasks)
-    assert "Meditation" in tasks
+    assert any(t.startswith("Wake") for t in tasks)
+    assert any("German B2" in t for t in tasks)
 
 
 def test_a_quiet_hour_yields_nothing(tiny):
@@ -302,9 +318,10 @@ def test_reminders_are_chronological(real):
 # =====================================================================
 
 def test_day_state_shape_and_countdown(real):
-    state = day_state(real, datetime(2026, 8, 30, 5, 54, 0))
-    assert state["current"]["task"] == "Interview Question Training"
-    assert state["next"]["task"] == "Rest"
+    # In v2, 05:25 - 06:10 is Interview Prep: CV Definitions. At 06:07:00, 180s remain until 06:10.
+    state = day_state(real, datetime(2026, 8, 30, 6, 7, 0))
+    assert state["current"]["task"] == "Interview Prep: CV Definitions"
+    assert state["next"]["task"] == "Interview Prep: Active Applications"
     assert state["remaining_seconds"] == 180
     assert state["remaining_human"] == "3m 00s"
     assert state["in_lead_window"] is True
@@ -313,9 +330,11 @@ def test_day_state_shape_and_countdown(real):
 
 
 def test_day_state_next_reminder_carries_the_sound_decision(real):
-    state = day_state(real, datetime(2026, 8, 30, 6, 1, 0))
+    # In v2, 05:15 - 05:25 is Rest. Next is 05:25 Interview Prep (sound=True).
+    # At 05:17:00, the 05:20 reminder is 3 minutes away.
+    state = day_state(real, datetime(2026, 8, 30, 5, 17, 0))
     assert state["current"]["task"] == "Rest"
-    assert state["next_reminder"]["boundary"].endswith("06:09:00")
+    assert state["next_reminder"]["boundary"].endswith("05:25:00")
     assert state["next_reminder"]["sound"] is True
     assert state["seconds_to_next_reminder"] == 3 * 60
 
@@ -326,9 +345,10 @@ def test_day_state_not_in_lead_window_mid_session(real):
 
 
 def test_reminder_body_names_both_sides_of_the_boundary(real):
-    reminder = next(r for r in _day_reminders(real) if r.boundary.strftime("%H:%M") == "06:09")
-    assert "Rest ends at 06:09" in reminder.body
-    assert "Coursera — ML" in reminder.body
+    # Boundary at 05:25 into Interview Prep
+    reminder = next(r for r in _day_reminders(real) if r.boundary.strftime("%H:%M") == "05:25")
+    assert "Rest ends at 05:25" in reminder.body
+    assert "Interview Prep: CV Definitions" in reminder.body
 
 
 def test_timetable_to_dict_is_json_shaped(real):
@@ -402,7 +422,10 @@ def test_a_heartbeat_from_the_future_is_not_alive(client):
 def test_schedule_endpoints_answer(client):
     api, _ = client
     day = api.get("/api/schedule").json()
-    assert len(day["blocks"]) == 24
+    assert len(day["blocks"]) == 27
     live = api.get("/api/schedule/now").json()
     assert live["current"]["task"]
     assert live["next"]["task"]
+    goethe = api.get("/api/goethe/status").json()
+    assert "running" in goethe
+    assert goethe["port"] == 8020

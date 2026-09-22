@@ -37,10 +37,10 @@ start"*, so nothing is ever announced twice.
 
 | boundary | example | sound |
 |---|---|---|
-| work → rest | 05:55, "Interview prep ends at 06:00" | **silent** — he is concentrating |
-| rest → work | 06:10, "Rest ends at 06:15, then Coursera" | **ALARM** — get back to the desk |
-| rest → meal | 07:55, "Breakfast at 08:00" | **ALARM** |
-| work → sleep | 21:55, "Sleep at 22:00" | **silent** |
+| work → rest | 05:10, "German Grammar ends at 05:15" | **silent** — he is concentrating |
+| rest → work | 05:20, "Rest ends at 05:25, then CV Definitions" | **ALARM** — get back to the desk |
+| rest → meal | 06:55, "Breakfast at 07:00" | **ALARM** |
+| work → sleep | 19:40, "Dinner ends, then wind-down / 20:00 Sleep" | **silent** |
 | 03:00 wake-up | fires *at* 03:00, not 02:55 | **ALARM** |
 
 ### Editing the schedule
@@ -51,7 +51,7 @@ broken, the daemon keeps the last good version running and says so — the alarm
 down because of a typo.
 
 The blocks must **tile the full 24 hours** with no gap and no overlap; exactly one block may wrap
-past midnight (`"start": "22:00", "end": "03:00"`). A gap is rejected at load time with a message
+past midnight (`"start": "20:00", "end": "03:00"`). A gap is rejected at load time with a message
 naming both sides of it — silent dead time is the one failure this thing cannot afford.
 
 Per-block fields:
@@ -61,9 +61,10 @@ Per-block fields:
 | `start`, `end` | `"HH:MM"`, local time |
 | `task` | what the bar and the banner say |
 | `kind` | `chore` / `focus` / `work` / `meal` / `rest` / `sleep`. `rest` and `sleep` are the quiet kinds |
-| `note` | one line of detail, e.g. *"Eat light — hot and cooked."* |
+| `note` | one line of detail, e.g. *"Hydration, light on, cold water, zero phone."* |
 | `start_alarm` | sound *at* the start instead of five minutes before (the wake-up) |
 | `lead_sound` | force the sound decision, overriding what `kind` implies |
+| `auto_start` | external app to launch when block starts, e.g. `"goethe_b2"` (starts port 8020) |
 
 `lead_minutes` at the top of the file changes the warning time for everything.
 
@@ -129,7 +130,7 @@ until a user gesture; the choice is remembered per browser.
 python -m pytest trainer/tests -q
 ```
 
-75 tests. `tests/test_schedule.py` pins the reminder doctrine — which boundaries sound and which
+76 tests. `tests/test_schedule.py` pins the reminder doctrine — which boundaries sound and which
 do not, that the wake-up fires at 03:00 rather than 02:55, and that the firing window is half-open
 so nothing can fire twice — plus the heartbeat rules that decide whether the tab or the daemon
 makes the noise. Each of those guards has been mutation-checked.

@@ -98,6 +98,7 @@ class BlockSpec:
     note: str = ""
     start_alarm: bool = False
     lead_sound: Optional[bool] = None
+    auto_start: Optional[str] = None
 
     @property
     def duration_minutes(self) -> int:
@@ -131,6 +132,7 @@ class BlockSpec:
             "quiet": self.is_quiet,
             "start_alarm": self.start_alarm,
             "lead_sound": self.wants_lead_sound(),
+            "auto_start": self.auto_start,
         }
 
 
@@ -247,6 +249,7 @@ def build_timetable(payload: Dict[str, Any]) -> Timetable:
                 note=str(row.get("note", "")).strip(),
                 start_alarm=bool(row.get("start_alarm", False)),
                 lead_sound=row.get("lead_sound"),
+                auto_start=row.get("auto_start"),
             )
         )
 

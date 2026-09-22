@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import json
 import os
+import socket
+import subprocess
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -32,6 +34,8 @@ from trainer.engine import (
 )
 
 BASE_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = BASE_DIR.parent
+GOETHE_DIR = PROJECT_DIR / "goethe_b2_trainer"
 LADDERS_DIR = BASE_DIR / "content" / "ladders"
 STATE_DIR = BASE_DIR / "state"
 STATIC_DIR = BASE_DIR / "static"
@@ -361,6 +365,55 @@ def post_comment(req: CommentRequest):
         f.write(json.dumps(comment_entry) + "\n")
         
     return {"status": "ok", "message": "Feedback submitted directly to the leader's audit queue."}
+
+
+def is_goethe_running() -> bool:
+    try:
+        with socket.create_connection(("127.0.0.1", 8020), timeout=0.5):
+            return True
+    except (OSError, ConnectionRefusedError):
+        return False
+
+
+@app.get("/api/goethe/status")
+def get_goethe_status():
+    return {
+        "running": is_goethe_running(),
+        "url": "http://127.0.0.1:8020/",
+        "port": 8020,
+    }
+
+
+@app.post("/api/goethe/launch")
+def post_goethe_launch():
+    if is_goethe_running():
+        return {
+            "status": "already_running",
+            "running": True,
+            "url": "http://127.0.0.1:8020/",
+            "message": "Goethe B2 Simulator is already running.",
+        }
+
+    if not (GOETHE_DIR / "app.py").exists():
+        raise HTTPException(status_code=404, detail=f"Goethe app not found in {GOETHE_DIR}")
+
+    try:
+        import sys
+        python_exe = sys.executable or r"C:\Users\Admin\miniconda3\envs\cszero\python.exe"
+        flags = (subprocess.CREATE_NEW_CONSOLE | subprocess.CREATE_NEW_PROCESS_GROUP) if os.name == "nt" else 0
+        subprocess.Popen(
+            [python_exe, "-m", "uvicorn", "app:app", "--port", "8020"],
+            cwd=str(GOETHE_DIR),
+            creationflags=flags,
+        )
+        return {
+            "status": "launched",
+            "running": True,
+            "url": "http://127.0.0.1:8020/",
+            "message": "Launched Goethe B2 Simulator.",
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to launch Goethe trainer: {exc}")
 
 
 if STATIC_DIR.exists():

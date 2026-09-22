@@ -31,17 +31,21 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import socket
+import subprocess
 import sys
 import threading
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from trainer import schedule as schedule_engine
 from trainer.schedule import Reminder, Timetable
 
 BASE_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = BASE_DIR.parent
+GOETHE_DIR = PROJECT_DIR / "goethe_b2_trainer"
 TIMETABLE_FILE = BASE_DIR / "content" / "timetable.json"
 STATE_DIR = BASE_DIR / "state"
 CURSOR_FILE = STATE_DIR / "schedule_daemon.json"
@@ -270,7 +274,51 @@ def say(text: str) -> None:
 
 
 # =====================================================================
-# 5. The daemon
+# 5. External App Auto-Launch
+# =====================================================================
+
+def is_port_in_use(port: int, host: str = "127.0.0.1", timeout: float = 0.5) -> bool:
+    """Check if a local TCP port is already actively listening."""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except (OSError, ConnectionRefusedError):
+        return False
+
+
+def launch_target_app(target: str) -> bool:
+    """Launch external application for a timetable block when its time comes."""
+    if target in ("goethe_b2", "goethe_b2_trainer"):
+        if is_port_in_use(8020):
+            say("[auto-start] Goethe B2 Simulator is already running on port 8020.")
+            return True
+
+        if not (GOETHE_DIR / "app.py").exists():
+            say(f"[auto-start] Error: Goethe app not found in {GOETHE_DIR}")
+            return False
+
+        say("[auto-start] 🚀 Goethe B2 Exam Simulator time has arrived! Starting on port 8020...")
+        try:
+            python_exe = sys.executable or r"C:\Users\Admin\miniconda3\envs\cszero\python.exe"
+            flags = (subprocess.CREATE_NEW_CONSOLE | subprocess.CREATE_NEW_PROCESS_GROUP) if IS_WINDOWS else 0
+            subprocess.Popen(
+                [python_exe, "-m", "uvicorn", "app:app", "--port", "8020"],
+                cwd=str(GOETHE_DIR),
+                creationflags=flags,
+            )
+            import webbrowser
+            threading.Timer(2.0, lambda: webbrowser.open("http://127.0.0.1:8020/")).start()
+            return True
+        except Exception as exc:
+            say(f"[auto-start] Failed to launch Goethe B2 Simulator: {exc}")
+            return False
+    else:
+        say(f"[auto-start] Unknown auto_start target: {target}")
+        return False
+
+
+# =====================================================================
+# 6. The daemon
 # =====================================================================
 
 class ScheduleDaemon:
@@ -298,6 +346,7 @@ class ScheduleDaemon:
         self._last_status_at: Optional[datetime] = None
         self.status_seconds = status_seconds
         self.cursor_seconds = cursor_seconds
+        self._auto_started_sessions: Set[str] = set()
 
     # -- timetable -----------------------------------------------------
     def timetable(self) -> Timetable:
@@ -407,6 +456,16 @@ class ScheduleDaemon:
                         cursor_warned = True
                 self.status(now)
                 self.banner.pump()
+
+                # Check auto-start triggers for active block
+                current = schedule_engine.current_block(self.timetable(), now)
+                if current.spec.auto_start:
+                    session_key = f"{current.start.isoformat()}_{current.spec.task}_{current.spec.auto_start}"
+                    if session_key not in self._auto_started_sessions:
+                        self._auto_started_sessions.add(session_key)
+                        say(f"\n[auto-start] Time has come for '{current.spec.task}' -> auto-starting {current.spec.auto_start}...")
+                        launch_target_app(current.spec.auto_start)
+
                 time.sleep(self.tick_seconds)
         except KeyboardInterrupt:
             self.alarm.stop()
@@ -452,12 +511,17 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--check", action="store_true", help="print upcoming reminders and exit")
     parser.add_argument("--count", type=int, default=8, help="how many reminders --check prints")
     parser.add_argument("--test-alarm", action="store_true", help="play the alarm and exit")
+    parser.add_argument("--launch-goethe", action="store_true", help="manually test launching the Goethe B2 trainer app")
     parser.add_argument("--stale-seconds", type=int, default=120,
                         help="skip reminders older than this (suspend/resume guard)")
     parser.add_argument("--alarm-seconds", type=int, default=25, help="banner dwell for alarm reminders")
     parser.add_argument("--silent-seconds", type=int, default=12, help="banner dwell for silent reminders")
     args = parser.parse_args(argv)
 
+    if args.launch_goethe:
+        say("Testing Goethe B2 launch...")
+        launch_target_app("goethe_b2")
+        return 0
     if args.test_alarm:
         return cmd_test_alarm()
     if args.check:

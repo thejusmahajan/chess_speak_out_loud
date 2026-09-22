@@ -1,79 +1,78 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-09-09 (evening) by the leader (Opus 5) — see TODAY, directly below. **Start here: `state/NEXT_SESSION_PROMPT.md`** — written for a fresh agent. Then §9 (Φ trained, F1 FAILED at 0.6908), §10 (regeneration), §12 (Φ-opening — A5 FIRED), §11 (leadership corpus).
+**Last updated:** 2026-09-22 by the leader (Opus 5) — see TODAY, directly below. **Start here: `state/NEXT_SESSION_PROMPT.md`**, then TODAY, then §9 (Φ trained, F1 FAILED at 0.6908), §10 (regeneration), §12 (Φ-opening — A5 FIRED), §11 (leadership corpus). ⛔ **Job-search status is NOT in this file** — it is in `job_search/ACTIVE_QUEUE.md` + `APPLICATION_LOG.md`, and nowhere else.
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
 
 ---
 
-## ⚑ TODAY — 2026-09-09 (evening). Job-search work, not chess.
+## ⚑ TODAY — 2026-09-22. Three rejections, and a status-duplication bug in this file.
 
-**The whole session was applications. No chess code was touched.** Two repos outside this one were
-changed and pushed: `bioinformatics_project/job_search` and the new working copy
-`bioinformatics_project/degir-dashboard`.
+**⛔ This file no longer holds job-search status.** It held a *copy*, the copy went stale, and the
+stale copy was read as truth.
 
-### Where it stands
+**The only truth about application status lives in the `job_search` repo:**
 
-**IDM gGmbH (AI/ML Engineer, Clinical AI, Hamburg) is BUILT AND READY. Thejus sends it himself
-tomorrow, 10 September.** Everything is in `job_search/applications/idm_clinical_ai/` and its
-`README.md` holds the three-step send procedure. Do not rebuild anything unless he asks.
+```
+bioinformatics_project/job_search/ACTIVE_QUEUE.md      what is in flight, and the next target
+bioinformatics_project/job_search/APPLICATION_LOG.md   per-position status, dates, post-mortems
+```
 
-- Attach **two** files: `Mahajan_IDM_ClinicalAI.pdf` (3 p, 16 live links) and
-  `Mahajan_IDM_Certificates.pdf` (9 p). Paste `EMAIL_BODY.txt`. English, not German.
-- `build.sh` rebuilds correctly. **It merges with `pdfunite`, never `pdfpages`** — `pdfpages`
-  silently strips every link annotation and an earlier build of this bundle went out at zero links.
+**Never restate application status here — link to those two.** `job_search/CLAUDE.md`, written
+today, makes that the first rule any session in that repo reads.
 
-**⚠ Note this correction, it reaches employers.** The DeGIR dashboard's data was described
-everywhere as *"GDPR-safe synthetic data"*. It is not: the public generator bootstrap-resamples real
-records and perturbs them. Every live document now says **"a de-identified, perturbed extract"**.
-The already-sent Hereon 1059 bundle still carries the old wording — nothing to do, but describe it
-accurately out loud if interviewed.
+### What went wrong, recorded so it does not repeat
 
-**Section 0 below is stale on one point.** It records *"Only this hereon is active as others were
-rejected"* (2026-08-29). Hereon 1059 was sent 8 September, and IDM is live. `APPLICATION_LOG.md` is
-a work queue again, and it now carries both September entries.
+On 22 September a leader session followed `CLAUDE.md` Step 0 exactly — all five routed files live
+in *this* repo — and then handed Thejus a prioritised job-search plan **without ever opening
+`APPLICATION_LOG.md`**. It missed three rejections in eight days and told him to build an
+application that had already been sent and archived (`_sent/fzj_ai_microscopy/`, ref 2026T-0592,
+sent 14 Sept). The mechanism was not invention; it was a 13-day-old summary in this file
+outranking its source. **A second copy of a status is not redundancy, it is a future wrong answer.**
 
-### Next three actions
+### The three rejections — detail belongs in `APPLICATION_LOG.md`, do not re-copy it here
 
-1. **Thejus sends IDM** — two attachments, `EMAIL_BODY.txt`, then log the sent date in
-   `APPLICATION_LOG.md`.
-2. **Email Dr. Busjahn** — three lines confirming HealthTwiSt is content for a derived registry
-   extract to be public. `degir-dashboard` is now linked four times across the bundle and email.
-   This is the only real exposure left open.
-3. **Send the Hereon AEON-UP follow-up** — drafted at `applications/hereon_aeon_up/FOLLOW_UP_EMAIL.md`.
-4. **Clear the trainer comment queue — 6 unread, sitting since 30–31 August.** Verified
-   2026-09-10: none of them greps in `JOURNAL.md` or `NOW.md`, so they were never answered. Two are
-   interview-critical — `her-l0-004` *"I don't have a mental picture of Neural process"* and
-   *"I don't know what a Gaussian process is either"*, and the CNP is his strongest interview
-   asset. Also `her-l0-003` (the ML abstract as a read on what they want), `stat-l0-005` (wants the
-   equations with a worked example), `own-l0-008` and `own-l0-003` (layers vs. deep-learning layers;
-   what a token is for). Start with the GP/CNP pair.
+| position | sent | rejected | alive |
+|---|---|---|---|
+| IDM gGmbH — AI/ML Engineer, Clinical AI | 12 Sept | **15 Sept** | 3 days |
+| FZJ IBG-4 — RDM for FAIRagro (2026T-0535) | 13 Sept | **17 Sept** | 4 working days |
+| **Hereon AEON-UP 1056** — probabilistic DL, urban air quality | 27 Aug | **22 Sept** | 26 days |
 
-### Read before writing anything in his name
+Hereon's 26 days suggest it reached scientific evaluation and missed the shortlist; the other two
+were HR screens. All three are form letters carrying **no specific feedback and no signal about the
+documents** — do not read one into them.
 
-**`job_search/VOICE/`** — new this session, at his request. His own words, verbatim and dated, on
-how he wants to come across: *"an active, independent worker, not a passive woodpusher."* The
-`README.md` there also carries the standing factual corrections that keep reappearing in drafts (no
-university HPC, no TPU execution, no C++, de-identified not synthetic, *gültige* not *unbefristete*).
+### Done this session
 
-**⛔ Never attach `Hereon_Guest_Scientist_Letter.pdf` to any application.** It is Prof. Kai Wirtz's
-letter to the German authorities and states plainly that Thejus holds no research employment — it
-existed to keep his daughter's KITA voucher at full-day. In front of a hiring manager it does harm.
-A Hereon reference means asking Prof. Wirtz afresh.
+- **`job_search/CLAUDE.md`** — new. Step 0 is the single-source rule above.
+- **`ACTIVE_QUEUE.md`'s Bayer entry corrected.** It claimed the posting was incomplete and blocked
+  on Thejus pasting the requirements. False: `JOB_POSTING.md` carries all 8 responsibilities and
+  all 9 "Who You Are" items verbatim, stored 15 Sept. The stray raw capture behind the confusion
+  was sitting in **this repo's `temp/`**; it now lives beside the posting as
+  `JOB_POSTING_RAW_2026-09-15.txt`. Moved, never deleted — it was untracked and `temp/` is not
+  gitignored, so a delete would have been unrecoverable.
+- **⛔ Bayer 876667 is BUILT and appears UNSENT** — cover letter (16.9 KB, 15 Sept), two CV PDFs
+  (17 Sept), and **no `SEND.md`, no `PROCESSED.md`, no `APPLICATION_LOG.md` row.** On that
+  evidence it never went out. **Highest-value open item anywhere.**
+- **`trainer/content/ladders/hereon_aeon_up.json` retired** to `ladders/_retired/` via `git mv`
+  (history preserved) — 55 cards drilling a closed position. Rotation went 14 → 13 ladders and
+  293 → 238 cards, and the content gate stayed at **exactly 45 pre-existing errors**: no
+  regression, and nothing silently "improved". His **54 `her-*` answer records in `progress.json`
+  are kept.**
 
-### Also done, and pushed
+### The durable warnings that used to sit here have moved, not vanished
 
-- `degir-dashboard` now has a **README** documenting the data derivation and its limits, and the
-  generator no longer hard-codes the real extract's server path.
-- Found a **third silent bug**, in that generator: `full_map[df$customer_number]` indexes a named
-  vector with a **factor**, so R used the integer level codes and relabelled clinics alphabetically
-  instead of by volume. Reproduced, patched, documented. It does not weaken privacy.
-- **R 4.5.2 was already installed** at `C:\Program Files\R\R-4.5.2` (not on PATH). All 14 dashboard
-  dependencies are now present and the app was verified to serve HTTP 200 locally.
-- `job_search/work_done_during_internship/DASHBOARD_STUDY_GUIDE.md` — interview drill for the
-  dashboard, corrected against the code (1,409 R lines, not the 1,468 his notes claim).
-- Verdict given on `docs/cya_remo_jax_ibm_ml_contemplation.md` (Gemini's): keep it, but **"Dr. Aris
-  Thorne" is a fabricated person** and must go; the DFG Antrag quote is verbatim-verified; the
-  Beckmann and Medwed quotes are unverifiable from this repo; "GPU/TPU" repeats the TPU overclaim.
+Verified present in `job_search` before removal: the Guest-Scientist-letter prohibition is in
+`BASE_TRUTH.md` (twice) and `VOICE/README.md:116`; the `pdfunite`-not-`pdfpages` rule is in
+`applications/_SEND_TEMPLATE.md`.
+
+### Still open, and now the oldest thing on this page
+
+**The trainer comment queue is 22 days stale — 8 unread since 30–31 August.** Two are worth more
+than anything else here: *"I don't have a mental picture of Neural process"* and *"I don't know
+what a Gaussian process is either"* (`her-l0-004`, 31 Aug). The cards that answer them —
+`np-l0-004` *what a Gaussian Process actually is* and `np-l1-004` *what a Neural Process actually
+is* — are in `neural_processes.json`, which was **deliberately kept in rotation** when the Hereon
+ladder was retired.
 
 ---
 
@@ -91,8 +90,9 @@ active as others were rejected."* The other ten are closed. `APPLICATION_LOG.md`
 Submitted and 7 "Draft prepared" — that log is now a historical record, not a work queue.
 
 **Why it matters more than the signature scare that started this.** Publicly readable right now:
-`trainer/content/ladders/hereon_aeon_up.json` (51 interview cards, **Karl named 22 times**,
-including how to talk about his model and why the strongest question works on him);
+`trainer/content/ladders/hereon_aeon_up.json` (**55** interview cards, **Karl named 22 times**,
+including how to talk about his model and why the strongest question works on him — **retired from the drill rotation to ladders/_retired/ on 2026-09-22, which changes
+nothing about this section: the public history keeps every version**);
 `state/NOW.md` and `state/JOURNAL.md` (the publication-gap arithmetic, parental-leave dates,
 salary framing, *"8 of 11 applications never left Draft prepared"*); the two `*honesty*` audit
 reports; `CLAUDE.md` (permit expiry); `docs/career_strategy_conversation_aug2026.md`;
@@ -256,28 +256,36 @@ latest paper you read?"* (`aq-l3-003`).
 
 ---
 
-## ⚑ 1. The live item: the AEON-UP INTERVIEW
+## ⛔ 1. ~~The live item: the AEON-UP INTERVIEW~~ — CLOSED 2026-09-22
 
-**The application was SENT.** Confirmed by Thejus on 2026-08-27. Q1 is closed; the 3 September
-deadline no longer governs anything. Do not re-open it, do not re-audit the PDFs, do not
-re-litigate the cover letter. Those are decided and out of his hands.
+**Hereon AEON-UP ref. 1056 was REJECTED on 22 September 2026.** Form letter from Erika Krüger
+(Bewerbermanagement): *"The response to the vacant position was great, we did not make the
+selection easily and unfortunately decided in favour of another candidate."* Sent 27 August, alive
+26 days. Dr. Ramacher's *"still in the process of selecting"* came on 17 September, five days
+before the letter.
 
-**Priority order, stated at the start of every session:**
+**The priority table that stood here is void.** It ranked *AEON-UP interview preparation* as TOP
+PRIORITY with everything else yielding to it. Nothing yields to it now.
 
-| # | track | status |
-|---|---|---|
-| **1** | **AEON-UP interview preparation** | **TOP PRIORITY — everything below yields to it** |
-| 2 | Other applications: throughput, logging, reminders | the real bottleneck (8 of 11 never left "Draft prepared") |
-| 3 | The two apps — LC0 chess analysis/play, and the spaced-repetition trainer | portfolio *and* the interview's engineering evidence |
-| 4 | CNP (`cnp_synthetic`) | BUILT; it exists **for this application** — close the loose ends, then it is CV/interview material |
+**What survives the rejection — and is worth more than the position was:**
 
-**Rules while the interview is the live item:**
-1. Its status is stated at the start of the session, before anything else.
-2. At most **one** non-interview brief may be ACTIVE.
-3. Every new brief carries a one-line *"why this before the interview?"*
-4. **No new meta-process documents.** (`COMMAND_BASE.md`: "infrastructure that postpones
-   exposure". A registry, a ledger, an audit protocol and three documents were all built while
-   the application sat unsent.)
+- The **CNP** (`cnp_synthetic`): built, run, and honestly characterised at **4.42× worse CRPS than
+  the exact GP posterior**, which is the *correct* outcome and his strongest interview asset when
+  it is said that way. Entirely role-independent.
+- The **probabilistic-ML vocabulary** — GP, CNP, CRPS, calibration vs sharpness, aleatoric vs
+  epistemic — in `neural_processes.json` (21 cards) and `uncertainty.json` (17 cards), both still
+  in the drill rotation.
+- The **publication-gap arithmetic** and the *"what don't you yet know how to do?"* / *"how much
+  was AI-assisted?"* answers, drilled and audited.
+- The prose in `applications/hereon_aeon_up/` is **retained on purpose** for future
+  probabilistic-ML and air-quality applications — see `APPLICATION_LOG.md:110`.
+
+**What does not survive:** Karl Wirtz's model, EPISODE-CityChem, UrbEm, the AEON-UP talk slides,
+and that post's TVöD step case. Those 55 cards are retired to
+`trainer/content/ladders/_retired/hereon_aeon_up.json` with a README explaining the split.
+
+⚑ **The next live item is not a chess task.** Per `job_search/ACTIVE_QUEUE.md`: **Bayer 876667 is
+built and appears unsent.** That is the live item.
 
 ---
 
@@ -459,16 +467,19 @@ because NLL is its training objective and not the baselines'.
 
 ---
 
-## 4. Track 2 — the other applications
+## 4. Track 2 — the other applications → moved out of this file
 
-**Throughput is the problem, not quality.** 8 of 11 applications never left "Draft prepared". The
-materials are excellent; the pipeline is not. After the interview, this is where the effort goes.
+**⛔ Status, counts and next targets are no longer recorded here.** They are in
+`bioinformatics_project/job_search/ACTIVE_QUEUE.md` (in flight, next target) and
+`APPLICATION_LOG.md` (per position). The old text on this page — *"8 of 11 applications never left
+Draft prepared"* — was a snapshot from late August and had been stale for weeks by the time it was
+last read as if it were current.
 
-He has asked for **application logging and reminders** — a running record of what went out, when,
-to whom, and what is due back. Keep it as *one* tracked artefact in `job_search`, not a new
-process framework here; see the no-new-meta-documents rule in §1.
+**What stays true and is not status:** throughput is the bottleneck, not material quality. And go
+to the boards, never to search results — the HIDA board and the Helmholtz Job Letter.
 
-Boards, not search results: HIDA board + Helmholtz Job Letter. Hereon was the warm lead.
+The application logging he asked for **exists**: `APPLICATION_LOG.md`, one tracked artefact in
+`job_search`. Do not rebuild it here.
 
 ---
 

@@ -37,6 +37,8 @@ DEFAULT_LADDER_RATINGS: Dict[str, float] = {
     "clinical-project": 820.0,
     # General interview ladder covering postdoc (GOTM-FABM, JAX, IBM) and HealthTwiSt clinical data/stats
     "general-interview": 820.0,
+    # FZJ IBG-1 AI Microscopy Postdoc application ladder (added 2026-09-13)
+    "fzj-ai-microscopy": 820.0,
 }
 
 

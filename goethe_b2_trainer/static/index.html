@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Goethe-Zertifikat B2 Prüfungssimulator</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇩🇪</text></svg>">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="exam-header">
+    <div class="header-inner">
+      <div class="brand-badge">
+        <div class="goethe-logo-pill">B2 SIMULATOR</div>
+        <div>
+          <div class="brand-title">Goethe-Zertifikat B2</div>
+          <div class="brand-sub">Offizieller Prüfungssimulator mit Gemini AI Evaluation</div>
+        </div>
+      </div>
+
+      <!-- Stepper Pills -->
+      <nav class="progress-stepper" aria-label="Exam Progress">
+        <div class="step-pill active" id="pill-welcome">Start</div>
+        <div class="step-pill" id="pill-lesen">1. Lesen</div>
+        <div class="step-pill" id="pill-hoeren">2. Hören</div>
+        <div class="step-pill" id="pill-schreiben">3. Schreiben</div>
+        <div class="step-pill" id="pill-sprechen">4. Sprechen</div>
+        <div class="step-pill" id="pill-scorecard">5. Ergebnis</div>
+      </nav>
+
+      <!-- Right Header Actions: Timer & Mode Switcher -->
+      <div class="header-actions">
+        <div class="mode-selector" title="Zeitbegrenzung wählen">
+          <button class="mode-btn active" data-mode="sprint" id="modeBtnSprint">Sprint Test</button>
+          <button class="mode-btn" data-mode="official" id="modeBtnOfficial">Offizielle Zeit</button>
+        </div>
+
+        <div class="timer-box" id="timerBox" style="display: none;" title="Verbleibende Modulzeit">
+          <span>⏱</span>
+          <span id="timerDisplay">03:00</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Work Area Container -->
+  <main class="main-layout">
+
+    <!-- 0. WELCOME / RULES SCREEN -->
+    <section class="view-section active" id="view-welcome">
+      <div class="welcome-card">
+        <div class="welcome-header">
+          <h1 class="welcome-title">Prüfungssimulation B2</h1>
+          <p class="welcome-subtitle">Realisieren Sie eine vollwertige Goethe B2 Prüfung mit exakten Zeitvorgaben und automatischer KI-Begutachtung.</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-box">
+            <h4>📖 1. Lesen (Leseverstehen)</h4>
+            <p>Authentischer B2-Pressetext mit detaillierten Textanalysefragen. <em>(Offiziell: 65 Min.)</em></p>
+          </div>
+          <div class="feature-box">
+            <h4>🎧 2. Hören (Hörverstehen)</h4>
+            <p>Authentischer Radiobericht mit max. 2 Wiedergaben und Verständnisfragen. <em>(Offiziell: 40 Min.)</em></p>
+          </div>
+          <div class="feature-box">
+            <h4>✍️ 3. Schreiben (Schriftlicher Ausdruck)</h4>
+            <p>Verfassen eines Forumsbeitrags (~150 Wörter). KI-Bewertung nach 4 Goethe-Kriterien. <em>(Offiziell: 75 Min.)</em></p>
+          </div>
+          <div class="feature-box">
+            <h4>🎙️ 4. Sprechen (Mündlicher Ausdruck)</h4>
+            <p>Live-Sprachaufnahme Ihres Vortrags. Direkte multimodale Gemini-Evaluation von Aussprache, Grammatik und Flüssigkeit. <em>(Offiziell: 15 Min.)</em></p>
+          </div>
+        </div>
+
+        <div class="mic-check-panel">
+          <div>
+            <strong>Mikrofon-Test für Modul 4 (Sprechen)</strong>
+            <p style="font-size:0.85rem; color:var(--text-secondary);">Prüfen Sie vorab, ob Ihr Browser auf das Mikrofon zugreifen darf.</p>
+          </div>
+          <button class="btn-secondary" id="testMicBtn">Mikrofon testen</button>
+        </div>
+
+        <button class="start-btn" id="startExamBtn">Simulation Jetzt Starten ➔</button>
+        <button class="btn-secondary" id="viewLastResultBtn" style="margin-top: 14px; width: 100%; padding: 12px; font-weight: 600;">📊 Letztes Prüfungsergebnis anzeigen</button>
+      </div>
+    </section>
+
+    <!-- 1. LESEN MODULE SCREEN -->
+    <section class="view-section" id="view-lesen">
+      <div class="exam-split">
+        <!-- Left: Text Passage -->
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <div class="module-tag">MODUL 1: LESEN</div>
+            <h2 class="panel-title" id="lesenTitle">Teil 1: Zeitungsartikel</h2>
+          </div>
+          <div class="instruction-banner" id="lesenInstruction"></div>
+          <div class="reading-text-box" id="lesenText"></div>
+        </div>
+
+        <!-- Right: Question & Options -->
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <div class="module-tag">AUFGABE</div>
+            <h3 class="panel-title">Verständnisfrage</h3>
+          </div>
+          <div class="question-prompt" id="lesenPrompt"></div>
+          <div class="options-list" id="lesenOptions"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. HÖREN MODULE SCREEN -->
+    <section class="view-section" id="view-hoeren">
+      <div class="exam-split">
+        <!-- Left: Audio Player & Instruction -->
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <div class="module-tag">MODUL 2: HÖREN</div>
+            <h2 class="panel-title" id="hoerenTitle">Teil 1: Radiobericht</h2>
+          </div>
+          <div class="instruction-banner" id="hoerenInstruction"></div>
+
+          <div class="audio-player-box">
+            <div class="audio-controls-row">
+              <audio id="hoerenAudioPlayer" controls style="width: 100%;"></audio>
+            </div>
+            <div class="audio-controls-row">
+              <span class="audio-status-pill" id="hoerenPlayCountBadge">Wiedergabe: 0 / 2</span>
+              <button class="tts-speech-btn" id="ttsListenBtn">
+                <span>🗣️ Text per Sprachsynthese hören</span>
+              </button>
+            </div>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">
+            <em>Hinweis:</em> Im Goethe B2 Hören Teil 1 hören Sie das Gespräch üblicherweise zweimal. Sie können die Audiodatei oder die synthetisierte Sprecherstimme nutzen.
+          </p>
+        </div>
+
+        <!-- Right: Question & Options -->
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <div class="module-tag">AUFGABE</div>
+            <h3 class="panel-title">Hörverständnis</h3>
+          </div>
+          <div class="question-prompt" id="hoerenPrompt"></div>
+          <div class="options-list" id="hoerenOptions"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. SCHREIBEN MODULE SCREEN -->
+    <section class="view-section" id="view-schreiben">
+      <div class="exam-split">
+        <!-- Left: Topic & Guidelines -->
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <div class="module-tag">MODUL 3: SCHREIBEN</div>
+            <h2 class="panel-title" id="schreibenTitle">Teil 1: Diskussionsbeitrag</h2>
+          </div>
+          <div class="instruction-banner" id="schreibenInstruction"></div>
+
+          <div class="guidelines-card">
+            <h4>Verpflichtende Leitpunkte:</h4>
+            <ul class="guidelines-list" id="schreibenGuidelines"></ul>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+            Tipp für das Goethe-Zertifikat B2: Nutzen Sie strukturierende Konnektoren (z.B. <em>meiner Auffassung nach, zwar... aber, folglich, darüber hinaus</em>). Beachten Sie die Verbstellung in Haupt- und Nebensätzen!
+          </p>
+        </div>
+
+        <!-- Right: Writing Editor -->
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <div class="module-tag">TEXTEDITOR</div>
+            <h3 class="panel-title">Ihr Forumsbeitrag</h3>
+          </div>
+
+          <textarea class="writing-editor" id="writingTextarea" placeholder="Schreiben Sie hier Ihren Diskussionsbeitrag auf Deutsch... (Richtwert: ca. 150 Wörter)"></textarea>
+
+          <div class="word-count-bar">
+            <div>Wörter: <strong id="wordCountNum">0</strong> | Zeichen: <span id="charCountNum">0</span></div>
+            <div class="count-indicator short" id="wordCountIndicator">Zu kurz (&lt; 120 Wörter)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. SPRECHEN MODULE SCREEN -->
+    <section class="view-section" id="view-sprechen">
+      <div class="exam-split">
+        <!-- Left: Presentation Prompt & Guidelines -->
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <div class="module-tag">MODUL 4: SPRECHEN</div>
+            <h2 class="panel-title" id="sprechenTitle">Teil 1: Vortrag halten</h2>
+          </div>
+          <div class="instruction-banner" id="sprechenInstruction"></div>
+
+          <div class="guidelines-card">
+            <h4>Strukturierung des Kurzvortrags (ca. 2-3 Minuten):</h4>
+            <ul class="guidelines-list" id="sprechenGuidelines"></ul>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-secondary);">
+            Gemini analysiert direkt Ihre gesprochene Audiodatei auf <strong>Aussprache & Intonation</strong>, <strong>Grammatik</strong>, <strong>Flüssigkeit</strong> und <strong>Aufgabenerfüllung</strong> nach dem offiziellen Goethe-B2-Schema.
+          </p>
+        </div>
+
+        <!-- Right: Recording Cockpit -->
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <div class="module-tag">AUDIOAUFNAHME</div>
+            <h3 class="panel-title">Sprechaufnahme Cockpit</h3>
+          </div>
+
+          <div class="speaking-cockpit">
+            <canvas class="waveform-canvas" id="waveformCanvas" width="400" height="90"></canvas>
+            
+            <div class="recording-timer" id="recTimerDisplay">00:00</div>
+
+            <button class="rec-btn" id="recordAudioBtn">
+              <span class="recording-dot"></span>
+              <span id="recBtnText">Aufnahme starten</span>
+            </button>
+
+            <audio class="playback-preview" id="audioPlaybackPreview" controls style="display: none;"></audio>
+            
+            <p style="font-size: 0.8rem; color: var(--text-muted);">
+              Klicken Sie auf 'Aufnahme starten', sprechen Sie Ihren Vortrag auf Deutsch, und klicken Sie danach auf 'Aufnahme stoppen'. Sie können Ihre Aufnahme vor der Abgabe anhören.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. SCORECARD & RESULTS SCREEN -->
+    <section class="view-section" id="view-scorecard">
+      <div class="scorecard-container">
+        
+        <!-- Certificate Banner Header -->
+        <div class="certificate-banner pass" id="certBanner">
+          <div class="goethe-logo-pill" style="display:inline-block; margin-bottom:12px;">GOETHE-ZERTIFIKAT B2</div>
+          <h2 style="font-size: 2.2rem; font-weight: 800;">Offizielles Prüfungsergebnis</h2>
+          <div class="cert-stamp pass" id="certStamp">BESTANDEN</div>
+          <div id="certSummary" style="color: var(--text-secondary); font-size: 1.05rem; margin-top: 8px;"></div>
+        </div>
+
+        <!-- 4 Module Detail Scorecards Grid -->
+        <div class="scorecard-grid">
+          
+          <!-- Lesen Result Card -->
+          <div class="module-card">
+            <div class="module-card-header">
+              <h3 style="font-size: 1.15rem; font-weight: 700;">📖 Modul 1: Lesen</h3>
+              <div class="module-score-pill pass" id="cardLesenScore">-- / 30</div>
+            </div>
+            <div id="cardLesenFeedback"></div>
+          </div>
+
+          <!-- Hören Result Card -->
+          <div class="module-card">
+            <div class="module-card-header">
+              <h3 style="font-size: 1.15rem; font-weight: 700;">🎧 Modul 2: Hören</h3>
+              <div class="module-score-pill pass" id="cardHoerenScore">-- / 30</div>
+            </div>
+            <div id="cardHoerenFeedback"></div>
+          </div>
+
+          <!-- Schreiben Result Card -->
+          <div class="module-card">
+            <div class="module-card-header">
+              <h3 style="font-size: 1.15rem; font-weight: 700;">✍️ Modul 3: Schreiben</h3>
+              <div class="module-score-pill pass" id="cardSchreibenScore">-- / 100</div>
+            </div>
+            <div id="cardSchreibenFeedback"></div>
+          </div>
+
+          <!-- Sprechen Result Card -->
+          <div class="module-card">
+            <div class="module-card-header">
+              <h3 style="font-size: 1.15rem; font-weight: 700;">🎙️ Modul 4: Sprechen</h3>
+              <div class="module-score-pill pass" id="cardSprechenScore">-- / 30</div>
+            </div>
+            <div id="cardSprechenFeedback"></div>
+          </div>
+
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; justify-content: center; gap: 16px; margin: 32px 0;">
+          <button class="btn-secondary" onclick="window.location.reload();">Neue Prüfung starten</button>
+          <button class="btn-primary" onclick="window.print();">Ergebnis drucken / PDF</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Bottom Navigation Bar for Exam Modules -->
+    <div class="module-nav-bar" id="moduleNavBar" style="display: none;">
+      <button class="btn-secondary" id="prevModuleBtn">◂ Vorheriges Modul</button>
+      <button class="btn-primary" id="nextModuleBtn">Nächstes Modul ▸</button>
+      <button class="btn-primary" id="finishExamBtn" style="display: none; background: var(--gradient-gold); color: #0f172a;">Prüfung abgeben & Auswerten ➔</button>
+    </div>
+
+  </main>
+
+  <!-- Gemini Evaluation Loading Overlay -->
+  <div class="eval-loading-overlay" id="evalLoadingOverlay">
+    <div class="spinner"></div>
+    <div class="eval-status-text">Gemini AI bewertet Ihre Prüfung...</div>
+    <div class="eval-sub-text">Audioanalyse (Aussprache, Flüssigkeit, Syntax) & Textkorrektur werden verarbeitet.</div>
+  </div>
+
+  <script src="/static/js/audio_recorder.js"></script>
+  <script src="/static/js/exam_engine.js"></script>
+</body>
+</html>

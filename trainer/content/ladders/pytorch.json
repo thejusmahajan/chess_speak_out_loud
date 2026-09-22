@@ -258,6 +258,44 @@
     ]
   },
   {
+    "id": "pyt-l3-003",
+    "ladder": "pytorch",
+    "level": 3,
+    "topic": "Dice loss vs cross-entropy in biological segmentation",
+    "question": "In microscopy image segmentation (such as U-Net in microbeSEG), why does standard cross-entropy loss fail when segmenting bacterial cells, and how does Dice loss solve it?",
+    "answer": "Microscopy images suffer from extreme class imbalance: bacterial cells typically occupy only 2–5% of the pixel area, while 95–98% is empty background. Standard Cross-Entropy treats all pixels equally, so a model predicting 100% background achieves 95%+ accuracy while detecting zero cells. Soft Dice Loss directly measures the overlap ratio (2 * |X ∩ Y| / (|X| + |Y|)), making the loss gradient scale with segmentation boundary overlap rather than total background area.",
+    "explanation": "In PyTorch, Dice Loss is implemented smoothly as: Loss_Dice = 1 - (2 * sum(p_i * y_i) + eps) / (sum(p_i) + sum(y_i) + eps), where eps prevents division by zero. Often, a compound loss (BCE + Dice) is used to combine smooth gradient descent with overlap optimization.",
+    "trap": "Using vanilla Cross-Entropy on sparse cellular images without class weighting or Dice overlap loss, resulting in models that predict all-background.",
+    "sources": [
+      "https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 1460,
+    "requires": [
+      "pyt-l2-001",
+      "pyt-l0-007"
+    ]
+  },
+  {
+    "id": "pyt-l3-004",
+    "ladder": "pytorch",
+    "level": 3,
+    "topic": "U-Net skip connections & spatial feature preservation",
+    "question": "Why does the U-Net architecture use skip connections between encoder and decoder, and how are they implemented in PyTorch?",
+    "answer": "Encoder downsampling (pooling/strided convolutions) increases receptive field and extracts high-level semantic features, but destroys fine spatial localization (exact pixel boundaries). Skip connections copy and concatenate feature maps from early encoder layers directly to corresponding decoder upsampling stages (torch.cat([decoder_feat, encoder_feat], dim=1)). This supplies fine-grained spatial coordinates directly to the output layer, allowing precise boundary delineation of micron-scale bacteria.",
+    "explanation": "Without skip connections, the decoder must reconstruct fine 1-pixel boundary details from heavily compressed bottleneck representations (e.g. 1/16th resolution), producing blurry, merged cell borders. Skip connections bypass the bottleneck entirely.",
+    "trap": "Assuming skip connections add tensors like ResNets (x + residual); U-Net concatenates them along the channel dimension (torch.cat([x, skip], dim=1)), requiring the decoder convolution to accept the combined channel depth.",
+    "sources": [
+      "https://pytorch.org/docs/stable/generated/torch.cat.html",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 1480,
+    "requires": [
+      "pyt-l2-001",
+      "pyt-l1-001"
+    ]
+  },
+  {
     "id": "pyt-l4-001",
     "ladder": "pytorch",
     "level": 4,
@@ -317,6 +355,44 @@
     ]
   },
   {
+    "id": "pyt-l4-004",
+    "ladder": "pytorch",
+    "level": 4,
+    "topic": "real-time PyTorch inference optimization for instruments",
+    "question": "In an autonomous closed-loop microscopy setup with a 2-second acquisition cycle, what techniques in PyTorch minimize GPU inference latency?",
+    "answer": "1. Inference Mode: Wrap execution in 'with torch.inference_mode():' (disables autograd and tensor version-tracking, outperforming no_grad).\n2. Kernel Fusion via torch.compile(): Compile the model with torch.compile(model) to fuse adjacent convolution, activation, and normalization kernels into single GPU memory passes.\n3. Automatic Mixed Precision (AMP): Use torch.autocast('cuda', dtype=torch.float16) to leverage Tensor Cores for 2–3x throughput speedups.\n4. CUDA Graphs: For fixed-size camera frames, capture execution with torch.cuda.make_graphed_callables() to eliminate CPU kernel-launch overhead.\n5. Pinned Memory: In data loaders, use pin_memory=True and tensor.to('cuda', non_blocking=True) to overlap PCIe host-to-device transfer with GPU compute.",
+    "explanation": "A 36-hour autonomous live-cell experiment cannot wait 10 seconds per frame. Combining torch.compile, FP16, and CUDA graphs typically drops frame segmentation latency from 350ms to <30ms, safely fitting within camera acquisition intervals.",
+    "trap": "Using model.eval() alone and assuming it speeds up inference; model.eval() only disables Dropout and freezes BatchNorm running stats without turning off autograd tracking or optimizing GPU dispatch.",
+    "sources": [
+      "https://pytorch.org/docs/stable/generated/torch.inference_mode.html",
+      "backend/neural_vision.py"
+    ],
+    "difficulty": 1760,
+    "requires": [
+      "pyt-l3-001",
+      "pyt-l2-002"
+    ]
+  },
+  {
+    "id": "pyt-l4-005",
+    "ladder": "pytorch",
+    "level": 4,
+    "topic": "vectorizing agent simulations on GPUs",
+    "question": "How do you port an agent-based biological simulator (like CellSium or an individual-based model) from per-object Python loops to vectorized GPU execution in JAX or PyTorch?",
+    "answer": "1. Flat Tensor State: Replace individual cell objects with 2D state tensors of shape [N_max, D], where each row represents an agent and columns represent traits (length, width, orientation, biomass).\n2. Vectorized Math: Replace per-cell method calls (cell.grow()) with batch array operations over the entire population simultaneously.\n3. Branching Elimination: Replace Python if/else logic with boolean masking (torch.where or jnp.where), avoiding GPU warp divergence.\n4. Collision and Division Handling: Preallocate active agent slots with an alive mask. When an agent divides, use boolean compaction or scatter operations to allocate the daughter cell to an inactive row index without dynamic object instantiation.",
+    "explanation": "Python 'for cell in cells:' hits a severe CPU bottleneck at ~10,000 cells due to interpreter overhead and pointer chasing. A vectorized tensor formulation parallelizes 100,000+ cells across thousands of GPU cores in milliseconds.",
+    "trap": "Calling a Python loop over tensor rows (for i in range(N): x[i] = ...), which serializes execution and destroys GPU parallel speedup.",
+    "sources": [
+      "https://pytorch.org/docs/stable/generated/torch.where.html",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 1780,
+    "requires": [
+      "pyt-l3-001",
+      "pyt-l1-001"
+    ]
+  },
+  {
     "id": "pyt-l5-001",
     "ladder": "pytorch",
     "level": 5,
@@ -335,6 +411,46 @@
       "pyt-l4-001",
       "pyt-l4-002",
       "pyt-l4-003"
+    ]
+  },
+  {
+    "id": "pyt-l5-002",
+    "ladder": "pytorch",
+    "level": 5,
+    "topic": "the silent coordinate bug & invariant verification",
+    "question": "Walk me through a real silent bug you caught in a PyTorch analysis pipeline: what was the root cause, why did PyTorch raise no error, and how did you verify the fix?",
+    "answer": "1. The Root Cause: In extracting spatial attention from a 15-layer chess transformer (BT3), LC0 internally encodes positions from the side-to-move's perspective. When Black is to move, the internal representation is vertically reflected (ranks 1<->8 inverted, token 0 is a8). The extraction code assumed White was always to move (i=0 -> a1).\n2. Why PyTorch Stayed Silent: The output tensor had the exact expected shape [64], all values were valid probabilities in [0, 1], and the resulting attention map looked like a smooth, plausible heatmap. No NaN, no exception, and standard unit tests comparing tensor shapes passed trivially.\n3. How it was Caught: Caught through domain invariant testing: 'Does attention concentrate on tactical, occupied squares regardless of who is to move?' In White positions, attention concentrated on key pieces; in Black positions, it systematically highlighted empty squares.\n4. The Fix: Implemented saliency_absolute(), which explicitly checks the side-to-move and inverts ranks (sq[0] + str(9 - int(sq[1]))). Documented the raw frame-relative function as unsafe for downstream use.\n5. Verification: Verified across 40 black-to-move positions, confirming that the residual between the buggy and corrected maps was exactly a horizontal reflection (mean residual 0.0003).",
+    "explanation": "This is the characteristic signature of a coordinate-frame mismatch in machine learning: output that is structurally valid and mathematically plausible, but silently inverted. In physical systems like autonomous microscopy, this causes instruments to steer to empty fields.",
+    "trap": "Claiming that automated unit tests checking output shapes or non-empty tensors would have caught this; only domain invariant checks across flipped conditions reveal coordinate bugs.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "backend/neural_vision.py",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 1980,
+    "requires": [
+      "pyt-l4-001",
+      "pyt-l4-002"
+    ]
+  },
+  {
+    "id": "pyt-l5-003",
+    "ladder": "pytorch",
+    "level": 5,
+    "topic": "testing PyTorch systems: mutation testing & logic guards",
+    "question": "How do you rigorously test deep learning code beyond basic shape assertions? What does mutation testing mean in a PyTorch codebase?",
+    "answer": "1. Invariant Tests: Rather than just checking shapes, test mathematical and physical invariants. E.g., test that attention distributions sum to 1.0, that spatial outputs are equivariant to 90-degree rotations, and that model loss monotonically decreases on a single overfitted batch.\n2. Logic Guards: Critical boundary checks in the pipeline (e.g., verifying input history planes are populated, side-to-move orientation flags, non-zero masks) that prevent invalid data from silently passing into model forward passes.\n3. Mutation Testing (Fault Injection): Testing the tests themselves. Deliberately mutate or disable a guard (e.g., invert 'if is_black' to 'if not is_black', or set history planes to zero) and verify that the test suite turns RED. If tests still pass with a disabled guard, the tests are non-causal.\n4. Regression Ratchets: When a silent bug is discovered, write an explicit regression test capturing that failure case and mutation-check it so the bug can never re-enter the codebase.",
+    "explanation": "In safety-critical applications like automated microscopy or medical devices, a green test suite is meaningless unless the tests have been proven to fail under deliberate fault injection.",
+    "trap": "Believing high line coverage or passing tests guarantee correctness; a test suite can achieve 100% coverage by simply running the model forward pass without asserting any semantic invariants.",
+    "sources": [
+      "docs/writeup_attention_frame_bug.md",
+      "backend/tests/test_salience_pipeline.py",
+      "docs/CV_AI_MODULE.md"
+    ],
+    "difficulty": 1990,
+    "requires": [
+      "pyt-l4-001",
+      "pyt-l3-002"
     ]
   }
 ]
