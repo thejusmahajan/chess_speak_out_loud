@@ -37,6 +37,62 @@ Every brief and report path below is relative to
 
 ---
 
+## ⚑ BATCH ISSUED 2026-09-23 — five job-search briefs awaiting handover to Gemini 3.8 Flash (High)
+
+⛔ **Read `bioinformatics_project/job_search/applications/BATCH_PLAN_2026-09-23.md` before picking up
+any of these.** All eleven standalone folders under `job_search/applications/` were opened and read
+on 23 September. **Six are buildable, two are blocked on a document only Thejus can supply, three
+are deliberately skipped** — the plan carries the reasoning for each skip, and the skips are the
+part most likely to be silently undone by a later session.
+
+**Why these before the interview:** TRON was sent the same day and the queue was left with nothing
+built-and-unsent. **Throughput is the documented failure mode of this job search** — 8 of 11
+applications once sat at "draft prepared", and Bayer 876667 expired on the shelf. One of these has a
+five-day deadline.
+
+| brief (`job_search/agents/`) | posting | deadline | status |
+|---|---|---|---|
+| `BRIEF_2026-09-23_oldenburg-biostatistiker.md` | Uni Oldenburg, Biostatistiker*in, E13 **50%**, **unbefristet** | ⛔ **28.09.2026** | **ISSUED — build first** |
+| `BRIEF_2026-09-23_mpi-hamocc.md` | MPI Bremen, Scientific Programmer, HAMOCC biogeochemistry | rolling | **ISSUED — best scientific fit in the batch** |
+| `BRIEF_2026-09-23_mpi-icon.md` | MPI Bremen, Scientific Programmer, ICON ocean physics | rolling | **ISSUED — ⚠ read the HAMOCC brief first; the two letters must not be interchangeable** |
+| `BRIEF_2026-09-23_zmt-postdoc.md` | ZMT Bremen, Postdoc Scientific Programmer, `31-STB-PB2-PD`, **full-time E13** | 31.10.2026 | **ISSUED — ⛔ blocked on a reference letter** |
+| `BRIEF_2026-09-23_bo-service-data-manager.md` | B&O Service SE, Data Manager, **unbefristet** | none stated | **ISSUED — German letter; ⛔ do not send until Thejus has read the German** |
+
+✅ **SECOND BACKWARDS PASS DONE, 23 Sept (after restart). The briefs are now safe to hand over;
+Oldenburg first.** Verified against disk, not memory. **All five gates were broken:** `pdftotext
+to_send/*.pdf` exits 99 with 2+ PDFs, so every check printed a blank; `grep -i TPU` matches "output";
+required words were satisfied by the enclosures. **Four briefs carried unsourced claims**: "with
+clinicians", "each of 345 tests mutation-verified", "built a parameterization", and a CNP framing
+that misread its own results. All fixed, with questions for Thejus in BASE_TRUTH *UNRESOLVED* 6–9. Each brief
+ends with a *SECOND BACKWARDS PASS* section. job_search commits `79ff6f9` (TRON send record, which had
+never been committed) and the brief-corrections commit after it.
+
+**First pass (superseded where it conflicts):** a gate
+grepping `143,000` in a German letter that must read `143.000`; a *required* `SLURM` grep that would
+have rewarded a prohibited HPC claim; the ZMT publication requirement scored MET when his record is
+**not** oceanographic and the marine manuscript is only *in preparation*; and the CNP written as a
+win when it is correctly a **4.42x loss** on CRPS against the exact GP.
+
+### ⛔ Blocked on Thejus — both same-day actions
+
+1. **ZMT requires a reference letter.** ⛔ Prof. Wirtz's guest-scientist letter is **prohibited** — it
+   was written for the German authorities and states he holds **no research employment**. A fresh
+   request to Prof. Wirtz or Prof. Schaum has to go out now; five weeks is comfortable, five days is not.
+2. **Two postings cannot be read.** Heidelberg's PDF will not open (`pdfinfo`: I/O Error, no page
+   count) and IRTA's is an aggregator scrape with no reference number, task list or contact. Both
+   need re-saving. ⛔ **Judging a posting from its title is exactly how `ACTIVE_QUEUE.md` came to
+   claim TRON had no Data Steward role — and TRON did.**
+
+### Deliberately skipped, with reasons
+
+**Oldenburg KKS Datenmanager** — three hard requirement misses (*sehr gute* German against his B1;
+EDC systems secuTrial/REDCap never used; ICH-GCP), E11 at 50%.
+**MPI HPC & Software Engineering** — requires Fortran **and C/C++** plus OpenACC; C++ was removed
+from his skills line at his own instruction, and a third application into one department weakens the
+two he can do.
+**Staburo 765770** — a **third** Staburo role. Two open applications to one ~100-person company is
+the most that can be defended, on his own reasoning of 15 September.
+
 ## Live now, by workspace
 
 ### If your workspace is `chess_speak_out_loud`

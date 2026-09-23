@@ -1,6 +1,10 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-09-22 by the leader (Opus 5) — see TODAY, directly below. **Start here: `state/NEXT_SESSION_PROMPT.md`**, then TODAY, then §9 (Φ trained, F1 FAILED at 0.6908), §10 (regeneration), §12 (Φ-opening — A5 FIRED), §11 (leadership corpus). ⛔ **Job-search status is NOT in this file** — it is in `job_search/ACTIVE_QUEUE.md` + `APPLICATION_LOG.md`, and nowhere else.
+**Last updated:** 2026-09-23 by the leader (Opus 5.5). **Job-search work of 23 Sept is recorded in
+the job_search repo** (`BATCH_PLAN_2026-09-23.md`, the five `agents/BRIEF_2026-09-23_*.md`, each
+with a SECOND BACKWARDS PASS section). Next actions, all Thejus: hand the **Oldenburg brief** to
+Gemini (deadline **28.09**); request a **ZMT reference letter**; answer BASE_TRUTH *UNRESOLVED* 6–9;
+re-save the Heidelberg and IRTA postings. The 22 Sept block below is history. **Start here: `state/NEXT_SESSION_PROMPT.md`**, then TODAY, then §9 (Φ trained, F1 FAILED at 0.6908), §10 (regeneration), §12 (Φ-opening — A5 FIRED), §11 (leadership corpus). ⛔ **Job-search status is NOT in this file** — it is in `job_search/ACTIVE_QUEUE.md` + `APPLICATION_LOG.md`, and nowhere else.
 **Update this file at the end of every session.** If it is stale, the next restart pays for it.
 
 ---

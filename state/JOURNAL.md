@@ -1704,3 +1704,44 @@ asset.
 
 **Open:** unchanged from 09-09, plus the comment queue.
 
+---
+
+## 2026-09-23 — second backward pass on the five job-search briefs; TRON's send committed
+
+**Asked:** review the five briefs written last session (Oldenburg, MPI HAMOCC, MPI ICON, ZMT, B&O)
+and do a backward pass on their verification. They live in `job_search/agents/`, not here.
+
+**Method:** every claim was checked against the postings (ZMT's image-only advert rendered and read),
+BASE_TRUTH, the Praktikumsbestätigung read in full, `cnp_synthetic/RESULTS.md` and the CVs the worker
+is told to copy, and **every gate was run against real PDFs**, not read.
+
+**What the first pass missed, although each brief ended with a backwards pass that said "Pass":**
+- **All five gates were broken.** `pdftotext to_send/*.pdf out` with 2+ PDFs prints usage, exits 99
+  and writes nothing, so every "must be 0" printed a blank (reproduced). `grep -i TPU` matches
+  "output" (3 hits on the sent TRON CV), and HAMOCC both banned TPU and required "binary output
+  compatibility", so it could never pass. Required words (`Busjahn`, `in preparation`) were already
+  satisfied by the enclosures or the CV, so they never tested the letter.
+- **Unsourced claims written into the briefs as instructions:** endpoints defined "with clinicians"
+  and "clinical consulting" (in the mandated German B1 sentence, too); "345 mutation-tested tests,
+  each verified to fail"; "he built a parameterization"; the CLC formulations "published on"; the
+  CNP as a "published negative result" about parameter uncertainty (it is a synthetic-GP benchmark
+  whose 4.42× loss to the oracle is the designed ceiling); CI/CD scored STRONG where BASE_TRUTH
+  records it as a gap.
+- **Fit overstated:** ICON and ZMT are physical-oceanography roles (OGCM tuning; km-scale eddies),
+  which he has not done. **Missed upside:** ZMT converts to permanent after a positive 18/24-month
+  assessment.
+- `cv_tron.tex` has **no teaching entries and no Wirtz**, which three briefs assumed were there.
+  The M.Sc. certificate had been dropped from the bundles, although Oldenburg's hard requirement is
+  a Master.
+
+**My own error, caught by the gate dry run:** I marked `devtools::check()` as unsourced. It is sourced
+in `work_done_during_internship/06_directive_d1.md:29` (0 errors, 1 warning, 1 note). Restored. Having
+been wrong once, I re-checked "with clinicians" against the same folder: zero hits, so that
+correction stands.
+
+**TRON:** sent 23 Sept, and APPLICATION_LOG/ACTIVE_QUEUE/SEND.md recorded it, but none of it was
+committed, so GitHub still said "built, unsent". **Committed as `79ff6f9`** and pushed.
+
+**Open, all Thejus:** Oldenburg to Gemini now (28.09); ZMT reference letter; BASE_TRUTH UNRESOLVED
+6–9 (mutation wording on a *sent* CV; "with clinicians" in the TRON record; manuscript in
+preparation and CLC authorship; Wirtz contact); Heidelberg/IRTA postings.
