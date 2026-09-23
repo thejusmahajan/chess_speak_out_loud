@@ -1767,3 +1767,23 @@ waiting for Thejus's OK.**
 **Thejus's decisions:** Prof. Wirtz is unreachable, so he is off every referee list; **ZMT withdrawn**
 (no reference letter, no publications in the target field). **Handover order: Oldenburg → HAMOCC →
 ICON → B&O.**
+
+---
+
+## 2026-09-24 (later) — four applications corrected by the leader and ready to send
+
+Thejus: *"Do the corrections. The point is to be honest and get myself an interview as quickly as I
+can."* The leader stopped routing fixes through the agents and applied them directly, then re-ran every
+gate. **Oldenburg (deadline 28.09), MPI HAMOCC, MPI ICON and B&O are built and gated**
+(job_search `3f0a2e8`; status in `ACTIVE_QUEUE.md`).
+What the audits caught, beyond the brief-level fixes: Applied Biostatistics had been described as
+covering trial design and power (the certificate says multivariate/ML), and the Oldenburg letter
+claimed he *defined* SIR grades. **The degree title on every sent CV ("Ph.D. in Astrochemistry") does
+not match the enclosed diploma** (*Doctorat en lasers, molécules, rayonnement atmosphérique*), and
+BASE_TRUTH had the wrong NNT (349 → 311). The B&O CV said "six journal articles", listed an unrecorded
+IBM module, and carried the mutation claim in German, where `check_claims.py` cannot see it.
+**Agent-process defects:** the ICON agent skipped its Checkpoint 2 stop, and its report claimed "zero unverified
+claims". The HAMOCC agent wrote its corrected letter into a misspelled duplicate folder. One agent recompiled the
+**sent** TRON CV PDF (restored). The B&O brief still carried the old B1 sentence (my miss).
+**Open, all Thejus:** send Oldenburg; send HAMOCC and ICON on the same day; read the B&O German; whether he
+built the CLC model ("worked with" → "developed").
