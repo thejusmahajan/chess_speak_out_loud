@@ -1745,3 +1745,25 @@ committed, so GitHub still said "built, unsent". **Committed as `79ff6f9`** and 
 **Open, all Thejus:** Oldenburg to Gemini now (28.09); ZMT reference letter; BASE_TRUTH UNRESOLVED
 6–9 (mutation wording on a *sent* CV; "with clinicians" in the TRON record; manuscript in
 preparation and CLC authorship; Wirtz contact); Heidelberg/IRTA postings.
+
+---
+
+## 2026-09-24 — the mutation claim, measured: false. ZMT withdrawn.
+
+**Asked by Thejus:** read the LC0 work and find out whether we really have 345 mutation tests.
+**Measured:** `pytest --collect-only` → 345 tests. Only **89 of them, in 14 of 56 test files**, carry
+a documented mutation check (docstring or comment). About ten audit reports record mutation checks on
+specific guards. **256 tests in 42 files carry none.** So *"345 mutation-tested tests, each verified to
+fail"* (TRON CV, sent) and *"every guard mutation-tested"* (FZJ 2026T-0592 CV and letter, sent) are
+**false**. Permitted wording: *"345 automated tests; key guards mutation-checked"*. It is now blocked
+in `check_claims.py`, and the rule itself was mutation-checked (before it, both false sentences
+scanned CLEAN).
+**Found on the way:** the sent FZJ 2026T-0592 bundle also carries **Bioconductor ×4, Galaxy and
+"terabytes"**. It went out the day before those corrections, and APPLICATION_LOG had **no entry for
+it at all**. Entry added. Policy as MPINAT: nothing proactive.
+**Public repo:** the `lc0-interpretability` README overstated the coverage. Corrected and committed
+locally (`104d319`-amended, 2-line diff after fixing a CRLF→LF whole-file rewrite). **Not pushed:
+waiting for Thejus's OK.**
+**Thejus's decisions:** Prof. Wirtz is unreachable, so he is off every referee list; **ZMT withdrawn**
+(no reference letter, no publications in the target field). **Handover order: Oldenburg → HAMOCC →
+ICON → B&O.**

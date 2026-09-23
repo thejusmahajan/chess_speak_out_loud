@@ -58,6 +58,8 @@ five-day deadline.
 | `BRIEF_2026-09-23_zmt-postdoc.md` | ZMT Bremen, Postdoc Scientific Programmer, `31-STB-PB2-PD`, **full-time E13** | 31.10.2026 | **ISSUED — ⛔ blocked on a reference letter** |
 | `BRIEF_2026-09-23_bo-service-data-manager.md` | B&O Service SE, Data Manager, **unbefristet** | none stated | **ISSUED — German letter; ⛔ do not send until Thejus has read the German** |
 
+⚑ **24 Sept: ZMT WITHDRAWN by Thejus. Hand over in this order: Oldenburg → HAMOCC → ICON → B&O.** Wirtz is off every referee list (unreachable). Test wording settled: "345 automated tests; key guards mutation-checked".
+
 ✅ **SECOND BACKWARDS PASS DONE, 23 Sept (after restart). The briefs are now safe to hand over;
 Oldenburg first.** Verified against disk, not memory. **All five gates were broken:** `pdftotext
 to_send/*.pdf` exits 99 with 2+ PDFs, so every check printed a blank; `grep -i TPU` matches "output";
