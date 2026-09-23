@@ -1787,3 +1787,16 @@ claims". The HAMOCC agent wrote its corrected letter into a misspelled duplicate
 **sent** TRON CV PDF (restored). The B&O brief still carried the old B1 sentence (my miss).
 **Open, all Thejus:** send Oldenburg; send HAMOCC and ICON on the same day; read the B&O German; whether he
 built the CLC model ("worked with" → "developed").
+
+---
+
+## 2026-09-24 (night) — letters rewritten to land with the employer; CNP pulled from ICON
+
+Thejus settled authorship: **he built the IBM-CLC (agent-based), manuscript in final stages**; he worked with
+ERGOM's CLC only lightly. His direction: German Anschreiben form, objective, not prophetic. Employers hire for
+their problem, and the letter must land there rather than sound like him (recorded in `VOICE/verbatim`).
+Oldenburg and B&O letters are **now in English**, saying why (B1; technical writing more precise in English),
+with a plain German email and portal note. All four letters were rebuilt around the employer's stated problem.
+**CNP removed from ICON:** on 31 Aug he wrote in the trainer that he cannot yet picture a neural process or a
+GP. Featuring it would invite an unanswerable interview question. job_search `519bc9d`.
+**Open, Thejus:** send Oldenburg before 28.09; send HAMOCC + ICON on the same day; send B&O.
