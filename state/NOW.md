@@ -1,6 +1,6 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-09-24 by the leader (Opus 5.5). **24 Sept:** ZMT withdrawn; handover order Oldenburg → HAMOCC → ICON → B&O; mutation claim measured false (see JOURNAL); lc0-interpretability README fix awaiting push approval. Previously (23 Sept): **Job-search work of 23 Sept is recorded in
+**Last updated:** 2026-09-24 by the leader (Opus 5.5). **24 Sept:** ZMT withdrawn; handover order Oldenburg → HAMOCC → ICON → B&O; mutation claim measured false (see JOURNAL); lc0-interpretability README fix PUSHED (66b31e0) with Thejus's OK. Four briefs handed to parallel agents. Previously (23 Sept): **Job-search work of 23 Sept is recorded in
 the job_search repo** (`BATCH_PLAN_2026-09-23.md`, the five `agents/BRIEF_2026-09-23_*.md`, each
 with a SECOND BACKWARDS PASS section). Next actions, all Thejus: hand the **Oldenburg brief** to
 Gemini (deadline **28.09**); request a **ZMT reference letter**; answer BASE_TRUTH *UNRESOLVED* 6–9;
