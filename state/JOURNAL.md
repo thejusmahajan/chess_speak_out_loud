@@ -1800,3 +1800,16 @@ with a plain German email and portal note. All four letters were rebuilt around 
 **CNP removed from ICON:** on 31 Aug he wrote in the trainer that he cannot yet picture a neural process or a
 GP. Featuring it would invite an unanswerable interview question. job_search `519bc9d`.
 **Open, Thejus:** send Oldenburg before 28.09; send HAMOCC + ICON on the same day; send B&O.
+
+---
+
+## 2026-09-24 (close) — Oldenburg sent; CVs de-buzzed
+
+**Oldenburg Biostatistiker*in SENT 24 Sept** (job_search `71725c0`; one PDF, 12 pp, 3.41 MB). The four CVs were
+rewritten plain at Thejus's request: removed the Key-Strengths sidebars that repeated the job entries,
+cut the self-assessment ("production-grade", "massive parallelization"), kept the tool keywords, moved
+teaching into the postdoc entry, and added a DeGIR footnote. Three factual errors caught on the way:
+SIR grading was used, not defined; KIDA received branching ratios, not cross sections; the Goethe B1
+was passed in 06/2025. **Next session:** log HAMOCC, ICON and B&O when Thejus sends them; watch for Oldenburg's
+reply (HR screen, typically days to two weeks).
+

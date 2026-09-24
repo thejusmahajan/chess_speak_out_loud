@@ -1,6 +1,6 @@
 # NOW — where the project stands
 
-**Last updated:** 2026-09-24 (late) by the leader (Opus 5.5). **Four applications BUILT and GATED, not yet sent**: Oldenburg (⛔ 28.09), HAMOCC + ICON (same day), B&O (Thejus reads the German). See job_search `ACTIVE_QUEUE.md`. Earlier on 24 Sept: **24 Sept:** ZMT withdrawn; handover order Oldenburg → HAMOCC → ICON → B&O; mutation claim measured false (see JOURNAL); lc0-interpretability README fix PUSHED (66b31e0) with Thejus's OK. Four briefs handed to parallel agents. Previously (23 Sept): **Job-search work of 23 Sept is recorded in
+**Last updated:** 2026-09-24 (late) by the leader (Opus 5.5). **Oldenburg SENT 24 Sept.** Still built and unsent: **HAMOCC + ICON (same day), B&O**. CVs rewritten plain (no buzz sidebars; teaching inside the postdoc; DeGIR footnote). See job_search `ACTIVE_QUEUE.md`. Earlier on 24 Sept: **24 Sept:** ZMT withdrawn; handover order Oldenburg → HAMOCC → ICON → B&O; mutation claim measured false (see JOURNAL); lc0-interpretability README fix PUSHED (66b31e0) with Thejus's OK. Four briefs handed to parallel agents. Previously (23 Sept): **Job-search work of 23 Sept is recorded in
 the job_search repo** (`BATCH_PLAN_2026-09-23.md`, the five `agents/BRIEF_2026-09-23_*.md`, each
 with a SECOND BACKWARDS PASS section). Next actions, all Thejus: hand the **Oldenburg brief** to
 Gemini (deadline **28.09**); request a **ZMT reference letter**; answer BASE_TRUTH *UNRESOLVED* 6–9;
