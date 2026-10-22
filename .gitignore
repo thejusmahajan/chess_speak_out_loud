@@ -71,3 +71,9 @@ trainer/state/schedule_daemon.json
 trainer/state/schedule_daemon.tmp
 trainer/state/schedule_log.jsonl
 dist/
+
+# Kaggle transfer bundle (data zip + GPU-built lc0) — 550 MB, never commit
+kaggle/
+
+# Local Gemini CLI worker config (auth type only; key stays in the env)
+.gemini/

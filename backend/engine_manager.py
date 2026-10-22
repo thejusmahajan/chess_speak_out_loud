@@ -24,8 +24,11 @@ from backend.mock_data import get_mock_analysis
 
 logger = logging.getLogger(__name__)
 
-# Default engine directory
-ENGINE_DIR = Path(r"C:\Users\Admin\Documents\chess_speak_out_loud\engine")
+# Default engine directory (repo-relative, so the tree is portable)
+ENGINE_DIR = Path(__file__).resolve().parent.parent / "engine"
+
+# LC0 binary name differs by platform.
+LC0_BIN = "lc0.exe" if sys.platform == "win32" else "lc0"
 
 # Wall-clock safety net for node-limited searches: high enough that a normal
 # node-limited search (sub-second on GPU, a few seconds on CPU) never hits it,
@@ -71,13 +74,13 @@ class LC0Engine:
         Initialize the LC0 engine wrapper.
 
         Args:
-            engine_path: Absolute path to the lc0.exe binary.
-                         Defaults to ENGINE_DIR / "lc0.exe".
+            engine_path: Absolute path to the LC0 binary.
+                         Defaults to ENGINE_DIR / LC0_BIN.
             weights_path: Absolute path to the .pb.gz weights file.
                           If None, LC0 will use its default weights.
             custom_uci_options: Optional dict of UCI options to apply on start.
         """
-        self.engine_path: Path = Path(engine_path) if engine_path else ENGINE_DIR / "lc0.exe"
+        self.engine_path: Path = Path(engine_path) if engine_path else ENGINE_DIR / LC0_BIN
         self.weights_path: Optional[Path] = Path(weights_path) if weights_path else None
         self.custom_uci_options: dict = custom_uci_options or {}
         self.gpu_id: Optional[int] = gpu_id

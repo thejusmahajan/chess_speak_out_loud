@@ -27,7 +27,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import chess
-from backend.engine_manager import LC0Engine
+from backend.engine_manager import LC0Engine, LC0_BIN
 from backend.neural_vision import NeuralVision
 from backend.heatmap import generate_all_heatmaps
 from backend.concept_mapper import analyze_position
@@ -64,7 +64,7 @@ logging.basicConfig(level=logging.INFO)
 # ------------------------------------------------------------------
 
 lc0_engine = LC0Engine(
-    engine_path=str(ENGINE_DIR / "lc0.exe"),
+    engine_path=str(ENGINE_DIR / LC0_BIN),
 )
 neural_vision = NeuralVision(onnx_path=str(ENGINE_DIR / "bt3.onnx"))
 
@@ -111,9 +111,10 @@ app.add_middleware(
 
 # Mount frontend static directories
 if FRONTEND_DIR.exists():
-    app.mount("/css", StaticFiles(directory=str(FRONTEND_DIR / "css")), name="css")
-    app.mount("/js", StaticFiles(directory=str(FRONTEND_DIR / "js")), name="js")
-    app.mount("/lib", StaticFiles(directory=str(FRONTEND_DIR / "lib")), name="lib")
+    for _sub in ("css", "js", "lib"):
+        _dir = FRONTEND_DIR / _sub
+        if _dir.exists():
+            app.mount(f"/{_sub}", StaticFiles(directory=str(_dir)), name=_sub)
 else:
     logger.warning("Frontend directory not found at %s", FRONTEND_DIR)
 

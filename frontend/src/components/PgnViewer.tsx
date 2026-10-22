@@ -665,7 +665,15 @@ export default function PgnViewer() {
             Intuition Glow
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <input type="radio" checked={glowMode === 'calculation'} onChange={() => setGlowMode('calculation')} />
+            <input
+              type="radio"
+              checked={glowMode === 'calculation'}
+              onChange={() => {
+                setGlowMode('calculation');
+                const st = gameStates.current[currentIndexRef.current];
+                if (st && !st.calcSaliency && !calcLoading) computeCalcGlow();
+              }}
+            />
             Calculation Glow
           </label>
           <button className="load-btn" disabled={calcLoading} onClick={computeCalcGlow}>

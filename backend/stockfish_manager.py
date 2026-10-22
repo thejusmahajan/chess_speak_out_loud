@@ -11,10 +11,14 @@ from typing import Optional
 import chess
 import chess.engine
 
+import sys
+
 logger = logging.getLogger(__name__)
 
-ENGINE_DIR = Path(r"C:\Users\Admin\Documents\chess_speak_out_loud\engine")
-STOCKFISH_EXE = ENGINE_DIR / "stockfish" / "stockfish-windows-x86-64.exe"
+ENGINE_DIR = Path(__file__).resolve().parent.parent / "engine"
+STOCKFISH_EXE = ENGINE_DIR / "stockfish" / (
+    "stockfish-windows-x86-64.exe" if sys.platform == "win32" else "stockfish"
+)
 
 class StockfishEngine:
     """Wrapper around the Stockfish UCI chess engine."""
