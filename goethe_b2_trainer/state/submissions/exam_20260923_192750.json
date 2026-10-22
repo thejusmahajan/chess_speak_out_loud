@@ -1,0 +1,75 @@
+{
+  "submission_id": "20260923_192750",
+  "timestamp": "2026-09-23T19:27:50.570690+00:00",
+  "timer_mode": "sprint",
+  "overall_result": "NICHT BESTANDEN",
+  "all_modules_passed": false,
+  "average_percentage": 0.0,
+  "pass_mark": 60.0,
+  "modules": {
+    "lesen": {
+      "title": "Lesen (Reading)",
+      "score": 0,
+      "max_score": 30,
+      "percentage": 0.0,
+      "passed": false,
+      "user_answer": "",
+      "correct_answer": "B",
+      "explanation": "Im zweiten Absatz wird ausdrücklich betont, dass in Branchen mit kontinuierlicher Präsenzpflicht (Pflege, Gastronomie) das Konzept an harte personelle Grenzen stößt und ohne zusätzliche Kräfte zu gravierenden Engpässen führt."
+    },
+    "hoeren": {
+      "title": "Hören (Listening)",
+      "score": 0,
+      "max_score": 30,
+      "percentage": 0.0,
+      "passed": false,
+      "user_answer": "",
+      "correct_answer": "B",
+      "explanation": "Dr. Becker erklärt, dass nicht die Zeit für die Antwort das Problem ist, sondern die 'antizipatorische Erschöpfung' – das ständige innere Bereithalten im Alarmzustand, wodurch keine echte Erholung eintritt."
+    },
+    "schreiben": {
+      "title": "Schreiben (Writing)",
+      "score": 0,
+      "max_score": 100,
+      "percentage": 0.0,
+      "passed": false,
+      "evaluation": {
+        "total_score": 0,
+        "max_score": 100,
+        "percentage": 0,
+        "passed": false,
+        "word_count": 0,
+        "scores": {
+          "aufgabenerfuellung": 0,
+          "koharenz": 0,
+          "wortschatz": 0,
+          "korrektheit": 0
+        },
+        "examiner_feedback": "Kein Text eingereicht oder Text zu kurz.",
+        "corrections": []
+      }
+    },
+    "sprechen": {
+      "title": "Sprechen (Speaking)",
+      "score": 0,
+      "max_score": 30,
+      "percentage": 0.0,
+      "passed": false,
+      "evaluation": {
+        "total_score": 0,
+        "max_score": 30,
+        "percentage": 0,
+        "passed": false,
+        "transcript": "Keine Audioaufnahme eingereicht.",
+        "scores": {
+          "aufgabenerfuellung": 0,
+          "koherenz_fluessigkeit": 0,
+          "wortschatz_ausdruck": 0,
+          "korrektheit_grammatik": 0,
+          "aussprache_intonation": 0
+        },
+        "examiner_summary": "Es wurde keine Audioaufnahme für das Modul Sprechen übermittelt."
+      }
+    }
+  }
+}

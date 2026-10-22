@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Goethe-Zertifikat B2 Prüfungssimulator</title>
-  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/style.css?v=20260927_1205">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇩🇪</text></svg>">
 </head>
 <body>
@@ -20,8 +20,15 @@
         </div>
       </div>
 
+      <!-- Tool Switcher: Exam vs Practice Trainer vs Panini Kanon -->
+      <nav class="tool-switcher-nav" aria-label="Tool Switcher">
+        <button class="tool-tab-btn active" id="tabExamSimulator">🏛️ Prüfungssimulator</button>
+        <button class="tool-tab-btn practice-tab" id="tabPracticeTrainer">📚 B2 Praxis-Trainer</button>
+        <button class="tool-tab-btn panini-tab" id="tabPaniniKanon">🕉️ Pāṇini-Kanon</button>
+      </nav>
+
       <!-- Stepper Pills -->
-      <nav class="progress-stepper" aria-label="Exam Progress">
+      <nav class="progress-stepper" id="examProgressStepper" aria-label="Exam Progress">
         <div class="step-pill active" id="pill-welcome">Start</div>
         <div class="step-pill" id="pill-lesen">1. Lesen</div>
         <div class="step-pill" id="pill-hoeren">2. Hören</div>
@@ -72,6 +79,20 @@
           <div class="feature-box">
             <h4>🎙️ 4. Sprechen (Mündlicher Ausdruck)</h4>
             <p>Live-Sprachaufnahme Ihres Vortrags. Direkte multimodale Gemini-Evaluation von Aussprache, Grammatik und Flüssigkeit. <em>(Offiziell: 15 Min.)</em></p>
+          </div>
+          <div class="feature-box" style="grid-column: 1 / -1; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08);">
+            <h4>📚 B2 Praxis-Trainer (Grammatik, Wortschatz &amp; Sätze)</h4>
+            <p>Gezieltes CEFR-B2-Training in 3 Stufen (Einfach, Mittelstufe, Fortgeschritten): Lückentexte, Nomen-Verb-Verbindungen, Schüttelsätze, Fehlerkorrektur und KI-begutachtete Folgesätze.</p>
+            <button class="btn-primary" id="btnLaunchPracticeFromWelcome" style="margin-top: 10px; background: linear-gradient(135deg, #10b981, #06b6d4); color: white; padding: 10px 20px;">
+              Zum B2 Praxis-Trainer wechseln ➔
+            </button>
+          </div>
+          <div class="feature-box" style="grid-column: 1 / -1; border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08);">
+            <h4>🕉️ NEU: Pāṇini-Kanon B1 ➔ B2 (12-Wochen-Curriculum)</h4>
+            <p>Die uralte Methode für modernes B2-Deutsch: 22 dichte Sūtras auswendig lernen, 6 Gaṇapāṭha-Listen als Karteikarten verinnerlichen, Registerwechsel (Schlicht ↔ Gehoben) trainieren und tägliche Śākhā-Sätze mit Gemini AI evaluieren lassen.</p>
+            <button class="btn-primary" id="btnLaunchPaniniFromWelcome" style="margin-top: 10px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 10px 20px; font-weight: 700;">
+              Zum Pāṇini-Kanon Lehrgang ➔
+            </button>
           </div>
         </div>
 
@@ -300,6 +321,50 @@
       </div>
     </section>
 
+    <!-- 6. B2 PRACTICE TRAINER SCREEN (Grammar, Vocabulary & Sentences) -->
+    <section class="view-section" id="view-practice">
+      <div class="practice-container">
+        
+        <!-- Header Banner -->
+        <div class="practice-header-card">
+          <div class="practice-header-info">
+            <h2><span>📚</span> B2 Praxis-Trainer: Grammatik, Wortschatz &amp; Sätze</h2>
+            <p>Gezieltes Training nach dem offiziellen Goethe-Zertifikat B2 Referenzrahmen (CEFR) mit sofortiger Auswertung.</p>
+          </div>
+          <div class="practice-overall-score">
+            <span class="practice-score-label" id="practiceCompletedDisplay">0 von 10 beantwortet</span>
+            <span class="practice-score-num" id="practiceScoreDisplay">0 / 100</span>
+          </div>
+        </div>
+
+        <!-- Tier Selector Tabs -->
+        <div class="practice-tiers-bar" id="practiceTiersBar"></div>
+
+        <!-- Questions Navigation Carousel / Pills -->
+        <div class="questions-nav-strip" id="questionsNavStrip"></div>
+
+        <!-- Main Question Workout Card -->
+        <div class="practice-workout-card" id="practiceWorkoutCard"></div>
+
+      </div>
+    </section>
+
+    <!-- 7. PĀṆINI-KANON CURRICULUM SCREEN (Sūtrapāṭha, Gaṇapāṭha, Prakriyā) -->
+    <section class="view-section" id="view-panini">
+      <div class="panini-container">
+        
+        <!-- Header Banner & Progress Bar -->
+        <div class="panini-header-card" id="paniniHeaderCard"></div>
+
+        <!-- Sub-Navigation Bar -->
+        <nav class="panini-sub-nav" id="paniniSubNav" aria-label="Panini Navigation"></nav>
+
+        <!-- Sub-View Content Container -->
+        <div class="panini-subview-content" id="paniniSubViewContent"></div>
+
+      </div>
+    </section>
+
     <!-- Bottom Navigation Bar for Exam Modules -->
     <div class="module-nav-bar" id="moduleNavBar" style="display: none;">
       <button class="btn-secondary" id="prevModuleBtn">◂ Vorheriges Modul</button>
@@ -316,7 +381,9 @@
     <div class="eval-sub-text">Audioanalyse (Aussprache, Flüssigkeit, Syntax) & Textkorrektur werden verarbeitet.</div>
   </div>
 
-  <script src="/static/js/audio_recorder.js"></script>
-  <script src="/static/js/exam_engine.js"></script>
+  <script src="/static/js/audio_recorder.js?v=20260927_1205"></script>
+  <script src="/static/js/practice_trainer.js?v=20260927_1205"></script>
+  <script src="/static/js/panini_trainer.js?v=20260927_1205"></script>
+  <script src="/static/js/exam_engine.js?v=20260927_1205"></script>
 </body>
 </html>

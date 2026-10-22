@@ -1,0 +1,86 @@
+[
+  {
+    "id": "fzj-l0-001",
+    "ladder": "fzj-ai-microscopy",
+    "level": 0,
+    "topic": "motivation, coupled systems, and the domain gap",
+    "question": "Why are you motivated by this role at FZJ IBG-1, and how do you address your lack of direct microscopy experience?",
+    "answer": "I am drawn to this role because autonomous live-cell microscopy is fundamentally a coupled systems problem, not just a machine learning benchmark. In a microfluidic live-cell setting—such as the cultivation chambers and mother machines at IBG-1—image acquisition, segmentation, inference latency, experiment control, reproducibility, and collaboration with experimental scientists all interact. That is the kind of environment where my engineering background is most useful. I do not have direct microscopy experience, and I would not pretend that my transformer analysis work is already computer vision. What I do bring is a strong record of entering unfamiliar quantitative domains—from theoretical atomic collision physics at Paris-Saclay to marine ecosystem simulation at Helmholtz-Zentrum Hereon and later applied bioinformatics and biostatistics, graded 1.0 in Applied Biostatistics—and turning them into robust, production-grade software. In this role, the core challenge is not only training a model, but building a system that can run reliably for long experiments while biological conditions change and the next acquisition decision depends on the last inference.",
+    "explanation": "Sets the coupled systems frame (optics, inference latency, hardware control, biology) over simple offline benchmark modeling. Explicitly owns the honest domain gap without apologizing or pretending discrete attention is CV, pointing to proven domain adaptability across physics, marine modeling, and grade 1.0 biostatistics.",
+    "trap": "Apologizing for lack of microscopy experience or over-claiming that transformer spatial attention is already computer vision.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/fzj_ai_microscopy/cover_letter_microscopy.tex",
+      "../bioinformatics_project/job_search/applications/fzj_ai_microscopy/knowledge/MASTER_INTERVIEW_MANIFESTO.md",
+      "https://doi.org/10.1371/journal.pone.0264319"
+    ],
+    "difficulty": 800,
+    "requires": []
+  },
+  {
+    "id": "fzj-l0-002",
+    "ladder": "fzj-ai-microscopy",
+    "level": 0,
+    "topic": "trustworthy scientific software and silent bugs",
+    "question": "How do you ensure scientific software is trustworthy, and what is the danger of silent bugs in an autonomous experiment?",
+    "answer": "In autonomous physical systems, the most dangerous failure mode is often not a crash but a plausible silent error. In my current PyTorch project, I analyze a 15-layer transformer using forward hooks to inspect internal representations during inference. I use forward hooks because they let me observe activations and attention without changing the forward computation itself. The analysis code is backed by 345 automated tests, and every guard is mutation-tested. That means I deliberately change the logic a guard protects and check that the test fails, so I know the test is actually catching the right class of error. This discipline mattered because I found two systematic bugs that produced plausible output without raising an exception; one had even reached a published write-up before I noticed it, and I corrected it publicly. That experience is directly relevant to live microscopy, where a silent indexing error, a coordinate bug, or a wrong threshold can mislead the experiment without any obvious failure. In my software work, I therefore care about unit tests for core transformations, regression tests for known failure modes, and end-to-end checks that verify the pipeline still behaves as intended after refactoring.",
+    "explanation": "Connects PyTorch forward hooks and 345 mutation-tested automated tests directly to physical experimental risk. Explains that the most lethal failure mode in live microscopy is not a crash, but a plausible, silent error (like a coordinate inversion or threshold bug) that misguides actuators for hours. Demonstrates intellectual honesty by citing the public blog correction.",
+    "trap": "Talking about testing in generic terms without mentioning mutation testing, invariant checking, or the concrete coordinate bug that produced plausible smooth outputs.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/fzj_ai_microscopy/cover_letter_microscopy.tex",
+      "../bioinformatics_project/job_search/applications/fzj_ai_microscopy/knowledge/MASTER_INTERVIEW_MANIFESTO.md"
+    ],
+    "difficulty": 810,
+    "requires": []
+  },
+  {
+    "id": "fzj-l0-003",
+    "ladder": "fzj-ai-microscopy",
+    "level": 0,
+    "topic": "performance, scaling, and real-time latency",
+    "question": "How do you approach latency constraints and high-performance computing in a live closed-loop microscopy system?",
+    "answer": "Real-time closed-loop control requires a different mindset from offline analysis. In my postdoctoral work, I translated a legacy Fortran/OpenMP simulation into a high-performance Python engine using Google JAX. The main bottleneck was per-agent branching and object-style control flow, which does not scale well when each simulated entity needs its own update logic. I moved that logic into vectorized array operations so the model could execute efficiently on GPUs. That taught me how to think about latency budgets, batching, and where Python-level overhead becomes unacceptable. For autonomous microscopy, I would use the same approach: profile the full loop, identify the slowest stage, and redesign the pipeline around the timing constraints imposed by the microscope and control system. If the model has to decide whether to change exposure, focus, field of view, or microfluidic conditions—as with tools like ObiWan-Microbi—then inference must complete in time to affect the next acquisition. In that context, a fast and stable model that fits the control loop is more useful than a slightly more accurate model that is too slow to act on.",
+    "explanation": "Draws a clear architectural contrast between offline analysis and real-time hardware loops. Grounds this in your verified work porting a Fortran Lagrangian simulation to Google JAX on GPUs by replacing per-agent branching with vectorized array operations. Emphasizes profiling the full loop and prioritizing fast, stable models that fit the timing budget over slow, marginal benchmark gains.",
+    "trap": "Claiming you would just use bigger GPUs or TPU clusters. Real-time instrument constraints require eliminating Python interpreter overhead, using branchless tensor operations, and non-blocking asynchronous data pipelines.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/fzj_ai_microscopy/cover_letter_microscopy.tex",
+      "../bioinformatics_project/job_search/applications/fzj_ai_microscopy/knowledge/MASTER_INTERVIEW_MANIFESTO.md",
+      "https://doi.org/10.1093/bioadv/vbac027"
+    ],
+    "difficulty": 820,
+    "requires": []
+  },
+  {
+    "id": "fzj-l0-004",
+    "ladder": "fzj-ai-microscopy",
+    "level": 0,
+    "topic": "segmentation, uncertainty, and domain transfer",
+    "question": "How would you evaluate segmentation and tracking models, and how should uncertainty estimation function during a live experiment?",
+    "answer": "Although my transformer work is not microscopy, the broader skill of interrogating model behavior transfers well. For segmentation and tracking, I would start from established baselines—such as the U-Net and StarDist backbones in microbeSEG—and evaluate them with the metrics that matter for the experimental use case: IoU and Dice for segmentation quality, association and identity-preservation metrics for tracking, and lineage accuracy where relevant. I would also look beyond averages and analyze failures by condition—for example, cell density, focus drift, photobleaching, motion blur, and illumination variation. In live-cell imaging, models often fail on the specific edge cases that matter most experimentally, so uncertainty estimation needs to be operational rather than decorative. I would treat confidence calibration, ensemble disagreement, or Monte Carlo dropout as tools for deciding when to trust the model, when to defer to a fallback, and when to request more data or annotation—potentially augmented with synthetic data from CellSium. If a model works well on one microbial community but fails on another, my first step would be to determine whether the problem is domain shift, annotation inconsistency, or a genuine need for model retraining or architectural change. That is the same kind of diagnosis I would want in a closed-loop system before changing weights or control logic.",
+    "explanation": "Anchors the group's established baselines (microbeSEG U-Net and StarDist backbones), establishes rigorous metrics (IoU, Dice, association, identity preservation, lineage tracking), and demands that uncertainty estimation be operational rather than decorative. Uses calibrated confidence and MC dropout to triage edge cases (density, photobleaching, focus drift) and guide active learning with synthetic CellSium data.",
+    "trap": "Quoting only aggregate benchmark numbers without analyzing failures sliced by physical conditions (cell density, focal drift, illumination).",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/fzj_ai_microscopy/cover_letter_microscopy.tex",
+      "../bioinformatics_project/job_search/applications/fzj_ai_microscopy/knowledge/MASTER_INTERVIEW_MANIFESTO.md",
+      "https://doi.org/10.1371/journal.pone.0264319",
+      "https://doi.org/10.1093/bioadv/vbac027"
+    ],
+    "difficulty": 830,
+    "requires": []
+  },
+  {
+    "id": "fzj-l0-005",
+    "ladder": "fzj-ai-microscopy",
+    "level": 0,
+    "topic": "collaboration, usability, and first-year plan",
+    "question": "How do you collaborate with experimental scientists, and what is your concrete plan for your first 90 days and first year?",
+    "answer": "Scientific software only becomes useful when it works for the people running the experiments. At HealthTwiSt, I learned how important that is: I externalized 257 hard-coded correction rules into configuration, refactored a production pipeline while keeping the output byte-identical verified via identical(), and built reusable tooling so domain experts could work with the system without touching source code. In an autonomous microscopy setting, I would apply the same principle by making acquisition thresholds, quality checks, and control parameters configurable and understandable to experimental collaborators. Working well in this environment also means communicating technical risk clearly: if a model is uncertain, if the data distribution has changed, or if an artifact is likely to affect the result, that needs to be visible early. In my first 90 days, I would focus on learning the imaging workflow, understanding the failure modes, profiling the current analysis and control pipeline, and finding a well-scoped technical contribution where I could add value quickly. Over 6 to 12 months, my goal would be to take ownership of a component of the system—for example segmentation, tracking, adaptive inference, or a software-control module—and help build a robust, maintainable foundation for autonomous live-cell experimentation. I bring a background in physics, ecosystem modelling, bioinformatics, and biostatistics, plus strong habits around testing, reproducibility, and scientific software engineering. I also hold a valid German work permit and speak English fluently, with German at B1 and improving.",
+    "explanation": "Grounds software usability in your HealthTwiSt production refactoring (externalizing 257 rules into configuration and byte-identical verification via identical()), proving you build tools non-programmers can trust and configure. Lays out a realistic, humble 90-day plan (domain immersion, profiling, quick scoped technical wins) advancing to independent ownership of a pipeline component within 6-12 months.",
+    "trap": "Promising to reinvent the lab's whole infrastructure on day one, or treating experimental scientists as mere users rather than domain partners whose physical artifacts define software requirements.",
+    "sources": [
+      "../bioinformatics_project/job_search/applications/fzj_ai_microscopy/cover_letter_microscopy.tex",
+      "../bioinformatics_project/job_search/applications/fzj_ai_microscopy/knowledge/MASTER_INTERVIEW_MANIFESTO.md"
+    ],
+    "difficulty": 820,
+    "requires": []
+  }
+]

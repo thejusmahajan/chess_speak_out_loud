@@ -292,3 +292,281 @@ Please evaluate this text according to the Goethe B2 criteria now.
             "corrections": [],
             "examiner_feedback": f"Evaluation failed: {e}",
         }
+
+
+def evaluate_practice_difficult(
+    question_id: str,
+    question_data: Dict[str, Any],
+    user_text: str,
+    model_name: str = DEFAULT_MODEL,
+) -> Dict[str, Any]:
+    """
+    Evaluates Tier 3 Difficult open-ended exercises (q9: answer questions, q10: write next sentence)
+    using Gemini LLM with official Goethe B2 criteria, with intelligent fallback.
+    """
+    cleaned_user = (user_text or "").strip()
+    if not cleaned_user or len(cleaned_user) < 5:
+        return {
+            "is_correct": False,
+            "score": 0,
+            "max_score": 10,
+            "feedback": "Die Antwort ist zu kurz oder leer. Bitte formulieren Sie mindestens einen vollständigen Satz auf B2-Niveau.",
+            "cefr_level": "Unter A2",
+            "model_answer": question_data.get("model_answer", ""),
+            "corrections": [],
+            "strengths": [],
+        }
+
+    # Deterministic fallback function
+    def _deterministic_fallback() -> Dict[str, Any]:
+        lower = cleaned_user.lower()
+        score = 6
+        strengths = []
+        feedback = "Ihre Antwort wurde erfasst."
+
+        if question_id == "q9_diff_answer_question":
+            has_comm = any(w in lower for w in ["kommunik", "absprach", "austausch", "abstimm"])
+            has_risk = any(w in lower for w in ["verlust", "verzöger", "fehler", "risiko", "problem", "entscheidung"])
+            if has_comm and has_risk:
+                score = 10
+                strengths.append("Beide Kernaspekte (Kommunikationsaufwand & Informationsrisiko) präzise genannt.")
+                feedback = "Sehr gut! Die inhaltlichen Kernanforderungen der B2-Textfrage wurden voll erfüllt."
+            elif has_comm or has_risk:
+                score = 7
+                strengths.append("Einer der beiden Kernpunkte wurde treffend dargestellt.")
+                feedback = "Gute Antwort. Es empfiehlt sich, sowohl den Kommunikationsaufwand als auch das Risiko noch expliziter zu verknüpfen."
+            else:
+                score = 5
+                feedback = "Die Antwort berührt das Thema, könnte aber die spezifischen Bedenken der Psychologen noch präziser aufgreifen."
+        elif question_id == "q10_diff_write_next_sentence":
+            has_connector = any(c in lower for c in ["andererseits", "allerdings", "jedoch", "demgegenüber", "zwar", "auf der anderen seite", "dennoch"])
+            has_contrast = any(w in lower for w in ["gefahr", "nachteil", "druck", "grenz", "überstund", "belast", "arbeit", "freizeit", "erreichbar"])
+            if has_connector and has_contrast:
+                score = 10
+                strengths.append("Passender B2-Gegenkonnektor und kohärente Schattenseiten formuliert.")
+                feedback = "Ausgezeichnet! Satzverbindung und kontrastierende Argumentation entsprechen vollem B2-Standard."
+            elif has_connector or has_contrast:
+                score = 7
+                strengths.append("Guter Ansatz bei der Formulierung des Folgesatzes.")
+                feedback = "Gut formuliert. Achten Sie auf die Verknüpfung mit einem B2-Konnektor und korrekte Verbstellung."
+            else:
+                score = 5
+                feedback = "Der Folgesatz führt den Gedanken weiter, nutzt jedoch noch nicht das volle Spektrum B2-typischer Konnektoren."
+
+        return {
+            "is_correct": score >= 6,
+            "score": score,
+            "max_score": 10,
+            "feedback": feedback,
+            "cefr_level": "B2" if score >= 8 else "B1+",
+            "model_answer": question_data.get("model_answer", ""),
+            "strengths": strengths,
+            "corrections": [],
+        }
+
+    if not GEMINI_API_KEY:
+        return _deterministic_fallback()
+
+    system_instruction = """
+You are a senior Goethe-Institut certified B2 German Examiner evaluating advanced practice exercises.
+Grade the candidate's response strictly on CEFR B2 standards:
+- Task fulfillment (Did they answer the question or logically continue the sentence with the required perspective?)
+- Syntactic complexity (Subordination, inversion after connectors, word order, verb positioning)
+- Vocabulary and style (B2 register, idiomatic phrasing, accurate connectors)
+- Grammatical precision (Cases, endings, declensions)
+
+Return valid JSON ONLY with the following schema:
+{
+  "is_correct": <boolean, true if score >= 6>,
+  "score": <integer from 0 to 10>,
+  "max_score": 10,
+  "cefr_level": "<e.g. B1.2, B2.1, B2.2, C1>",
+  "feedback": "<Encouraging, clear pedagogical feedback in German on the candidate's answer>",
+  "strengths": ["<1-2 positive aspects>"],
+  "corrections": [
+    {
+      "original": "<error substring>",
+      "corrected": "<corrected substring>",
+      "explanation": "<grammar explanation in German>"
+    }
+  ],
+  "improved_version": "<Polished native-like B2/C1 version of the candidate's text>"
+}
+"""
+
+    prompt = f"""
+Exercise Title: {question_data.get("title")}
+Instruction: {question_data.get("instruction")}
+Context: {question_data.get("reading_passage", question_data.get("lead_in_sentence", ""))}
+Question/Prompt: {question_data.get("question_prompt")}
+Official Model Answer: {question_data.get("model_answer")}
+
+Candidate Submission:
+\"\"\"{cleaned_user}\"\"\"
+
+Evaluate the candidate's response now.
+"""
+
+    try:
+        model = genai.GenerativeModel(
+            model_name=model_name,
+            system_instruction=system_instruction,
+            generation_config={"response_mime_type": "application/json"},
+        )
+        resp = model.generate_content(prompt)
+        res = _clean_json_response(resp.text)
+        res["model_answer"] = question_data.get("model_answer", "")
+        if "max_score" not in res:
+            res["max_score"] = 10
+        if "is_correct" not in res:
+            res["is_correct"] = res.get("score", 0) >= 6
+        return res
+    except Exception as e:
+        print(f"Gemini practice evaluation fallback due to: {e}")
+        fallback = _deterministic_fallback()
+        fallback["examiner_note"] = f"AI offline fallback utilized ({e})."
+        return fallback
+
+
+def evaluate_sakha(
+    sutra_data: Dict[str, Any],
+    user_text: str,
+    model_name: str = DEFAULT_MODEL,
+) -> Dict[str, Any]:
+    """
+    Evaluates a student's Śākhā sentence exercise for a given Pāṇini sūtra.
+    Checks rule compliance, grammatical precision, B2 register, and sentence structure.
+    """
+    cleaned = (user_text or "").strip()
+    sutra_num = sutra_data.get("number", 1)
+    sutra_title = sutra_data.get("title", "")
+    rule = sutra_data.get("rule", "")
+    prompt_text = sutra_data.get("exercise_prompt", "")
+    examples = sutra_data.get("examples_correct", [])
+    
+    def _deterministic_fallback():
+        words = [w for w in re.split(r"\s+", cleaned) if w]
+        num_words = len(words)
+        score = 0
+        strengths = []
+        feedback = ""
+        corrections = []
+        
+        if num_words < 4:
+            score = 3
+            feedback = "Der Satz ist noch sehr kurz. Bilden Sie vollständige Sätze mit Subjekt, Prädikat und dem geforderten Muster."
+        elif num_words < 8:
+            score = 6
+            strengths.append("Grundstruktur erkennbar.")
+            feedback = "Guter Ansatz. Versuchen Sie, den Satz mit mehr B2-Details und passenden Ergänzungen anzureichern."
+        else:
+            score = 8
+            strengths.append(f"Ausführliche Satzbildung im Stil von Sūtra {sutra_num} ({sutra_title}).")
+            strengths.append("Gute Satzlänge und Wortstellung im B2-Bereich.")
+            feedback = f"Sehr gelungene Anwendung der Regel von Sūtra {sutra_num}. Der Satz zeigt gutes Sprachgefühl."
+
+        # Check for capitalized nouns / punctuation
+        if cleaned and not cleaned.endswith((".", "!", "?")):
+            corrections.append({
+                "original": cleaned[-10:],
+                "corrected": cleaned[-10:] + ".",
+                "explanation": "Achten Sie auf das Satzzeichen am Satzende.",
+            })
+
+        return {
+            "is_correct": score >= 6,
+            "score": score,
+            "max_score": 10,
+            "cefr_level": "B2" if score >= 8 else "B1+",
+            "feedback": feedback,
+            "strengths": strengths,
+            "corrections": corrections,
+            "improved_version": examples[0] if examples else cleaned,
+            "sutra_title": sutra_title,
+            "sutra_number": sutra_num,
+        }
+
+    if not cleaned:
+        return {
+            "is_correct": False,
+            "score": 0,
+            "max_score": 10,
+            "cefr_level": "B1",
+            "feedback": "Bitte geben Sie einen Satz oder eine Ausarbeitung ein.",
+            "strengths": [],
+            "corrections": [],
+            "improved_version": examples[0] if examples else "",
+            "sutra_title": sutra_title,
+            "sutra_number": sutra_num,
+        }
+
+    if not GEMINI_API_KEY:
+        return _deterministic_fallback()
+
+    system_instruction = f"""
+You are an expert German teacher and Pāṇini grammarian evaluating a student's German B2 sentence practice (Śākhā).
+The student is practicing Sūtra {sutra_num}: "{sutra_title}".
+Grammar Rule: "{rule}"
+Exercise Task: "{prompt_text}"
+
+Evaluate the student's submission rigorously according to Goethe-Zertifikat B2 CEFR standards:
+1. Rule Application: Did the student correctly apply the target grammar structure (Sūtra {sutra_num})?
+2. Grammatical Accuracy: Check cases (Akkusativ, Dativ, Genitiv), adjective endings, verb placement (Nebensatz vs Hauptsatz), prepositions, noun capitalization.
+3. B2 Register: Is the vocabulary idiomatic and appropriate for B2?
+4. Constructive feedback in clear, motivating German.
+
+Respond ONLY with valid JSON following this schema:
+{{
+  "is_correct": <boolean, true if score >= 6>,
+  "score": <integer from 0 to 10>,
+  "max_score": 10,
+  "cefr_level": "<e.g. B1.2, B2.1, B2.2, C1>",
+  "feedback": "<Clear pedagogical feedback in German>",
+  "strengths": ["<positive aspect 1>", "<positive aspect 2>"],
+  "corrections": [
+    {{
+      "original": "<error phrase or word>",
+      "corrected": "<corrected phrase or word>",
+      "explanation": "<grammar reason in German>"
+    }}
+  ],
+  "improved_version": "<A polished, natural B2-level version of the student's sentence incorporating the sūtra>"
+}}
+"""
+
+    prompt = f"""
+Sūtra: {sutra_num}. {sutra_title}
+Regel: {rule}
+Übungsaufgabe (Śākhā): {prompt_text}
+Mustersätze aus dem Kanon:
+{json.dumps(examples[:2], ensure_ascii=False)}
+
+Eingabe des Schülers:
+\"\"\"{cleaned}\"\"\"
+
+Bitte jetzt bewerten:
+"""
+
+    try:
+        model = genai.GenerativeModel(
+            model_name=model_name,
+            system_instruction=system_instruction,
+            generation_config={"response_mime_type": "application/json"},
+        )
+        resp = model.generate_content(prompt)
+        res = _clean_json_response(resp.text)
+        if "max_score" not in res:
+            res["max_score"] = 10
+        if "is_correct" not in res:
+            res["is_correct"] = res.get("score", 0) >= 6
+        res["sutra_title"] = sutra_title
+        res["sutra_number"] = sutra_num
+        return res
+    except Exception as e:
+        err_msg = str(e).encode("ascii", "replace").decode("ascii")
+        print(f"Gemini Sakha evaluation fallback due to: {err_msg}")
+        fb = _deterministic_fallback()
+        fb["examiner_note"] = f"AI offline fallback utilized ({err_msg})."
+        return fb
+
+

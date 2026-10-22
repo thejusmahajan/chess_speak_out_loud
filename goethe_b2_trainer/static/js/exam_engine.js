@@ -45,6 +45,78 @@ class GoetheExamEngine {
   }
 
   _bindEvents() {
+    // Tool switcher between Exam Simulator, Practice Trainer, and Panini Kanon
+    const tabExam = document.getElementById('tabExamSimulator');
+    const tabPractice = document.getElementById('tabPracticeTrainer');
+    const tabPanini = document.getElementById('tabPaniniKanon');
+    const btnLaunchPractice = document.getElementById('btnLaunchPracticeFromWelcome');
+    const btnLaunchPanini = document.getElementById('btnLaunchPaniniFromWelcome');
+
+    const activatePractice = () => {
+      if (tabPractice) tabPractice.classList.add('active');
+      if (tabExam) tabExam.classList.remove('active');
+      if (tabPanini) tabPanini.classList.remove('active');
+      
+      const stepper = document.getElementById('examProgressStepper');
+      if (stepper) stepper.style.display = 'none';
+
+      const navBar = document.getElementById('moduleNavBar');
+      if (navBar) navBar.style.display = 'none';
+
+      const timerBox = document.getElementById('timerBox');
+      if (timerBox) timerBox.style.display = 'none';
+
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      const practiceSec = document.getElementById('view-practice');
+      if (practiceSec) practiceSec.classList.add('active');
+
+      if (window.goethePracticeTrainer) {
+        window.goethePracticeTrainer.init();
+      }
+    };
+
+    const activatePanini = () => {
+      if (tabPanini) tabPanini.classList.add('active');
+      if (tabExam) tabExam.classList.remove('active');
+      if (tabPractice) tabPractice.classList.remove('active');
+      
+      const stepper = document.getElementById('examProgressStepper');
+      if (stepper) stepper.style.display = 'none';
+
+      const navBar = document.getElementById('moduleNavBar');
+      if (navBar) navBar.style.display = 'none';
+
+      const timerBox = document.getElementById('timerBox');
+      if (timerBox) timerBox.style.display = 'none';
+
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      const paniniSec = document.getElementById('view-panini');
+      if (paniniSec) paniniSec.classList.add('active');
+
+      if (window.paniniTrainer) {
+        window.paniniTrainer.init();
+      }
+    };
+
+    const activateExam = () => {
+      if (tabExam) tabExam.classList.add('active');
+      if (tabPractice) tabPractice.classList.remove('active');
+      if (tabPanini) tabPanini.classList.remove('active');
+
+      const stepper = document.getElementById('examProgressStepper');
+      if (stepper) stepper.style.display = 'flex';
+
+      this._renderStep(this.steps[this.currentStepIndex]);
+      this._updateProgressPills();
+      this._initModuleTimer(this.steps[this.currentStepIndex]);
+    };
+
+    tabPractice?.addEventListener('click', activatePractice);
+    btnLaunchPractice?.addEventListener('click', activatePractice);
+    tabPanini?.addEventListener('click', activatePanini);
+    btnLaunchPanini?.addEventListener('click', activatePanini);
+    tabExam?.addEventListener('click', activateExam);
+
     // Mode toggles
     document.querySelectorAll('.mode-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -176,6 +248,9 @@ class GoetheExamEngine {
     document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
     const target = document.getElementById(`view-${stepName}`);
     if (target) target.classList.add('active');
+
+    const stepper = document.getElementById('examProgressStepper');
+    if (stepper) stepper.style.display = 'flex';
 
     // Bottom Navigation Bar visibility
     const navBar = document.getElementById('moduleNavBar');

@@ -1,0 +1,123 @@
+{
+  "start_date": "2026-09-29",
+  "current_week": 1,
+  "current_day": 4,
+  "streak_days": 4,
+  "last_active_date": "2026-10-07",
+  "sutras_mastered": [],
+  "sutras_in_progress": [
+    "sutra_01",
+    "sutra_02"
+  ],
+  "sakha_submissions": {
+    "sutra_01": [
+      {
+        "text": "Ich interessiere mich sehr für moderne Datenanalyse und künstliche Intelligenz.",
+        "score": 8,
+        "is_correct": true,
+        "feedback": "Sehr gelungene Anwendung der Regel von Sūtra 1. Der Satz zeigt gutes Sprachgefühl.",
+        "timestamp": "2026-09-25T20:31:33.709810+00:00"
+      },
+      {
+        "text": "Ich interessiere mich sehr für moderne Datenanalyse und künstliche Intelligenz.",
+        "score": 8,
+        "is_correct": true,
+        "feedback": "Sehr gelungene Anwendung der Regel von Sūtra 1. Der Satz zeigt gutes Sprachgefühl.",
+        "timestamp": "2026-09-25T20:34:15.955622+00:00"
+      },
+      {
+        "text": "Ich interessiere mich sehr für moderne Datenanalyse und künstliche Intelligenz.",
+        "score": 8,
+        "is_correct": true,
+        "feedback": "Sehr gelungene Anwendung der Regel von Sūtra 1. Der Satz zeigt gutes Sprachgefühl.",
+        "timestamp": "2026-09-25T20:39:46.739452+00:00"
+      },
+      {
+        "text": "Ich interessiere mich sehr für die offene Stelle als Bioinformatiker. Zudem leidet das Team unter dem aktuellen Personalmangel.",
+        "score": 8,
+        "is_correct": true,
+        "feedback": "Sehr gelungene Anwendung der Regel von Sūtra 1. Der Satz zeigt gutes Sprachgefühl.",
+        "timestamp": "2026-09-25T21:05:09.521335+00:00"
+      },
+      {
+        "text": "Ich interessiere mich sehr für die offene Stelle als Bioinformatiker. Zudem leidet das Team unter dem aktuellen Personalmangel.",
+        "score": 8,
+        "is_correct": true,
+        "feedback": "Sehr gelungene Anwendung der Regel von Sūtra 1. Der Satz zeigt gutes Sprachgefühl.",
+        "timestamp": "2026-09-25T21:06:09.920085+00:00"
+      },
+      {
+        "text": "Ich interessiere mich sehr für moderne Datenanalyse und künstliche Intelligenz.",
+        "score": 8,
+        "is_correct": true,
+        "feedback": "Sehr gelungene Anwendung der Regel von Sūtra 1. Der Satz zeigt gutes Sprachgefühl.",
+        "timestamp": "2026-09-25T21:06:55.882186+00:00"
+      },
+      {
+        "text": "Ich interessiere mich sehr für moderne Datenanalyse und künstliche Intelligenz.",
+        "score": 8,
+        "is_correct": true,
+        "feedback": "Sehr gelungene Anwendung der Regel von Sūtra 1. Der Satz zeigt gutes Sprachgefühl.",
+        "timestamp": "2026-09-26T10:46:20.123407+00:00"
+      },
+      {
+        "text": "Ich interessiere mich sehr für moderne Datenanalyse und künstliche Intelligenz.",
+        "score": 8,
+        "is_correct": true,
+        "feedback": "Sehr gelungene Anwendung der Regel von Sūtra 1. Der Satz zeigt gutes Sprachgefühl.",
+        "timestamp": "2026-09-26T10:49:31.865576+00:00"
+      },
+      {
+        "text": "Verb: denken an [an + A]\n- Sache: Ich denke an die Flasche. (Frage: Woran denkst du? -> Antwort: Daran denke ich.)\n- Person: Ich  denke an Jakob. (Frage: an wem denkst du? -> Antwort: Daran an ihm)",
+        "score": 8,
+        "is_correct": true,
+        "feedback": "Sehr gelungene Anwendung der Regel von Sūtra 1. Der Satz zeigt gutes Sprachgefühl.",
+        "timestamp": "2026-09-26T10:54:24.451565+00:00"
+      },
+      {
+        "text": "Verb: denken an [an + A]\n- Sache: Ich denke an die Flasche. (Frage: Woran denkst du? -> Antwort: Daran denke ich.)\n- Person: Ich  denke an Jakob. (Frage: an wem denkst du? -> Antwort: Daran an ihm)",
+        "score": 8,
+        "is_correct": true,
+        "feedback": "Sehr gelungene Anwendung der Regel von Sūtra 1. Der Satz zeigt gutes Sprachgefühl.",
+        "timestamp": "2026-09-26T11:19:54.464919+00:00"
+      },
+      {
+        "text": "Ich interessiere mich sehr für moderne Datenanalyse und künstliche Intelligenz.",
+        "score": 8,
+        "is_correct": true,
+        "feedback": "Sehr gelungene Anwendung der Regel von Sūtra 1. Der Satz zeigt gutes Sprachgefühl.",
+        "timestamp": "2026-09-27T09:33:06.359636+00:00"
+      },
+      {
+        "text": "Ich interessiere mich sehr für moderne Datenanalyse und künstliche Intelligenz.",
+        "score": 8,
+        "is_correct": true,
+        "feedback": "Sehr gelungene Anwendung der Regel von Sūtra 1. Der Satz zeigt gutes Sprachgefühl.",
+        "timestamp": "2026-09-27T09:38:49.244609+00:00"
+      }
+    ]
+  },
+  "transformations_mastered": [
+    "I.1"
+  ],
+  "error_hunt_completed": [
+    "eh_1"
+  ],
+  "translations_completed": [],
+  "flashcard_stats": {
+    "reviewed": 30,
+    "mastered": 30
+  },
+  "daily_checklist": {
+    "2026-09-25": {
+      "sutras": true
+    },
+    "2026-09-26": {
+      "sutras": true,
+      "recitation": false
+    },
+    "2026-09-27": {
+      "sutras": true
+    }
+  }
+}
