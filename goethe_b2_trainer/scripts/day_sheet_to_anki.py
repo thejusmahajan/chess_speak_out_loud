@@ -59,11 +59,12 @@ PROMPT = genanki.Model(
 
 CLOZE = genanki.Model(
     _id("goethe-b2-cloze-v1"), "Goethe B2 · Cloze",
-    fields=[{"name": "Text"}, {"name": "Label"}],
+    fields=[{"name": "Text"}, {"name": "Label"}, {"name": "Extra"}],
     templates=[{
         "name": "Cloze",
         "qfmt": '<div class="label">{{Label}}</div>{{cloze:Text}}',
-        "afmt": '<div class="label">{{Label}}</div>{{cloze:Text}}',
+        "afmt": '<div class="label">{{Label}}</div>{{cloze:Text}}'
+                '{{#Extra}}<div class="note">{{Extra}}</div>{{/Extra}}',
     }], css=CSS, model_type=genanki.Model.CLOZE)
 
 
@@ -180,9 +181,25 @@ def build(path):
                 if n not in ans:
                     continue
                 label = re.match(r"\*\*(.+?):\*\*", q)
-                cloze = re.sub(r"\*\*(.+?)\*\*", r"{{c1::\1}}", html.escape(ans[n], quote=False))
-                add("Frames", CLOZE, [cloze, label.group(1) if label else "Cloze"],
-                    "cloze|" + ans[n])
+                label = label.group(1) if label else "Cloze"
+                hints = re.findall(r"\*\((.+?)\)\*", q)
+                if hints:
+                    label += " · hint: " + ", ".join(hints)
+                a, _, rule = ans[n].partition(" — ")
+                cloze = re.sub(r"\*\*(.+?)\*\*", r"{{c1::\1}}", html.escape(a, quote=False))
+                add("Frames", CLOZE, [cloze, html.escape(label), inline(rule)], "cloze|" + a)
+
+        elif "Task point" in body and "<details>" in body:
+            models = {mm.group(1): (mm.group(2), mm.group(3)) for mm in re.finditer(
+                r"^- \*\*(\S+) · (\S+):\*\* (.+)$", body, re.M)}
+            for r in table(body):
+                code = r["Task"].split(" ", 1)[0]
+                if code not in models:
+                    continue
+                front = "<b>%s</b><div>%s</div><div class='hint'>Frame: <b>%s</b> + one why-sentence with a connector</div>" % (
+                    inline(r["Task"]), inline(r["Task point"]), inline(r["Your frame"]))
+                add("Frames", PROMPT, ["Opinion paragraph", front, inline(models[code][1]), ""],
+                    "opinion|" + r["Task"])
 
         elif head.startswith("G1 ·") and "Class" in body:
             for r in table(body):
@@ -200,6 +217,12 @@ def build(path):
                 a, _, rule = ans[n].partition(" — ")
                 add("G1 Wortstellung", PROMPT, ["G1 · rewrite", inline(q), inline(a), inline(rule)],
                     "g1tr|%d|%s" % (day, q))
+
+    # Error lines anywhere: "✗ *wrong* → ✓ *right* explanation"
+    for em in re.finditer(r"✗ \*(.+?)\* → ✓ \*(.+?)\*(.*)$", text, re.M):
+        add("Fix the error", PROMPT, ["Find and fix the error", inline(em.group(1)),
+                                      inline(em.group(2)), inline(em.group(3))],
+            "fix|" + em.group(1))
 
     # Memory palace locus built today
     lm = re.search(r"\*\*Locus (\d+) — ([^.]+)\.\*\* Words the image holds: \*(.+?)\*\s*\n\s*\nImage: (.+)",
