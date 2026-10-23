@@ -139,6 +139,12 @@ def build(path):
                                    guid=genanki.guid_for("goethe-b2", key)))
         counts[sub] = counts.get(sub, 0) + 1
 
+    # Grammar point of the day, from "## Block 4 · Grammar: G2 Nebensätze I · ..."
+    # (G1 keeps its old deck name, so "G1 drills" days merge into the same subdeck.)
+    gm = re.search(r"^## Block 4 · Grammar: (G\d+)([^·\n]*)", text, re.M)
+    grammar, title = (gm.group(1), gm.group(2).strip()) if gm else ("G1", "")
+    grammar_deck = "G1 Wortstellung" if grammar == "G1" else ("%s %s" % (grammar, title)).strip()
+
     secs = sections(text)
     for head, body in secs.items():
         # Vocabulary: "B1-Check A: ..." and "W01 · ..."
@@ -190,16 +196,21 @@ def build(path):
                 add("Frames", CLOZE, [cloze, html.escape(label), inline(rule)], "cloze|" + a)
 
         elif "Task point" in body and "<details>" in body:
+            # "Five opinion paragraphs" -> "Opinion paragraph", "Two Gründe paragraphs" -> "Gründe paragraph"
+            kind = re.search(r"(\w+) paragraphs?\b", head)
+            kind = kind.group(1).capitalize() if kind else "Opinion"
+            extra = " + one why-sentence with a connector" if kind == "Opinion" else ""
             models = {mm.group(1): (mm.group(2), mm.group(3)) for mm in re.finditer(
                 r"^- \*\*(\S+) · (\S+):\*\* (.+)$", body, re.M)}
             for r in table(body):
                 code = r["Task"].split(" ", 1)[0]
                 if code not in models:
                     continue
-                front = "<b>%s</b><div>%s</div><div class='hint'>Frame: <b>%s</b> + one why-sentence with a connector</div>" % (
-                    inline(r["Task"]), inline(r["Task point"]), inline(r["Your frame"]))
-                add("Frames", PROMPT, ["Opinion paragraph", front, inline(models[code][1]), ""],
-                    "opinion|" + r["Task"])
+                front = "<b>%s</b><div>%s</div><div class='hint'>Frame: <b>%s</b>%s</div>" % (
+                    inline(r["Task"]), inline(r["Task point"]), inline(r["Your frame"]), extra)
+                key = "opinion|" if kind == "Opinion" else kind.lower() + "|"
+                add("Frames", PROMPT, [kind + " paragraph", front, inline(models[code][1]), ""],
+                    key + r["Task"])
 
         elif head.startswith("G1 ·") and "Class" in body:
             for r in table(body):
@@ -215,8 +226,8 @@ def build(path):
                 if n not in ans:
                     continue
                 a, _, rule = ans[n].partition(" — ")
-                add("G1 Wortstellung", PROMPT, ["G1 · rewrite", inline(q), inline(a), inline(rule)],
-                    "g1tr|%d|%s" % (day, q))
+                add(grammar_deck, PROMPT, ["%s · rewrite" % grammar, inline(q), inline(a), inline(rule)],
+                    "%str|%d|%s" % (grammar.lower(), day, q))
 
     # Error lines anywhere: "✗ *wrong* → ✓ *right* explanation"
     for em in re.finditer(r"✗ \*(.+?)\* → ✓ \*(.+?)\*(.*)$", text, re.M):
