@@ -111,7 +111,7 @@ Three W05 verbs are already in your frames: *betreffen* closes H-S (*Weil dieses
 
 **Which exam parts this serves.**
 
-- **Forum post (Schreiben Teil 1):** the task points *andere Möglichkeiten* (F1, F7, F8, F11), *Vorschläge* (F9, F17) and *Möglichkeiten, … zu …* (F10, F12, F14, F18). Your solution paragraph comes after the Vor- und Nachteile paragraph.
+- **Forum post (Schreiben Teil 1):** the task points *andere Möglichkeiten* (F1, F7, F8, F11), *Vorschläge* (F9, F17) *Alternativen* (F15) and *Möglichkeiten, … zu …* (F10, F12, F14, F18). Your solution paragraph comes after the Vor- und Nachteile paragraph.
 - **Talk (Sprechen Teil 1):** your choice at the end of the talk. A-1 leads straight into your verdict.
 - **Discussion (Sprechen Teil 2):** a compromise. A-3 is the answer to every "Sollte … verboten werden?" question.
 

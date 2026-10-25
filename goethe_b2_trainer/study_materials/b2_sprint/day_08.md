@@ -166,7 +166,7 @@ Choose a real office or building you know well for Palace B, and write your own 
 | Anrede-4 | no name given | Sehr geehrte Damen und Herren, | comma after the Anrede, then a small letter | toolkit §8 |
 | Anlass-1 | you write first, with a reason | ich wende mich an Sie, weil … | sich wenden an + Akkusativ; weil: verb last | toolkit §8 |
 | Anlass-2 | the same, plainer | ich schreibe Ihnen, weil … | schreiben + Dativ (Ihnen); weil: verb last | toolkit §8 |
-| Anlass-3 | you answer their message | vielen Dank für Ihre Nachricht. | danken für + Akkusativ | toolkit §8 |
+| Anlass-3 | you answer their message | vielen Dank für Ihre Nachricht. | der Dank für + Akkusativ | toolkit §8 |
 | Anlass-4 | bad news | leider muss ich Ihnen mitteilen, dass … | mit\|teilen + Dativ; dass: verb last | toolkit §8 |
 | Anlass-5 | you ask for something | ich wende mich mit einer Bitte an Sie: … | sich wenden an + Akkusativ | toolkit §8 |
 
@@ -207,7 +207,7 @@ All nine serve Schreiben Teil 2 only. The Anlass always comes first, even when t
 
 ### Say it with a new topic
 
-1. **Anrede-2 + Anlass-1** · task N7: you cannot train the new colleague on Monday. Write to your head of department, Herrn Lange.
+1. **Anrede-2 + Anlass-1** · task N7: you cannot train the new colleague on Monday. Write to your head of department, Herr Lange.
 2. **Anrede-1 + Anlass-5** · task N9: you would like to work from home two days a week. Write to your boss, Frau Hartmann.
 3. **Anrede-1 + Anlass-4** · task N12: the speaker for the company event has cancelled. Write to your boss, Frau Dr. Lorenz.
 4. **Anrede-1 + Anlass-2** · task N14: you want to sign up for the company English course. Write to Frau Becker in HR.
@@ -350,7 +350,7 @@ My text: [paste]
 - [ ] Your 3 worst corrected errors copied into the error log (Date | Wrong | Right | Rule | Type).
 - [ ] Only now, read the model below and mark one frame you did not use but could have.
 
-<details><summary>Model: F8 with your frames (186 words)</summary>
+<details><summary>Model: F8 with your frames (188 words)</summary>
 
 **Wenn ich das Wort „**Nahverkehr**“ höre, denke ich zuerst an** volle Busse am Morgen. **Für mich bedeutet es vor allem,** ohne eigenes Auto mobil **zu** sein. **Weil dieses Thema so viele Menschen betrifft, wird zurzeit viel darüber diskutiert. Im Folgenden möchte ich meine Sichtweise schildern.**
 
@@ -360,9 +360,9 @@ My text: [paste]
 
 **Es gibt durchaus andere Möglichkeiten,** den Autoverkehr **zu** reduzieren**: Man kann zum Beispiel** mehr sichere Radwege bauen. **Ebenso denkbar wäre es,** Carsharing auch auf dem Land **anzubieten.**
 
-**Diese Alternativen haben gleich mehrere Vorteile: Sie sind nicht nur** leiser und sauberer, **sondern auch** deutlich günstiger als ein eigenes Auto.
+**Diese Alternativen haben gleich mehrere Vorteile: Sie sind nicht nur** leiser und sauberer, **sondern auch** deutlich günstiger als ein eigenes Auto. Außerdem schonen sie das Klima.
 
-**Alles in allem bin ich davon überzeugt, dass wir ein Gleichgewicht zwischen** Auto **und** Bahn **brauchen. Entscheidend ist jedoch, dass** auch die Menschen auf dem Land gute Verbindungen bekommen.
+**Alles in allem bin ich davon überzeugt, dass wir ein Gleichgewicht zwischen** Auto **und** Bahn **brauchen. Entscheidend ist jedoch, dass** auch ländliche Regionen gute Verbindungen bekommen.
 
 </details>
 

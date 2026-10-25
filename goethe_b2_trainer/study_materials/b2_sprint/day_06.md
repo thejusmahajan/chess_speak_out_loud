@@ -126,7 +126,7 @@ Four W06 words are already in your frames and talks: *grundsätzlich* opens M-4,
 
 Image: Your childhood chess book glows on the shelf (ein gutes Beispiel). A statue of the state (der Staat, blue and frozen) carries the whole shelf on its back (verantwortlich). A lamp switches on above a child's head (aufgeklärt werden). A fish skeleton hangs from a price tag (auf Kosten der Umwelt). Footprints walk out of one book (zur Folge haben).
 
-Link it to yesterday: you turn from the window to the bookshelf beside it, because before you close you may need one more point. Colour the nouns: das Schachbuch is green and overgrown with grass; die Statue is red and burning, der Staat on its plinth blue and frozen in ice; die Lampe is red and burning; das Skelett is green and overgrown with grass; das Preisschild is green and overgrown with grass; the footprints (die Fußspuren, plural) are grey and multiplied into a crowd.
+Link it to yesterday: you turn from the window to the bookshelf beside it, because before you close you may need one more point. Colour the nouns: das Schachbuch is green and overgrown with grass; the statue of der Staat is blue and frozen in ice, as in the image; die Lampe is red and burning; das Skelett is green and overgrown with grass; das Preisschild is green and overgrown with grass; the footprints (die Fußspuren, plural) are grey and multiplied into a crowd.
 
 > **Your rule for the extra point.** Read the task verb, pick the one row that matches it, and give it one example. The chess book is your example for media and education; never add a second one to the same point. Keep claims soft: *Ich habe den Eindruck, dass …*, never "many studies show".
 
@@ -168,7 +168,7 @@ All eight serve Schreiben Teil 1 (any extra task point) and give you content for
 
 **In the talk** (at the lectern, *eine Möglichkeit genauer*, topic *Mediennutzung im Alltag*): Ein gutes Beispiel dafür ist mein eigenes Erlebnis: Als Kind habe ich mir sehnlich ein Schachbuch gewünscht, aber es war nirgends erhältlich.
 
-**In the discussion** (station 4, D9 *Sollten Kinder im Kindergarten schon am Computer spielen?*): Vor allem junge Menschen müssen über die Risiken aufgeklärt werden.
+**In the discussion** (D9 *Sollten Kinder im Kindergarten schon am Computer spielen?*, when your partner says computers are harmless): Vor allem junge Menschen müssen über die Risiken aufgeklärt werden.
 
 ### Steps
 
@@ -240,7 +240,7 @@ All eight serve Schreiben Teil 1 (any extra task point) and give you content for
 | Regret | Ich hätte Sie früher informieren sollen. |
 | Condition without wenn (C1 touch) | Sollte Ihnen der Termin nicht passen, finden wir einen anderen. |
 
-Yesterday's window frames are G5 in action: A-2 is *Suggesting*, A-4 is *Wishing*. The polite forms come back on Day 8, in your formal emails.
+Yesterday's window frames are G5 in action: A-2 is *Suggesting*, A-4 is *Wishing*. The polite forms come back in Palace B, in your formal emails (Days 11 and 12).
 
 ### 10 new transformations — on paper, then check
 
@@ -292,8 +292,8 @@ This is your first whole forum post. The content is given below as keywords; the
 | Paragraph | Your frame | The content, in keywords |
 | --- | --- | --- |
 | Einleitung | E-2 + H-S | Home: Freizeit · Office: Pflichten |
-| 1 Meinung | M-2 | Recht für alle, an einigen Tagen pro Woche |
-| 2 Gründe | G-1 | Arbeitsweg sparen: Zeit und Geld · zu Hause besser konzentrieren |
+| 1 Meinung | M-2 | Recht für alle, an einigen Tagen pro Woche · nur, wenn die Tätigkeit es zulässt |
+| 2 Gründe | G-1 | Arbeitsweg sparen · zu Hause besser konzentrieren |
 | 3 Nachteile | V-1 | ideal, wer ungestört arbeitet · belastend, wer im Team arbeitet · ganz zu Hause → isoliert |
 | 4 Andere Möglichkeiten | A-5 | flexible Arbeitszeiten · Teilzeitstellen für Führungskräfte |
 | Schluss | S-2 *(tomorrow's frame; copy it from here: „Alles in allem bin ich davon überzeugt, dass wir ein Gleichgewicht zwischen … und … brauchen. Entscheidend ist jedoch, dass …“)* | Flexibilität und Produktivität · faire Regeln, gemeinsam |
@@ -361,13 +361,13 @@ Lay your post next to the model. The model is the toolkit's Musterbeitrag F1 wit
 - [ ] **2:35–2:40** · Go through it paragraph by paragraph. Underline every frame sentence of yours that differs from the bold text, even by one word, and correct it in another colour.
 - [ ] **2:40–2:45** · Check two things the model shows: each point has its own paragraph with at least two content sentences, and the post is 170–190 words. Then read the model aloud once.
 
-<details><summary>Model: Musterbeitrag F1 with your frames (188 words)</summary>
+<details><summary>Model: Musterbeitrag F1 with your frames (190 words)</summary>
 
 **Der Begriff „**Homeoffice**“ besteht aus zwei Wörtern, die bei mir ganz unterschiedliche Gefühle auslösen: Bei „**Home**“ denke ich an** Freizeit, **bei „**Office**“ hingegen an** Pflichten. **Weil dieses Thema so viele Menschen betrifft, wird zurzeit viel darüber diskutiert. Im Folgenden möchte ich meine Sichtweise schildern.**
 
-**Ich vertrete die Auffassung, dass** alle Beschäftigten das Recht haben sollten, an einigen Tagen pro Woche von zu Hause aus zu arbeiten.
+**Ich vertrete die Auffassung, dass** alle Beschäftigten das Recht haben sollten, an einigen Tagen pro Woche von zu Hause aus zu arbeiten. Das gilt nur, wenn die Tätigkeit es zulässt.
 
-**Dafür, dass** viele Menschen lieber im Homeoffice arbeiten, **gibt es mehrere Gründe. Zum einen** sparen sie sich den Weg zur Arbeit und damit Zeit und Geld. **Zum anderen** können sie sich zu Hause oft besser konzentrieren.
+**Dafür, dass** viele Menschen lieber im Homeoffice arbeiten, **gibt es mehrere Gründe. Zum einen** sparen sie sich den Weg zur Arbeit. **Zum anderen** können sie sich zu Hause besser konzentrieren.
 
 **Für Menschen, die gern** ungestört arbeiten, **ist** das Homeoffice **ideal. Für diejenigen, die lieber** im Team arbeiten, **kann es dagegen ziemlich belastend sein.** Wer ausschließlich zu Hause arbeitet, fühlt sich schnell isoliert.
 
@@ -389,13 +389,13 @@ In the discussion, an example makes your argument stick. Say each answer aloud t
 
 1. **D13** · *Ist es sinnvoll, dass Studierende in Vorlesungen Handys benutzen?* (X-1: *Ich habe selbst erlebt, dass …*)
 2. **D7** · *Sollten Bus und Bahn kostenlos sein?* (X-1: *Ein gutes Beispiel dafür ist …*)
-3. **D16** · *Sollte ein soziales Pflichtjahr eingeführt werden?* (X-6)
+3. **D16** · *Sollte ein soziales Pflichtjahr eingeführt werden?* (X-1: *Ein gutes Beispiel dafür ist …*, with a soft claim)
 
 <details><summary>Answers</summary>
 
 1. Ich bin eher dafür. Ich habe selbst erlebt, dass man im Unterricht mit dem Handy schnell ein Wort nachschlagen kann.
 2. Ich bin dafür, dass Bus und Bahn günstiger werden. Ein gutes Beispiel dafür ist das Deutschlandticket: Viele meiner Bekannten fahren seitdem öfter mit der Bahn.
-3. Ich bin eher dafür. Ich gehe davon aus, dass in Zukunft noch mehr Pflegekräfte fehlen werden.
+3. Ich bin eher dafür. Ein gutes Beispiel dafür ist die Pflege: Ich habe den Eindruck, dass dort überall Helfer fehlen.
 
 </details>
 

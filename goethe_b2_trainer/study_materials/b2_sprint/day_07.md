@@ -112,7 +112,7 @@ These are the "Nomen-Verb-Verbindungen" the 50-minute routine asks you to plan i
 
 **Which exam parts this serves.**
 
-- **Forum post (Schreiben Teil 1):** the closing paragraph. The task does not list it, but a post without a Schluss loses points in Kohärenz.
+- **Forum post (Schreiben Teil 1):** the closing paragraph. The four task points do not list it, but the task asks for an Einleitung and a Schluss in every forum post.
 - **Talk (Sprechen Teil 1):** the end of the talk, just before *Damit komme ich zum Ende meines Vortrags.*
 - **Discussion (Sprechen Teil 2):** station 12, where you must also say *dafür* or *dagegen* out loud.
 
@@ -300,13 +300,13 @@ My text: [paste]
 - [ ] If you wrote the Day 0 baseline, put it next to today's post: which frames are new, which errors are gone?
 - [ ] Only now, read the model below and mark one frame you did not use but could have.
 
-<details><summary>Model: F7 with your frames (188 words)</summary>
+<details><summary>Model: F7 with your frames (189 words)</summary>
 
 **Wenn ich das Wort „**Freizeit**“ höre, denke ich zuerst an** Familie, Sport und Erholung. **Für mich bedeutet es vor allem,** Zeit für die Dinge **zu** haben, die mir wichtig sind. **Weil dieses Thema so viele Menschen betrifft, wird zurzeit viel darüber diskutiert. Im Folgenden möchte ich meine Sichtweise schildern.**
 
-**Grundsätzlich halte ich** die Vier-Tage-Woche **für sinnvoll, allerdings nur unter der Voraussetzung, dass** das Gehalt gleich bleibt.
+**Grundsätzlich halte ich** die Vier-Tage-Woche **für sinnvoll, allerdings nur unter der Voraussetzung, dass** das Gehalt gleich bleibt. Denn ausgeruhte Beschäftigte arbeiten besser.
 
-**Dafür, dass** sich viele Beschäftigte mehr Freizeit wünschen, **gibt es mehrere Gründe. Zum einen** ist der Stress im Beruf in den letzten Jahren stark gestiegen. **Zum anderen** möchten viele mehr Zeit mit ihren Kindern verbringen.
+**Dafür, dass** sich viele Beschäftigte mehr Freizeit wünschen, **gibt es mehrere Gründe. Zum einen** ist der Stress im Beruf stark gestiegen. **Zum anderen** möchten viele mehr Zeit mit ihren Kindern verbringen.
 
 **Zwar** haben die Beschäftigten mehr Freizeit, **aber** an den übrigen vier Tagen müssen sie länger arbeiten. Außerdem lässt sich die Vier-Tage-Woche nicht in allen Berufen umsetzen, zum Beispiel in der Pflege.
 

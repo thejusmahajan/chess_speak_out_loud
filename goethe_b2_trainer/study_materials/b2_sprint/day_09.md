@@ -45,7 +45,13 @@ The entrance: a doorman bows very deeply and hands you a comma-shaped key; the n
 | Anlass-4 | leider muss ich Ihnen mitteilen, dass … |
 | Anlass-5 | ich wende mich mit einer Bitte an Sie: … |
 
-- [ ] **0:08–0:12** · Cover the table. Walk from the entrance to the reception and say all nine frames aloud. Then say one Anrede + Anlass for a message to your boss, Herrn Wolf, about a deadline you cannot meet.
+- [ ] **0:08–0:12** · Cover the table. Walk from the entrance to the reception and say all nine frames aloud. Then say one Anrede + Anlass for a message to your boss, Herr Wolf, about a deadline you cannot meet.
+
+<details><summary>Answer</summary>
+
+Sehr geehrter Herr Wolf, ich wende mich an Sie, weil ich die Frist leider nicht einhalten kann.
+
+</details>
 
 ### 0:12–0:20 · Palace walk: all of Palace A · Schreiben Teil 1 (forum post)
 
@@ -165,10 +171,10 @@ All ten serve Schreiben Teil 2 only. Situation-6 and Entschuldigung-1 belong tog
 **Three traps**
 
 - ✗ *Mir hat leider ein Fehler unterlaufen.* → ✓ *Mir ist leider ein Fehler unterlaufen.* unterlaufen takes sein in the Perfekt, like dazwischenkommen.
-- ✗ *Zurzeit bin ich mit zwei dringende Aufgaben beschäftigt.* → ✓ *Zurzeit bin ich mit zwei dringenden Aufgaben beschäftigt.* mit takes the Dativ; in the Dativ plural the adjective ends in -en and the noun takes -n.
+- ✗ *Zurzeit bin ich mit zwei dringende Aufgaben beschäftigt.* → ✓ *Zurzeit bin ich mit zwei dringenden Aufgaben beschäftigt.* mit takes the Dativ; with no article, the adjective in the Dativ plural ends in -en: mit zwei dringenden Aufgaben.
 - ✗ *Ich hätte Sie früher informieren gesollt.* → ✓ *Ich hätte Sie früher informieren sollen.* With a modal verb the past form ends in two infinitives, never in a Partizip.
 
-### The frames filled in, from the model emails
+### The frames filled in, for the model tasks
 
 - **Situation-1 · N1:** Zurzeit bin ich mit zwei dringenden Aufgaben beschäftigt: Ich bereite die Präsentation für den Kunden Meyer vor und organisiere gleichzeitig die Schulung für die neuen Kolleginnen und Kollegen.
 - **Situation-2 · N1:** Wie Sie wissen, arbeite ich gerade an der Präsentation für den Kunden Meyer.
@@ -198,7 +204,7 @@ All ten serve Schreiben Teil 2 only. Situation-6 and Entschuldigung-1 belong tog
 
 1. **Situation-1** · task N11: a colleague is ill and your team must finish a big project by the end of the month.
 2. **Situation-6 + Entschuldigung-1** · task N8: a customer, Herr Seidel, received a wrong invoice.
-3. **Situation-5 + Entschuldigung-2** · task N10: you forgot an appointment with a business partner, Herrn Dr. Kühn.
+3. **Situation-4 + Entschuldigung-2** · task N7: on Monday you are at a training course and cannot train the new colleague.
 4. **Situation-3** · task N13: you are ill, and tomorrow you were supposed to give a presentation.
 5. **Entschuldigung-3** · task N13: express your regret about the presentation.
 6. **Entschuldigung-4** · task N12: the speaker cancelled two days ago, and you are only telling your boss now.
@@ -207,7 +213,7 @@ All ten serve Schreiben Teil 2 only. Situation-6 and Entschuldigung-1 belong tog
 
 1. Zurzeit bin ich mit einem großen Projekt beschäftigt: Wir müssen es bis Monatsende abschließen, aber ein Kollege ist krank.
 2. Mir ist leider ein Fehler unterlaufen: Ich habe Ihnen eine falsche Rechnung geschickt. Dafür möchte ich mich vielmals entschuldigen.
-3. Leider ist mir kurzfristig etwas dazwischengekommen. Es tut mir sehr leid, dass ich unseren Termin vergessen habe.
+3. Leider bin ich am Montag beruflich verhindert: Ich nehme an einer Schulung teil. Es tut mir sehr leid, dass ich den neuen Kollegen nicht einarbeiten kann.
 4. Der Grund dafür ist, dass ich krank geworden bin.
 5. Ich bedauere sehr, dass ich die Präsentation morgen nicht halten kann.
 6. Ich hätte Sie früher informieren sollen.
@@ -360,11 +366,11 @@ Two model emails from the toolkit, with the frame in bold. Read each one aloud, 
 - [ ] **2:05–2:08** · Write a keyword card: one line for your answer (*beides, aber der Staat zuerst*) plus five lines, one per step, at most six words each.
 - [ ] **2:08–2:15** · **Retell 1**, from the card only, recorded on your phone. Open with **E-2** in one sentence, answer the question with **M-1** as sentence two, give the pros and cons with **V-2**, the protected area as your one example, and close with **S-1**. **Stop at 3:30.**
 - [ ] **2:15–2:19** · Listen back once and tick: question answered by sentence three? E-2 with *besteht aus zwei Wörtern* and the verb last in the relative clause? One example only? Under 3:30? Copy your three biggest problems into the error log.
-- [ ] **2:19–2:28** · **Retell 2, live to your voice AI.** Use a different opinion frame (**M-3**: *Einerseits kann jeder Einzelne …, andererseits …*), **X-2** for the state, and **S-2** to close. Paste this prompt as text, then switch to voice:
+- [ ] **2:19–2:28** · **Retell 2, live to your voice AI.** Keep the E-2 opening, but answer the question with a different frame (**M-5**: *Für mich ist die Frage nicht, ob …, sondern wie …*), use **X-2** for the state, and close with **S-2**. Paste this prompt as text, then switch to voice:
 
 ```
 Act as the examiner in Goethe B2 Sprechen Teil 1. My topic: „Umweltschutz: Aufgabe des Einzelnen oder des Staates?“. I will speak in German for about three minutes; do not interrupt me. When I stop, ask me one follow-up question as the examiner (Sie) and wait for my answer. Then give feedback in English:
-(1) Did I answer the question „the individual or the state?“ clearly within my first three sentences?
+(1) Did I answer the question „the individual or the state?“ clearly within my first three sentences, with „Meines Erachtens …“ or „Für mich ist die Frage nicht, ob …, sondern wie …“?
 (2) Did I use these frames correctly: „Der Begriff „…“ besteht aus zwei Wörtern, die bei mir ganz unterschiedliche Gefühle auslösen: …“ / „Die Vorteile liegen auf der Hand: … Allerdings darf man die Nachteile nicht unterschätzen: …“ / „Meines Erachtens ist der Staat dafür verantwortlich, … zu …“ / „Alles in allem bin ich davon überzeugt, dass wir ein Gleichgewicht zwischen … und … brauchen. Entscheidend ist jedoch, dass …“?
 (3) Was my opening at most two sentences, did I use one example only, and did I stop before four minutes?
 (4) My five most important grammar or vocabulary errors, each as wrong → right with a one-line rule.
@@ -385,7 +391,7 @@ Keep the feedback short.
 
 **Retell 1 opening (E-2 + M-1):** Der Begriff „Umweltschutz“ besteht aus zwei Wörtern, die bei mir ganz unterschiedliche Gefühle auslösen: Bei „Umwelt“ denke ich an Sicherheit und Natur, bei „Schutz“ hingegen an eine Gefahr. Meines Erachtens braucht es beides, aber der Staat muss vorangehen.
 
-**Retell 2 opening and ending (M-3 … X-2 … S-2):** Ich sehe das Thema mit gemischten Gefühlen: Einerseits kann jeder Einzelne im Alltag viel tun, andererseits kann nur der Staat klare Regeln für alle schaffen. … Meines Erachtens ist der Staat dafür verantwortlich, die Menschen über nachhaltiges Leben aufzuklären. … Alles in allem bin ich davon überzeugt, dass wir ein Gleichgewicht zwischen Umweltschutz und den Bedürfnissen der Menschen brauchen. Entscheidend ist jedoch, dass niemand seine Existenz verliert.
+**Retell 2 answer and ending (M-5 … X-2 … S-2):** Für mich ist die Frage nicht, ob der Einzelne oder der Staat handeln muss, sondern wie beide zusammenarbeiten. … Meines Erachtens ist der Staat dafür verantwortlich, die Menschen über nachhaltiges Leben aufzuklären. … Alles in allem bin ich davon überzeugt, dass wir ein Gleichgewicht zwischen Umweltschutz und den Bedürfnissen der Menschen brauchen. Entscheidend ist jedoch, dass niemand seine Existenz verliert.
 
 **N10:** Sehr geehrter Herr Dr. Kühn, leider ist mir ein Fehler unterlaufen: Ich habe unseren Termin am Dienstag vergessen. Dafür möchte ich mich vielmals entschuldigen.
 
