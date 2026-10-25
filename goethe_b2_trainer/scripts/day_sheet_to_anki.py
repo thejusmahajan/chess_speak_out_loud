@@ -162,8 +162,8 @@ def build(path):
 
         elif head == "The frames":
             filled = {}
-            for fm in re.finditer(r"^- \*\*(\S+) · ([^:]+):\*\* (.+)$", secs.get(
-                    "The frames filled in, from your own talks", ""), re.M):
+            examples = next((v for k, v in secs.items() if k.startswith("The frames filled in")), "")
+            for fm in re.finditer(r"^- \*\*(\S+) · ([^:]+):\*\* (.+)$", examples, re.M):
                 filled[fm.group(1)] = "<b>%s:</b> %s" % (fm.group(2), inline(fm.group(3)))
             for r in table(body):
                 code = r["Code"].split(" ", 1)[0]
@@ -235,15 +235,15 @@ def build(path):
                                       inline(em.group(2)), inline(em.group(3))],
             "fix|" + em.group(1))
 
-    # Memory palace locus built today
-    lm = re.search(r"\*\*Locus (\d+) — ([^.]+)\.\*\* Words the image holds: \*(.+?)\*\s*\n\s*\nImage: (.+)",
-                   text)
-    if lm:
-        front = "Palace A · Locus %s — <b>%s</b><div class='hint'>Which phrases does the image hold?</div>" % (
-            lm.group(1), html.escape(lm.group(2)))
-        back = "<div>%s</div>" % "<br>".join(inline(p) for p in lm.group(3).rstrip(".").split(" · "))
-        add("Frames", PROMPT, ["Memory palace", front, back, inline(lm.group(4))],
-            "locus|A|" + lm.group(1))
+    # Memory palace loci built today: "**Locus 4 — …**" is Palace A, "**Palace B · Locus 1 — …**" names its palace
+    for lm in re.finditer(r"\*\*(?:Palace ([A-D]) · )?Locus (\d+) — ([^.]+)\.\*\* Words the image holds: "
+                          r"\*(.+?)\*\s*\n\s*\nImage: (.+)", text):
+        palace = lm.group(1) or "A"
+        front = "Palace %s · Locus %s — <b>%s</b><div class='hint'>Which phrases does the image hold?</div>" % (
+            palace, lm.group(2), html.escape(lm.group(3)))
+        back = "<div>%s</div>" % "<br>".join(inline(p) for p in lm.group(4).rstrip(".").split(" · "))
+        add("Frames", PROMPT, ["Memory palace", front, back, inline(lm.group(5))],
+            "locus|%s|%s" % (palace, lm.group(2)))
 
     out_dir = os.path.join(os.path.dirname(os.path.abspath(path)), "anki")
     os.makedirs(out_dir, exist_ok=True)

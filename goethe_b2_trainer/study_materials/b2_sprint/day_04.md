@@ -1,26 +1,22 @@
-# Day 4 · So 25.10.2026 · Frame day
+# Day 4 · Di 20.10.2026 · Frame day
 
 | Day | Date | Memorise | Grammar | Words | Produce | Done |
 | --- | --- | --- | --- | --- | --- | --- |
-| 4 | So 25.10. | Palace A · Schreiben Teil 1, locus 4 (dining table): your Vor- und Nachteile V-1 to V-5 | G3 Nebensätze II | W04 | Two Vorteile paragraphs for F10 and F11 · retell your Digitale Medien talk with the generations split as V-4 | Open |
+| 4 | Di 20.10. | Palace A · Schreiben Teil 1, locus 4 (dining table): your Vor- und Nachteile V-1 to V-5 | G3 Nebensätze II | W04 | Two Vorteile paragraphs for F10 and F11 · retell your Digitale Medien talk with the generations split as V-4 | Open |
 
 > **Slip rule:** Missed a day? Do not double up. Do this sheet the next day and tell the generator the new date; it merges two later days to catch up.
 >
-> **Done five days after the plan date (Di 20.10.).** Nothing is doubled up. Tomorrow is Day 5, not Day 8.
->
 > **Today's theme: weigh it, by person.** Your Digitale Medien talk already splits the topic by generation ("Wer vor den Achtzigern geboren ist …"). Today that move becomes a frame.
->
-> **Sunday:** Block 6 includes the weekly rewrite of your most frequent error types.
 
 ---
 
 ## Block 1 · Review · 0:00–0:20
 
-### 0:00–0:10 · Words due today: W03, B1-Check B, W02 (and B1-Check A, W01 from yesterday)
+### 0:00–0:10 · Words due today: W03, B1-Check A, W01
 
-W03 (learned Fr 23.10.) is due for its first review. B1-Check B and W02 (learned So 18.10.) are due for their 7-day review today; B1-Check A and W01 were due yesterday. Do not try to make up a missed review separately.
+W03 (learned yesterday) is due for its first review; B1-Check A and W01 (learned Sa 17.10.) for their 3-day review.
 
-- [ ] **Anki:** clear every due card in the Day 01, Day 02 and Day 03 decks. Paper box: only the cards in compartments 1 and 2.
+- [ ] **Anki:** clear every due card in the Day 01 and Day 03 decks. Paper box: only the cards in compartments 1 and 2.
 - [ ] **W03:** cover the answers and say the German for each meaning, nouns with article and plural, verbs with their case or preposition. For each one you missed, say one sentence aloud with it.
 
 1. view · 2. opinion · 3. standpoint · 4. perspective · 5. conviction · 6. attitude · 7. objection · 8. argument · 9. claim · 10. criticism · 11. support, advocate · 12. reject · 13. doubt · 14. object · 15. emphasise · 16. highlight · 17. convince · 18. agree with · 19. contradict · 20. controversial · 21. questionable · 22. justified · 23. clear, unambiguous · 24. understandable
@@ -340,7 +336,7 @@ Keep the feedback short.
 
 ## Block 6 · Correction and Aussprache · 2:35–3:00
 
-### 2:35–2:44 · Grade your two Vorteile paragraphs
+### 2:35–2:45 · Grade your two Vorteile paragraphs
 
 Paste this into a text chat, with your two paragraphs from Block 5. Then compare with the models.
 
@@ -353,15 +349,11 @@ My paragraphs: [paste]
 
 - [ ] Both paragraphs graded; models compared.
 
-### 2:44–2:46 · Error log
+### 2:45–2:48 · Error log
 
 - [ ] Your 3 worst corrected errors from today (paragraphs and retells) copied into the error log (Date | Wrong | Right | Rule | Type).
 
-### 2:46–2:51 · Sunday: rewrite your most frequent error types
-
-- [ ] Look through the error log so far (Days 1 to 4). For each error type that appears (up to five, for example Wortstellung, Endung, Präposition, Kasus), write one correct sentence of your own that uses the rule, and say it aloud. If your log has fewer than five types, fill up with today's three traps (Block 3) and the G3 error line (Block 4).
-
-### 2:51–2:55 · The dining table in the discussion (Sprechen Teil 2, station 7)
+### 2:48–2:55 · The dining table in the discussion (Sprechen Teil 2, station 7)
 
 Your partner makes a point; you agree in part and add the other side. Say each answer aloud twice, starting with *Da hast du zwar recht, aber …*. Do not write it down first.
 
@@ -389,6 +381,6 @@ Play one sentence with a voice app, pause, and repeat it with the same melody. T
 
 ---
 
-**Tomorrow, Day 5 (Mo 26.10.):** Palace A · Schreiben Teil 1, locus 5, window: your Lösung and Alternativen A-1 to A-5 · G4 Konjunktiv II: forms · W05 · alternatives paragraph for F8 and F18, then speaking: your Wohnen talk. Review due: W04, W03, plus whatever Anki shows as due; the dining table (V-1 to V-5) and the kitchen, walked together with the front door and the coat rack.
+**Tomorrow, Day 5 (Mi 21.10.):** Palace A · Schreiben Teil 1, locus 5, window: your Lösung and Alternativen A-1 to A-5 · G4 Konjunktiv II: forms · W05 · alternatives paragraph for F8 and F18, then speaking: your Wohnen talk. Review due: W04, B1-Check B, W02, plus whatever Anki shows as due; the dining table (V-1 to V-5) and the coat rack, walked together with the front door and the kitchen.
 
-<sub>Built from: generator §4 (calendar row Day 4, done So 25.10.), §8 Locus 4 V-1 to V-5 with Loci 1–3 for the walk, §9 speech rotation Day 4; toolkit §7 tasks F1, F7, F8, F10, F11, F15, F16, §10 topic bank (Wohnformen, Arbeitsmodelle), §11 station 7, D4, D9, D17, D19, §13 G3, §15 prompts 1 and 2 (adapted); Wortschatz W03 (review), W04; speech log §3 (German version and notes).</sub>
+<sub>Built from: generator §4 (calendar row Day 4, Di 20.10.), §8 Locus 4 V-1 to V-5 with Loci 1–3 for the walk, §9 speech rotation Day 4; toolkit §7 tasks F1, F7, F8, F10, F11, F15, F16, §10 topic bank (Wohnformen, Arbeitsmodelle), §11 station 7, D4, D9, D17, D19, §13 G3, §15 prompts 1 and 2 (adapted); Wortschatz W03 (review), W04; speech log §3 (German version and notes).</sub>
