@@ -35,6 +35,14 @@ Read, in this order, and do not skip:
 `state/MAP.md` answers *"which file tells me X?"* — go there instead of grepping 262
 markdown files.
 
+**Exception — the Goethe B2 sprint.** If the request is about Thejus's German exam (*"today's
+learning script"*, *"the b2_sprint"*, a day sheet, an Anki deck in
+`goethe_b2_trainer/study_materials/b2_sprint/`), skip the chess files above and use the
+**`b2-day-sheet`** skill (`goethe_b2_trainer/.claude/skills/b2-day-sheet/SKILL.md`). Start with
+`python goethe_b2_trainer/scripts/verify_day_sheet.py plan <today>`. Two standing decisions live
+there: **the calendar is exact** (every sheet on its own plan date, missed days built and caught
+up later, never merged or re-dated; Thejus, 2026-10-25), and the kit zip is the only source.
+
 ---
 
 ## Who is who
@@ -91,7 +99,10 @@ coach. See `docs/NORTH_STAR_decoding_lc0.md`.
 1. **Verify, never trust.** Re-run every worker claim yourself. The diff is ground truth;
    the report is a hypothesis about the diff.
 2. **Mutation-check every guard.** A test that passes is nothing. Break the code it protects,
-   watch it go red, restore.
+   watch it go red, restore. **Confirm the break actually landed** — on 2026-10-25 a `sed`
+   mutation matched nothing, so its "pass" proved nothing. And distrust any condition that decides
+   *whether* a check runs: the speech check in `verify_day_sheet.py` only switched on when the
+   first line matched, so damaging that very line switched it off.
 3. **Never invent a number.** Every figure comes from a run actually performed.
 4. **Grep every quoted string** before believing a report that quotes a file. A quote that
    does not grep is a fabrication. (Four fabricated deliveries are on record.)
@@ -108,6 +119,11 @@ coach. See `docs/NORTH_STAR_decoding_lc0.md`.
    ordered, the double-check caught three errors in my own briefs before any file was touched, and
    execution caught a fourth** — `_archive/` turned out to be gitignored, so the brief's claim that
    deletion was "recoverable from git" was false. See [[self-brief-before-every-task]].
+9. **Re-read what you generated after the scripts pass.** A script verifies what was copied; it
+   cannot judge a sentence you wrote. On 2026-10-25, five B2 sheets that had passed every scripted
+   check still held 16 errors on a backward read: a model answer that contradicted itself, model
+   texts breaking the sheet's own final check, a wrong forward reference, an image coloured against
+   its source. Budget the backward pass as part of the work, not as an extra.
 
 ---
 
@@ -118,7 +134,9 @@ This is the routine that makes the next restart cheap. It is four steps.
 ```
 1. Update  state/NOW.md      — deadlines, next 3 actions, blockers, open questions
 2. Append  state/JOURNAL.md  — one dated block: what changed, what was decided, what is open
-3. Commit  git add -A && git commit      (message: what changed and why, not "update docs")
+3. Commit  git add <the files you changed> && git commit   (message: what changed and why)
+           never `git add -A`: goethe_b2_trainer/subtitles/ is deliberately held back from
+           this public repo, and stray files (to_del_*.txt) sit untracked at the root
 4. Push    git push origin windows-dev   — then VERIFY: git status must say nothing ahead
 ```
 
@@ -174,3 +192,9 @@ manually.**
   (deselect `test_ts2_no_hang.py::test_ts2_orphan_future_cancellation_handled` — a
   load-sensitive flake that fails on clean HEAD too)
 - Full runbook: **`HOW_TO_RUN.md`** is authoritative.
+- B2 sprint: `python goethe_b2_trainer/scripts/verify_day_sheet.py plan|check …`, then
+  `python goethe_b2_trainer/scripts/day_sheet_to_anki.py <sheet>` (needs `genanki`). Set
+  `PYTHONIOENCODING=utf-8` or the umlauts crash the Windows console.
+- **`claude -p "…"` prints nothing until the whole job ends.** A long task (one B2 sheet is
+  10+ minutes) looks hung; on 2026-10-25 one was interrupted after 4 minutes, having written
+  nothing. Run it interactively, or add `--output-format stream-json --verbose` to watch.

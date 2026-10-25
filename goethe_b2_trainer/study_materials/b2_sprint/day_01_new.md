@@ -20,7 +20,7 @@ Nothing is due for review yet. Use these 20 minutes to set up your first palace.
 
 **Why Palace A also trains your speaking.** Your seven talks and a forum post follow the same steps: unpack the word → background → pros and cons → one example → best of both worlds. So each locus holds a move you will write in Schreiben Teil 1 and say in Sprechen Teil 1.
 
-**0:00–0:10** · Walk your real route and write your own locus into the first column, in order. If you set up the route already, keep it. Never change the order afterwards.
+- [ ] **0:00–0:10** · Walk your real route and write your own locus into the first column, in order. If you set up the route already, keep it. Never change the order afterwards.
 
 | Your locus | Suggested locus | Module (your step) | Words the image holds | Image |
 | --- | --- | --- | --- | --- |

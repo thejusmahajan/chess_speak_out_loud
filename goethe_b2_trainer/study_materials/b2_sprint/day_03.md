@@ -1,12 +1,10 @@
-# Day 3 · Fr 23.10.2026 · Frame day
+# Day 3 · Mo 19.10.2026 · Frame day
 
 | Day | Date | Memorise | Grammar | Words | Produce | Done |
 | --- | --- | --- | --- | --- | --- | --- |
-| 3 | Fr 23.10. | Palace A · Schreiben Teil 1, locus 3 (kitchen): your Gründe and Hintergrund G-1 to G-4 | G2 Nebensätze I | W03 | Two Gründe paragraphs for F8 and F9 · retell your Online-Lernen talk with its 1980s line as G-2 | Open |
+| 3 | Mo 19.10. | Palace A · Schreiben Teil 1, locus 3 (kitchen): your Gründe and Hintergrund G-1 to G-4 | G2 Nebensätze I | W03 | Two Gründe paragraphs for F8 and F9 · retell your Online-Lernen talk with its 1980s line as G-2 | Open |
 
 > **Slip rule:** Missed a day? Do not double up. Do this sheet the next day and tell the generator the new date; it merges two later days to catch up.
->
-> **Done four days after the plan date (Mo 19.10.).** Nothing is doubled up. Tomorrow is Day 4, not Day 7.
 >
 > **Today's theme: say why, in one breath.** In all twelve practice tasks F7–F18 the second point asks for *Gründe*. Your Online-Lernen talk already has the perfect background line; today it becomes a frame.
 
@@ -14,11 +12,11 @@
 
 ## Block 1 · Review · 0:00–0:20
 
-### 0:00–0:10 · Words due today: B1-Check A, W01, B1-Check B, W02
+### 0:00–0:10 · Words due today: B1-Check B, W02
 
-All four batches are overdue on the plan dates (B1-Check B and W02 were due 19.10. and 21.10., B1-Check A and W01 on 20.10.). Do not try to make up the missed reviews one by one.
+B1-Check B and W02 (learned yesterday) are due for their first review.
 
-- [ ] **Anki:** clear every due card in the Day 01 and Day 02 decks. Anki's own schedule takes over from here. Paper box: only the cards in compartment 1 and 2.
+- [ ] **Anki:** clear every due card in the Day 02 deck. Paper box: only the cards in compartment 1.
 - [ ] **W02:** cover the answers and say the German for each meaning. Then, for each one you missed, say one sentence aloud with the verb at the end.
 
 1. since, as · 2. although · 3. although (C1) · 4. while; whereas · 5. whereas (C1) · 6. by (doing) · 7. so that (result) · 8. so that (purpose) · 9. in order to · 10. without (doing) · 11. instead of (doing) · 12. in case · 13. provided that · 14. as long as · 15. as soon as · 16. after · 17. before · 18. since (time) · 19. the more … the more · 20. both … and · 21. neither … nor · 22. not only … but also · 23. admittedly … but · 24. on the one hand … on the other · 25. to what extent
@@ -373,6 +371,6 @@ Play one sentence with a voice app, pause, and repeat it with the same melody. T
 
 ---
 
-**Tomorrow, Day 4 (Sa 24.10.):** Palace A · Schreiben Teil 1, locus 4, dining table: your Vor- und Nachteile V-1 to V-5 · G3 Nebensätze II · W04 · pro and contra paragraph for F10 and F11, then speaking: your Digitale Medien talk. Review due: W03, plus whatever Anki shows as due; the kitchen (G-1 to G-4), walked together with the front door and the coat rack.
+**Tomorrow, Day 4 (Di 20.10.):** Palace A · Schreiben Teil 1, locus 4, dining table: your Vor- und Nachteile V-1 to V-5 · G3 Nebensätze II · W04 · pro and contra paragraph for F10 and F11, then speaking: your Digitale Medien talk. Review due: W03, B1-Check A, W01, plus whatever Anki shows as due; the kitchen (G-1 to G-4), walked together with the front door and the coat rack.
 
-<sub>Built from: generator §4 (calendar row Day 3, done Fr 23.10.), §8 Locus 3 G-1 to G-4 with Loci 1–2 for the walk; toolkit §7 tasks F1, F7–F9, F12–F14, F16, §11 stations 2–3, D3, D4, D5, D14, §13 G2, §15 prompts 1 and 2 (adapted); Wortschatz W02 (review), W03; speech log §6 (German version and notes).</sub>
+<sub>Built from: generator §4 (calendar row Day 3, Mo 19.10.), §8 Locus 3 G-1 to G-4 with Loci 1–2 for the walk; toolkit §7 tasks F1, F7–F9, F12–F14, F16, §11 stations 2–3, D3, D4, D5, D14, §13 G2, §15 prompts 1 and 2 (adapted); Wortschatz W02 (review), W03; speech log §6 (German version and notes).</sub>
