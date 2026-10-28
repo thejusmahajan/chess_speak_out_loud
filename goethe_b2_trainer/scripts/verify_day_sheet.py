@@ -154,7 +154,8 @@ def check_vocab(sheet, rep):
         exp = []
         for r in src[1:]:
             r = list(r)
-            if r[0].split(" ", 1)[0] in ("der", "die", "das") and r[1] == "–":
+            # nouns only: a phrase such as "die Initiative ergreifen" ends in a verb and keeps its –
+            if r[0].split(" ", 1)[0] in ("der", "die", "das") and r[0].split()[-1][:1].isupper() and r[1] == "–":
                 r[1] = "kein Pl."
             exp.append(r)
         bad = [(" | ".join(e), " | ".join(g)) for e, g in zip(exp, got[1:]) if e != g]
