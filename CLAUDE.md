@@ -42,6 +42,9 @@ learning script"*, *"the b2_sprint"*, a day sheet, an Anki deck in
 `python goethe_b2_trainer/scripts/verify_day_sheet.py plan <today>`. Two standing decisions live
 there: **the calendar is exact** (every sheet on its own plan date, missed days built and caught
 up later, never merged or re-dated; Thejus, 2026-10-25), and the kit zip is the only source.
+A B2 session closes with the skill's §4 (verify, backward pass, Anki, commit, push) instead of
+the four steps below: the commit message is its journal, and `state/NOW.md` stays the chess and
+job-search state. That has been the practice for every B2 commit so far (Days 1–16; `state/` last changed 2026-09-24).
 
 ---
 
@@ -142,6 +145,13 @@ This is the routine that makes the next restart cheap. It is four steps.
 
 **Branch is `windows-dev`.** GitHub's `main` is stale by design — the whole project lives on
 `windows-dev`. Push there.
+
+**But check what is checked out before you commit: `git branch --show-current`.** On 2026-10-30
+the checkout was on `offline-evaluator` (an Ollama evaluator branch, one commit on top of
+`windows-dev`), and a plain `git commit` would have put the day's work on the wrong branch. Do not
+switch branches under someone else's work. `git worktree add` fails here (*Filename too long*,
+Windows' 260-char path limit); commit through a temporary index instead. The recipe is in the
+`b2-day-sheet` skill, §4 step 5, and works for any files, not only B2.
 
 If the session is ending and you have not done these four, you have lost the session.
 

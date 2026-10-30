@@ -5,7 +5,7 @@ description: Build, check and ship the Goethe B2 sprint day sheets (study_materi
 
 # Goethe B2 sprint: building a day sheet
 
-Thejus studies three hours a day from one printed Markdown sheet, for the Goethe-Zertifikat B2 on **Do 10.12.2026** (Schreiben and Sprechen; Sprechen is his weakest skill). This skill is the procedure and the lessons from building Days 1–9. Paths below are relative to `goethe_b2_trainer/`.
+Thejus studies three hours a day from one printed Markdown sheet, for the Goethe-Zertifikat B2 on **Do 10.12.2026** (Schreiben and Sprechen; Sprechen is his weakest skill). This skill is the procedure and the lessons from building Days 1–16. Paths below are relative to `goethe_b2_trainer/`.
 
 ## 1. Which sheet, and which are missing
 
@@ -38,9 +38,9 @@ The kit is the specification and the only content source: `knowledge/b2_kit_to_p
 **Copying**
 - Copy word batches, grammar points, frames, worked examples, locus images, speeches, routines, register traps and model texts **verbatim**. You write only exercises, answers, practice topics and models "in his style", and every one of those gets checked (§5).
 - Wortschatz Grammar column: `–` becomes `kein Pl.` **on nouns only** (der/die/das). On verbs and adjectives it stays `–`. A lone `-` (plural = singular, e.g. *das Anliegen*) stays `-`, with one explanatory line under the table. Never write "Pl. wie Sg.": the Anki generator would colour the noun as a plural.
-- Palace A frames come from the generator's §8 bank (his style). **Palace B, C and D come from the toolkit unchanged**, because his argumentative style does not belong in a formal email.
+- Palace A frames come from the generator's §8 bank (his style). **Palace B and D come from the toolkit unchanged**: his argumentative style does not belong in a formal email, and in the discussion it enters only through the content of the A in R-A-F. **Palace C** is the toolkit's route and script with his frames inserted where the generator's Palace C table says (see below).
 - Palace B frame codes were introduced on Days 8–9 and are **fixed now**, because Anki card IDs hang on them: `Anrede-1…4`, `Anlass-1…5`, `Situation-1…6`, `Entschuldigung-1…4`; Days 10–12 added `Verständnis-1…5` (1–2 ask for it, 3–5 show it), `Bitte-1…3`, `Vorschlag-1…3`, `Angebot-1…2`, `Frage-1…2`, `Schluss-1…4`, `Gruß-1…2`. That is all of toolkit §8, forty codes. Never renumber.
-- Palace C frame codes were fixed on Day 15–16 and carry a `C-` prefix, so they never collide with Palace B's `Schluss-`: `C-Einleitung-1…3` (3 = the card puts Vor- und Nachteile second), `C-Alternativen-1…4`, `C-Genauer-1…4`, each one a piece of the toolkit §10 script, word for word. H-V keeps its Palace A code. Day 17–18 continues the scheme for the scales, curtain and audience (e.g. `C-Bewertung-`, `C-Schluss-`, `C-Fragen-`).
+- Palace C frame codes were fixed on Day 15–16 and carry a `C-` prefix, so they never collide with Palace B's `Schluss-`: `C-Einleitung-1…3` (3 = the card puts Vor- und Nachteile second), `C-Alternativen-1…4`, `C-Genauer-1…4`, each one a piece of the toolkit §10 script, word for word. H-V keeps its Palace A code. Day 17–18 continues the scheme for the scales, curtain and audience (e.g. `C-Bewertung-`, `C-Schluss-`, `C-Fragen-`); the verifier accepts any `C-Word-N` code whose frame is a substring of toolkit §10, question-round phrases included.
 - Palace C follows the generator's Palace C table: toolkit §5 locus words and images unchanged, then `Link image: …` on its own line where the generator adds one (hall door, lectern, scales, curtain), and his E-frame + H-V at the hall door.
 - A Wortschatz phrase that starts with an article but ends in a verb (*die Initiative ergreifen*, *das A und O sein*) is not a noun: its `–` stays `–`, and the verifier knows this.
 
@@ -54,7 +54,9 @@ The kit is the specification and the only content source: `knowledge/b2_kit_to_p
 - **Forward references** ("comes back on Day 11") must be checked against the calendar.
 - English instructions name people in the nominative ("write to Herr Lange"); only the German teaches *Herrn*.
 - Every exercise has an Answers block (`<details><summary>Answers</summary>` plus a blank line), warm-up drills included. Checkboxes on every task. Clock times run 0:00–3:00 without gaps.
-- Keep his professional background out. Use only everyday personal anchors.
+- Keep his professional background out. Use only everyday personal anchors. **Do not invent personal facts in model answers** either: on Day 15–16 the first draft gave him a dog and a market "bei mir um die Ecke". Write the generic version (*wenn sein Besitzer nach Hause kommt*, *Auf dem Markt bekommt man …*).
+- **Error lines must be errors a learner makes.** A ✗ line becomes an Anki card, so a nonsense error (*eingehen über* tacked onto the end) trains nothing; use the real interference (*über … eingehen* instead of *auf … eingehen*).
+- **Do not write the word "Sunday" on a weekday sheet**, not even in "next Sunday": the verifier's Sunday check is a plain text match.
 
 **What the Anki generator expects** (`scripts/day_sheet_to_anki.py`; break these and cards silently vanish)
 - `# Day N · Wd dd.mm.yyyy · …`, and `## Block 4 · Grammar: G3 Nebensätze II · 1:15–1:35`.
@@ -68,19 +70,32 @@ The kit is the specification and the only content source: `knowledge/b2_kit_to_p
 
 ## 4. Verify, then ship
 
-1. `python scripts/verify_day_sheet.py check study_materials/b2_sprint/day_NN.md`. It checks copied German against the kit, model word counts and two-sentence paragraphs, clock contiguity, header and Tomorrow dates, and that the Sunday task appears only on Sundays. It must say `0 failed`.
+1. `python scripts/verify_day_sheet.py check study_materials/b2_sprint/day_NN.md`. It checks copied German against the kit, model word counts and two-sentence paragraphs, clock contiguity, header and Tomorrow dates, and that the Sunday task appears only on Sundays. It must say `0 failed`. (When you run it on all of `day_*.md`, the old `day_01.md`, built for the superseded 14.10. timetable, fails its two date checks. That is expected: `day_01_new.md` is the live Day 1.)
 2. **Backward pass by hand.** The script cannot judge the German you wrote. Read every answer, model and practice item for verb position, case, endings, commas, logic and labels. On Days 5–9 this pass found 16 errors after the script had passed.
 3. `python scripts/day_sheet_to_anki.py study_materials/b2_sprint/day_NN.md`, and check the note counts per subdeck are plausible (frames + say-it items + cloze items + paragraphs + loci).
-4. If you changed either script: mutation-check it. Break one copied word in a **copy** of a sheet, confirm the check fails, and confirm the break was actually applied (a `sed` that matches nothing proves nothing). Then rerun all sheets: Days 1–3 must still rebuild to 85, 95 and 55 notes.
-5. Commit only the sheet, its `.apkg` and any script you changed. **Never** add `subtitles/` (held back pending a publishing decision) or `to_del_sample_email.txt`. Write the message as "what and why", with the Co-Authored-By line, then `git push origin windows-dev` and confirm `git status` is not ahead.
+4. If you changed either script: mutation-check it. Break one copied word in a **copy** of a sheet, confirm the check fails, and confirm the break was actually applied (a `sed` that matches nothing proves nothing). Then rerun all sheets. After a verifier change, compare with the committed version: `git show HEAD:goethe_b2_trainer/scripts/verify_day_sheet.py > scripts/_old.py`, run both on `day_*.md`, the ok/failed counts of old sheets must not drop, then delete `_old.py`. After an Anki-script change, Days 1–3 must still rebuild to 85, 95 and 55 notes.
+5. **Check the branch first: `git branch --show-current`.** If it is `windows-dev`, commit normally. If it is anything else (on 30.10. it was `offline-evaluator`, an Ollama branch someone else made), do not commit there and do not switch branches; use the recipe below. Commit only the sheet, its `.apkg`, and any script or skill you changed. **Never** add `subtitles/` (held back pending a publishing decision) or `to_del_sample_email.txt`. Write the message as "what and why", with the Co-Authored-By line, then `git push origin windows-dev` and confirm `git rev-parse windows-dev origin/windows-dev` prints the same hash twice.
+
+**Committing to `windows-dev` while another branch is checked out.** `git worktree add` does **not** work here: on 30.10. it died with *Filename too long* (the scratchpad path plus the repo's long file names pass Windows' 260-character limit). Build the commit with a temporary index instead, from the repo root in Git Bash; the checkout is never touched:
+
+```
+export GIT_INDEX_FILE=<scratchpad>/wd.index && rm -f "$GIT_INDEX_FILE"
+git read-tree windows-dev
+for f in goethe_b2_trainer/study_materials/b2_sprint/day_NN.md goethe_b2_trainer/study_materials/b2_sprint/anki/day_NN.apkg; do
+  git update-index --add --cacheinfo 100644,$(git hash-object -w "$f"),"$f"; done
+T=$(git write-tree); git diff-tree --numstat windows-dev $T   # only your files; deletions only where you edited
+C=$(git commit-tree $T -p windows-dev -F <scratchpad>/msg.txt)
+git update-ref refs/heads/windows-dev $C <windows-dev hash before>   # refuses if windows-dev moved meanwhile
+unset GIT_INDEX_FILE; rm -f <scratchpad>/wd.index; git push origin windows-dev
+```
+
+Afterwards the files still show as modified or untracked on the checked-out branch. That is expected; leave them, because they are the copy Thejus opens.
 
 ## 5. What the verifier does not cover yet
 
 Covered since Day 15–16: Palace C locus words, images and link images; every `C-` frame must be a substring of the §10 script; `C-` worked examples must be a sentence of V1–V3 or contain the frame's fixed opening; the script table, the six keyword lines and the Mustervorträge V1–V3 verbatim (one paragraph present means the whole talk must be).
 
-Still not covered: Palace D (toolkit §5 Café, §11 stations, R-A-F, du/Sie, Argument-Uhr), the question-round phrases, the discussion bank rows, and the AI prompts (a filled prompt differs from the kit only at its placeholders; compare by hand). Extend `check_toolkit_pieces` before Day 19, when Palace D starts.
-
-If the repo is checked out on another branch (on 30.10. it was `offline-evaluator`, an Ollama branch), do not commit there: `git worktree add <scratchpad>/wd windows-dev`, copy the files in, commit and push from the worktree, then `git worktree remove` it.
+Still not covered: Palace D (toolkit §5 Café, §11 stations, R-A-F, du/Sie, Argument-Uhr), the question-round phrases outside a `C-` frame table, the discussion bank rows, and the AI prompts. Extend `check_toolkit_pieces` before Day 19, when Palace D starts. For a filled AI prompt, replace the kit's placeholders with your fill and compare the rest in Python; note that `[paste]` is followed by a period in the kit, so a fill that ends in its own period shows a false mismatch there.
 
 ## 6. Running it headless
 
