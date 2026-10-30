@@ -40,6 +40,8 @@ The kit is the specification and the only content source: `knowledge/b2_kit_to_p
 - Wortschatz Grammar column: `–` becomes `kein Pl.` **on nouns only** (der/die/das). On verbs and adjectives it stays `–`. A lone `-` (plural = singular, e.g. *das Anliegen*) stays `-`, with one explanatory line under the table. Never write "Pl. wie Sg.": the Anki generator would colour the noun as a plural.
 - Palace A frames come from the generator's §8 bank (his style). **Palace B, C and D come from the toolkit unchanged**, because his argumentative style does not belong in a formal email.
 - Palace B frame codes were introduced on Days 8–9 and are **fixed now**, because Anki card IDs hang on them: `Anrede-1…4`, `Anlass-1…5`, `Situation-1…6`, `Entschuldigung-1…4`; Days 10–12 added `Verständnis-1…5` (1–2 ask for it, 3–5 show it), `Bitte-1…3`, `Vorschlag-1…3`, `Angebot-1…2`, `Frage-1…2`, `Schluss-1…4`, `Gruß-1…2`. That is all of toolkit §8, forty codes. Never renumber.
+- Palace C frame codes were fixed on Day 15–16 and carry a `C-` prefix, so they never collide with Palace B's `Schluss-`: `C-Einleitung-1…3` (3 = the card puts Vor- und Nachteile second), `C-Alternativen-1…4`, `C-Genauer-1…4`, each one a piece of the toolkit §10 script, word for word. H-V keeps its Palace A code. Day 17–18 continues the scheme for the scales, curtain and audience (e.g. `C-Bewertung-`, `C-Schluss-`, `C-Fragen-`).
+- Palace C follows the generator's Palace C table: toolkit §5 locus words and images unchanged, then `Link image: …` on its own line where the generator adds one (hall door, lectern, scales, curtain), and his E-frame + H-V at the hall door.
 - A Wortschatz phrase that starts with an article but ends in a verb (*die Initiative ergreifen*, *das A und O sein*) is not a noun: its `–` stays `–`, and the verifier knows this.
 
 **Writing what is not copied**
@@ -74,7 +76,11 @@ The kit is the specification and the only content source: `knowledge/b2_kit_to_p
 
 ## 5. What the verifier does not cover yet
 
-Palace C and D frames from toolkit §5/§10/§11, the Mustervortrag texts, the discussion bank rows, and the AI prompts. Copy those with extra care, or extend `check_toolkit_pieces` before Day 15, when they start to appear.
+Covered since Day 15–16: Palace C locus words, images and link images; every `C-` frame must be a substring of the §10 script; `C-` worked examples must be a sentence of V1–V3 or contain the frame's fixed opening; the script table, the six keyword lines and the Mustervorträge V1–V3 verbatim (one paragraph present means the whole talk must be).
+
+Still not covered: Palace D (toolkit §5 Café, §11 stations, R-A-F, du/Sie, Argument-Uhr), the question-round phrases, the discussion bank rows, and the AI prompts (a filled prompt differs from the kit only at its placeholders; compare by hand). Extend `check_toolkit_pieces` before Day 19, when Palace D starts.
+
+If the repo is checked out on another branch (on 30.10. it was `offline-evaluator`, an Ollama branch), do not commit there: `git worktree add <scratchpad>/wd windows-dev`, copy the files in, commit and push from the worktree, then `git worktree remove` it.
 
 ## 6. Running it headless
 

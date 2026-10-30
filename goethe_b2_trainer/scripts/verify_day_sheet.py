@@ -196,6 +196,11 @@ def bank():
 
 FRAMES, EXAMPLES, LOCI_A = bank()
 LOCI_B = [r for r in rows(section(TK, r"^### Palace B — .*$", r"^### ")) if len(r) == 5][1:]
+LOCI_C = [r for r in rows(section(TK, r"^### Palace C — .*$", r"^### ")) if len(r) == 5][1:]
+# the generator's Palace C table: the link image to add at each locus ("—" = none)
+LINKS_C = [r[3] for r in rows(section(GEN, r"^### Palace C · .*$", r"^### ")) if len(r) == 4][1:]
+# toolkit §10: the Vortrag script and the three model talks (V1-V3); placeholders unescaped
+VORTRAG = section(TK, r"^## 10\. .*$", r"^## ").replace("\\[", "[").replace("\\]", "]")
 
 
 def check_frames(sheet, rep):
@@ -209,12 +214,28 @@ def check_frames(sheet, rep):
             rep.ok(x == EXAMPLES[(c, t)], "worked example %s · %s" % (c, t), x)
     pat = r"\*\*(?:Palace ([A-D]) · )?Locus (\d+) — ([^.]+)\.\*\* Words the image holds: \*(.+?)\*\s*\n\s*\nImage: (.+)"
     for p, n, name, words, image in re.findall(pat, sheet):
-        table = LOCI_B if p == "B" else LOCI_A if p in ("", "A") else None
+        table = {"B": LOCI_B, "C": LOCI_C, "": LOCI_A, "A": LOCI_A}.get(p)
         if not table:
             continue
         src = table[int(n) - 1]
         rep.ok(words.rstrip(".") == src[-2].rstrip("."), "Palace %s locus %s words" % (p or "A", n), words)
         rep.ok(image.strip() == src[-1], "Palace %s locus %s image" % (p or "A", n), image[:60])
+        if p == "C" and LINKS_C[int(n) - 1] != "—":
+            rep.ok("Link image: " + LINKS_C[int(n) - 1] in lines_of(sheet), "Palace C locus %s link image" % n)
+    # Palace C frames (C-Einleitung-1, C-Alternativen-2, ...) are pieces of the toolkit's Vortrag script,
+    # and their worked examples are sentences from the model talks V1-V3
+    c_frames = {}
+    for r in rows(sheet):
+        if r and re.match(r"^C-[A-Za-zä]+-\d", r[0]) and len(r) >= 4:
+            c_frames[r[0]] = r[2]
+            rep.ok(r[2] in VORTRAG, "Palace C frame %s is in the toolkit §10 script" % r[0], r[2])
+    # a worked example is either a sentence of V1-V3, or it uses the frame's fixed opening words
+    for c, t, x in re.findall(r"^- \*\*(C-\S+) · ([^:]+):\*\* (.+)$", sheet, re.M):
+        lead = re.split(r"…|\[", c_frames.get(c, "\0"))[0].strip()
+        rep.ok(x in VORTRAG or (lead and lead in x), "worked example %s · %s" % (c, t), x)
+    if "| Time | Move | Frame |" in sheet:
+        src = [l for l in section(TK, r"^### The script$").splitlines() if l.startswith("|")]
+        rep.ok(all(l in sheet for l in src), "Vortrag script table verbatim")
 
 
 def check_toolkit_pieces(sheet, rep):
@@ -236,6 +257,17 @@ def check_toolkit_pieces(sheet, rep):
         if any(l in have for l in body if len(l) > 40 and TK.count(l) == 1):
             missing = [l for l in body if l not in have]
             rep.ok(not missing, "model %s verbatim" % m.group(1), str(missing[:1]))
+    # Mustervorträge V1-V3: any paragraph present, the whole talk must be
+    for m in re.finditer(r"^\*\*(V\d) · [^*]+\*\* — .*$", VORTRAG, re.M):
+        body = re.split(r"^\*\*V\d · |^### ", VORTRAG[m.end():], maxsplit=1, flags=re.M)[0]
+        paras = [l.strip() for l in body.splitlines() if l.strip()]
+        if any(l in have for l in paras if len(l) > 40):
+            missing = [l for l in paras if l not in have]
+            rep.ok(not missing, "Mustervortrag %s verbatim" % m.group(1), str(missing[:1])[:80])
+    if "Thema + why you chose it" in sheet:
+        src = [l.strip() for l in section(TK, r"^### Notes in the preparation room$").splitlines()
+               if re.match(r"^\d\. ", l)]
+        rep.ok(len(src) == 6 and all(l in have for l in src), "six keyword lines verbatim")
 
 
 def words_of(t):
