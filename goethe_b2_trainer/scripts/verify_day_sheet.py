@@ -201,6 +201,15 @@ LOCI_C = [r for r in rows(section(TK, r"^### Palace C — .*$", r"^### ")) if le
 LINKS_C = [r[3] for r in rows(section(GEN, r"^### Palace C · .*$", r"^### ")) if len(r) == 4][1:]
 # toolkit §10: the Vortrag script and the three model talks (V1-V3); placeholders unescaped
 VORTRAG = section(TK, r"^## 10\. .*$", r"^## ").replace("\\[", "[").replace("\\]", "]")
+# Palace D: the toolkit's café table ends at "## 6.", so stop at ## as well as ###
+LOCI_D = [r for r in rows(section(TK, r"^### Palace D — .*$", r"^#{2,3} ")) if len(r) == 5][1:]
+# toolkit §11: the discussion; a Palace D frame is one phrase of the 12-station table
+DISKUSSION = section(TK, r"^## 11\. .*$", r"^## ")
+STATION_PHRASES = {p.strip() for r in rows(section(TK, r"^### The 12 stations.*$", r"^### "))[1:]
+                   for p in r[1].split(" · ")}
+# toolkit §15: the six AI prompts, as (number, template)
+PROMPTS = re.findall(r"^\*\*(\d) · [^*]+\*\*\s*\n\s*```\n(.+?)\n```",
+                     section(TK, r"^### Six prompts to copy$", r"^### "), re.M | re.S)
 
 
 def check_frames(sheet, rep):
@@ -214,7 +223,7 @@ def check_frames(sheet, rep):
             rep.ok(x == EXAMPLES[(c, t)], "worked example %s · %s" % (c, t), x)
     pat = r"\*\*(?:Palace ([A-D]) · )?Locus (\d+) — ([^.]+)\.\*\* Words the image holds: \*(.+?)\*\s*\n\s*\nImage: (.+)"
     for p, n, name, words, image in re.findall(pat, sheet):
-        table = {"B": LOCI_B, "C": LOCI_C, "": LOCI_A, "A": LOCI_A}.get(p)
+        table = {"B": LOCI_B, "C": LOCI_C, "D": LOCI_D, "": LOCI_A, "A": LOCI_A}.get(p)
         if not table:
             continue
         src = table[int(n) - 1]
@@ -236,6 +245,16 @@ def check_frames(sheet, rep):
     if "| Time | Move | Frame |" in sheet:
         src = [l for l in section(TK, r"^### The script$").splitlines() if l.startswith("|")]
         rep.ok(all(l in sheet for l in src), "Vortrag script table verbatim")
+    # Palace D frames (D-Eröffnen-1, D-Meinung-2, ...) are single phrases of the toolkit §11 station table;
+    # a worked example is a sentence of §11 or starts with the frame's fixed words (up to …, [ or " / ")
+    d_frames = {}
+    for r in rows(sheet):
+        if r and re.match(r"^D-[A-Za-zÄÖÜäöüß]+-\d", r[0]) and len(r) >= 4:
+            d_frames[r[0]] = r[2]
+            rep.ok(r[2] in STATION_PHRASES, "Palace D frame %s is a §11 station phrase" % r[0], r[2])
+    for c, t, x in re.findall(r"^- \*\*(D-\S+) · ([^:]+):\*\* (.+)$", sheet, re.M):
+        lead = re.split(r"…|\[| / ", d_frames.get(c, "\0"))[0].strip()
+        rep.ok(x in DISKUSSION or (lead and lead in x), "worked example %s · %s" % (c, t), x)
 
 
 def check_toolkit_pieces(sheet, rep):
@@ -268,6 +287,47 @@ def check_toolkit_pieces(sheet, rep):
         src = [l.strip() for l in section(TK, r"^### Notes in the preparation room$").splitlines()
                if re.match(r"^\d\. ", l)]
         rep.ok(len(src) == 6 and all(l in have for l in src), "six keyword lines verbatim")
+    # toolkit §11 pieces: printed at all means printed whole
+    for h in ("### The R-A-F turn", "### The five minutes"):
+        if h in sheet:
+            src = [l.strip() for l in section(TK, r"^%s$" % re.escape(h), r"^### ").splitlines() if l.strip()]
+            missing = [l for l in src if l not in have]
+            rep.ok(not missing, h[4:] + " verbatim", str(missing[:1])[:80])
+    for head, h in (("| du | Sie |", "### du or Sie"), ("| Hour | Category |", "### The Argument-Uhr")):
+        if head in sheet:
+            src = [l for l in section(TK, r"^%s.*$" % re.escape(h), r"^### ").splitlines() if l.startswith("|")]
+            rep.ok(all(l in flat for l in src), h[4:] + " table verbatim")
+    for m in re.finditer(r"^\*\*(D-M\d) · [^*]+\*\*$", DISKUSSION, re.M):
+        body = re.split(r"^\*\*D-M\d · |^### ", DISKUSSION[m.end():], maxsplit=1, flags=re.M)[0]
+        turns = [l.strip() for l in body.splitlines() if l.strip()]
+        if any(l in have for l in turns if len(l) > 40):
+            missing = [l for l in turns if l not in have]
+            rep.ok(not missing, "model dialogue %s verbatim" % m.group(1), str(missing[:1])[:80])
+    bank_d = {r[0]: r for r in rows(section(TK, r"^### Discussion bank.*$", r"^#{2,3} ")) if r}
+    for r in rows(sheet):
+        if r and re.match(r"^D\d+$", r[0]) and r[0] in bank_d:
+            rep.ok(r == bank_d[r[0]], "discussion bank row %s verbatim" % r[0], " | ".join(r))
+
+
+def check_prompts(sheet, rep):
+    """A filled §15 prompt keeps every word around its fills ([topic], [paste], ...)."""
+    blocks = re.findall(r"```\n(.+?)\n```", sheet, re.S)
+    for n, tpl in PROMPTS:
+        # a fill that ends in its own period meets the kit's "[paste]." - so drop a chunk's leading period
+        chunks = [c.strip().lstrip(".").strip() for c in re.split(r"\[[^\]]*\]", tpl)]
+        chunks = [c for c in chunks if len(c) > 3]
+        # a block opening with the prompt's first sentence is a copy; Days 1-5 adapted that sentence
+        # on purpose ("Schreiben Teil 1. Below are five short opinion paragraphs ...") and are not copies
+        for b in blocks:
+            if b.startswith(chunks[0].split(". ")[0] + "."):
+                pos, missing = 0, []
+                for c in chunks:
+                    i = b.find(c, pos)
+                    if i < 0:
+                        missing.append(c)
+                    else:
+                        pos = i + len(c)
+                rep.ok(not missing, "AI prompt %s verbatim around its fills" % n, str(missing[:1])[:80])
 
 
 def words_of(t):
@@ -354,7 +414,7 @@ def check(paths):
         sheet = io.open(path, encoding="utf-8").read()
         rep = Report(os.path.basename(path))
         for fn in (check_vocab, check_grammar, check_speeches, check_frames, check_toolkit_pieces,
-                   check_models, check_clock):
+                   check_prompts, check_models, check_clock):
             fn(sheet, rep)
         check_dates(sheet, path, rep)
         print("%s: %d ok, %d failed" % (rep.name, rep.oks, len(rep.fails)))
