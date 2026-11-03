@@ -156,9 +156,11 @@ def check_vocab(sheet, rep):
             r = list(r)
             # nouns only: a phrase such as "die Initiative ergreifen" ends in a verb and keeps its –
             # a trailing abbreviation such as "(KI)" is ignored: the noun before it decides
+            # a level tag stays: "– (C1)" on a noun becomes "kein Pl. (C1)" (die Reizüberflutung, W21)
             head = re.sub(r"\s*\([^)]*\)$", "", r[0])
-            if head.split(" ", 1)[0] in ("der", "die", "das") and head.split()[-1][:1].isupper() and r[1] == "–":
-                r[1] = "kein Pl."
+            if head.split(" ", 1)[0] in ("der", "die", "das") and head.split()[-1][:1].isupper() \
+                    and re.fullmatch(r"–(?: \(C1\))?", r[1]):
+                r[1] = "kein Pl." + r[1][1:]
             exp.append(r)
         bad = [(" | ".join(e), " | ".join(g)) for e, g in zip(exp, got[1:]) if e != g]
         rep.ok(len(got) - 1 == len(exp) and not bad, "%s rows verbatim (%d of %d)" % (code, len(got) - 1, len(exp)),
