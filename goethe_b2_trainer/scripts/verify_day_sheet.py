@@ -211,6 +211,9 @@ LOCI_D = [r for r in rows(section(TK, r"^### Palace D — .*$", r"^#{2,3} ")) if
 DISKUSSION = section(TK, r"^## 11\. .*$", r"^## ")
 STATION_PHRASES = {p.strip() for r in rows(section(TK, r"^### The 12 stations.*$", r"^### "))[1:]
                    for p in r[1].split(" · ")}
+# toolkit §11: the Argument-Uhr, hour -> its ready sentences in order (split at " · ")
+UHR = {r[0]: [p.strip() for p in r[2].split(" · ")]
+       for r in rows(section(TK, r"^### The Argument-Uhr.*$", r"^### "))[1:] if len(r) == 3}
 # toolkit §15: the six AI prompts, as (number, template)
 PROMPTS = re.findall(r"^\*\*(\d) · [^*]+\*\*\s*\n\s*```\n(.+?)\n```",
                      section(TK, r"^### Six prompts to copy$", r"^### "), re.M | re.S)
@@ -259,6 +262,20 @@ def check_frames(sheet, rep):
     for c, t, x in re.findall(r"^- \*\*(D-\S+) · ([^:]+):\*\* (.+)$", sheet, re.M):
         lead = re.split(r"…|\[| / ", d_frames.get(c, "\0"))[0].strip()
         rep.ok(x in DISKUSSION or (lead and lead in x), "worked example %s · %s" % (c, t), x)
+    # Argument-Uhr frames (Day 22): Uhr-<hour>-<n> is the n-th ready sentence of that hour in toolkit §11;
+    # a worked example contains the frame's fixed words (up to …, [ or " / ", end punctuation dropped)
+    u_frames = {}
+    for r in rows(sheet):
+        um = re.match(r"^Uhr-(\d+)-(\d+)$", r[0]) if r else None
+        if um and len(r) >= 4:
+            u_frames[r[0]] = r[2]
+            src = UHR.get(um.group(1), [])
+            n = int(um.group(2))
+            rep.ok(0 < n <= len(src) and r[2] == src[n - 1], "Argument-Uhr frame %s is hour %s, sentence %s"
+                   % (r[0], um.group(1), n), r[2])
+    for c, t, x in re.findall(r"^- \*\*(Uhr-\S+) · ([^:]+):\*\* (.+)$", sheet, re.M):
+        lead = re.split(r"…|\[| / ", u_frames.get(c, "\0"))[0].strip().rstrip(".?!")
+        rep.ok(bool(lead) and lead in x, "worked example %s · %s" % (c, t), x)
 
 
 def check_toolkit_pieces(sheet, rep):
