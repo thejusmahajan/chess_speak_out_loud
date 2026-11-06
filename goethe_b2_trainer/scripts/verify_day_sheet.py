@@ -214,6 +214,15 @@ STATION_PHRASES = {p.strip() for r in rows(section(TK, r"^### The 12 stations.*$
 # toolkit §11: the Argument-Uhr, hour -> its ready sentences in order (split at " · ")
 UHR = {r[0]: [p.strip() for p in r[2].split(" · ")]
        for r in rows(section(TK, r"^### The Argument-Uhr.*$", r"^### "))[1:] if len(r) == 3}
+# toolkit §12: the personal anchors. Generator §2 keeps his professional background out, so the sheets
+# learn only the everyday ones (Day 24): Anker-1 ... Anker-5 = rows 5, 6, 7, 9 and 10 of the §12 table.
+_P12 = section(TK, r"^## 12\. .*$", r"^## ")
+ANCHORS = [r[0] for r in rows(_P12) if len(r) == 3][1:]
+EVERYDAY = [ANCHORS[i - 1] for i in (5, 6, 7, 9, 10)] if len(ANCHORS) == 10 else []
+# never on a sheet: the five work anchors, the work sentences of the §12 warm-up, and their tell-tale words
+_WARMUP = re.search(r"^\*\*The warm-up.*?\*\* \*(.+)\*$", _P12, re.M)
+WORK = [a for a in ANCHORS if a not in EVERYDAY] + (re.split(r"(?<=\.) ", _WARMUP.group(1))[1:] if _WARMUP else []) \
+    + ["promoviert", "Astrochemie", "Bioinformatik", "Biostatistik", "Ökosysteme"]
 # toolkit §15: the six AI prompts, as (number, template)
 PROMPTS = re.findall(r"^\*\*(\d) · [^*]+\*\*\s*\n\s*```\n(.+?)\n```",
                      section(TK, r"^### Six prompts to copy$", r"^### "), re.M | re.S)
@@ -276,6 +285,23 @@ def check_frames(sheet, rep):
     for c, t, x in re.findall(r"^- \*\*(Uhr-\S+) · ([^:]+):\*\* (.+)$", sheet, re.M):
         lead = re.split(r"…|\[| / ", u_frames.get(c, "\0"))[0].strip().rstrip(".?!")
         rep.ok(bool(lead) and lead in x, "worked example %s · %s" % (c, t), x)
+
+
+def check_anchors(sheet, rep):
+    """§12 personal anchors (Day 24): Anker-N is the N-th everyday anchor, word for word, and its worked
+    example contains it; no sheet prints a work anchor or the work sentences of the §12 warm-up."""
+    rep.ok(len(ANCHORS) == 10 and len(EVERYDAY) == 5 and len(WORK) >= 7, "toolkit §12 anchors parsed")
+    for r in rows(sheet):
+        am = re.match(r"^Anker-(\d+)$", r[0]) if r else None
+        if am and len(r) >= 4:
+            n = int(am.group(1))
+            rep.ok(0 < n <= len(EVERYDAY) and r[2] == EVERYDAY[n - 1],
+                   "anchor %s is everyday anchor %s of §12" % (r[0], n), r[2])
+    for c, t, x in re.findall(r"^- \*\*Anker-(\d+) · ([^:]+):\*\* (.+)$", sheet, re.M):
+        n = int(c)
+        rep.ok(0 < n <= len(EVERYDAY) and EVERYDAY[n - 1] in x, "worked example Anker-%s · %s" % (c, t), x)
+    hits = [w for w in WORK if w in sheet]
+    rep.ok(not hits, "no professional background (generator §2)", str(hits[:2]))
 
 
 def check_toolkit_pieces(sheet, rep):
@@ -434,7 +460,7 @@ def check(paths):
     for path in paths:
         sheet = io.open(path, encoding="utf-8").read()
         rep = Report(os.path.basename(path))
-        for fn in (check_vocab, check_grammar, check_speeches, check_frames, check_toolkit_pieces,
+        for fn in (check_vocab, check_grammar, check_speeches, check_frames, check_anchors, check_toolkit_pieces,
                    check_prompts, check_models, check_clock):
             fn(sheet, rep)
         check_dates(sheet, path, rep)
